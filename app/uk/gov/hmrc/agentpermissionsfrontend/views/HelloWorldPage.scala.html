@@ -1,0 +1,12 @@
+@this(layout: Layout)
+
+@()(implicit request: Request[_], messages: Messages)
+
+@layout(pageTitle = Some("agent-permissions-frontend")) {
+    <h1 class="govuk-heading-xl">agent-permissions-frontend</h1>
+    <p class="govuk-body">@{messages("service.text")}</p>
+}
+
+@{
+    //$COVERAGE-OFF$
+}

@@ -26,13 +26,11 @@ import scala.concurrent.Future
 
 @Singleton
 class RootController @Inject()(
-  mcc: MessagesControllerComponents,
-  start_view: start
-)(implicit val appConfig: AppConfig)
+  mcc: MessagesControllerComponents)(implicit val appConfig: AppConfig)
     extends FrontendController(mcc) {
 
   val start: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(start_view()))
+    Future.successful(Ok("whatever"))
   }
 
 }

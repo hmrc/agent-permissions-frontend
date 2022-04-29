@@ -43,7 +43,7 @@ class RootControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
 
     "return HTML" in {
       val result = controller.start(fakeRequest)
-      contentType(result) shouldBe Some("text/html")
+      contentType(result) shouldBe Some("text/plain")
       charset(result)     shouldBe Some("utf-8")
     }
   }

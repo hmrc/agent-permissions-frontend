@@ -14,35 +14,37 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentpermissionsfrontend.config
+package uk.gov.hmrc.agentpermissionsfrontend.controllers
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
+import play.api.http.Status
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import play.api.inject.guice.GuiceApplicationBuilder
 
-class ErrorHandlerSpec extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite {
-
+class RootControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
-      .configure(
-        "metrics.jvm"     -> false,
-        "metrics.enabled" -> false
-      )
+      .configure("metrics.jvm" -> false, "metrics.enabled" -> false)
       .build()
 
   private val fakeRequest = FakeRequest("GET", "/")
 
-  private val handler = app.injector.instanceOf[ErrorHandler]
+  private val controller = app.injector.instanceOf[RootController]
 
-  "standard error endpoint" should {
-    "render HTML" in {
-      val html = handler.standardErrorTemplate("title", "heading", "message")(fakeRequest)
-      html.contentType shouldBe "text/html"
+  "GET /" should {
+    "return 200" in {
+      val result = controller.start(fakeRequest)
+      status(result) shouldBe Status.OK
+    }
+
+    "return HTML" in {
+      val result = controller.start(fakeRequest)
+      contentType(result) shouldBe Some("text/html")
+      charset(result)     shouldBe Some("utf-8")
     }
   }
 

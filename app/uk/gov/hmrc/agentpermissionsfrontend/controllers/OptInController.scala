@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentpermissionsfrontend.config
+package uk.gov.hmrc.agentpermissionsfrontend.controllers
+
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.agentpermissionsfrontend.config.AppConfig
+import uk.gov.hmrc.agentpermissionsfrontend.views.html.start
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import scala.concurrent.Future
 
 @Singleton
-class AppConfig @Inject()(servicesConfig: ServicesConfig) {
-  val welshLanguageSupportEnabled: Boolean = servicesConfig.getBoolean("features.welsh-language-support")
-  val contactFrontendBaseUrl: String = servicesConfig.baseUrl("contact-frontend")
-  val contactFrontendServiceId: String = servicesConfig.getString("contact-frontend.serviceId")
-  val betaFeedbackUrl: String = s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
+class OptInController @Inject()(
+  mcc: MessagesControllerComponents,
+  start_optIn:start
+) (implicit val appConfig: AppConfig) extends FrontendController(mcc) {
+
+  val start: Action[AnyContent] = Action.async { implicit request =>
+    Future.successful(Ok(start_optIn()))
+  }
+
 }

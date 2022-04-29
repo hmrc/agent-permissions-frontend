@@ -14,15 +14,19 @@
  * limitations under the License.
  *@
 
-@this(layout: Layout)
+@import uk.gov.hmrc.agentpermissionsfrontend.views.html.main_layout
+@import uk.gov.hmrc.agentpermissionsfrontend.config.AppConfig
 
-@()(implicit request: Request[_], messages: Messages)
+@this(layout: main_layout, p: p, h1: h1, inset_text: inset_text, link_as_button: link_as_button)
 
-@layout(pageTitle = Some("agent-permissions-frontend")) {
-    <h1 class="govuk-heading-xl">agent-permissions-frontend</h1>
-    <p class="govuk-body">@{messages("service.text")}</p>
-}
+@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@{
-    //$COVERAGE-OFF$
+@layout(
+ title = msgs("generic.title", msgs("service.name.agents.auth")),
+) {
+ @h1("opt-in-info.h1")
+ @inset_text("opt-in-info.inset")
+ @p("opt-in-info.p1")
+ @p("opt-in-info.p2")
+ @link_as_button("/next")
 }

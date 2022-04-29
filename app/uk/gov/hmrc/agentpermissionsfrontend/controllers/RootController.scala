@@ -16,20 +16,23 @@
 
 package uk.gov.hmrc.agentpermissionsfrontend.controllers
 
-import uk.gov.hmrc.agentpermissionsfrontend.views.html.HelloWorldPage
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.agentpermissionsfrontend.config.AppConfig
+import uk.gov.hmrc.agentpermissionsfrontend.views.html.start
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class HelloWorldController @Inject()(
+class RootController @Inject()(
   mcc: MessagesControllerComponents,
-  helloWorldPage: HelloWorldPage)
+  start_view: start
+)(implicit val appConfig: AppConfig)
     extends FrontendController(mcc) {
 
-  val helloWorld: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(helloWorldPage()))
+  val start: Action[AnyContent] = Action.async { implicit request =>
+    Future.successful(Ok(start_view()))
   }
 
 }

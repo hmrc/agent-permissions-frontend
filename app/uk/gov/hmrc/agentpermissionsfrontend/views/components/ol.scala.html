@@ -14,22 +14,12 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.agentpermissionsfrontend.config.AppConfig
-@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcLayout
-@import views.html.helper.CSPNonce
+@this()
 
-@this(
-        appConfig: AppConfig,
-        hmrcLayout: HmrcLayout
-)
-@(pageTitle: Option[String] = None)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
+@(items: Seq[String])(implicit msgs: Messages)
 
-@hmrcLayout(
-    pageTitle = pageTitle,
-    nonce = CSPNonce.get,
-    isWelshTranslationAvailable = appConfig.welshLanguageSupportEnabled
-)(contentBlock)
-
-@{
-    //$COVERAGE-OFF$
+<ol class="govuk-list govuk-list--bullet">
+ @for(str <- items) {
+ <li class="govuk-list--item">@msgs(str)</li>
 }
+</ol>

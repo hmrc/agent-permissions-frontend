@@ -25,27 +25,23 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.inject.guice.GuiceApplicationBuilder
 
-class HelloWorldControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
+class OptInControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
-      .configure(
-        "metrics.jvm"     -> false,
-        "metrics.enabled" -> false
-      )
+      .configure("metrics.jvm" -> false, "metrics.enabled" -> false)
       .build()
 
   private val fakeRequest = FakeRequest("GET", "/")
-
-  private val controller = app.injector.instanceOf[HelloWorldController]
+  private val controller = app.injector.instanceOf[OptInController]
 
   "GET /" should {
     "return 200" in {
-      val result = controller.helloWorld(fakeRequest)
+      val result = controller.start(fakeRequest)
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val result = controller.helloWorld(fakeRequest)
+      val result = controller.start(fakeRequest)
       contentType(result) shouldBe Some("text/html")
       charset(result)     shouldBe Some("utf-8")
     }

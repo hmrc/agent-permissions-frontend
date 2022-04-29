@@ -3,15 +3,16 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "agent-permissions-frontend"
 
-val silencerVersion = "1.7.7"
+val silencerVersion = "1.7.8"
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
+  .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(
-    majorVersion                     := 0,
-    scalaVersion                     := "2.12.15",
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
-    pipelineStages in Assets := Seq(gzip),
+    majorVersion              := 0,
+    scalaVersion              := "2.12.15",
+    PlayKeys.playDefaultPort  := 9452,
+    libraryDependencies       ++= AppDependencies.compile ++ AppDependencies.test,
+    pipelineStages in Assets  := Seq(gzip),
     // ***************
     // Use the silencer plugin to suppress warnings
     scalacOptions += "-P:silencer:pathFilters=routes",

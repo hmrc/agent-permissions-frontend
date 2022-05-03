@@ -25,6 +25,6 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig) {
   val contactFrontendBaseUrl: String = servicesConfig.baseUrl("contact-frontend")
   val contactFrontendServiceId: String = servicesConfig.getString("contact-frontend.serviceId")
   val betaFeedbackUrl: String = s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
-  val basGatewayUrl: String = servicesConfig.getConfString("bas-gateway", "external-url")
-  val loginContinueUrl: String = servicesConfig.getConfString("bas-gateway", "login-continue")
+  val basGatewayUrl: String = servicesConfig.getString("microservice.services.bas-gateway.external-url")
+  val loginContinueUrl: String = servicesConfig.getString("microservice.services.bas-gateway.login-continue")
 }

@@ -16,24 +16,28 @@
 
 package uk.gov.hmrc.agentpermissionsfrontend.controllers
 
-import play.api.{Logger, Logging}
+import play.api.{Configuration, Environment, Logging}
 import play.api.mvc.Results.{Forbidden, Redirect}
 import play.api.mvc.{Request, Result}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agentpermissionsfrontend.config.AppConfig
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
 import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
-import uk.gov.hmrc.auth.core.retrieve.~
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-trait AuthAction extends AuthRedirects with AuthorisedFunctions with Logging {
+@Singleton
+class AuthAction @Inject()(
+                            val authConnector: AuthConnector,
+                            val env: Environment,
+                            val config: Configuration) extends AuthRedirects with AuthorisedFunctions with Logging {
 
   val agentEnrolment = "HMRC-AS-AGENT"
-
 
   def withAuthorisedAgent(body: Arn => Future[Result])(
     implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_], appConfig: AppConfig) = {
@@ -43,7 +47,7 @@ trait AuthAction extends AuthRedirects with AuthorisedFunctions with Logging {
         case enrols ~ credRole =>
           getArn(enrols) match {
             case Some(arn) => credRole match {
-              case Some(User) => body(arn)
+              case Some(User) | Some(Admin) => body(arn)
               case _ =>
                 logger.warn("Invalid credential role")
                 Future.successful(Forbidden)

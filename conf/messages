@@ -1,6 +1,8 @@
 service.name = Manage Agent Permissions
 service.text = Manage Agent Permissions
 
+generic.title={0} - {1} - GOV.UK
+
 #common message keys. PLEASE DON'T DUPLICATE THINGS!
 continue.button=Continue
 submit.button=Submit

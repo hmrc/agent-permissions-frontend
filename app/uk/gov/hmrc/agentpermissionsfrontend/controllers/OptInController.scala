@@ -17,21 +17,29 @@
 package uk.gov.hmrc.agentpermissionsfrontend.controllers
 
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.{Configuration, Environment}
 import uk.gov.hmrc.agentpermissionsfrontend.config.AppConfig
 import uk.gov.hmrc.agentpermissionsfrontend.views.html.start
+import uk.gov.hmrc.auth.core.PlayAuthConnector
+import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class OptInController @Inject()(
-  mcc: MessagesControllerComponents,
-  start_optIn:start
-) (implicit val appConfig: AppConfig) extends FrontendController(mcc) {
+     mcc: MessagesControllerComponents,
+     val config: Configuration,
+     val env: Environment,
+     val authConnector: DefaultAuthConnector,
+     start_optIn: start,
+) (implicit val appConfig: AppConfig, ec: ExecutionContext) extends FrontendController(mcc) with AuthAction {
 
-  val start: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(start_optIn()))
+  def start: Action[AnyContent] = Action.async { implicit request =>
+    withAuthorisedAgent{
+      arn => Future.successful(Ok(start_optIn()))
+    }
   }
 
 }

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.agentpermissionsfrontend.controllers
 
+import org.jsoup.Jsoup
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -24,6 +25,7 @@ import play.api.http.Status
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.agentpermissionsfrontend.helpers.Css
 
 class OptInControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
   override def fakeApplication(): Application =
@@ -42,8 +44,12 @@ class OptInControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerS
 
     "return HTML" in {
       val result = controller.start(fakeRequest)
-      contentType(result) shouldBe Some("text/html")
       charset(result)     shouldBe Some("utf-8")
+      contentType(result) shouldBe Some("text/html")
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Opting in to use access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Opting in to use access groups"
     }
   }
 }

@@ -16,11 +16,60 @@
 
 package uk.gov.hmrc.agentpermissionsfrontend.controllers
 
+import play.api.{Logger, Logging}
+import play.api.mvc.Results.{Forbidden, Redirect}
+import play.api.mvc.{Request, Result}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentpermissionsfrontend.config.AppConfig
+import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
+import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
+import uk.gov.hmrc.auth.core.retrieve.~
 
-trait AuthAction extends AuthRedirects{
+import scala.concurrent.{ExecutionContext, Future}
+
+trait AuthAction extends AuthRedirects with AuthorisedFunctions with Logging {
+
+  val agentEnrolment = "HMRC-AS-AGENT"
 
 
+  def withAuthorisedAgent(body: Arn => Future[Result])(
+    implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_], appConfig: AppConfig) = {
 
+    authorised(AuthProviders(GovernmentGateway) and Enrolment(agentEnrolment))
+      .retrieve(allEnrolments and credentialRole) {
+        case enrols ~ credRole =>
+          getArn(enrols) match {
+            case Some(arn) => credRole match {
+              case Some(User) => body(arn)
+              case _ =>
+                logger.warn("Invalid credential role")
+                Future.successful(Forbidden)
+            }
+            case None =>
+              logger.warn("No AgentReferenceNumber in enrolment")
+              Future.successful(Forbidden)
+          }
+      }.recover(handleFailure)
+  }
+
+  private val basGateWayUrl = ""
+
+  def handleFailure(implicit request: Request[_], appConfig: AppConfig): PartialFunction[Throwable, Result] = {
+    case _: NoActiveSession => Redirect(
+      s"${appConfig.basGatewayUrl}/bas-gateway/sign-in",
+       Map("continue_url" -> Seq(s"${appConfig.loginContinueUrl}${request.uri}"))
+    )
+    case _ => Forbidden
+  }
+
+  private def getArn(enrolments: Enrolments): Option[Arn] = {
+    enrolments
+      .getEnrolment(agentEnrolment)
+      .flatMap(_.getIdentifier("AgentReferenceNumber"))
+      .map(e => Arn(e.value))
+  }
 
 }

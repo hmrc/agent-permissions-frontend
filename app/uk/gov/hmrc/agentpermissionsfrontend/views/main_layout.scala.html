@@ -44,7 +44,7 @@
 
 
 @hmrcLayout(
-    pageTitle = Some(title + " - GOV.UK"),
+    pageTitle = Some(msgs("generic.title", title, msgs("service.name"))),
     serviceName = Some(msgs("service.name")),
     phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
     isWelshTranslationAvailable = true,

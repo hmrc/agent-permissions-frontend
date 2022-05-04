@@ -19,14 +19,14 @@ package uk.gov.hmrc.agentpermissionsfrontend
 import org.scalamock.scalatest.MockFactory
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
-import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, Enrolment}
+import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthorisationStub extends MockFactory {
 
-  type GrantAccess = Set[Enrolment] ~ Option[CredentialRole]
+  type GrantAccess = Enrolments ~ Option[CredentialRole]
 
   def stubAuthorisationGrantAccess(response: GrantAccess)(implicit authConnector: AuthConnector): Unit =
     (authConnector

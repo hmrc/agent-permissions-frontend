@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.agentpermissionsfrontend.helpers
 
+import com.google.inject.AbstractModule
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
+import play.api.{Application, Configuration, Environment}
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.agentpermissionsfrontend.AuthorisationStub
+import uk.gov.hmrc.agentpermissionsfrontend.controllers.AuthAction
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -34,13 +36,25 @@ abstract class BaseISpec extends AnyWordSpec
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit val stubAuditConnector: AuditConnector = stub[AuditConnector]
 
-  override def fakeApplication(): Application =
+  override def fakeApplication(): Application = {
+
+    def moduleWithOverrides = new AbstractModule() {
+      lazy val conf: Configuration = GuiceApplicationBuilder().configuration
+      lazy val env: Environment = GuiceApplicationBuilder().environment
+
+        override def configure(): Unit = {
+          bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
+        }
+      }
+
     GuiceApplicationBuilder()
       .disable[com.kenshoo.play.metrics.PlayModule]
       .configure(
-        "auditing.enabled" -> true,
+        "auditing.enabled" -> false,
       )
+      .overrides(moduleWithOverrides)
       .build()
+  }
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()

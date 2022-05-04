@@ -27,6 +27,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRo
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,7 +42,9 @@ class AuthAction @Inject()(
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
   def withAuthorisedAgent(body: Arn => Future[Result])(
-    implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_], appConfig: AppConfig) = {
+    implicit ec: ExecutionContext, request: Request[_], appConfig: AppConfig) = {
+
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     authorised(AuthProviders(GovernmentGateway) and Enrolment(agentEnrolment))
       .retrieve(allEnrolments and credentialRole) {
@@ -59,8 +62,6 @@ class AuthAction @Inject()(
           }
       }.recover(handleFailure)
   }
-
-  private val basGateWayUrl = ""
 
   def handleFailure(implicit request: Request[_], appConfig: AppConfig): PartialFunction[Throwable, Result] = {
     case _: NoActiveSession => Redirect(

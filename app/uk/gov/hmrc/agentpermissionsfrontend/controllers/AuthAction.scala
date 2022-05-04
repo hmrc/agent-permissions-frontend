@@ -37,7 +37,8 @@ class AuthAction @Inject()(
                             val env: Environment,
                             val config: Configuration) extends AuthRedirects with AuthorisedFunctions with Logging {
 
-  val agentEnrolment = "HMRC-AS-AGENT"
+  private val agentEnrolment = "HMRC-AS-AGENT"
+  private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
   def withAuthorisedAgent(body: Arn => Future[Result])(
     implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_], appConfig: AppConfig) = {
@@ -53,7 +54,7 @@ class AuthAction @Inject()(
                 Future.successful(Forbidden)
             }
             case None =>
-              logger.warn("No AgentReferenceNumber in enrolment")
+              logger.warn("No " + agentReferenceNumberIdentifier + " in enrolment")
               Future.successful(Forbidden)
           }
       }.recover(handleFailure)
@@ -72,7 +73,7 @@ class AuthAction @Inject()(
   private def getArn(enrolments: Enrolments): Option[Arn] = {
     enrolments
       .getEnrolment(agentEnrolment)
-      .flatMap(_.getIdentifier("AgentReferenceNumber"))
+      .flatMap(_.getIdentifier(agentReferenceNumberIdentifier))
       .map(e => Arn(e.value))
   }
 

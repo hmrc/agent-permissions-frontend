@@ -16,6 +16,48 @@
 
 package uk.gov.hmrc.agentpermissionsfrontend.controllers
 
-class OptInControllerISpec {
+import org.jsoup.Jsoup
+import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout}
+import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.agentpermissionsfrontend.helpers.{BaseISpec, Css}
+import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
+import uk.gov.hmrc.auth.core.{Assistant, Enrolment, EnrolmentIdentifier, User}
+
+class OptInControllerISpec extends BaseISpec {
+
+  val agentEnrolment = "HMRC-AS-AGENT"
+  val agentReferenceNumberIdentifier = "AgentReferenceNumber"
+  val validArn = "TARN0000001"
+  lazy val controller: OptInController = app.injector.instanceOf[OptInController]
+
+  "GET /agent-permissions/opt-in" should {
+    "go to opt-in page when user is valid agent user" in {
+
+      val enrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
+      val mockedAuthResponse = Set(Enrolment(agentEnrolment, enrolmentIdentifiers, "Activated")) and Some(User)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      val request = FakeRequest("GET", "/agent-permission/opt-in")
+        .withHeaders("Authorization" -> "Bearer some-token", "X-Session-ID" -> "whatever")
+
+      val result = controller.start()(request)
+
+      Helpers.redirectLocation(result) shouldBe "whatever"
+      Helpers.status(result) shouldBe 200
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Opting in to use access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Opting in to use access groups"
+    }
+  }
+
+  "GET /agent-permissions/opt-in" should {
+    "redirect to not permitted page when user is not a valid agent user" in {
+      val mockedAuthResponse = Set(Enrolment("????")) and Some(Assistant)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      //      val request = FakeRequest("GET", "/agent-permission/opt-in")
+
+
+    }
+  }
+
 
 }

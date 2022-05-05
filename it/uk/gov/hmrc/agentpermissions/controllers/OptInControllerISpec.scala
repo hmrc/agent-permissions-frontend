@@ -23,6 +23,8 @@ import uk.gov.hmrc.agentpermissions.helpers.{BaseISpec, Css}
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, User}
 
+import java.util.UUID
+
 class OptInControllerISpec extends BaseISpec {
 
   val agentEnrolment = "HMRC-AS-AGENT"
@@ -37,7 +39,7 @@ class OptInControllerISpec extends BaseISpec {
       val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, enrolmentIdentifiers, "Activated"))) and Some(User)
       stubAuthorisationGrantAccess(mockedAuthResponse)
       val request = FakeRequest("GET", "/agent-permission/opt-in")
-        .withHeaders("Authorization" -> "Bearer some-token", "X-Session-ID" -> "whatever")
+        .withHeaders("Authorization" -> "Bearer some-token", "X-Session-ID" -> UUID.randomUUID().toString)
 
       val result = controller.start()(request)
 
@@ -45,8 +47,14 @@ class OptInControllerISpec extends BaseISpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Opting in to use access groups - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Opting in to use access groups"
+      html.select(Css.insetText).text() shouldBe "By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login"
       //if adding a para please test it!
-//      html.select(Css.paragraphs).size() shouldBe 1
+      val paragraphs = html.select(Css.paragraphs)
+      paragraphs.size() shouldBe 2
+      paragraphs.get(0).text() shouldBe "If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups."
+      paragraphs.get(1).text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their clients tax information."
+      html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
     }
   }
 

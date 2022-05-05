@@ -39,7 +39,7 @@ class OptInControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerS
     "return 303" in {
       val result = controller.start(fakeRequest)
       status(result) shouldBe Status.SEE_OTHER
-      
+
     }
 
   }

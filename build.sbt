@@ -11,6 +11,9 @@ TwirlKeys.templateImports ++= Seq(
   "uk.gov.hmrc.hmrcfrontend.views.html.components._",
 )
 
+routesImport += "uk.gov.hmrc.agentpermissions.controllers._"
+
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(

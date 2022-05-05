@@ -6,7 +6,7 @@ val appName = "agent-permissions-frontend"
 val silencerVersion = "1.7.8"
 
 TwirlKeys.templateImports ++= Seq(
-  "uk.gov.hmrc.agentpermissionsfrontend.views.html.components._",
+  "uk.gov.hmrc.agentpermissions.views.html.components._",
   "uk.gov.hmrc.govukfrontend.views.html.components._",
   "uk.gov.hmrc.hmrcfrontend.views.html.components._",
 )

@@ -1,9 +1,12 @@
 # microservice specific routes
-
 ->         /hmrc-frontend           hmrcfrontend.Routes
-GET        /assets/*file            controllers.Assets.versioned(path = "/public", file: Asset)
+GET        /assets/*file    controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET        /                        uk.gov.hmrc.agentpermissionsfrontend.controllers.RootController.start
+GET        /                        uk.gov.hmrc.agentpermissions.controllers.RootController.start
 
+GET        /opt-in/start                    uk.gov.hmrc.agentpermissions.controllers.OptInController.start
+GET        /opt-in/do-you-want-to-opt-in    uk.gov.hmrc.agentpermissions.controllers.OptInController.showDoYouWantToOptIn
+POST       /opt-in/do-you-want-to-opt-in    uk.gov.hmrc.agentpermissions.controllers.OptInController.submitDoYouWantToOptIn
 
-GET        /opt-in                  uk.gov.hmrc.agentpermissionsfrontend.controllers.OptInController.start
+GET        /opt-in/you-have-opted-in        uk.gov.hmrc.agentpermissions.controllers.OptInController.showYouHaveOptedIn
+GET        /opt-in/you-have-opted-out       uk.gov.hmrc.agentpermissions.controllers.OptInController.showYouHaveOptedOut

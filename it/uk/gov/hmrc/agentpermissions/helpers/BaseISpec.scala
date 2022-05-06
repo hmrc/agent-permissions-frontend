@@ -23,9 +23,13 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.{Application, Configuration, Environment}
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.agentpermissions.AuthorisationStub
+import uk.gov.hmrc.agentpermissions.config.AppConfig
 import uk.gov.hmrc.agentpermissions.controllers.AuthAction
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import scala.concurrent.ExecutionContext
 
 abstract class BaseISpec extends AnyWordSpec
   with Matchers
@@ -34,7 +38,9 @@ abstract class BaseISpec extends AnyWordSpec
   with MongoSupport {
 
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit val stubAuditConnector: AuditConnector = stub[AuditConnector]
+//  implicit val stubAuditConnector: AuditConnector = stub[AuditConnector]
+  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+  implicit val appConfig = app.injector.instanceOf[AppConfig]
 
   override def fakeApplication(): Application = {
 
@@ -49,9 +55,7 @@ abstract class BaseISpec extends AnyWordSpec
 
     GuiceApplicationBuilder()
       .disable[com.kenshoo.play.metrics.PlayModule]
-      .configure(
-        "auditing.enabled" -> false,
-      )
+      .configure("auditing.enabled" -> false)
       .overrides(moduleWithOverrides)
       .build()
   }

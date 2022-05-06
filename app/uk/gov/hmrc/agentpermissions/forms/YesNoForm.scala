@@ -26,7 +26,7 @@ object YesNoForm{
       single(
       "answer" -> optional(boolean)
         .verifying(errorMessageKey, _.isDefined)
-         .transform(ob ⇒ ob.get, (b:Boolean) ⇒  Some(b))
+         .transform(ob => ob.get, (b:Boolean) => Some(b))
       )
     )
 }

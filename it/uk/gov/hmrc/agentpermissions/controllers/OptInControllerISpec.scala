@@ -18,10 +18,11 @@ package uk.gov.hmrc.agentpermissions.controllers
 
 import org.jsoup.Jsoup
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout}
-import play.api.test.{FakeRequest, Helpers}
+import play.api.test.{FakeRequest}
+import play.api.test.Helpers._
 import uk.gov.hmrc.agentpermissions.helpers.{BaseISpec, Css}
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, User}
+import uk.gov.hmrc.auth.core.{Assistant, Enrolment, EnrolmentIdentifier, Enrolments, User}
 
 import java.util.UUID
 
@@ -31,19 +32,21 @@ class OptInControllerISpec extends BaseISpec {
   val agentReferenceNumberIdentifier = "AgentReferenceNumber"
   val validArn = "TARN0000001"
   lazy val controller: OptInController = fakeApplication().injector.instanceOf[OptInController]
+  val agentEnrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
 
-  "GET /agent-permissions/opt-in" should {
+  "GET /agent-permissions/opt-in/start" should {
+
     "go to opt-in page when user is valid agent user" in {
 
-      val enrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
-      val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, enrolmentIdentifiers, "Activated"))) and Some(User)
+      val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      val request = FakeRequest("GET", "/agent-permission/opt-in")
+      val request = FakeRequest("GET", "/agent-permission/opt-in/start")
         .withHeaders("Authorization" -> "Bearer some-token", "X-Session-ID" -> UUID.randomUUID().toString)
 
       val result = controller.start()(request)
 
-      Helpers.status(result) shouldBe 200
+      status(result) shouldBe 200
+
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Opting in to use access groups - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Opting in to use access groups"
@@ -56,17 +59,29 @@ class OptInControllerISpec extends BaseISpec {
       html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
       html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
     }
+
+    "redirect to not permitted page when user is not an Agent" in {
+      val nonAgentEnrolmentKey = "IR-SA"
+      val mockedAuthResponse = Enrolments(Set(Enrolment(nonAgentEnrolmentKey, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      val request = FakeRequest("GET", "/agent-permission/opt-in/start")
+        .withHeaders("Authorization" -> "Bearer some-token", "X-Session-ID" -> UUID.randomUUID().toString)
+
+      val result = controller.start()(request)
+
+      status(result) shouldBe 303
+      redirectLocation(result) shouldBe Some("whatever")
+
+    }
+
+    "redirect to not permitted page when user has correct enrolment but is not a 'User' (Admin)" in {
+
+    }
   }
 
-//  "GET /agent-permissions/opt-in" should {
-//    "redirect to not permitted page when user is not a valid agent user" in {
-//      val mockedAuthResponse = Set(Enrolment("????")) and Some(Assistant)
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
-//      //      val request = FakeRequest("GET", "/agent-permission/opt-in")
-//
-//
-//    }
-//  }
+  "GET /agent-permissions/opt-in/do-you-want-to-opt-in" should {
+
+  }
 
 
 }

@@ -19,14 +19,16 @@ package forms
 import play.api.data.Form
 import play.api.data.Forms._
 
-object YesNoForm{
+object YesNoForm {
 
-  def form(errorMessageKey: String = "state.required" ): Form[Boolean]  =
+  def form(errorMessageKey: String = "state.required"): Form[Boolean] = {
     Form(
       single(
-      "answer" -> optional(boolean)
-        .verifying(errorMessageKey, _.isDefined)
-         .transform(ob => ob.get, (b:Boolean) => Some(b))
+        "answer" -> optional(boolean)
+          .verifying(errorMessageKey, _.isDefined)
+          .transform(maybeBoolean => maybeBoolean.get, (b: Boolean) => Some(b))
       )
     )
+
+  }
 }

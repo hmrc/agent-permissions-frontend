@@ -20,6 +20,10 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import config.AppConfig
 import forms.YesNoForm
+import uk.gov.hmrc.agentmtdidentifiers.model.OptedOutEligible
+import uk.gov.hmrc.agentpermissions.connectors.AgentPermissionsConnector
+import uk.gov.hmrc.agentpermissions.models.AgentAdminSession
+import uk.gov.hmrc.mongo.cache.{DataKey, SessionCacheRepository}
 import views.html._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 

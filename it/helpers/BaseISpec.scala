@@ -23,8 +23,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.test.FakeRequest
 import play.api.{Application, Configuration, Environment}
-import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
+import uk.gov.hmrc.auth.core.{AuthConnector, Enrolment, EnrolmentIdentifier, Enrolments, User}
 
 import scala.concurrent.ExecutionContext
 
@@ -35,9 +37,19 @@ abstract class BaseISpec extends AnyWordSpec
   with MongoSupport {
 
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
-//  implicit val stubAuditConnector: AuditConnector = stub[AuditConnector]
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
   implicit val appConfig = app.injector.instanceOf[AppConfig]
+
+  val agentEnrolment = "HMRC-AS-AGENT"
+  val agentReferenceNumberIdentifier = "AgentReferenceNumber"
+  val validArn = "TARN0000001"
+
+  val agentEnrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
+
+  val request = FakeRequest()
+    .withHeaders("Authorization" -> "Bearer XYZ")
+
+  val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
 
   override def fakeApplication(): Application = {
 

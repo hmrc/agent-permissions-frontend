@@ -30,6 +30,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class OptInController @Inject()(
    authAction: AuthAction,
    mcc: MessagesControllerComponents,
+   agentPermissionsConnector: AgentPermissionsConnector,
+   sessionCacheRepository: SessionCacheRepository,
    start_optIn: start,
    want_to_opt_in: want_to_opt_in,
    you_have_opted_in: you_have_opted_in,
@@ -40,8 +42,9 @@ class OptInController @Inject()(
   import authAction._
 
   def start: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
-      Future.successful(Ok(start_optIn()))
+    withAuthorisedAgent { _ =>
+      sessionCacheRepository
+          .putSession(DataKey("SessionId"), AgentAdminSession(optinStatus = OptedOutEligible)).map(_ => Ok("stored"))
     }
   }
 

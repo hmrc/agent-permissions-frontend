@@ -1,2 +1,2 @@
-service.name = agent-permissions-frontend
+service.name = Dyma'ch gwasanaeth newydd
 service.text = Dyma'ch gwasanaeth newydd

@@ -1,0 +1,48 @@
+/*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package config
+
+import org.scalatest.matchers.should
+import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Environment
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+
+class AppConfigTest extends AnyWordSpecLike with should.Matchers with GuiceOneAppPerSuite  {
+
+  private val env = Environment.simple()
+  val servicesConfig: ServicesConfig = app.injector.instanceOf[ServicesConfig]
+  private val appConfig = new AppConfig(servicesConfig )
+
+  "Welsh language" should{
+    "be enabled" in{
+      appConfig.welshLanguageSupportEnabled shouldBe true
+    }
+  }
+  "contact microservice config and beta feedback settings" should {
+    "give correct serviceId code for contact" in{
+      appConfig.contactFrontendServiceId shouldBe "AOSS"
+    }
+    "give correct beta feedback url" in {
+      appConfig.betaFeedbackUrl shouldBe "http://localhost:9250/contact/beta-feedback?service=AOSS"
+    }
+  }
+
+
+
+}

@@ -6,12 +6,11 @@ val appName = "agent-permissions-frontend"
 val silencerVersion = "1.7.8"
 
 TwirlKeys.templateImports ++= Seq(
-  "uk.gov.hmrc.agentpermissions.views.html.components._",
+  "views.html.components._",
+  "views.html.main_layout",
   "uk.gov.hmrc.govukfrontend.views.html.components._",
   "uk.gov.hmrc.hmrcfrontend.views.html.components._",
 )
-
-routesImport += "uk.gov.hmrc.agentpermissions.controllers._"
 
 
 lazy val microservice = Project(appName, file("."))

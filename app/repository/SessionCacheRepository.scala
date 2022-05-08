@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentpermissions.repository
+package repository
 
-
+import play.api.Configuration
 import uk.gov.hmrc.http.SessionKeys
-import uk.gov.hmrc.mongo.cache.SessionCacheRepository
+import uk.gov.hmrc.mongo.cache.{SessionCacheRepository => CacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.DurationInt
-
+import scala.concurrent.duration.FiniteDuration
 
 @Singleton
-class SessionCache @Inject()(mongoComponent  : MongoComponent,
-                             timestampSupport: TimestampSupport)(implicit ec: ExecutionContext) extends SessionCacheRepository(
+class SessionCacheRepository@Inject() (mongoComponent  : MongoComponent,
+  configuration   : Configuration,
+  timestampSupport: TimestampSupport
+  )(implicit ec: ExecutionContext
+  ) extends CacheRepository(
   mongoComponent = mongoComponent,
   collectionName = "sessions",
-  ttl = 1.hour,
+  replaceIndexes = false,
+  ttl = configuration.get[FiniteDuration]("mongodb.cache.expiry"),
   timestampSupport = timestampSupport,
-  sessionIdKey = SessionKeys.sessionId
-)
+  sessionIdKey = SessionKeys.sessionId)

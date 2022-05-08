@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentpermissions.services
+package services
 
 import uk.gov.hmrc.agentpermissions.connectors.AgentPermissionsConnector
 

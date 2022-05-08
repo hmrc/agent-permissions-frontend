@@ -16,16 +16,17 @@
 
 package controllers
 
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import config.AppConfig
 import forms.YesNoForm
-import uk.gov.hmrc.agentmtdidentifiers.model.OptedOutEligible
+import models.JourneySession
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import repository.SessionCacheRepository
+import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.agentpermissions.connectors.AgentPermissionsConnector
-import uk.gov.hmrc.agentpermissions.models.AgentAdminSession
-import uk.gov.hmrc.mongo.cache.{DataKey, SessionCacheRepository}
-import views.html._
+import uk.gov.hmrc.mongo.cache.DataKey
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import views.html._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,7 +49,8 @@ class OptInController @Inject()(
   def start: Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAgent { _ =>
       sessionCacheRepository
-          .putSession(DataKey("SessionId"), AgentAdminSession(optinStatus = OptedOutEligible)).map(_ => Ok("stored"))
+        .putSession(DataKey("opting-in"),JourneySession(OptedInReady))
+        .map(_ => Ok(start_optIn()))
     }
   }
 

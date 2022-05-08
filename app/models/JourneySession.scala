@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentpermissions.services
+package models
 
-import javax.inject.{Singleton, Inject}
+import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedOutEligible, OptinStatus}
 
-@Singleton
-class SessionStoreService @Inject()() {
+case class JourneySession(
+                            optinStatus: OptinStatus,
+
+                            ){
+
+  val isEligibleToOptIn = optinStatus == OptedOutEligible
+}
 
 
-
+object JourneySession {
+  implicit val format: Format[JourneySession] = Json.format[JourneySession]
 }

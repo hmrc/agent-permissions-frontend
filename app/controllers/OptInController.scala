@@ -22,7 +22,7 @@ import models.JourneySession
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, OptedOutEligible}
 import uk.gov.hmrc.agentpermissions.connectors.AgentPermissionsConnector
 import uk.gov.hmrc.mongo.cache.DataKey
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -35,22 +35,22 @@ import scala.concurrent.{ExecutionContext, Future}
 class OptInController @Inject()(
    authAction: AuthAction,
    mcc: MessagesControllerComponents,
-   agentPermissionsConnector: AgentPermissionsConnector,
-   sessionCacheRepository: SessionCacheRepository,
+   val agentPermissionsConnector: AgentPermissionsConnector,
+   val sessionCacheRepository: SessionCacheRepository,
    start_optIn: start,
    want_to_opt_in: want_to_opt_in,
    you_have_opted_in: you_have_opted_in,
    you_have_opted_out: you_have_opted_out,
  )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
-  extends FrontendController(mcc) with I18nSupport {
+  extends FrontendController(mcc) with I18nSupport with SessionBehaviour {
 
   import authAction._
 
   def start: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { _ =>
-      sessionCacheRepository
-        .putSession(DataKey("opting-in"),JourneySession(OptedInReady))
-        .map(_ => Ok(start_optIn()))
+    withAuthorisedAgent { arn =>
+     withEligibleToOptin(arn){
+       Future successful Ok(start_optIn())
+     }
     }
   }
 

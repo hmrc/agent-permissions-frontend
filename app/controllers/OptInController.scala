@@ -48,7 +48,7 @@ class OptInController @Inject()(
 
   def start: Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAgent { arn =>
-     withEligibleToOptin(arn){
+     withEligibleToOptIn(arn){
        Future successful Ok(start_optIn())
      }
     }

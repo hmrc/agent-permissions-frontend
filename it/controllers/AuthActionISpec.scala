@@ -30,41 +30,41 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AuthActionISpec  extends BaseISpec {
 
-  val conf = fakeApplication().configuration
-  val env = fakeApplication().environment
-
-  "Auth Action" when {
-    "the user hasn't logged in" should {
-      "redirect the user to log in " in {
-        val authAction = new AuthAction(new FakeFailingAuthConnector(new MissingBearerToken), env, conf)
-
-        implicit val request = FakeRequest("GET", "/BLAH")
-
-        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("whatever")))
-        status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe
-          "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2FBLAH&origin=agent-permissions-frontend"
-      }
-
-      "redirect the user to log in when insufficient enrolments" in {
-        val authAction = new AuthAction(new FakeFailingAuthConnector(new InsufficientEnrolments), env, conf)
-
-        implicit val request = FakeRequest("GET", "/BLAH")
-
-        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("whatever")))
-        status(result) shouldBe FORBIDDEN
-      }
-    }
-
-
-  }
-}
-
-class FakeFailingAuthConnector(exceptionToReturn: Throwable) extends AuthConnector {
-  val serviceUrl: String = ""
-
-  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
-    Future.failed(exceptionToReturn)
+//  override lazy val conf = fakeApplication().configuration
+//  override lazy val env = fakeApplication().environment
+//
+//  "Auth Action" when {
+//    "the user hasn't logged in" should {
+//      "redirect the user to log in " in {
+//        val authAction = new AuthAction(new FakeFailingAuthConnector(new MissingBearerToken), env, conf)
+//
+//        implicit val request = FakeRequest("GET", "/BLAH")
+//
+//        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("whatever")))
+//        status(result) shouldBe SEE_OTHER
+//        redirectLocation(result).get shouldBe
+//          "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2FBLAH&origin=agent-permissions-frontend"
+//      }
+//
+//      "redirect the user to log in when insufficient enrolments" in {
+//        val authAction = new AuthAction(new FakeFailingAuthConnector(new InsufficientEnrolments), env, conf)
+//
+//        implicit val request = FakeRequest("GET", "/BLAH")
+//
+//        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("whatever")))
+//        status(result) shouldBe FORBIDDEN
+//      }
+//    }
+//
+//
+//  }
+//}
+//
+//class FakeFailingAuthConnector(exceptionToReturn: Throwable) extends AuthConnector {
+//  val serviceUrl: String = ""
+//
+//  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
+//    Future.failed(exceptionToReturn)
 
 
 }

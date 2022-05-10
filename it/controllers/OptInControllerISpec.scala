@@ -16,23 +16,39 @@
 
 package controllers
 
+import connectors.AgentPermissionsConnector
+import connectors.mocks.MockAgentPermissionsConnector
+import helpers.{BaseISpec, Css}
 import org.jsoup.Jsoup
 import play.api.test.Helpers._
-import helpers.{BaseISpec, Css}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, OptedOutEligible}
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{Assistant, Enrolment, EnrolmentIdentifier, Enrolments, User}
+import uk.gov.hmrc.auth.core.{Enrolment, Enrolments, User}
 
-import java.util.UUID
-
-class OptInControllerISpec extends BaseISpec {
+class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector  {
 
   lazy val controller: OptInController = fakeApplication().injector.instanceOf[OptInController]
+
+//  override def moduleWithOverrides = new AbstractModule() {
+//
+//    override def configure(): Unit = {
+//      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
+//      bind(classOf[CacheRepository]).toInstance(sessionCache)
+//    }
+//  }
+//
+//  override lazy val repository = new MongoCacheRepository(mongoComponent,"sessions", true, ttl,timestampSupport, CacheIdType.SessionUuid(SessionKeys.sessionId))
+//
+//  val sessionCache = new CacheRepository(mongoComponent, "sessions", true, ttl, timestampSupport, "sessionId"){
+//    override val cacheRepo: MongoCacheRepository[Request[Any]] = repository
+//  }
 
   "GET /agent-permissions/opt-in/start" should {
 
     "display content" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
+
 
       val result = controller.start()(request)
 

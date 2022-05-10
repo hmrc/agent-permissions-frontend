@@ -17,14 +17,13 @@
 package controllers
 
 import config.AppConfig
+import controllers.TestHelpers.FutureHelper
 import forms.YesNoForm
-import models.JourneySession
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, OptedOutEligible}
-import uk.gov.hmrc.agentpermissions.connectors.AgentPermissionsConnector
-import uk.gov.hmrc.mongo.cache.DataKey
+import uk.gov.hmrc.mongo.cache.{SessionCacheRepository => CacheRepository}
+import connectors.AgentPermissionsConnector
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -46,6 +45,8 @@ class OptInController @Inject()(
 
   import authAction._
 
+  val scr: CacheRepository = sessionCacheRepository
+
   def start: Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAgent { arn =>
      withEligibleToOptIn(arn){
@@ -55,7 +56,11 @@ class OptInController @Inject()(
   }
 
   def showDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(want_to_opt_in(YesNoForm.form())))
+    withAuthorisedAgent { arn =>
+      withEligibleToOptIn(arn) {
+        Ok(want_to_opt_in(YesNoForm.form())).toFuture
+      }
+    }
   }
 
   def submitDoYouWantToOptIn: Action[AnyContent] = Action { implicit request =>

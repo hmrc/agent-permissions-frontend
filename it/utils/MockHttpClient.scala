@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package services
+package utils
 
-import connectors.AgentPermissionsConnector
+import org.scalamock.scalatest.MockFactory
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
 
-import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
-class OptinService @Inject()(agentPermissionsConnector: AgentPermissionsConnector){
+trait MockHttpClient  extends MockFactory {
 
+  lazy val mockHttpClient: HttpClient = mock[HttpClient]
 
-
+  def mockHttpGet[A](response: A): Unit = {
+    (mockHttpClient.GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
+      .expects(*,*,*, *, *, *)
+      .returns(Future.successful(response))
+  }
 }

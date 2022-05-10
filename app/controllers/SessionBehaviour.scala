@@ -16,13 +16,12 @@
 
 package controllers
 
-import akka.http.scaladsl.model.HttpHeader.ParsingResult.Ok
+import connectors.AgentPermissionsConnector
 import models.JourneySession
-import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Forbidden
+import play.api.mvc.{Request, Result}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedInNotReady, OptedInReady, OptedInSingleUser, OptedOutEligible}
-import uk.gov.hmrc.agentpermissions.connectors.AgentPermissionsConnector
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -35,28 +34,32 @@ trait SessionBehaviour {
   val agentPermissionsConnector: AgentPermissionsConnector
 
 
-  def eligibleToOpt(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+  private def eligibleTo(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+    val forbidden = {
+      Forbidden(s"not eligible to ${if (optin) "opt-in" else "out-out"}")
+    }
     sessionCacheRepository
-      .getFromSession[JourneySession](DataKey("opting-in")).flatMap {
-      case Some(session) if session.isEligibleToOptIn => body
-      case Some(_) => Future successful Forbidden("not eligible")
+      .getFromSession[JourneySession](DataKey("opting")).flatMap {
+      case Some(session) if optin && session.isEligibleToOptIn || !optin && session.isEligibleToOptOut => body
+      case Some(_) => Future successful forbidden
       case None => agentPermissionsConnector.getOptinStatus(arn).flatMap {
         case Some(status) => sessionCacheRepository
-          .putSession(DataKey("opting-in"), JourneySession(optinStatus = status))
+          .putSession(DataKey("opting"), JourneySession(sessionId = request.session.get("sessionId").get, optinStatus = status))
           .flatMap(_ =>
             if (optin && status == OptedOutEligible) body
-            else if ((!optin) && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body
-            else Future successful Forbidden("not eligible"))
-        case None => Future successful Forbidden("")
+            else if (!optin && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body
+            else Future successful forbidden)
+        case None => Future successful forbidden
       }
     }
   }
 
+
   def withEligibleToOptOut(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleToOpt(false)(arn)(body)(request, hc, ec)
+    eligibleTo(false)(arn)(body)(request, hc, ec)
 
   def withEligibleToOptIn(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleToOpt(true)(arn)(body)(request, hc, ec)
+    eligibleTo(true)(arn)(body)(request, hc, ec)
 }
 
 

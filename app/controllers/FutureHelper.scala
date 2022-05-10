@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package services
+package controllers
 
-import connectors.AgentPermissionsConnector
-
-import javax.inject.{Inject, Singleton}
-
-@Singleton
-class OptinService @Inject()(agentPermissionsConnector: AgentPermissionsConnector){
+import scala.concurrent.Future
 
 
+object TestHelpers {
+  implicit class FutureHelper[T](clazz: T) {
+    def toFuture = Future successful clazz
 
+  }
 }

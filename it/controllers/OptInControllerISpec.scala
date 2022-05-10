@@ -52,7 +52,6 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-
       val result = controller.start()(request)
 
       status(result) shouldBe OK
@@ -152,4 +151,46 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
   }
 
 
+  "GET /agent-permissions/opt-in/you-have-opted-in" should {
+    "display expected content" in {
+
+//      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      val result = controller.showYouHaveOptedIn()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "You have opted in to use access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "You have opted in to use access groups"
+
+      html.select(Css.H2).text() shouldBe "What happens next"
+
+      html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
+
+      html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
+
+    }
+  }
+
+  "GET /agent-permissions/opt-in/you-have-opted-out" should {
+    "display expected content" in {
+
+//      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      val result = controller.showYouHaveOptedOut()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "You have opted out of access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "You have opted out of access groups"
+      html.select(Css.H2).text() shouldBe "What happens next"
+
+      html.select(Css.paragraphs).get(0).text() shouldBe "You can opt in at any time later"
+
+      html.select(Css.linkStyledAsButton).text() shouldBe "Back to manage groups page"
+
+    }
+  }
 }

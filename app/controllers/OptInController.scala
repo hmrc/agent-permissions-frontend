@@ -81,15 +81,15 @@ class OptInController @Inject()(
   }
 
   def showYouHaveOptedIn: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+//    withAuthorisedAgent { arn =>
       Future.successful(Ok(you_have_opted_in()))
-    }
+//    }
   }
 
   def showYouHaveOptedOut: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+//    withAuthorisedAgent { arn =>
       Future.successful(Ok(you_have_opted_out()))
-    }
+//    }
   }
 
 

@@ -18,10 +18,12 @@ package helpers
 
 object Css {
 
+
   val ERROR_SUMMARY_TITLE = "#error-summary-title"
   val ERROR_SUMMARY_LINK = ".govuk-list.govuk-error-summary__list li a"
   val errorSummaryLinkWithHref  = (href: String)  => s".govuk-list.govuk-error-summary__list li a[href=$href]"
   val H1 = "main h1"
+  val H2: String = "main h2"
   val PRE_H1 = "main .govuk-caption-l"
   val paragraphs = "main p"
   val insetText = "div.govuk-inset-text"

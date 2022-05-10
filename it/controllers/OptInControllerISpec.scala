@@ -110,7 +110,6 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
 
     "forward to 'you have opted in' page with answer 'true'" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
           .withFormUrlEncodedBody("answer" -> "true")
@@ -122,7 +121,6 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
 
     "forward to 'you have opted out' page with answer 'false'" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
           .withFormUrlEncodedBody("answer" -> "false")
@@ -134,7 +132,6 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
 
     "render correct error messages when form not filled in" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
       //no body in request so should give error
 
       val result = controller.submitDoYouWantToOptIn()(

@@ -18,10 +18,13 @@ package controllers
 
 import connectors.AgentPermissionsConnector
 import connectors.mocks.MockAgentPermissionsConnector
+
 import helpers.{BaseISpec, Css}
 import org.jsoup.Jsoup
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, OptedOutEligible}
+
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments, User}
 
@@ -84,7 +87,71 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
   }
 
   "GET /agent-permissions/opt-in/do-you-want-to-opt-in" should {
+    "display expected content" in {
 
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      val result = controller.showDoYouWantToOptIn()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Do you want to opt in to use access groups?"
+      html.select(Css.form).attr("action") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
+
+      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      answerRadios.select("label[for=true]").text() shouldBe "Yes, I want to opt-in"
+      answerRadios.select("label[for=false]").text() shouldBe "No, I want to remain opted-out"
+
+      html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
+
+    }
+
+    "forward to 'you have opted in' page with answer 'true'" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      val result = controller.submitDoYouWantToOptIn()(
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+          .withFormUrlEncodedBody("answer" -> "true")
+      )
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-opted-in")
+
+    }
+
+    "forward to 'you have opted out' page with answer 'false'" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      val result = controller.submitDoYouWantToOptIn()(
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+          .withFormUrlEncodedBody("answer" -> "false")
+      )
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-opted-out")
+    }
+
+
+    "render correct error messages when form not filled in" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      //no body in request so should give error
+
+      val result = controller.submitDoYouWantToOptIn()(
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        .withFormUrlEncodedBody("" -> "")
+      )
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Please select an option."
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Please select an option."
+
+      html.select(Css.SUBMIT_BUTTON)
+
+    }
   }
 
 

@@ -2,6 +2,9 @@ service.name = Manage Agent Permissions
 service.text = Manage Agent Permissions
 
 generic.title={0} - {1} - GOV.UK
+error-prefix=Error:
+common.errorSummary.heading=There is a problem
+continue=Continue
 
 #common message keys. PLEASE DON'T DUPLICATE THINGS!
 continue.button=Continue

@@ -19,7 +19,6 @@ package helpers
 import com.google.inject.AbstractModule
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
-import connectors.AgentPermissionsConnector
 import controllers.AuthAction
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -52,7 +51,7 @@ abstract class BaseISpec extends AnyWordSpec
   implicit val appConfig = app.injector.instanceOf[AppConfig]
      implicit val metrics = app.injector.instanceOf[Metrics]
 
-     implicit val request = FakeRequest()
+   implicit val request = FakeRequest()
        .withHeaders("Authorization" -> "Bearer XYZ")
        .withSession(SessionKeys.sessionId -> "session-x")
 

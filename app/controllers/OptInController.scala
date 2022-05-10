@@ -17,13 +17,13 @@
 package controllers
 
 import config.AppConfig
+import connectors.AgentPermissionsConnector
 import controllers.TestHelpers.FutureHelper
 import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.mongo.cache.{SessionCacheRepository => CacheRepository}
-import connectors.AgentPermissionsConnector
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -32,15 +32,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class OptInController @Inject()(
-   authAction: AuthAction,
-   mcc: MessagesControllerComponents,
-   val agentPermissionsConnector: AgentPermissionsConnector,
-   val sessionCacheRepository: SessionCacheRepository,
-   start_optIn: start,
-   want_to_opt_in: want_to_opt_in,
-   you_have_opted_in: you_have_opted_in,
-   you_have_opted_out: you_have_opted_out,
- )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+                                 authAction: AuthAction,
+                                 mcc: MessagesControllerComponents,
+                                 val agentPermissionsConnector: AgentPermissionsConnector,
+                                 val sessionCacheRepository: SessionCacheRepository,
+                                 start_optIn: start,
+                                 want_to_opt_in: want_to_opt_in,
+                                 you_have_opted_in: you_have_opted_in,
+                                 you_have_opted_out: you_have_opted_out,
+                               )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
   extends FrontendController(mcc) with I18nSupport with SessionBehaviour {
 
   import authAction._
@@ -49,9 +49,9 @@ class OptInController @Inject()(
 
   def start: Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAgent { arn =>
-     withEligibleToOptIn(arn){
-       Future successful Ok(start_optIn())
-     }
+      withEligibleToOptIn(arn) {
+        Future successful Ok(start_optIn())
+      }
     }
   }
 
@@ -68,7 +68,9 @@ class OptInController @Inject()(
       .form("do-you-want-to-opt-in.yes.error")
       .bindFromRequest()
       .fold(
-        formWithErrors => BadRequest(want_to_opt_in(formWithErrors)),
+        formWithErrors => {
+          Ok(want_to_opt_in(formWithErrors))
+        },
         (iWantToOptIn: Boolean) => {
           if (iWantToOptIn)
             Redirect(routes.OptInController.showYouHaveOptedIn.url)

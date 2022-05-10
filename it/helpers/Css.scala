@@ -25,9 +25,11 @@ object Css {
   val PRE_H1 = "main .govuk-caption-l"
   val paragraphs = "main p"
   val insetText = "div.govuk-inset-text"
+  val form : String = s"main form[method=POST]"
   def errorSummaryForField(id: String): String ={s".govuk-error-summary__body li a[href=#${id}]"}
-  def errorForField(id: String): String = s"span#${id}-error"
+  def errorForField(id: String): String = s"p#${id}-error.govuk-error-message"
   def labelFor(id: String): String = s"label[for=${id}]"
+  def radioButtonsField(id: String): String = s"form .govuk-radios#$id"
   val SUBMIT_BUTTON = "main form button"
   val linkStyledAsButton = "a#button-link.govuk-button"
   val currentLanguage = "ul.hmrc-language-select__list li.hmrc-language-select__list-item span[aria-current=true]";

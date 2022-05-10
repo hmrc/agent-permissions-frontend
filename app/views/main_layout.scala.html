@@ -44,9 +44,13 @@
     </div>
 }
 
+@pageTitle = @{
+    val errorPrefix = if(!formErrors.isEmpty) msgs("error-prefix") + " "  else ""
+    Some(errorPrefix.concat(msgs("generic.title", title, msgs("service.name"))))
+}
 
 @hmrcLayout(
-    pageTitle = Some(msgs("generic.title", title, msgs("service.name"))),
+    pageTitle = pageTitle,
     serviceName = Some(msgs("service.name")),
     phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
     isWelshTranslationAvailable = true,

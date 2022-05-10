@@ -15,27 +15,26 @@
  *@
 
 @import config.AppConfig
-@import views.html.main_layout
 @import controllers.routes
-@import views.components.models.RadioData
-@import views.components.models.LegendData
+@import views.components.models.{LegendData, RadioData}
+@import views.html.main_layout
 
 @this(
-layout: main_layout,
-p: p, h1: h1,
-radioButtons: radioButtons,
-submit_button: submit_button,
-formWithCSRF: FormWithCSRF
+    layout: main_layout,
+    p: p, h1: h1,
+    radioButtons: radioButtons,
+    submit_button: submit_button,
+    formWithCSRF: FormWithCSRF
 )
 
 @(form: Form[Boolean])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("opt-in-info.h1", msgs("service.name")),
-    formErrors = Seq.empty,
+    title = msgs("do-you-want-to-opt-in.h1", msgs("service.name")),
+    formErrors = form.errors,
     backLinkHref = Some(routes.OptInController.start.url)
 ) {
-    @formWithCSRF(action = routes.OptInController.submitDoYouWantToOptIn){
+    @formWithCSRF(action = routes.OptInController.submitDoYouWantToOptIn) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

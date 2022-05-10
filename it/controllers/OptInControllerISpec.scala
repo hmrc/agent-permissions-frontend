@@ -169,7 +169,7 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
       html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
 
       html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
-
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
   }
 
@@ -190,6 +190,7 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
       html.select(Css.paragraphs).get(0).text() shouldBe "You can opt in at any time later"
 
       html.select(Css.linkStyledAsButton).text() shouldBe "Back to manage groups page"
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
 
     }
   }

@@ -16,14 +16,14 @@
 
 package connectors
 
+import connectors.mocks.{MockAgentPermissionsConnector, MockHttpClient}
 import helpers.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.http.HttpResponse
-import utils.MockHttpClient
 
-class AgentPermissionsConnectorISpec extends BaseISpec with MockHttpClient {
+class AgentPermissionsConnectorISpec extends BaseISpec with MockHttpClient with MockAgentPermissionsConnector {
 
-  val connector = new AgentPermissionsConnector(mockHttpClient)
+  val connector = new AgentPermissionsConnectorImpl(mockHttpClient)
 
   "getOptinStatus" should {
     "return the OptinStatus when valid JSON response received" in {
@@ -31,7 +31,7 @@ class AgentPermissionsConnectorISpec extends BaseISpec with MockHttpClient {
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-In_READY" """))
       connector.getOptinStatus(arn).futureValue shouldBe Some(OptedInReady)
     }
-    "log a warn level message and return None when there was an error" in {
+    "return None when there was an error status" in {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(503, s""" "" """))
       connector.getOptinStatus(arn).futureValue shouldBe None

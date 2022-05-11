@@ -19,11 +19,7 @@ package models
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedInSingleUser, OptedOutEligible, OptinStatus}
 
-case class JourneySession(
-                         sessionId: String,
-                            optinStatus: OptinStatus,
-
-                            ){
+case class JourneySession(optinStatus: OptinStatus){
 
   val isEligibleToOptIn = optinStatus == OptedOutEligible
   val isEligibleToOptOut = optinStatus == OptedInReady || optinStatus == OptedInNotReady || optinStatus == OptedInSingleUser

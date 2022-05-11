@@ -1,4 +1,5 @@
-import sbt.Setting
+import sbt.Keys.parallelExecution
+import sbt.{Setting, Test}
 import scoverage.ScoverageKeys
 
 object CodeCoverageSettings {
@@ -21,6 +22,7 @@ object CodeCoverageSettings {
     ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageMinimumStmtPerFile := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
+    ScoverageKeys.coverageHighlighting := true,
+    Test / parallelExecution := false
   )
 }

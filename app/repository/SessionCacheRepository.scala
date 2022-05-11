@@ -26,7 +26,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
 @Singleton
-class SessionCacheRepository@Inject() (mongoComponent  : MongoComponent,
+class SessionCacheRepository@Inject() (val mongoComponent  : MongoComponent,
   configuration   : Configuration,
   timestampSupport: TimestampSupport
   )(implicit ec: ExecutionContext

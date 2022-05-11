@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package helpers
+package repository
 
-import org.scalatest.{BeforeAndAfterEach, Suite}
-import uk.gov.hmrc.mongo.MongoSpecSupport
+import helpers.BaseISpec
 
-import scala.concurrent.ExecutionContext.global
-import scala.concurrent.duration._
-import scala.concurrent._
-import scala.language.postfixOps
+class SessionCacheRepositoryISpec extends BaseISpec {
 
-trait MongoSupport extends MongoSpecSupport with BeforeAndAfterEach {
-  me: Suite =>
 
-  def dropMongoDb()(implicit ec: ExecutionContext = global): Unit =
-    Await.result(mongo().drop(), 5 seconds)
+
 }

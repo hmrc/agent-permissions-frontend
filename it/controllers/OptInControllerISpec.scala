@@ -16,44 +16,27 @@
 
 package controllers
 
-import connectors.AgentPermissionsConnector
 import connectors.mocks.MockAgentPermissionsConnector
-
 import helpers.{BaseISpec, Css}
 import org.jsoup.Jsoup
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, OptedOutEligible}
-
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedOutEligible, OptedOutSingleUser}
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{Enrolment, Enrolments, User}
+import uk.gov.hmrc.auth.core.{Assistant, Enrolment, Enrolments, User}
 
 class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector  {
 
-  lazy val controller: OptInController = fakeApplication().injector.instanceOf[OptInController]
+  val controller = fakeApplication().injector.instanceOf[OptInController]
 
-//  override def moduleWithOverrides = new AbstractModule() {
-//
-//    override def configure(): Unit = {
-//      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
-//      bind(classOf[CacheRepository]).toInstance(sessionCache)
-//    }
-//  }
-//
-//  override lazy val repository = new MongoCacheRepository(mongoComponent,"sessions", true, ttl,timestampSupport, CacheIdType.SessionUuid(SessionKeys.sessionId))
-//
-//  val sessionCache = new CacheRepository(mongoComponent, "sessions", true, ttl, timestampSupport, "sessionId"){
-//    override val cacheRepo: MongoCacheRepository[Request[Any]] = repository
-//  }
-
-  "GET /agent-permissions/opt-in/start" should {
+  "GET /opt-in/start" should {
 
     "display content" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptinStatusOk(arn)(OptedOutEligible)
 
       val result = controller.start()(request)
-
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
@@ -69,7 +52,8 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
       html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
     }
 
-    "redirect to not permitted page when user is not an Agent" in {
+    "return Forbidden when user is not an Agent" in {
+
       val nonAgentEnrolmentKey = "IR-SA"
       val mockedAuthResponse = Enrolments(Set(Enrolment(nonAgentEnrolmentKey, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
       stubAuthorisationGrantAccess(mockedAuthResponse)
@@ -77,18 +61,33 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
       val result = controller.start()(request)
 
       status(result) shouldBe FORBIDDEN
-
     }
 
-    "redirect to not permitted page when user has correct enrolment but is not a 'User' (Admin)" in {
+    "return Forbidden when user is not an admin" in {
 
+      val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(Assistant)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      val result = controller.start()(request)
+
+      status(result) shouldBe FORBIDDEN
+    }
+
+    "return Forbidden when user is not eligible" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptinStatusOk(arn)(OptedOutSingleUser)
+
+      val result = controller.start()(request)
+      status(result) shouldBe FORBIDDEN
     }
   }
 
-  "GET /agent-permissions/opt-in/do-you-want-to-opt-in" should {
+  "GET /opt-in/do-you-want-to-opt-in" should {
     "display expected content" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptinStatusOk(arn)(OptedOutEligible)
 
       val result = controller.showDoYouWantToOptIn()(request)
 
@@ -104,10 +103,16 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
       answerRadios.select("label[for=false]").text() shouldBe "No, I want to remain opted-out"
 
       html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
-
     }
+  }
+
+  "POST /opt-in/do-you-want-to-opt-in" should {
 
     "forward to 'you have opted in' page with answer 'true'" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptinStatusOk(arn)(OptedOutEligible)
+      stubPostOptinAccepted(arn)
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -115,23 +120,25 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
       )
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-opted-in")
-
     }
 
-    "forward to 'you have opted out' page with answer 'false'" in {
+    "redirect to 'you have not opted in' page with answer 'false'" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptinStatusOk(arn)(OptedOutEligible)
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
           .withFormUrlEncodedBody("answer" -> "false")
       )
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-opted-out")
+      redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-not-opted-in")
     }
-
 
     "render correct error messages when form not filled in" in {
 
-      //no body in request so should give error
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptinStatusOk(arn)(OptedOutEligible)
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -148,13 +155,34 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
       html.select(Css.SUBMIT_BUTTON)
 
     }
+
+    "redirect error when there was a problem with optin call" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptinStatusOk(arn)(OptedOutEligible)
+      stubPostOptinError(arn)
+
+      val result = controller.submitDoYouWantToOptIn()(
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+          .withFormUrlEncodedBody("answer" -> "true")
+      )
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Please select an option."
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Please select an option."
+
+      html.select(Css.SUBMIT_BUTTON)
+
+    }
   }
 
-
-  "GET /agent-permissions/opt-in/you-have-opted-in" should {
+  "GET /opt-in/you-have-opted-in" should {
     "display expected content" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -173,18 +201,18 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
     }
   }
 
-  "GET /agent-permissions/opt-in/you-have-opted-out" should {
+  "GET /opt-in/you-have-not-opted-in" should {
     "display expected content" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      val result = controller.showYouHaveOptedOut()(request)
+      val result = controller.showYouHaveNotOptedIn()(request)
 
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have opted out of access groups - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "You have opted out of access groups"
+      html.title() shouldBe "You have not opted-in to use access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "You have not opted-in to use access groups"
       html.select(Css.H2).text() shouldBe "What happens next"
 
       html.select(Css.paragraphs).get(0).text() shouldBe "You can opt in at any time later"

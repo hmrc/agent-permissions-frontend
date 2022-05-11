@@ -20,8 +20,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
-import play.api.test.FakeRequest
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.test.FakeRequest
 
 class ErrorHandlerSpec extends AnyWordSpec
   with Matchers
@@ -37,7 +37,7 @@ class ErrorHandlerSpec extends AnyWordSpec
 
   private val fakeRequest = FakeRequest("GET", "/")
 
-  private val handler = app.injector.instanceOf[ErrorHandler]
+  private val handler = fakeApplication().injector.instanceOf[ErrorHandler]
 
   "standard error endpoint" should {
     "render HTML" in {

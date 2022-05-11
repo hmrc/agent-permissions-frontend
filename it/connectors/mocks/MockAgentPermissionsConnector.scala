@@ -16,20 +16,30 @@
 
 package connectors.mocks
 
+import akka.Done
 import connectors.AgentPermissionsConnector
 import org.scalamock.scalatest.MockFactory
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait MockAgentPermissionsConnector extends MockFactory {
 
-  lazy val connector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
 
   def stubOptinStatusOk(arn: Arn)(optinStatus: OptinStatus)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.getOptinStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn,*,*)
       .returning(Future successful(Some(optinStatus)))
 
+  def stubPostOptinAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn,*,*)
+      .returning(Future successful Done)
+
+  def stubPostOptinError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn,*,*)
+      .returning(throw UpstreamErrorResponse.apply("error",503))
 }

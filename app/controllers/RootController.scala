@@ -16,21 +16,18 @@
 
 package controllers
 
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import config.AppConfig
-import views.html.start
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 
 @Singleton
 class RootController @Inject()(
   mcc: MessagesControllerComponents)(implicit val appConfig: AppConfig)
     extends FrontendController(mcc) {
 
-  val start: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("whatever"))
+  val start: Action[AnyContent] = Action { implicit request =>
+    Redirect(routes.OptInController.start.url)
   }
-
 }

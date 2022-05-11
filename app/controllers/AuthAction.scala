@@ -57,7 +57,7 @@ class AuthAction @Inject()(
                 Future.successful(Forbidden)
             }
             case None =>
-              logger.warn("No " + agentReferenceNumberIdentifier + " in enrolment")
+              logger.warn(s"No $agentReferenceNumberIdentifier in enrolment")
               Future.successful(Forbidden)
           }
       }.recover(handleFailure)
@@ -68,7 +68,13 @@ class AuthAction @Inject()(
       s"${appConfig.basGatewayUrl}/bas-gateway/sign-in",
        Map("continue_url" -> Seq(s"${appConfig.loginContinueUrl}${request.uri}"), "origin" -> Seq(appConfig.appName))
     )
-    case _ => Forbidden
+    case _: InsufficientEnrolments => {
+      logger.warn(s"user does not have ASA agent enrolment")
+      Forbidden
+    }
+    case _: UnsupportedAuthProvider ⇒
+      logger.warn(s"user has an unsupported auth provider")
+      Forbidden
   }
 
   private def getArn(enrolments: Enrolments): Option[Arn] = {

@@ -35,3 +35,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)
+  .settings(IntegrationTest / Keys.fork := false)
+  .settings(IntegrationTest / parallelExecution := false)
+

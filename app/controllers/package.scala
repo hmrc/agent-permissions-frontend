@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package controllers
-
 import scala.concurrent.Future
 
+package object controllers {
 
-object TestHelpers {
-  implicit class FutureHelper[T](clazz: T) {
-    def toFuture = Future successful clazz
-
+  implicit class ToFuture[T](t: T) {
+    def toFuture = Future successful t
   }
 }

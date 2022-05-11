@@ -19,15 +19,11 @@ package config
 import org.scalatest.matchers.should
 import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Environment
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 
 class AppConfigTest extends AnyWordSpecLike with should.Matchers with GuiceOneAppPerSuite  {
 
-  private val env = Environment.simple()
-  val servicesConfig: ServicesConfig = app.injector.instanceOf[ServicesConfig]
-  private val appConfig = new AppConfig(servicesConfig )
+  private val appConfig = app.injector.instanceOf[AppConfig]
 
   "Welsh language" should{
     "be enabled" in{

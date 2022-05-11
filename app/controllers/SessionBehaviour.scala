@@ -33,33 +33,36 @@ trait SessionBehaviour {
   val sessionCacheRepository: SessionCacheRepository
   val agentPermissionsConnector: AgentPermissionsConnector
 
+  private val DATA_KEY: DataKey[JourneySession] = DataKey("opting")
 
-  private def eligibleTo(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    val forbidden = {
-      Forbidden(s"not eligible to ${if (optin) "opt-in" else "out-out"}")
-    }
-    sessionCacheRepository
-      .getFromSession[JourneySession](DataKey("opting")).flatMap {
-      case Some(session) if optin && session.isEligibleToOptIn || !optin && session.isEligibleToOptOut => body
-      case Some(_) => Future successful forbidden
-      case None => agentPermissionsConnector.getOptinStatus(arn).flatMap {
-        case Some(status) => sessionCacheRepository
-          .putSession(DataKey("opting"), JourneySession(sessionId = request.session.get("sessionId").get, optinStatus = status))
-          .flatMap(_ =>
-            if (optin && status == OptedOutEligible) body
-            else if (!optin && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body
-            else Future successful forbidden)
-        case None => Future successful forbidden
-      }
-    }
-  }
-
+  def withEligibleToOptIn(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    eligibleTo(true)(arn)(body)(request, hc, ec)
 
   def withEligibleToOptOut(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleTo(false)(arn)(body)(request, hc, ec)
 
-  def withEligibleToOptIn(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleTo(true)(arn)(body)(request, hc, ec)
+
+  private def eligibleTo(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+
+    val forbiddenF: Future[Result] = {
+      Forbidden(s"not_eligible_to_${if (optin) "opt-in" else "out-out"}").toFuture
+    }
+    sessionCacheRepository
+      .getFromSession[JourneySession](DATA_KEY).flatMap {
+      case Some(session) if (optin & session.isEligibleToOptIn) | (!optin & session.isEligibleToOptOut) => body
+      case Some(_) =>  forbiddenF
+      case None =>
+        agentPermissionsConnector.getOptinStatus(arn).flatMap {
+          case Some(status) => sessionCacheRepository
+            .putSession(DATA_KEY, JourneySession(optinStatus = status))
+            .flatMap(_ =>
+              if (optin && status == OptedOutEligible) body
+              else if (!optin && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body
+              else forbiddenF)
+          case None => forbiddenF //change this to a technical problem
+        }
+    }
+  }
 }
 
 

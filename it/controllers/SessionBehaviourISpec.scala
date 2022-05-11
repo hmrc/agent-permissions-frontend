@@ -16,8 +16,8 @@
 
 package controllers
 
-import connectors.AgentPermissionsConnector
-import connectors.mocks.MockAgentPermissionsConnector
+import connectors.AgentPermissionsConnectorImpl
+import connectors.mocks.{MockAgentPermissionsConnector, MockHttpClient}
 import helpers.BaseISpec
 import models.JourneySession
 import play.api.mvc.Results
@@ -26,36 +26,46 @@ import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedOutEligible}
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.mongo.cache.DataKey
-import utils.MockHttpClient
 
 import scala.concurrent.Future
 
-class SessionBehaviourISpec extends BaseISpec with MockAgentPermissionsConnector with MockHttpClient {
+class SessionBehaviourISpec extends BaseISpec with MockHttpClient with MockAgentPermissionsConnector {
 
-  val sessionCacheRepo: SessionCacheRepository = fakeApplication().injector.instanceOf[SessionCacheRepository]
-
-  val sessionBehaviour = new SessionBehaviour {
-    override val agentPermissionsConnector = new AgentPermissionsConnector(mockHttpClient)
-    override val sessionCacheRepository: SessionCacheRepository = sessionCacheRepo
+  val testSessionBehaviour: SessionBehaviour =
+    new SessionBehaviour {
+      override val agentPermissionsConnector = new AgentPermissionsConnectorImpl(mockHttpClient)
+      override val sessionCacheRepository: SessionCacheRepository = mongoSessionCacheRepository
   }
 
   "withEligibleToOptIn" should {
-    "execute body when status is OptedOutEligible" in  {
-      mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_ELIGIBLE" """))
-      val result = await((sessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}))
+    "execute body when status is OptedOutEligible and store status in journey session if no session exists" in  {
 
-      val sessionStored = await(sessionCacheRepo.getFromSession[JourneySession](DataKey("optin")))
+      mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_ELIGIBLE" """))
+      val result = testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}.futureValue
+      val sessionStored = await(mongoSessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
 
       sessionStored.isDefined shouldBe true
-      result shouldBe Results.Ok("")
+      status(result) shouldBe 200
     }
 
-    "execute body when status is OptedOutEligible, not make call to get optin status when a session is available" in  {
-      await(sessionCacheRepo.putSession(DataKey("opting"),JourneySession(sessionId = "session-x", optinStatus = OptedOutEligible)))
+    "if a journey session is available then don't make a call to backend" in  {
 
-      val result = (sessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}).futureValue
+      await(mongoSessionCacheRepository.putSession(DataKey("opting"),JourneySession(optinStatus = OptedOutEligible)))
+      val result = testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}.futureValue
 
-      result shouldBe Results.Ok("")
+      status(result) shouldBe 200
+    }
+
+    "if not eligible to opt-in then return 403" in {
+
+      mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
+      val result = (testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}).futureValue
+      val sessionStored = await(mongoSessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+
+      sessionStored.isDefined shouldBe true
+
+      status(result) shouldBe 403
+      bodyOf(result) shouldBe "not_eligible_to_opt-in"
     }
   }
 

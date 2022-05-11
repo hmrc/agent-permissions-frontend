@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package utils
+@import config.AppConfig
+@import views.html.main_layout
 
-import org.scalamock.scalatest.MockFactory
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
+@this(layout: main_layout, p: p, h1: h1, h2: h2, link_as_button: link_as_button)
 
-import scala.concurrent.{ExecutionContext, Future}
+@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-trait MockHttpClient  extends MockFactory {
-
-  lazy val mockHttpClient: HttpClient = mock[HttpClient]
-
-  def mockHttpGet[A](response: A): Unit = {
-    (mockHttpClient.GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
-      .expects(*,*,*, *, *, *)
-      .returns(Future.successful(response))
-  }
+@layout(
+    title = msgs("you-have-not-opted-in.h1", msgs("service.name"))) {
+    @h1("you-have-not-opted-in.h1")
+    @h2("you-have-not-opted-in.h2")
+    @p("you-have-not-opted-in.p")
+    @link_as_button(messageKey = "you-have-not-opted-in.button", href = appConfig.agentServicesAccountManageAccountUrl)
 }

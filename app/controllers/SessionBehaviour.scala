@@ -33,6 +33,7 @@ trait SessionBehaviour {
   val sessionCacheRepository: SessionCacheRepository
   val agentPermissionsConnector: AgentPermissionsConnector
 
+
   private val DATA_KEY: DataKey[JourneySession] = DataKey("opting")
 
   def withEligibleToOptIn(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
@@ -45,7 +46,7 @@ trait SessionBehaviour {
   private def eligibleTo(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
 
     val forbiddenF: Future[Result] = {
-      Forbidden(s"not_eligible_to_${if (optin) "opt-in" else "out-out"}").toFuture
+      Forbidden(s"not_eligible_to_${if (optin) "opt-in" else "opt-out"}").toFuture
     }
     sessionCacheRepository
       .getFromSession[JourneySession](DATA_KEY).flatMap {
@@ -59,7 +60,7 @@ trait SessionBehaviour {
               if (optin && status == OptedOutEligible) body
               else if (!optin && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body
               else forbiddenF)
-          case None => forbiddenF //change this to a technical problem
+          case None => forbiddenF
         }
     }
   }

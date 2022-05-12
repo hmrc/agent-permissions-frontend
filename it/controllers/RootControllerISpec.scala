@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package connectors.mocks
+package controllers
 
-import org.scalamock.scalatest.MockFactory
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
+import helpers.BaseISpec
+import play.api.Application
+import play.api.http.Status.{SEE_OTHER, isRedirect}
+import play.api.test.Helpers._
 
-import scala.concurrent.{ExecutionContext, Future}
+class RootControllerISpec extends BaseISpec {
 
-trait MockHttpClient extends MockFactory {
+  override implicit lazy val fakeApplication: Application = appBuilder.build()
 
-  lazy val mockHttpClient: HttpClient = mock[HttpClient]
+  val controller = fakeApplication.injector.instanceOf[RootController]
 
-  def mockHttpGet[A](response: A): Unit = {
-    (mockHttpClient.GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *, *, *)
-      .returns(Future.successful(response))
+  "root controller" should {
+    "have logic to decide where to go!" in {
+      val result = controller.start()(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe routes.OptInController.start.url
+    }
   }
+
 }

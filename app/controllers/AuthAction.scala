@@ -83,5 +83,4 @@ class AuthAction @Inject()(
       .flatMap(_.getIdentifier(agentReferenceNumberIdentifier))
       .map(e => Arn(e.value))
   }
-
 }

@@ -70,7 +70,6 @@ class OptInController @Inject()(
             (iWantToOptIn: Boolean) => {
               if (iWantToOptIn)
                   agentPermissionsConnector.optin(arn).map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
-
               else
                 Redirect(routes.OptInController.showYouHaveNotOptedIn.url).toFuture
             }
@@ -90,5 +89,4 @@ class OptInController @Inject()(
       Future.successful(Ok(you_have_not_opted_in()))
     }
   }
-
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package connectors.mocks
+package helpers
 
 import akka.Done
 import connectors.AgentPermissionsConnector
@@ -24,22 +24,20 @@ import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait MockAgentPermissionsConnector extends MockFactory {
-
-  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+trait AgentPermissionsConnectorMocks extends MockFactory {
 
   def stubOptinStatusOk(arn: Arn)(optinStatus: OptinStatus)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.getOptinStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn,*,*)
-      .returning(Future successful(Some(optinStatus)))
+      .expects(arn, *, *)
+      .returning(Future successful (Some(optinStatus)))
 
   def stubPostOptinAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn,*,*)
+      .expects(arn, *, *)
       .returning(Future successful Done)
 
   def stubPostOptinError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn,*,*)
-      .returning(throw UpstreamErrorResponse.apply("error",503))
+      .expects(arn, *, *)
+      .throwing(UpstreamErrorResponse.apply("error", 503))
 }

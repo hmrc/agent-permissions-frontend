@@ -16,33 +16,48 @@
 
 package controllers
 
+import com.google.inject.AbstractModule
 import connectors.AgentPermissionsConnectorImpl
-import connectors.mocks.{MockAgentPermissionsConnector, MockHttpClient}
-import helpers.BaseISpec
+import helpers.{AgentPermissionsConnectorMocks, BaseISpec, HttpClientMocks}
 import models.JourneySession
+import play.api.Application
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedOutEligible}
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedInReady, OptedOutEligible}
+import uk.gov.hmrc.http.{HttpClient, HttpResponse}
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future
 
-class SessionBehaviourISpec extends BaseISpec with MockHttpClient with MockAgentPermissionsConnector {
+class SessionBehaviourISpec extends BaseISpec with HttpClientMocks with AgentPermissionsConnectorMocks {
 
-  val testSessionBehaviour: SessionBehaviour =
+  implicit val mockHttpClient: HttpClient = mock[HttpClient]
+
+  override def moduleWithOverrides = new AbstractModule() {
+    override def configure(): Unit = {
+      bind(classOf[HttpClient]).toInstance(mockHttpClient)
+      bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
+    }
+  }
+
+  override implicit lazy val fakeApplication: Application = appBuilder
+    .configure("mongodb.uri" -> mongoUri)
+    .build()
+
+
+    val testSessionBehaviour: SessionBehaviour =
     new SessionBehaviour {
-      override val agentPermissionsConnector = new AgentPermissionsConnectorImpl(mockHttpClient)
-      override val sessionCacheRepository: SessionCacheRepository = mongoSessionCacheRepository
+      override val agentPermissionsConnector = app.injector.instanceOf[AgentPermissionsConnectorImpl]
+      override val sessionCacheRepository: SessionCacheRepository = app.injector.instanceOf[SessionCacheRepository]
   }
 
   "withEligibleToOptIn" should {
     "execute body when status is OptedOutEligible and store status in journey session if no session exists" in  {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_ELIGIBLE" """))
-      val result = testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}.futureValue
-      val sessionStored = await(mongoSessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+      val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
 
       sessionStored.isDefined shouldBe true
       status(result) shouldBe 200
@@ -50,8 +65,9 @@ class SessionBehaviourISpec extends BaseISpec with MockHttpClient with MockAgent
 
     "if a journey session is available then don't make a call to backend" in  {
 
-      await(mongoSessionCacheRepository.putSession(DataKey("opting"),JourneySession(optinStatus = OptedOutEligible)))
-      val result = testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}.futureValue
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DataKey("opting"),JourneySession(optinStatus = OptedOutEligible)))
+      //no call required
+      val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
 
       status(result) shouldBe 200
     }
@@ -59,8 +75,8 @@ class SessionBehaviourISpec extends BaseISpec with MockHttpClient with MockAgent
     "if not eligible to opt-in then return 403" in {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
-      val result = (testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")}).futureValue
-      val sessionStored = await(mongoSessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+      val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
 
       sessionStored.isDefined shouldBe true
 
@@ -68,5 +84,40 @@ class SessionBehaviourISpec extends BaseISpec with MockHttpClient with MockAgent
       bodyOf(result) shouldBe "not_eligible_to_opt-in"
     }
   }
+
+  "withEligibleToOptOut" should {
+    "execute body when status is any OptedIn status and store status in journey session if no session exists" in  {
+
+      mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-In_READY" """))
+      val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+
+      sessionStored.isDefined shouldBe true
+      status(result) shouldBe 200
+    }
+
+    "if a journey session is available then don't make a call to backend" in  {
+
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DataKey("opting"),JourneySession(optinStatus = OptedInReady)))
+      //no call required
+      val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
+
+      status(result) shouldBe 200
+    }
+
+    "if not eligible to opt-out then return 403" in {
+
+      mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
+      val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+
+      sessionStored.isDefined shouldBe true
+
+      status(result) shouldBe 403
+      bodyOf(result) shouldBe "not_eligible_to_opt-out"
+    }
+  }
+
+  lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
 }

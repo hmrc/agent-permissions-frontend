@@ -16,55 +16,65 @@
 
 package controllers
 
+import com.google.inject.AbstractModule
+import config.AppConfig
+import helpers.BaseISpec
+import play.api.Application
 import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
 import play.api.mvc.Results.Ok
-import play.api.test.FakeRequest
-import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, status}
-import helpers.BaseISpec
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.Retrieval
-import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBearerToken}
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation}
+import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBearerToken, UnsupportedAuthProvider}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class AuthActionISpec  extends BaseISpec {
 
-//  override lazy val conf = fakeApplication().configuration
-//  override lazy val env = fakeApplication().environment
-//
-//  "Auth Action" when {
-//    "the user hasn't logged in" should {
-//      "redirect the user to log in " in {
-//        val authAction = new AuthAction(new FakeFailingAuthConnector(new MissingBearerToken), env, conf)
-//
-//        implicit val request = FakeRequest("GET", "/BLAH")
-//
-//        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("whatever")))
-//        status(result) shouldBe SEE_OTHER
-//        redirectLocation(result).get shouldBe
-//          "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2FBLAH&origin=agent-permissions-frontend"
-//      }
-//
-//      "redirect the user to log in when insufficient enrolments" in {
-//        val authAction = new AuthAction(new FakeFailingAuthConnector(new InsufficientEnrolments), env, conf)
-//
-//        implicit val request = FakeRequest("GET", "/BLAH")
-//
-//        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("whatever")))
-//        status(result) shouldBe FORBIDDEN
-//      }
-//    }
-//
-//
-//  }
-//}
-//
-//class FakeFailingAuthConnector(exceptionToReturn: Throwable) extends AuthConnector {
-//  val serviceUrl: String = ""
-//
-//  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
-//    Future.failed(exceptionToReturn)
+  implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
+  override def moduleWithOverrides = new AbstractModule() {
+    override def configure(): Unit = {
+      bind(classOf[AuthConnector]).toInstance(mockAuthConnector)
+    }
+  }
 
+  override implicit lazy val fakeApplication: Application =
+    appBuilder
+      .build()
+
+  val authAction = fakeApplication.injector.instanceOf[AuthAction]
+  implicit val appConfig = fakeApplication.injector.instanceOf[AppConfig]
+
+  "Auth Action" when {
+    "the user hasn't logged in" should {
+      "redirect the user to log in " in {
+
+        stubAuthorisationFails(MissingBearerToken())
+
+        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("")))
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result).get shouldBe
+          "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2F&origin=agent-permissions-frontend"
+      }
+    }
+
+    "the user has InsufficentEnrolments" should {
+      "return FORBIDDEN" in {
+
+        stubAuthorisationFails(InsufficientEnrolments())
+
+        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("")))
+        status(result) shouldBe FORBIDDEN
+      }
+
+      "the user has UnsupportedAuthProvider" should {
+        "return FORBIDDEN" in {
+
+          stubAuthorisationFails(UnsupportedAuthProvider())
+
+          val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("")))
+          status(result) shouldBe FORBIDDEN
+        }
+      }
+    }
+  }
 }

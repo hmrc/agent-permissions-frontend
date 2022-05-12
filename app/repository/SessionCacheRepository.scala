@@ -16,24 +16,22 @@
 
 package repository
 
-import play.api.Configuration
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.mongo.cache.{SessionCacheRepository => CacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.DurationInt
 
 @Singleton
 class SessionCacheRepository@Inject() (val mongoComponent  : MongoComponent,
-  configuration   : Configuration,
   timestampSupport: TimestampSupport
   )(implicit ec: ExecutionContext
   ) extends CacheRepository(
   mongoComponent = mongoComponent,
   collectionName = "sessions",
-  replaceIndexes = false,
-  ttl = configuration.get[FiniteDuration]("mongodb.cache.expiry"),
+  replaceIndexes = true,
+  ttl = 10.seconds,
   timestampSupport = timestampSupport,
   sessionIdKey = SessionKeys.sessionId)

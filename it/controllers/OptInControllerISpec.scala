@@ -16,22 +16,45 @@
 
 package controllers
 
-import connectors.mocks.MockAgentPermissionsConnector
+import com.google.inject.AbstractModule
+import connectors.AgentPermissionsConnector
 import helpers.{BaseISpec, Css}
 import org.jsoup.Jsoup
+import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{OptedOutEligible, OptedOutSingleUser}
+import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{Assistant, Enrolment, Enrolments, User}
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
-class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector  {
+class OptInControllerISpec extends BaseISpec {
 
-  val controller = fakeApplication().injector.instanceOf[OptInController]
+  implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
+  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+
+
+  override def moduleWithOverrides = new AbstractModule() {
+
+    override def configure(): Unit = {
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
+      bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
+      bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
+    }
+  }
+
+
+  override implicit lazy val fakeApplication: Application =
+    appBuilder
+      .configure("mongodb.uri" -> mongoUri)
+      .build()
+
+  val controller = fakeApplication.injector.instanceOf[OptInController]
 
   "GET /opt-in/start" should {
 
-    "display content" in {
+    "display content for start" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
       stubOptinStatusOk(arn)(OptedOutEligible)
@@ -108,7 +131,7 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
 
   "POST /opt-in/do-you-want-to-opt-in" should {
 
-    "forward to 'you have opted in' page with answer 'true'" in {
+    "redirect to 'you have opted in' page with answer 'true'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
       stubOptinStatusOk(arn)(OptedOutEligible)
@@ -119,7 +142,7 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
           .withFormUrlEncodedBody("answer" -> "true")
       )
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-opted-in")
+      redirectLocation(result).get shouldBe routes.OptInController.showYouHaveOptedIn.url
     }
 
     "redirect to 'you have not opted in' page with answer 'false'" in {
@@ -156,26 +179,18 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
 
     }
 
-    "redirect error when there was a problem with optin call" in {
+    "throw exception when there was a problem with optin call" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
       stubOptinStatusOk(arn)(OptedOutEligible)
       stubPostOptinError(arn)
 
-      val result = controller.submitDoYouWantToOptIn()(
-        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-          .withFormUrlEncodedBody("answer" -> "true")
-      )
-
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Please select an option."
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Please select an option."
-
-      html.select(Css.SUBMIT_BUTTON)
-
+      intercept[UpstreamErrorResponse]{
+        await(controller.submitDoYouWantToOptIn()(
+          FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+            .withFormUrlEncodedBody("answer" -> "true"))
+        )
+      }
     }
   }
 
@@ -222,4 +237,6 @@ class OptInControllerISpec extends BaseISpec with MockAgentPermissionsConnector 
 
     }
   }
+
+  lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 }

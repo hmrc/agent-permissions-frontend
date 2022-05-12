@@ -29,7 +29,9 @@ class YesNoFormSpec extends AnyWordSpec
   "YesNoForm bound value for 'answer' field name" should {
     "be true field value is 'true' " in {
       val params = Map(answerFieldName -> "true")
+      YesNoForm.form().bind(params).value shouldBe Some(true)
       YesNoForm.form().bind(params).value.get shouldBe true
+
     }
     "be false when field value is 'false' " in {
       val params = Map(answerFieldName -> "false")
@@ -46,6 +48,12 @@ class YesNoFormSpec extends AnyWordSpec
       validatedForm.hasErrors shouldBe true
       validatedForm.error(answerFieldName).get.message shouldBe "my.error.key"
     }
+
+    "unbind" in {
+      YesNoForm.form("my.error.key").mapping.unbind(true) shouldBe Map("answer" -> "true")
+    }
   }
+
+
 
 }

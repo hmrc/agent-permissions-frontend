@@ -18,6 +18,7 @@ package connectors
 
 import akka.Done
 import com.codahale.metrics.MetricRegistry
+import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import play.api.Logging
@@ -30,7 +31,8 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorR
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-trait AgentPermissionsConnector extends HttpAPIMonitor with Logging{
+@ImplementedBy(classOf[AgentPermissionsConnectorImpl])
+trait AgentPermissionsConnector extends HttpAPIMonitor with   Logging{
   val http: HttpClient
 
   def getOptinStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
@@ -69,6 +71,4 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
       }
     }
   }
-
-
 }

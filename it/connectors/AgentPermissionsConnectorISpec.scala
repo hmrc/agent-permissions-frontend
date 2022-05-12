@@ -16,14 +16,30 @@
 
 package connectors
 
-import connectors.mocks.{MockAgentPermissionsConnector, MockHttpClient}
-import helpers.BaseISpec
+import akka.Done
+import com.google.inject.AbstractModule
+import helpers.{AgentPermissionsConnectorMocks, BaseISpec, HttpClientMocks}
+import play.api.Application
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
-class AgentPermissionsConnectorISpec extends BaseISpec with MockHttpClient with MockAgentPermissionsConnector {
+class AgentPermissionsConnectorISpec extends BaseISpec with HttpClientMocks with AgentPermissionsConnectorMocks {
 
-  val connector = new AgentPermissionsConnectorImpl(mockHttpClient)
+  implicit val mockHttpClient: HttpClient = mock[HttpClient]
+
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
+
+    override def configure(): Unit = {
+      bind(classOf[HttpClient]).toInstance(mockHttpClient)
+    }
+  }
+
+  override implicit lazy val fakeApplication: Application =
+    appBuilder
+      .build()
+
+  val connector: AgentPermissionsConnector = fakeApplication.injector.instanceOf[AgentPermissionsConnectorImpl]
 
   "getOptinStatus" should {
     "return the OptinStatus when valid JSON response received" in {
@@ -38,4 +54,18 @@ class AgentPermissionsConnectorISpec extends BaseISpec with MockHttpClient with 
     }
   }
 
+  "postOptin" should {
+    "return Done when successful" in {
+
+      mockHttpPost[HttpResponse](HttpResponse.apply(202, ""))
+      connector.optin(arn).futureValue shouldBe Done
+    }
+    "throw an exception when there was a problem" in {
+
+      mockHttpPost[HttpResponse](HttpResponse.apply(503, ""))
+      intercept[UpstreamErrorResponse]{
+        await(connector.optin(arn))
+      }
+    }
+  }
 }

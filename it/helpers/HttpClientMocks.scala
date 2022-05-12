@@ -17,20 +17,21 @@
 package helpers
 
 import org.scalamock.scalatest.MockFactory
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
-import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, Enrolments}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait AuthorisationStub extends MockFactory {
+trait HttpClientMocks extends MockFactory {
 
-  type GrantAccess = Enrolments ~ Option[CredentialRole]
+  def mockHttpGet[A](response: A)(implicit mockHttpClient: HttpClient): Unit = {
+    (mockHttpClient.GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *, *, *)
+      .returns(Future.successful(response))
+  }
 
-  def stubAuthorisationGrantAccess(response: GrantAccess)(implicit authConnector: AuthConnector): Unit =
-    (authConnector
-      .authorise(_: Predicate, _: Retrieval[GrantAccess])(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returning(Future successful response)
+  def mockHttpPost[A](response: A)(implicit mockHttpClient: HttpClient): Unit = {
+    (mockHttpClient.POSTEmpty(_: String, _: Seq[(String, String)])(_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *, *)
+      .returns(Future.successful(response))
+  }
 }

@@ -17,20 +17,15 @@
 package helpers
 
 import com.google.inject.AbstractModule
-import config.AppConfig
-import connectors.mocks.{MockAgentPermissionsConnector, MockHttpClient}
-import controllers.{AuthAction, OptInController}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.i18n.MessagesApi
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.{MessagesControllerComponents, Result}
+import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
-import play.api.{Application, Configuration, Environment}
-import repository.SessionCacheRepository
+import play.api.{Configuration, Environment}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
@@ -38,7 +33,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.mongo.TimestampSupport
 import uk.gov.hmrc.mongo.test.CleanMongoCollectionSupport
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import views.html._
 
 import java.time.Instant
 import scala.concurrent.duration.DurationInt
@@ -47,17 +41,14 @@ import scala.concurrent.{ExecutionContext, Future}
 abstract class BaseISpec extends AnyWordSpec
   with Matchers
   with GuiceOneAppPerSuite
-  with AuthorisationStub
+  with AuthMocks
   with ScalaFutures
+  with AgentPermissionsConnectorMocks
+  with HttpClientMocks
   with CleanMongoCollectionSupport
-  with MockAgentPermissionsConnector
-  with MockHttpClient
-  with MetricsTestSupport
-   {
+{
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  implicit val appConfig = app.injector.instanceOf[AppConfig]
-
 
    implicit val request = FakeRequest()
        .withHeaders("Authorization" -> "Bearer XYZ")
@@ -71,46 +62,19 @@ abstract class BaseISpec extends AnyWordSpec
      val arn = Arn(validArn)
 
   val agentEnrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
+     val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
 
-     implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
+     lazy val conf: Configuration = GuiceApplicationBuilder().configuration
+     lazy val env: Environment = GuiceApplicationBuilder().environment
 
-  val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
+     def moduleWithOverrides = new AbstractModule() {}
 
-  val mcc: MessagesControllerComponents = fakeApplication().injector.instanceOf[MessagesControllerComponents]
-     val messagesApi: MessagesApi = fakeApplication().injector.instanceOf[MessagesApi]
-
-     val startPage = fakeApplication().injector.instanceOf[start]
-     val optInPage = fakeApplication().injector.instanceOf[want_to_opt_in]
-     val optedInPage = fakeApplication().injector.instanceOf[you_have_opted_in]
-     val notOptedInPage = fakeApplication.injector.instanceOf[you_have_not_opted_in]
-     val errorPage = fakeApplication().injector.instanceOf[error]
-
-
-     val authAction: AuthAction = fakeApplication().injector.instanceOf[AuthAction]
-
-
-     def moduleWithOverrides = new AbstractModule() {
-
-       lazy val conf: Configuration = GuiceApplicationBuilder().configuration
-       lazy val env: Environment = GuiceApplicationBuilder().environment
-
-
-       override def configure(): Unit = {
-         bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
-         bind(classOf[OptInController]).toInstance(new OptInController(authAction, mcc,
-           mockAgentPermissionsConnector,mongoSessionCacheRepository,startPage,optInPage,optedInPage,notOptedInPage)(appConfig,ec,messagesApi))
-       }
-     }
-
-  override def fakeApplication(): Application = {
-    GuiceApplicationBuilder()
-      //.disable[com.kenshoo.play.metrics.PlayModule]
-      .configure("auditing.enabled" -> false)
-      .configure("metrics.enabled" -> true)
-      .configure("metrics.jvm" -> false)
-      .overrides(moduleWithOverrides)
-      .build()
-  }
+     def appBuilder = GuiceApplicationBuilder()
+       .disable[com.kenshoo.play.metrics.PlayModule]
+       .configure("auditing.enabled" -> false)
+       .configure("metrics.enabled" -> true)
+       .configure("metrics.jvm" -> false)
+       .overrides(moduleWithOverrides)
 
   protected val ttl       = 1000.millis
   protected val now       = Instant.now()
@@ -123,7 +87,4 @@ abstract class BaseISpec extends AnyWordSpec
 
      def status(result: Result): Int = result.header.status
      def status(result: Future[Result]): Int = Helpers.status(result)
-
-     val mongoSessionCacheRepository: SessionCacheRepository = new SessionCacheRepository(mongoComponent, fakeApplication().configuration, timestampSupport)
-
 }

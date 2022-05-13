@@ -27,7 +27,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBear
 
 import scala.concurrent.Future
 
-class AuthActionISpec  extends BaseISpec {
+class AuthActionSpec  extends BaseISpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 

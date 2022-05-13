@@ -30,7 +30,7 @@ import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future
 
-class SessionBehaviourISpec extends BaseISpec with HttpClientMocks with AgentPermissionsConnectorMocks {
+class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPermissionsConnectorMocks {
 
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 

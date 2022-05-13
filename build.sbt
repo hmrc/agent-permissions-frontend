@@ -5,6 +5,14 @@ val appName = "agent-permissions-frontend"
 
 val silencerVersion = "1.7.8"
 
+TwirlKeys.templateImports ++= Seq(
+  "views.html.components._",
+  "views.html.main_layout",
+  "uk.gov.hmrc.govukfrontend.views.html.components._",
+  "uk.gov.hmrc.hmrcfrontend.views.html.components._",
+)
+
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(
@@ -27,3 +35,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)
+  .settings(IntegrationTest / Keys.fork := false)
+  .settings(IntegrationTest / parallelExecution := false)
+

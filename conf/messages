@@ -1,2 +1,32 @@
-service.name = agent-permissions-frontend
-service.text = This is your new service
+service.name = Manage Agent Permissions
+service.text = Manage Agent Permissions
+
+generic.title={0} - {1} - GOV.UK
+error-prefix=Error:
+common.errorSummary.heading=There is a problem
+continue=Continue
+
+#common message keys. PLEASE DON'T DUPLICATE THINGS!
+continue.button=Continue
+save.and.continue.button=Save and continue
+submit.button=Submit
+
+opt-in-info.h1=Opting in to use access groups
+opt-in-info.inset=By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login
+opt-in-info.p1=If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups.
+opt-in-info.p2=This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client's tax information.
+
+do-you-want-to-opt-in.h1=Do you want to opt in to use access groups?
+do-you-want-to-opt-in.yes.label=Yes, I want to opt-in
+do-you-want-to-opt-in.yes.error=Please select an option.
+do-you-want-to-opt-in.no.label=No, I want to remain opted-out
+
+you-have-opted-in.h1=You have opted in to use access groups
+you-have-opted-in.h2=What happens next
+you-have-opted-in.p=You now need to create <b>access groups</b> and assign clients and team members to them.
+you-have-opted-in.button=Create an access group
+
+you-have-not-opted-in.h1=You have not opted-in to use access groups
+you-have-not-opted-in.h2=What happens next
+you-have-not-opted-in.p=You can opt in at any time later
+you-have-not-opted-in.button=Back to manage groups page

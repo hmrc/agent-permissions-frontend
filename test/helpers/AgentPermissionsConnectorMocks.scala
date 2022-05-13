@@ -26,17 +26,17 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentPermissionsConnectorMocks extends MockFactory {
 
-  def stubOptinStatusOk(arn: Arn)(optinStatus: OptinStatus)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+  def stubOptInStatusOk(arn: Arn)(optinStatus: OptinStatus)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.getOptinStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful (Some(optinStatus)))
 
-  def stubPostOptinAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+  def stubPostOptInAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Done)
 
-  def stubPostOptinError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+  def stubPostOptInError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))

@@ -24,7 +24,7 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
-class AgentPermissionsConnectorISpec extends BaseISpec with HttpClientMocks with AgentPermissionsConnectorMocks {
+class AgentPermissionsConnectorSpec extends BaseISpec with HttpClientMocks with AgentPermissionsConnectorMocks {
 
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 

@@ -18,10 +18,10 @@ package controllers
 
 import helpers.BaseISpec
 import play.api.Application
-import play.api.http.Status.{SEE_OTHER, isRedirect}
+import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers._
 
-class RootControllerISpec extends BaseISpec {
+class RootControllerSpec extends BaseISpec {
 
   override implicit lazy val fakeApplication: Application = appBuilder.build()
 

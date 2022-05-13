@@ -7,8 +7,16 @@ GET        /assets/*file                    controllers.Assets.versioned(path = 
 GET        /                                controllers.RootController.start
 
 GET        /opt-in/start                    controllers.OptInController.start
+
 GET        /opt-in/do-you-want-to-opt-in    controllers.OptInController.showDoYouWantToOptIn
 POST       /opt-in/do-you-want-to-opt-in    controllers.OptInController.submitDoYouWantToOptIn
 
 GET        /opt-in/you-have-opted-in        controllers.OptInController.showYouHaveOptedIn
-GET        /opt-in/you-have-not-opted-in       controllers.OptInController.showYouHaveNotOptedIn
+GET        /opt-in/you-have-not-opted-in    controllers.OptInController.showYouHaveNotOptedIn
+
+GET        /opt-out/start                   controllers.OptOutController.start
+
+GET        /opt-out/do-you-want-to-opt-out  controllers.OptOutController.showDoYouWantToOptOut
+POST       /opt-out/do-you-want-to-opt-out  controllers.OptOutController.submitDoYouWantToOptOut
+
+GET        /opt-out/you-have-opted-out      controllers.OptOutController.showYouHaveOptedOut

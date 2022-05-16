@@ -57,7 +57,7 @@ class OptInControllerSpec extends BaseISpec {
     "display content for start" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptinStatusOk(arn)(OptedOutEligible)
+      stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.start()(request)
       status(result) shouldBe OK
@@ -99,7 +99,7 @@ class OptInControllerSpec extends BaseISpec {
     "return Forbidden when user is not eligible" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptinStatusOk(arn)(OptedOutSingleUser)
+      stubOptInStatusOk(arn)(OptedOutSingleUser)
 
       val result = controller.start()(request)
       status(result) shouldBe FORBIDDEN
@@ -110,7 +110,7 @@ class OptInControllerSpec extends BaseISpec {
     "display expected content" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptinStatusOk(arn)(OptedOutEligible)
+      stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.showDoYouWantToOptIn()(request)
 
@@ -134,8 +134,8 @@ class OptInControllerSpec extends BaseISpec {
     "redirect to 'you have opted in' page with answer 'true'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptinStatusOk(arn)(OptedOutEligible)
-      stubPostOptinAccepted(arn)
+      stubOptInStatusOk(arn)(OptedOutEligible)
+      stubPostOptInAccepted(arn)
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -148,7 +148,7 @@ class OptInControllerSpec extends BaseISpec {
     "redirect to 'you have not opted in' page with answer 'false'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptinStatusOk(arn)(OptedOutEligible)
+      stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -161,7 +161,7 @@ class OptInControllerSpec extends BaseISpec {
     "render correct error messages when form not filled in" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptinStatusOk(arn)(OptedOutEligible)
+      stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -182,8 +182,8 @@ class OptInControllerSpec extends BaseISpec {
     "throw exception when there was a problem with optin call" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptinStatusOk(arn)(OptedOutEligible)
-      stubPostOptinError(arn)
+      stubOptInStatusOk(arn)(OptedOutEligible)
+      stubPostOptInError(arn)
 
       intercept[UpstreamErrorResponse]{
         await(controller.submitDoYouWantToOptIn()(

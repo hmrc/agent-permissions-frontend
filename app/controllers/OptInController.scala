@@ -64,12 +64,13 @@ class OptInController @Inject()(
       withEligibleToOptIn(arn) {
         YesNoForm
           .form("do-you-want-to-opt-in.yes.error")
-          .bindFromRequest()
+          .bindFromRequest
           .fold(
             formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
             (iWantToOptIn: Boolean) => {
               if (iWantToOptIn)
-                  agentPermissionsConnector.optin(arn).map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
+                  agentPermissionsConnector.optin(arn)
+                    .map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
               else
                 Redirect(routes.OptInController.showYouHaveNotOptedIn.url).toFuture
             }

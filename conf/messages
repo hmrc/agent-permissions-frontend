@@ -30,3 +30,20 @@ you-have-not-opted-in.h1=You have not opted-in to use access groups
 you-have-not-opted-in.h2=What happens next
 you-have-not-opted-in.p=You can opt in at any time later
 you-have-not-opted-in.button=Back to manage groups page
+
+
+opt-out-info.h1=Opting out of using access groups
+opt-out-info.inset=If you opt out of using this feature any access groups you have created will be removed.
+opt-out-info.p1=Opting out will mean that all users will be able to view and manage the tax affairs of all clients.
+opt-out-info.p2=You can opt in to use access groups later but you will have to create them again and reassign clients and team members to each group.
+
+do-you-want-to-opt-out.h1=Do you want to opt out of using access groups?
+do-you-want-to-opt-out.yes.label=Yes, I want to opt out
+do-you-want-to-opt-out.no.label=No, I want to stay opted in
+do-you-want-to-opt-out.yes.error=Please select an option.
+
+you-have-opted-out.h1=You have opted out of using access groups
+you-have-opted-out.h2=What happens next
+you-have-opted-out.p1=You will need to log out and log back in to see this change, after which all users will be able to view all clients.
+you-have-opted-out.p2=Your account will show that you have chosen to opt out of using access groups. If you wish to opt in to use this feature again you can do so from your agent services manage account page.
+you-have-opted-out.button=Return to manage account

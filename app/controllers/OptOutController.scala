@@ -26,50 +26,68 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class OptOutController @Inject()(
-        authAction: AuthAction,
-        mcc: MessagesControllerComponents,
-        val agentPermissionsConnector: AgentPermissionsConnector,
-        val sessionCacheRepository: SessionCacheRepository,
-        opt_out_start: opt_out_start,
-        want_to_opt_out: want_to_opt_out,
-        you_have_opted_out: you_have_opted_out,
-)(
-implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+                                  authAction: AuthAction,
+                                  mcc: MessagesControllerComponents,
+                                  val agentPermissionsConnector: AgentPermissionsConnector,
+                                  val sessionCacheRepository: SessionCacheRepository,
+                                  opt_out_start: opt_out_start,
+                                  want_to_opt_out: want_to_opt_out,
+                                  you_have_opted_out: you_have_opted_out,
+                                )(
+                                  implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
   extends FrontendController(mcc)
     with I18nSupport with SessionBehaviour {
 
   import authAction._
 
   def start: Action[AnyContent] = Action.async { implicit request =>
-    Ok(opt_out_start()).toFuture
+    withAuthorisedAgent { arn =>
+      withEligibleToOptOut(arn) {
+        Ok(opt_out_start()).toFuture
+      }
+    }
   }
 
   def showDoYouWantToOptOut: Action[AnyContent] = Action.async { implicit request =>
-    Ok(want_to_opt_out(YesNoForm.form())).toFuture
+    withAuthorisedAgent { arn =>
+      withEligibleToOptOut(arn) {
+        Ok(want_to_opt_out(YesNoForm.form())).toFuture
+      }
+    }
   }
 
   def submitDoYouWantToOptOut: Action[AnyContent] = Action.async { implicit request =>
-    YesNoForm
-      .form("do-you-want-to-opt-out.yes.error")
-      .bindFromRequest()
-      .fold(
-        formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
-        (iWantToOptOut: Boolean) => {
-          if (iWantToOptOut)
-//            agentPermissionsConnector.optin(arn).map(_ => ))
-            Redirect(routes.OptOutController.showYouHaveOptedOut.url).toFuture
-          else
-            Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
-        }
-      )
+    withAuthorisedAgent { arn =>
+      withEligibleToOptOut(arn) {
+        YesNoForm
+          .form("do-you-want-to-opt-out.yes.error")
+          .bindFromRequest
+          .fold(
+            formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
+            (iWantToOptOut: Boolean) => {
+              if (iWantToOptOut)
+                agentPermissionsConnector.optOut(arn)
+                  .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut.url))
+              else
+                Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+            }
+          )
+      }
+    }
   }
 
   def showYouHaveOptedOut: Action[AnyContent] = Action.async { implicit request =>
-      Future.successful(Ok(you_have_opted_out()))
+    withAuthorisedAgent { arn =>
+      withEligibleToOptOut(arn) {
+        sessionCacheRepository
+          .deleteFromSession(DATA_KEY)
+          .map(_ => Ok(you_have_opted_out()))
+      }
+    }
   }
 
 }

@@ -40,4 +40,9 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
+
+  def stubPostOptOutAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector.optOut(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful Done)
 }

@@ -24,10 +24,8 @@ import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInSingleUser, OptedOutEligible, OptedOutSingleUser}
+import uk.gov.hmrc.agentmtdidentifiers.model.OptedInSingleUser
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class OptOutControllerSpec extends BaseISpec {
 
@@ -40,10 +38,9 @@ class OptOutControllerSpec extends BaseISpec {
     override def configure(): Unit = {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
-      bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
+      bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepository)
     }
   }
-
 
   override implicit lazy val fakeApplication: Application =
     appBuilder
@@ -56,8 +53,8 @@ class OptOutControllerSpec extends BaseISpec {
 
     "display content for start" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
-//      stubOptInStatusOk(arn)(OptedInSingleUser)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInSingleUser)
 
       val result = controller.start()(request)
       status(result) shouldBe OK
@@ -80,8 +77,8 @@ class OptOutControllerSpec extends BaseISpec {
   "GET /opt-out/do-you-want-to-opt-out" should {
     "display expected content" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
-//      stubOptInStatusOk(arn)(OptedInSingleUser)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInSingleUser)
 
       val result = controller.showDoYouWantToOptOut()(request)
 
@@ -104,9 +101,9 @@ class OptOutControllerSpec extends BaseISpec {
 
     "redirect to 'you have opted out' page with answer 'true'" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
-//      stubOptInStatusOk(arn)(OptedInSingleUser)
-//      stubPostOptInAccepted(arn)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInSingleUser)
+      stubPostOptOutAccepted(arn)
 
       val result = controller.submitDoYouWantToOptOut()(
         FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
@@ -118,8 +115,8 @@ class OptOutControllerSpec extends BaseISpec {
 
     "redirect to 'manage dashboard' page when user decides not to opt out" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
-//      stubOptInStatusOk(arn)(OptedInSingleUser)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInSingleUser)
 
       val result = controller.submitDoYouWantToOptOut()(
         FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
@@ -131,8 +128,8 @@ class OptOutControllerSpec extends BaseISpec {
 
     "render correct error messages when form not filled in" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
-//      stubOptInStatusOk(arn)(OptedInSingleUser)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInSingleUser)
 
       val result = controller.submitDoYouWantToOptOut()(
         FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
@@ -149,13 +146,13 @@ class OptOutControllerSpec extends BaseISpec {
       html.select(Css.SUBMIT_BUTTON)
 
     }
-
   }
 
   "GET /opt-out/you-have-opted-out" should {
     "display expected content" in {
 
-//      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInSingleUser)
 
       val result = controller.showYouHaveOptedOut()(request)
 
@@ -175,6 +172,5 @@ class OptOutControllerSpec extends BaseISpec {
     }
   }
 
-
-  lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
+  lazy val sessionCacheRepository: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 }

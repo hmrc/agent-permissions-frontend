@@ -19,7 +19,7 @@ package controllers
 import connectors.AgentPermissionsConnector
 import models.JourneySession
 import play.api.mvc.Results.Forbidden
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{Request, Result, Results}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,7 +34,11 @@ trait SessionBehaviour {
   val agentPermissionsConnector: AgentPermissionsConnector
 
 
-  private val DATA_KEY: DataKey[JourneySession] = DataKey("opting")
+  def withSession(body: JourneySession => Future[Result])(implicit request: Request[_], hc:HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    sessionCacheRepository.getFromSession[JourneySession](DATA_KEY).flatMap{
+      case Some(session) => body(session)
+      case None          => Results.Redirect(routes.RootController.start.url).toFuture
+    }
 
   def withEligibleToOptIn(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleTo(true)(arn)(body)(request, hc, ec)

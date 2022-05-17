@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,19 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import config.AppConfig
-@import views.html.main_layout
+package controllers
 
-@this(layout: main_layout, p: p, h1: h1, h2: h2, link_as_button: link_as_button)
+class GroupsControllerSpec {
 
-@(continueUrl: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
-
-@layout(
-    title = msgs("you-have-opted-in.h1", msgs("service.name"))) {
-    @h1("you-have-opted-in.h1")
-    @h2("you-have-opted-in.h2")
-    @p("you-have-opted-in.p")
-    @link_as_button(messageKey = "you-have-opted-in.button", href = continueUrl)
 }

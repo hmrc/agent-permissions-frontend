@@ -17,14 +17,15 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.AgentPermissionsConnector
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseISpec, Css}
+import models.JourneySession
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedOutEligible, OptedOutSingleUser}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptedOutSingleUser}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.UpstreamErrorResponse
@@ -33,6 +34,7 @@ class OptInControllerSpec extends BaseISpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
 
 
   override def moduleWithOverrides = new AbstractModule() {
@@ -41,6 +43,7 @@ class OptInControllerSpec extends BaseISpec {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
     }
   }
 
@@ -128,14 +131,18 @@ class OptInControllerSpec extends BaseISpec {
       html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
     }
   }
+  import helpers.TestData._
 
   "POST /opt-in/do-you-want-to-opt-in" should {
+
 
     "redirect to 'you have opted in' page with answer 'true'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
       stubOptinStatusOk(arn)(OptedOutEligible)
       stubPostOptinAccepted(arn)
+      stubGetClientListOk(arn)(clientListData)
+      stubOptinStatusOk(arn)(OptedInReady)
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -195,9 +202,10 @@ class OptInControllerSpec extends BaseISpec {
   }
 
   "GET /opt-in/you-have-opted-in" should {
-    "display expected content" in {
+    "display expected content with continueUrl of ASA dashboard when clientList is not in session" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessioncacheRepo.putSession[JourneySession](DATA_KEY,JourneySession(optinStatus = OptedInNotReady, clientList = None)))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -213,6 +221,27 @@ class OptInControllerSpec extends BaseISpec {
 
       html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
       html.select(Css.linkStyledAsButton).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+    }
+
+    "display expected content with continueUrl of /groups when clientList is in session" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessioncacheRepo.putSession[JourneySession](DATA_KEY,JourneySession(optinStatus = OptedInNotReady, clientList = Some(clientListData))))
+
+      val result = controller.showYouHaveOptedIn()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "You have opted in to use access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "You have opted in to use access groups"
+
+      html.select(Css.H2).text() shouldBe "What happens next"
+
+      html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
+
+      html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/groups"
     }
   }
 

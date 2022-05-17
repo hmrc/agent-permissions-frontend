@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import models.JourneySession
+import uk.gov.hmrc.mongo.cache.DataKey
+
 import scala.concurrent.Future
 
 package object controllers {
@@ -21,4 +24,6 @@ package object controllers {
   implicit class ToFuture[T](t: T) {
     def toFuture = Future successful t
   }
+
+  val DATA_KEY: DataKey[JourneySession] = DataKey("journey")
 }

@@ -12,3 +12,5 @@ POST       /opt-in/do-you-want-to-opt-in    controllers.OptInController.submitDo
 
 GET        /opt-in/you-have-opted-in        controllers.OptInController.showYouHaveOptedIn
 GET        /opt-in/you-have-not-opted-in       controllers.OptInController.showYouHaveNotOptedIn
+
+GET        /groups                          controllers.GroupsController.root

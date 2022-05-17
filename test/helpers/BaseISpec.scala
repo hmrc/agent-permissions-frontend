@@ -46,6 +46,7 @@ abstract class BaseISpec extends AnyWordSpec
   with AgentPermissionsConnectorMocks
   with HttpClientMocks
   with CleanMongoCollectionSupport
+  with AgentUserClientDetailsConnectorMocks
 {
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global

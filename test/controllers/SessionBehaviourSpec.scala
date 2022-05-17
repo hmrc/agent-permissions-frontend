@@ -57,7 +57,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_ELIGIBLE" """))
       val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
 
       sessionStored.isDefined shouldBe true
       status(result) shouldBe 200
@@ -65,7 +65,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
     "if a journey session is available then don't make a call to backend" in  {
 
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DataKey("opting"),JourneySession(optinStatus = OptedOutEligible)))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optinStatus = OptedOutEligible)))
       //no call required
       val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
 
@@ -76,7 +76,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
       val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
 
       sessionStored.isDefined shouldBe true
 
@@ -90,7 +90,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-In_READY" """))
       val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
 
       sessionStored.isDefined shouldBe true
       status(result) shouldBe 200
@@ -98,7 +98,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
     "if a journey session is available then don't make a call to backend" in  {
 
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DataKey("opting"),JourneySession(optinStatus = OptedInReady)))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optinStatus = OptedInReady)))
       //no call required
       val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
 
@@ -109,12 +109,25 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
       val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DataKey("opting")))
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
 
       sessionStored.isDefined shouldBe true
 
       status(result) shouldBe 403
       bodyOf(result) shouldBe "not_eligible_to_opt-out"
+    }
+  }
+
+  "withSession" should {
+    "execute body when there is a session" in {
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optinStatus = OptedInReady)))
+      val result = await(testSessionBehaviour.withSession((_: JourneySession) => Future successful Results.Ok("")))
+      status(result) shouldBe OK
+    }
+    "redirect to / when no session available" in {
+      val result = testSessionBehaviour.withSession((_: JourneySession) => Future successful Results.Ok(""))
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.RootController.start.url
     }
   }
 

@@ -66,7 +66,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
       http.POSTEmpty[HttpResponse](url).map{ response =>
         response.status match {
           case ACCEPTED => Done
-          case e => throw UpstreamErrorResponse(s"error sending optin request",e)
+          case e => throw UpstreamErrorResponse(s"error sending optin request for ${arn.value}",e)
         }
       }
     }

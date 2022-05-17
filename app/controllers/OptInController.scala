@@ -17,11 +17,13 @@
 package controllers
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import forms.YesNoForm
+import models.JourneySession
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
+import services.OptInService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -34,6 +36,8 @@ class OptInController @Inject()(
    mcc: MessagesControllerComponents,
    val agentPermissionsConnector: AgentPermissionsConnector,
    val sessionCacheRepository: SessionCacheRepository,
+   agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+   optInService: OptInService,
    start_optIn: start,
    want_to_opt_in: want_to_opt_in,
    you_have_opted_in: you_have_opted_in,
@@ -69,7 +73,7 @@ class OptInController @Inject()(
             formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
             (iWantToOptIn: Boolean) => {
               if (iWantToOptIn)
-                  agentPermissionsConnector.optin(arn).map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
+                optInService.processOptIn(arn).map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
               else
                 Redirect(routes.OptInController.showYouHaveNotOptedIn.url).toFuture
             }
@@ -78,9 +82,14 @@ class OptInController @Inject()(
     }
   }
 
+  //if there is a clientList available then proceed to Groups otherwise go back to the ASA dashboard (and wait)
   def showYouHaveOptedIn: Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAgent { _ =>
-      Future.successful(Ok(you_have_opted_in()))
+      withSession { session =>
+        session.clientList.fold(
+          sessionCacheRepository.deleteFromSession(DATA_KEY).map(_ => Ok(you_have_opted_in(appConfig.agentServicesAccountManageAccountUrl))
+        ))(_ => Ok(you_have_opted_in(routes.GroupsController.root.url)).toFuture)
+      }
     }
   }
 

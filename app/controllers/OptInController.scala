@@ -68,7 +68,7 @@ class OptInController @Inject()(
       withEligibleToOptIn(arn) {
         YesNoForm
           .form("do-you-want-to-opt-in.yes.error")
-          .bindFromRequest()
+          .bindFromRequest
           .fold(
             formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
             (iWantToOptIn: Boolean) => {

@@ -46,7 +46,6 @@ trait SessionBehaviour {
   def withEligibleToOptOut(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleTo(false)(arn)(body)(request, hc, ec)
 
-
   private def eligibleTo(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
 
     val forbiddenF: Future[Result] = {

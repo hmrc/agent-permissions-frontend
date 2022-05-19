@@ -43,7 +43,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(implic
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  private val baseUrl = appConfig.agentPermissionsBaseUrl
+  private val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
   def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Enrolment]]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"

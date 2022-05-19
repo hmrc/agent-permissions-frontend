@@ -72,7 +72,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
       status(result) shouldBe 200
     }
 
-    "if not eligible to opt-in then return 403" in {
+    "if not eligible to opt-in then redirect to root" in {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
       val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
@@ -80,8 +80,8 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
       sessionStored.isDefined shouldBe true
 
-      status(result) shouldBe 403
-      bodyOf(result) shouldBe "not_eligible_to_opt-in"
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result.toFuture).get shouldBe routes.RootController.start.url
     }
   }
 
@@ -105,16 +105,18 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
       status(result) shouldBe 200
     }
 
-    "if not eligible to opt-out then return 403" in {
+    "if not eligible to opt-out then redirect to root" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
+      mockHttpGet[HttpResponse](HttpResponse.apply(OK, s""" "Opted-Out_SINGLE_USER" """))
+
       val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
+
       val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
 
       sessionStored.isDefined shouldBe true
 
-      status(result) shouldBe 403
-      bodyOf(result) shouldBe "not_eligible_to_opt-out"
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result.toFuture).get shouldBe routes.RootController.start.url
     }
   }
 

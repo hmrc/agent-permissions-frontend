@@ -99,13 +99,14 @@ class OptInControllerSpec extends BaseISpec {
       status(result) shouldBe FORBIDDEN
     }
 
-    "return Forbidden when user is not eligible" in {
+    "redirect user to root when user is not eligible" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedOutSingleUser)
 
       val result = controller.start()(request)
-      status(result) shouldBe FORBIDDEN
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.RootController.start.url
     }
   }
 

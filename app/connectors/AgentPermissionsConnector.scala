@@ -22,7 +22,7 @@ import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import play.api.Logging
-import play.api.http.Status.{ACCEPTED, OK}
+import play.api.http.Status.{ACCEPTED, CREATED, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
@@ -66,7 +66,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     monitor("ConsumedAPI-optin-POST"){
       http.POSTEmpty[HttpResponse](url).map{ response =>
         response.status match {
-          case ACCEPTED => Done
+          case CREATED => Done
           case e => throw UpstreamErrorResponse(s"error sending optin request for ${arn.value}",e)
         }
       }

@@ -18,8 +18,8 @@ package controllers
 
 import connectors.AgentPermissionsConnector
 import models.JourneySession
-import play.api.mvc.Results.Forbidden
-import play.api.mvc.{Request, Result}
+import play.api.mvc.Results.{Forbidden, Redirect}
+import play.api.mvc.{Request, Result, Results}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -33,7 +33,12 @@ trait SessionBehaviour {
   val sessionCacheRepository: SessionCacheRepository
   val agentPermissionsConnector: AgentPermissionsConnector
 
-  protected val DATA_KEY: DataKey[JourneySession] = DataKey("opting")
+
+  def withSession(body: JourneySession => Future[Result])(implicit request: Request[_], hc:HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    sessionCacheRepository.getFromSession[JourneySession](DATA_KEY).flatMap{
+      case Some(session) => body(session)
+      case None          => Results.Redirect(routes.RootController.start.url).toFuture
+    }
 
   def withEligibleToOptIn(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleTo(true)(arn)(body)(request, hc, ec)
@@ -43,13 +48,10 @@ trait SessionBehaviour {
 
   private def eligibleTo(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
 
-    val forbiddenF: Future[Result] = {
-      Forbidden(s"not_eligible_to_${if (optin) "opt-in" else "opt-out"}").toFuture
-    }
     sessionCacheRepository
       .getFromSession[JourneySession](DATA_KEY).flatMap {
       case Some(session) if (optin & session.isEligibleToOptIn) | (!optin & session.isEligibleToOptOut) => body
-      case Some(_) =>  forbiddenF
+      case Some(_) => Redirect(routes.RootController.start.url).toFuture
       case None =>
         agentPermissionsConnector.getOptinStatus(arn).flatMap {
           case Some(status) => sessionCacheRepository
@@ -57,8 +59,8 @@ trait SessionBehaviour {
             .flatMap(_ =>
               if (optin && status == OptedOutEligible) body
               else if (!optin && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body
-              else forbiddenF)
-          case None => forbiddenF
+              else Redirect(routes.RootController.start.url).toFuture)
+          case None => throw new RuntimeException(s"optin-status could not be found for ${arn.value}")
         }
     }
   }

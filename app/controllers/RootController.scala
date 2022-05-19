@@ -17,17 +17,43 @@
 package controllers
 
 import config.AppConfig
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import connectors.AgentPermissionsConnector
+import models.JourneySession
+import play.api.Logging
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Results}
+import repository.SessionCacheRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class RootController @Inject()(
-  mcc: MessagesControllerComponents)(implicit val appConfig: AppConfig)
-    extends FrontendController(mcc) {
+                              authAction: AuthAction,
+  mcc: MessagesControllerComponents,
+  agentPermissionsConnector: AgentPermissionsConnector,
+  sessionCacheRepository: SessionCacheRepository)(implicit val appConfig: AppConfig, ec: ExecutionContext)
+    extends FrontendController(mcc) with Logging {
 
-  val start: Action[AnyContent] = Action { implicit request =>
-    Redirect(routes.OptInController.start.url)
+  import authAction._
+
+  val start: Action[AnyContent] = Action.async { implicit request =>
+    withAuthorisedAgent{ arn =>
+      sessionCacheRepository.getFromSession(DATA_KEY).flatMap{
+        case Some(session) => if(session.isEligibleToOptIn)
+          Redirect(routes.OptInController.start.url).toFuture
+        else if(session.isEligibleToOptOut) Redirect(routes.OptOutController.start.url).toFuture
+        else {
+          logger.warn(s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
+          Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+        }
+        case None => agentPermissionsConnector.getOptinStatus(arn).flatMap{
+          case Some(status) =>
+            sessionCacheRepository.putSession(DATA_KEY, JourneySession(optinStatus = status))
+              .map(_ => Results.Redirect(routes.RootController.start.url))
+          case None => throw new RuntimeException("there was a problem when trying to get the opted-In status")
+        }
+      }
+    }
   }
 }

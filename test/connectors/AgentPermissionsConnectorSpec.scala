@@ -57,7 +57,7 @@ class AgentPermissionsConnectorSpec extends BaseISpec with HttpClientMocks with 
   "postOptin" should {
     "return Done when successful" in {
 
-      mockHttpPost[HttpResponse](HttpResponse.apply(202, ""))
+      mockHttpPost[HttpResponse](HttpResponse.apply(201, ""))
       connector.optin(arn).futureValue shouldBe Done
     }
     "throw an exception when there was a problem" in {

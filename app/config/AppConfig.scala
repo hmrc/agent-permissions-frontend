@@ -33,4 +33,5 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig) {
   val agentServicesAccountManageAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.manage-account-path")
   val agentServicesAccountManageAccountUrl = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
   val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
+  val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
 }

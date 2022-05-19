@@ -78,7 +78,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     monitor("ConsumedAPI-optout-POST"){
       http.POSTEmpty[HttpResponse](url).map{ response =>
         response.status match {
-          case ACCEPTED => Done
+          case CREATED => Done
           case e => throw UpstreamErrorResponse(s"error sending opt out request",e)
         }
       }

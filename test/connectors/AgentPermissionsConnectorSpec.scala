@@ -20,6 +20,7 @@ import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseISpec, HttpClientMocks}
 import play.api.Application
+import play.api.http.Status.CREATED
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
@@ -57,7 +58,7 @@ class AgentPermissionsConnectorSpec extends BaseISpec with HttpClientMocks with 
   "postOptin" should {
     "return Done when successful" in {
 
-      mockHttpPost[HttpResponse](HttpResponse.apply(201, ""))
+      mockHttpPost[HttpResponse](HttpResponse.apply(CREATED, ""))
       connector.optin(arn).futureValue shouldBe Done
     }
     "throw an exception when there was a problem" in {
@@ -65,6 +66,22 @@ class AgentPermissionsConnectorSpec extends BaseISpec with HttpClientMocks with 
       mockHttpPost[HttpResponse](HttpResponse.apply(503, ""))
       intercept[UpstreamErrorResponse]{
         await(connector.optin(arn))
+      }
+    }
+  }
+
+  "postOptOut" should {
+    "return Done when successful" in {
+
+      mockHttpPost[HttpResponse](HttpResponse.apply(CREATED, ""))
+      connector.optOut(arn).futureValue shouldBe Done
+    }
+
+    "throw an exception when there was a problem" in {
+
+      mockHttpPost[HttpResponse](HttpResponse.apply(503, ""))
+      intercept[UpstreamErrorResponse]{
+        await(connector.optOut(arn))
       }
     }
   }

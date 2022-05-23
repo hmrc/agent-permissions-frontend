@@ -1,1 +1,26 @@
 @import "lib/govuk-frontend/govuk/base";
+
+div#scrollable-table-container {
+  height: 300px;
+  overflow-y: auto;
+  border-top:1px solid lightgray;
+  border-bottom:1px solid lightgray;
+
+  table {
+    th, td{
+      &:first-child{
+        padding:5px;
+      }
+    }
+
+    thead{
+
+      tr{
+        border-top: 3px solid lightgray;
+        border-bottom: 3px solid lightgray;
+      }
+    }
+    width: 100%;
+
+  }
+}

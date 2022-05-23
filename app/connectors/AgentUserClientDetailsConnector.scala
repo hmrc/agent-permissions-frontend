@@ -28,7 +28,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorR
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 @ImplementedBy(classOf[AgentUserClientDetailsConnectorImpl])
 trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {

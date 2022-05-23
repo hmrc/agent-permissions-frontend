@@ -1,0 +1,47 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.govukfrontend.views.html.components.{TableRow => TD}
+@import uk.gov.hmrc.govukfrontend.views.html.components.{HeadCell => TH}
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+
+@this(govukTable: GovukTable)
+
+@(
+    headings: Seq[Html] = Seq.empty,
+    rows: Seq[Seq[Html]],
+    caption: Option[String] = None,
+    captionClasses: String = "govuk-table__caption--m",
+    attrs: Map[String, String] = Map.empty,
+    id: Option[String] = None,
+    firstCellIsHeader: Boolean = false
+)(implicit msgs: Messages)
+
+@attributes = @{
+  if(id.isDefined) attrs + ("id" -> id.get)
+  else attrs
+}
+
+@govukTable(
+    Table(
+        caption = if(caption.isDefined) Some(msgs(caption.get)) else None,
+        captionClasses = captionClasses,
+        firstCellIsHeader = firstCellIsHeader,
+        head = Some(headings.map( heading => TH(content = HtmlContent(heading) ))),
+        rows = rows.map( row => row.map( cell => TD(content = HtmlContent(cell)))),
+        attributes = attributes
+    )
+)

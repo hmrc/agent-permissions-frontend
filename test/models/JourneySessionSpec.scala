@@ -27,31 +27,31 @@ with Matchers{
   "JourneySession optinStatus" when {
     "status is OptedOutEligible" should {
       "be EligibleToOptIn" in {
-        JourneySession(optinStatus = OptedOutEligible).isEligibleToOptIn shouldBe true
+        JourneySession(optInStatus = OptedOutEligible).isEligibleToOptIn shouldBe true
       }
       "status is OptedInReady" should {
         "isEligibleToOptOut" in {
-          JourneySession(optinStatus = OptedInReady).isEligibleToOptOut shouldBe true
+          JourneySession(optInStatus = OptedInReady).isEligibleToOptOut shouldBe true
         }
       }
       "status is OptedInNotReady" should {
         "isEligibleToOptOut" in {
-          JourneySession(optinStatus = OptedInNotReady).isEligibleToOptOut shouldBe true
+          JourneySession(optInStatus = OptedInNotReady).isEligibleToOptOut shouldBe true
         }
       }
       "status is OptedInSingleUser" should {
         "isEligibleToOptOut" in {
-          JourneySession(optinStatus = OptedInSingleUser).isEligibleToOptOut shouldBe true
+          JourneySession(optInStatus = OptedInSingleUser).isEligibleToOptOut shouldBe true
         }
       }
       "status is OptedOutSingleUser" should {
         "isNotEligibleToOptIn" in {
-          JourneySession(optinStatus = OptedOutSingleUser).isEligibleToOptIn shouldBe false
+          JourneySession(optInStatus = OptedOutSingleUser).isEligibleToOptIn shouldBe false
         }
       }
       "status is OptedOutWrongClientCount" should {
         "isNotEligibleToOptIn" in {
-          JourneySession(optinStatus = OptedOutWrongClientCount).isEligibleToOptIn shouldBe false
+          JourneySession(optInStatus = OptedOutWrongClientCount).isEligibleToOptIn shouldBe false
         }
       }
     }

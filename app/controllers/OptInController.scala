@@ -88,7 +88,7 @@ class OptInController @Inject()(
       withSession { session =>
         session.clientList.fold(
           sessionCacheRepository.deleteFromSession(DATA_KEY).map(_ => Ok(you_have_opted_in(appConfig.agentServicesAccountManageAccountUrl))
-        ))(_ => Ok(you_have_opted_in(routes.GroupsController.root.url)).toFuture)
+        ))(_ => Ok(you_have_opted_in(routes.GroupController.root.url)).toFuture)
       }
     }
   }

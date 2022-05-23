@@ -65,7 +65,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
     "if a journey session is available then don't make a call to backend" in  {
 
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optinStatus = OptedOutEligible)))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedOutEligible)))
       //no call required
       val result = await(testSessionBehaviour.withEligibleToOptIn(Arn(validArn)){ Future successful Results.Ok("")})
 
@@ -98,7 +98,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
     "if a journey session is available then don't make a call to backend" in  {
 
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optinStatus = OptedInReady)))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
       //no call required
       val result = await(testSessionBehaviour.withEligibleToOptOut(Arn(validArn)){ Future successful Results.Ok("")})
 
@@ -122,7 +122,7 @@ class SessionBehaviourSpec extends BaseISpec with HttpClientMocks with AgentPerm
 
   "withSession" should {
     "execute body when there is a session" in {
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optinStatus = OptedInReady)))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
       val result = await(testSessionBehaviour.withSession((_: JourneySession) => Future successful Results.Ok("")))
       status(result) shouldBe OK
     }

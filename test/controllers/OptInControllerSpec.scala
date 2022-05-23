@@ -35,6 +35,7 @@ class OptInControllerSpec extends BaseISpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
 
   override def moduleWithOverrides = new AbstractModule() {
@@ -42,7 +43,7 @@ class OptInControllerSpec extends BaseISpec {
     override def configure(): Unit = {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
-      bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
+      bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
     }
   }
@@ -132,6 +133,7 @@ class OptInControllerSpec extends BaseISpec {
       html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
     }
   }
+
   import helpers.TestData._
 
   "POST /opt-in/do-you-want-to-opt-in" should {
@@ -173,7 +175,7 @@ class OptInControllerSpec extends BaseISpec {
 
       val result = controller.submitDoYouWantToOptIn()(
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-        .withFormUrlEncodedBody("" -> "")
+          .withFormUrlEncodedBody("" -> "")
       )
 
       status(result) shouldBe OK
@@ -193,7 +195,7 @@ class OptInControllerSpec extends BaseISpec {
       stubOptInStatusOk(arn)(OptedOutEligible)
       stubPostOptInError(arn)
 
-      intercept[UpstreamErrorResponse]{
+      intercept[UpstreamErrorResponse] {
         await(controller.submitDoYouWantToOptIn()(
           FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
             .withFormUrlEncodedBody("answer" -> "true"))
@@ -206,7 +208,7 @@ class OptInControllerSpec extends BaseISpec {
     "display expected content with continueUrl of ASA dashboard when clientList is not in session" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      await(sessioncacheRepo.putSession[JourneySession](DATA_KEY,JourneySession(optinStatus = OptedInNotReady, clientList = None)))
+      await(sessionCacheRepo.putSession[JourneySession](DATA_KEY, JourneySession(optInStatus = OptedInNotReady, clientList = None)))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -227,7 +229,7 @@ class OptInControllerSpec extends BaseISpec {
     "display expected content with continueUrl of /groups when clientList is in session" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      await(sessioncacheRepo.putSession[JourneySession](DATA_KEY,JourneySession(optinStatus = OptedInNotReady, clientList = Some(clientListData))))
+      await(sessionCacheRepo.putSession[JourneySession](DATA_KEY, JourneySession(optInStatus = OptedInNotReady, clientList = Some(clientListData))))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -242,7 +244,7 @@ class OptInControllerSpec extends BaseISpec {
       html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
 
       html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
-      html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/groups"
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.GroupController.root.url
     }
   }
 
@@ -268,5 +270,4 @@ class OptInControllerSpec extends BaseISpec {
     }
   }
 
-  lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 }

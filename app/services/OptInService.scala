@@ -45,7 +45,7 @@ class OptInService @Inject()(
         .putSession(
           DATA_KEY,
           JourneySession(
-            optinStatus = status.getOrElse(throw new RuntimeException("could not complete opt-in process as opt-in status was unavailable")),
+            optInStatus = status.getOrElse(throw new RuntimeException("could not complete opt-in process as opt-in status was unavailable")),
             clientList = maybeClientList)
         )
     } yield Done

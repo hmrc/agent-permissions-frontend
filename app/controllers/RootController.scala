@@ -49,7 +49,7 @@ class RootController @Inject()(
         }
         case None => agentPermissionsConnector.getOptinStatus(arn).flatMap{
           case Some(status) =>
-            sessionCacheRepository.putSession(DATA_KEY, JourneySession(optinStatus = status))
+            sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = status))
               .map(_ => Results.Redirect(routes.RootController.start.url))
           case None => throw new RuntimeException("there was a problem when trying to get the opted-In status")
         }

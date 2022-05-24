@@ -45,7 +45,7 @@ class OptOutController @Inject()(
   import authAction._
 
   def start: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+    isAuthorisedAgent { arn =>
       withEligibleToOptOut(arn) {
         Ok(opt_out_start()).toFuture
       }
@@ -53,7 +53,7 @@ class OptOutController @Inject()(
   }
 
   def showDoYouWantToOptOut: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+    isAuthorisedAgent { arn =>
       withEligibleToOptOut(arn) {
         Ok(want_to_opt_out(YesNoForm.form())).toFuture
       }
@@ -61,7 +61,7 @@ class OptOutController @Inject()(
   }
 
   def submitDoYouWantToOptOut: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+    isAuthorisedAgent { arn =>
       withEligibleToOptOut(arn) {
         YesNoForm
           .form("do-you-want-to-opt-out.yes.error")
@@ -81,7 +81,7 @@ class OptOutController @Inject()(
   }
 
   def showYouHaveOptedOut: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+    isAuthorisedAgent { arn =>
       withEligibleToOptOut(arn) {
         sessionCacheRepository
           .deleteFromSession(DATA_KEY)

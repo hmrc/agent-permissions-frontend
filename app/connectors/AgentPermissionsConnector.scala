@@ -35,8 +35,8 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentPermissionsConnector extends HttpAPIMonitor with   Logging{
   val http: HttpClient
 
-  def getOptinStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
-  def optin(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def getOptInStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
+  def optIn(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
   def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
 
@@ -49,25 +49,25 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
   private val baseUrl = appConfig.agentPermissionsBaseUrl
 
-  override def getOptinStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]] = {
+  override def getOptInStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin-status"
     monitor("ConsumedAPI-GetOptinStatus-GET"){
       http.GET[HttpResponse](url).map{ response =>
         response.status match {
           case OK => response.json.asOpt[OptinStatus]
-          case e => logger.warn(s"getOptinStatus returned status $e ${response.body}"); None
+          case e => logger.warn(s"getOptInStatus returned status $e ${response.body}"); None
         }
       }
     }
   }
 
-  def optin(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def optIn(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin"
     monitor("ConsumedAPI-optin-POST"){
       http.POSTEmpty[HttpResponse](url).map{ response =>
         response.status match {
           case CREATED => Done
-          case e => throw UpstreamErrorResponse(s"error sending optin request for ${arn.value}",e)
+          case e => throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}",e)
         }
       }
     }

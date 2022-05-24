@@ -16,7 +16,6 @@
 
 package controllers
 
-import akka.util.Timeout
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseISpec, Css}
@@ -26,17 +25,13 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{contentAsString, redirectLocation}
+import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
-import scala.concurrent.duration.DurationInt
-
 class GroupControllerSpec extends BaseISpec {
-
-  implicit def defaultAwaitTimeout: Timeout = 10.seconds
 
   lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
@@ -61,17 +56,11 @@ class GroupControllerSpec extends BaseISpec {
 
   val controller = fakeApplication.injector.instanceOf[GroupController]
 
-  "root" should {
-
-    "return ok" in {
-      val result = controller.root()(request)
-      status(result) shouldBe OK
-    }
-  }
 
   "create group" should {
     "have correct layout and content" in {
-
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       val result = controller.showCreateGroup()(request)
 
       status(result) shouldBe OK
@@ -89,7 +78,8 @@ class GroupControllerSpec extends BaseISpec {
   "POST to /group/create" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
-
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       val result = controller.submitCreateGroup()(
         FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
           .withFormUrlEncodedBody("name" -> "My Group Name")
@@ -99,7 +89,8 @@ class GroupControllerSpec extends BaseISpec {
     }
 
     "render correct error messages when form not filled in" in {
-
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       val result = controller.submitCreateGroup()(
         FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
           .withFormUrlEncodedBody("name" -> "")
@@ -114,6 +105,8 @@ class GroupControllerSpec extends BaseISpec {
     }
 
     "render correct error messages when name exceeds 32 chars" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
 
       val result = controller.submitCreateGroup()(
         FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
@@ -132,6 +125,8 @@ class GroupControllerSpec extends BaseISpec {
   "GET confirm create group" should {
 
     "have correct layout and content" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
 
       val request = FakeRequest()
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -152,6 +147,8 @@ class GroupControllerSpec extends BaseISpec {
     }
 
     "render correct error messages when name exceeds 32 chars" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
 
       val result = controller.submitConfirmGroupName()(
         FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
@@ -167,6 +164,8 @@ class GroupControllerSpec extends BaseISpec {
     }
 
     "redirect to add-clients page when confirm group name 'yes' selected" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
 
       val result = controller.submitConfirmGroupName()(
         FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
@@ -177,6 +176,8 @@ class GroupControllerSpec extends BaseISpec {
     }
 
     "redirect to create group page when confirm group name 'no' selected" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
 
       val result = controller.submitConfirmGroupName()(
         FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
@@ -237,7 +238,6 @@ class GroupControllerSpec extends BaseISpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
       sessionCacheRepo.putSession(DATA_KEY, JourneySession(OptedInReady, None))
 
-
       val result = controller.showAddClients()(request)
 
       status(result) shouldBe OK
@@ -259,6 +259,9 @@ class GroupControllerSpec extends BaseISpec {
 
   "POST add clients to list" should {
     "render with clients (enrolments)" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+
       val result = controller.submitCreateGroup()(
         FakeRequest("POST", routes.GroupController.submitAddClients.url)
           .withFormUrlEncodedBody("" -> "")

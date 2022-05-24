@@ -38,7 +38,7 @@ class RootController @Inject()(
   import authAction._
 
   val start: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent{ arn =>
+    isAuthorisedAgent{ arn =>
       sessionCacheRepository.getFromSession(DATA_KEY).flatMap{
         case Some(session) => if(session.isEligibleToOptIn)
           Redirect(routes.OptInController.start.url).toFuture
@@ -47,7 +47,7 @@ class RootController @Inject()(
           logger.warn(s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
           Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
         }
-        case None => agentPermissionsConnector.getOptinStatus(arn).flatMap{
+        case None => agentPermissionsConnector.getOptInStatus(arn).flatMap{
           case Some(status) =>
             sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = status))
               .map(_ => Results.Redirect(routes.RootController.start.url))

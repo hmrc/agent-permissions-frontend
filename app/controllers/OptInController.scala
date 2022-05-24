@@ -36,7 +36,6 @@ class OptInController @Inject()(
    mcc: MessagesControllerComponents,
    val agentPermissionsConnector: AgentPermissionsConnector,
    val sessionCacheRepository: SessionCacheRepository,
-   agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
    optInService: OptInService,
    start_optIn: start,
    want_to_opt_in: want_to_opt_in,
@@ -48,7 +47,7 @@ class OptInController @Inject()(
   import authAction._
 
   def start: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+    isAuthorisedAgent { arn =>
       withEligibleToOptIn(arn) {
         Future successful Ok(start_optIn())
       }
@@ -56,7 +55,7 @@ class OptInController @Inject()(
   }
 
   def showDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+    isAuthorisedAgent { arn =>
       withEligibleToOptIn(arn) {
         Ok(want_to_opt_in(YesNoForm.form())).toFuture
       }
@@ -64,7 +63,7 @@ class OptInController @Inject()(
   }
 
   def submitDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { arn =>
+    isAuthorisedAgent { arn =>
       withEligibleToOptIn(arn) {
         YesNoForm
           .form("do-you-want-to-opt-in.yes.error")
@@ -84,17 +83,17 @@ class OptInController @Inject()(
 
   //if there is a clientList available then proceed to Groups otherwise go back to the ASA dashboard (and wait)
   def showYouHaveOptedIn: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { _ =>
+    isAuthorisedAgent { _ =>
       withSession { session =>
         session.clientList.fold(
           sessionCacheRepository.deleteFromSession(DATA_KEY).map(_ => Ok(you_have_opted_in(appConfig.agentServicesAccountManageAccountUrl))
-        ))(_ => Ok(you_have_opted_in(routes.GroupController.root.url)).toFuture)
+        ))(_ => Ok(you_have_opted_in(routes.GroupController.showCreateGroup.url)).toFuture)
       }
     }
   }
 
   def showYouHaveNotOptedIn: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent { _ =>
+    isAuthorisedAgent { _ =>
       Future.successful(Ok(you_have_not_opted_in()))
     }
   }

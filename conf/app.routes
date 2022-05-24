@@ -28,5 +28,3 @@ POST       /group/create                    controllers.GroupController.submitCr
 
 GET        /group/confirm-name              controllers.GroupController.showConfirmGroupName
 POST       /group/confirm-name              controllers.GroupController.submitConfirmGroupName
-
-GET        /group                           controllers.GroupController.root

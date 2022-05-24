@@ -45,21 +45,30 @@ trait SessionBehaviour {
   def withEligibleToOptOut(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleTo(false)(arn)(body)(request, hc, ec)
 
-  private def eligibleTo(optin: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+  def isOptedIn(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier,
+                                                   ec: ExecutionContext): Future[Result] =
+    eligibleTo(false)(arn)(body)(request, hc, ec)
+
+  private def eligibleTo(optIn: Boolean)(arn: Arn)(body: => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
 
     sessionCacheRepository
       .getFromSession[JourneySession](DATA_KEY).flatMap {
-      case Some(session) if (optin & session.isEligibleToOptIn) | (!optin & session.isEligibleToOptOut) => body
+      case Some(session) if (optIn & session.isEligibleToOptIn) | (!optIn & session.isEligibleToOptOut) => body
       case Some(_) => Redirect(routes.RootController.start.url).toFuture
       case None =>
-        agentPermissionsConnector.getOptinStatus(arn).flatMap {
+        agentPermissionsConnector.getOptInStatus(arn).flatMap {
           case Some(status) => sessionCacheRepository
             .putSession(DATA_KEY, JourneySession(optInStatus = status))
             .flatMap(_ =>
-              if (optin && status == OptedOutEligible) body
-              else if (!optin && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body
-              else Redirect(routes.RootController.start.url).toFuture)
-          case None => throw new RuntimeException(s"optin-status could not be found for ${arn.value}")
+              if (optIn && status == OptedOutEligible) body
+              else {
+                val optedInStatuses = Seq(OptedInReady, OptedInNotReady, OptedInSingleUser)
+                val isOptedIn = optedInStatuses.contains(status)
+
+                if (!optIn && isOptedIn) body
+                else Redirect(routes.RootController.start.url).toFuture
+              })
+          case None => throw new RuntimeException(s"opt-in status could not be found for ${arn.value}")
         }
     }
   }

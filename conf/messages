@@ -17,7 +17,7 @@ submit.button=Submit
 opt-in-info.h1=Opting in to use access groups
 opt-in-info.inset=By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login
 opt-in-info.p1=If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups.
-opt-in-info.p2=This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client's tax information.
+opt-in-info.p2=This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client?s tax information.
 
 do-you-want-to-opt-in.h1=Do you want to opt in to use access groups?
 do-you-want-to-opt-in.yes.label=Yes, I want to opt-in

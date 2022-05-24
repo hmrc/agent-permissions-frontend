@@ -74,7 +74,7 @@ class OptInControllerSpec extends BaseISpec {
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 2
       paragraphs.get(0).text() shouldBe "If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups."
-      paragraphs.get(1).text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their clients tax information."
+      paragraphs.get(1).text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client?s tax information."
       html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
       html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
     }
@@ -244,7 +244,7 @@ class OptInControllerSpec extends BaseISpec {
       html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
 
       html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
-      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.GroupController.root.url
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.GroupController.showCreateGroup.url
     }
   }
 

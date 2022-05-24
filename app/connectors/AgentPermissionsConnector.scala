@@ -22,7 +22,7 @@ import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import play.api.Logging
-import play.api.http.Status.{ACCEPTED, CREATED, OK}
+import play.api.http.Status.{CREATED, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw

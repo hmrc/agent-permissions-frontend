@@ -19,6 +19,7 @@ package helpers
 object Css {
 
 
+  val legend = "legend.govuk-fieldset__legend"
   val ERROR_SUMMARY_TITLE = "#error-summary-title"
   val ERROR_SUMMARY_LINK = ".govuk-list.govuk-error-summary__list li a"
   val errorSummaryLinkWithHref  = (href: String)  => s".govuk-list.govuk-error-summary__list li a[href=$href]"
@@ -32,6 +33,7 @@ object Css {
   def errorForField(id: String): String = s"p#${id}-error.govuk-error-message"
   def labelFor(id: String): String = s"label[for=${id}]"
   def radioButtonsField(id: String): String = s"form .govuk-radios#$id"
+  def tableWithId(id: String) = s"table.govuk-table#$id"
   val SUBMIT_BUTTON = "main form button"
   val linkStyledAsButton = "a#button-link.govuk-button"
   val currentLanguage = "ul.hmrc-language-select__list li.hmrc-language-select__list-item span[aria-current=true]";

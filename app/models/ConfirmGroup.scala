@@ -16,18 +16,4 @@
 
 package models
 
-import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, OptedInNotReady, OptedInReady, OptedInSingleUser, OptedOutEligible, OptinStatus}
-
-case class JourneySession(
-                           optInStatus: OptinStatus,
-                           clientList: Option[Seq[Enrolment]] = None){
-
-  val isEligibleToOptIn = optInStatus == OptedOutEligible
-  val isEligibleToOptOut = optInStatus == OptedInReady || optInStatus == OptedInNotReady || optInStatus == OptedInSingleUser
-}
-
-
-object JourneySession {
-  implicit val format: Format[JourneySession] = Json.format[JourneySession]
-}
+case class ConfirmGroup(name: String, answer: Option[Boolean] )

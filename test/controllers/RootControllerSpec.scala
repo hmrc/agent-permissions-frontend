@@ -77,7 +77,7 @@ class RootControllerSpec extends BaseISpec {
       "redirect to opt-in journey if the optin status is eligible to opt-in" in {
 
         stubAuthorisationGrantAccess(mockedAuthResponse)
-        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optinStatus = OptedOutEligible)))
+        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
 
         val result = controller.start()(request)
 
@@ -89,7 +89,7 @@ class RootControllerSpec extends BaseISpec {
       "redirect to opt-out journey if the optin status is eligible to opt-out" in {
 
         stubAuthorisationGrantAccess(mockedAuthResponse)
-        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optinStatus = OptedInReady)))
+        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
 
         val result = controller.start()(request)
 
@@ -101,7 +101,7 @@ class RootControllerSpec extends BaseISpec {
       "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {
 
         stubAuthorisationGrantAccess(mockedAuthResponse)
-        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optinStatus = OptedOutSingleUser)))
+        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutSingleUser)))
 
         val result = controller.start()(request)
 

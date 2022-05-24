@@ -14,35 +14,31 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.govukfrontend.views.Aliases.{Fieldset, Hint, HtmlContent, Legend, RadioItem, Radios, Text}
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukRadios
+@import uk.gov.hmrc.govukfrontend.views.Aliases.{Checkboxes, Fieldset, Hint, HtmlContent, Legend, Text}
+@import views.components.models.CheckBoxData
+@import views.components.models.LegendData
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
-@import views.components.models._
 
-@this(govukRadios: GovukRadios)
+@this(govukCheckboxes: GovukCheckboxes)
 
 @(
     field: Field,
-    name: Option[String] = None,
-    items: Seq[RadioData],
+    name: String,
+    items: Seq[CheckBoxData],
     hint: Option[String] = None,
-    legend: Option[LegendData] = None,
-    classes: String = "",
+    legend: Option[LegendData] = None
 )(implicit msgs: Messages)
 
-@fieldName = @{name.getOrElse(field.name)}
-
-@govukRadios(
-    Radios(
-        name = fieldName,
-        attributes = Map("id" -> fieldName),
+@govukCheckboxes(
+    Checkboxes(
+        name = name,
+        attributes = Map("id" -> name),
         hint = hint.map(h => {
             Hint(content = HtmlContent(msgs(h)))
         }),
-        classes = classes,
         fieldset = legend.map(l => {
             val cssClasses = l match {
-                case LegendData(_, None, true) => "govuk-fieldset__legend--xl"
+                case LegendData(_, None, true) => "LEGEND_H1_CLASS"
                 case LegendData(_, Some(_), _) => l.classes.get
                 case _ => ""
             }
@@ -55,15 +51,15 @@
                 )
             )
         }),
-        items = items.map { (radioData: RadioData) =>
-            RadioItem(
-                content = Text(msgs(radioData.label)),
-                value = Some(radioData.name),
-                id = Some(radioData.id.getOrElse(radioData.name)),
-                checked = radioData.isChecked.getOrElse(false) ,
-                hint = radioData.hint.map(h =>{
+        items = items.map { (cbd: CheckBoxData) =>
+            CheckboxItem(
+                content = HtmlContent(msgs(cbd.label)),
+                value = cbd.value,
+                id = Some(cbd.id),
+                checked = cbd.checked,
+                hint = cbd.hint.map( h =>{
                     Hint(content = HtmlContent(msgs(h)))
                 })
             )
-  }).withFormField(field)
+        }).withFormField(field)
 )

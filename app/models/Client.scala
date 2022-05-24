@@ -14,28 +14,6 @@
  * limitations under the License.
  */
 
-package controllers
+package models
 
-import helpers.BaseISpec
-import play.api.Application
-import play.api.http.Status.OK
-
-class GroupsControllerSpec extends BaseISpec {
-
-  override implicit lazy val fakeApplication: Application =
-    appBuilder
-      .configure("mongodb.uri" -> mongoUri)
-      .build()
-
-  val controller = fakeApplication.injector.instanceOf[GroupsController]
-
-  "groups" should {
-    "return ok" in {
-
-      val result = controller.root()(request)
-      status(result) shouldBe OK
-    }
-
-  }
-
-}
+case class Client(hmrcRef: String, name: String, taxService: String)

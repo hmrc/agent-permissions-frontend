@@ -14,38 +14,44 @@
  * limitations under the License.
  *@
 
+@import config.AppConfig
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukPhaseBanner
 @import uk.gov.hmrc.hmrcfrontend.views.config.StandardBetaBanner
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers.{HmrcLayout, HmrcReportTechnicalIssueHelper}
 @import views.html.helper.CSPNonce
-@import config.AppConfig
 
 @this(
     hmrcLayout: HmrcLayout,
     govukPhaseBanner: GovukPhaseBanner,
     standardBetaBanner: StandardBetaBanner,
     hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
-    summaryErrors: SummaryErrors
+    summaryErrors: SummaryErrors,
+    head: head,
 )
 @(
     title: String,
     userIsLoggedIn: Boolean = true,
     formErrors: Seq[FormError] = Seq.empty,
     hasTimeout: Boolean = true,
-    backLinkHref: Option[String] = None
-)(mainContent: Html)(implicit request : Request[_], msgs: Messages, appConfig: AppConfig)
+    backLinkHref: Option[String] = None,
+    fullWidth: Boolean = false,
+)(mainContent: Html)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
 @mainContentWithTechIssueHelper = {
-    @summaryErrors(formErrors)
-    @mainContent
-    <div class="govuk-!-margin-bottom-9 govuk-!-margin-top-9">
-        @hmrcReportTechnicalIssueHelper()
+    <div class="govuk-grid-row">
+        <div class="@if(fullWidth) {govuk-grid-column-full-width} else {govuk-grid-column-two-thirds}">
+            @summaryErrors(formErrors)
+            @mainContent
+            <div class="govuk-!-margin-bottom-9 govuk-!-margin-top-9">
+            @hmrcReportTechnicalIssueHelper()
+            </div>
+        </div>
     </div>
 }
 
 @pageTitle = @{
-    val errorPrefix = if(!formErrors.isEmpty) msgs("error-prefix") + " "  else ""
+    val errorPrefix = if(!formErrors.isEmpty) msgs("error-prefix") + " " else ""
     Some(errorPrefix.concat(msgs("generic.title", title, msgs("service.name"))))
 }
 
@@ -58,5 +64,7 @@
     serviceUrl = None,
     signOutUrl = None,
     backLinkUrl = backLinkHref,
-    nonce = CSPNonce.get
+    nonce = CSPNonce.get,
+    mainContentLayout = None,
+    additionalHeadBlock = Some(head()),
 )(mainContentWithTechIssueHelper)

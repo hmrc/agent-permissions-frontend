@@ -18,12 +18,11 @@ package controllers
 
 import connectors.AgentPermissionsConnector
 import models.JourneySession
-import play.api.mvc.Results.{Forbidden, Redirect}
+import play.api.mvc.Results.{Redirect}
 import play.api.mvc.{Request, Result, Results}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,7 +54,7 @@ trait SessionBehaviour {
       case None =>
         agentPermissionsConnector.getOptinStatus(arn).flatMap {
           case Some(status) => sessionCacheRepository
-            .putSession(DATA_KEY, JourneySession(optinStatus = status))
+            .putSession(DATA_KEY, JourneySession(optInStatus = status))
             .flatMap(_ =>
               if (optin && status == OptedOutEligible) body
               else if (!optin && (status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser)) body

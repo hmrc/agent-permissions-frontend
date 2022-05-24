@@ -1,7 +1,7 @@
 
 # agent-permissions-frontend
 
-This is a placeholder README.md for a new repository
+Public facing UI for managing permissions for agents and clients
 
 ### License
 

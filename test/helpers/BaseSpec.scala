@@ -38,7 +38,7 @@ import java.time.Instant
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
-abstract class BaseISpec extends AnyWordSpec
+abstract class BaseSpec extends AnyWordSpec
   with Matchers
   with GuiceOneAppPerSuite
   with AuthMocks
@@ -67,6 +67,8 @@ abstract class BaseISpec extends AnyWordSpec
 
      lazy val conf: Configuration = GuiceApplicationBuilder().configuration
      lazy val env: Environment = GuiceApplicationBuilder().environment
+
+
 
      def moduleWithOverrides = new AbstractModule() {}
 

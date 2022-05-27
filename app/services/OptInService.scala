@@ -38,9 +38,9 @@ class OptInService @Inject()(
 
   def processOptIn(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     for {
-      _ <- agentPermissionsConnector.optin(arn)
+      _ <- agentPermissionsConnector.optIn(arn)
       maybeClientList <- agentUserClientDetailsConnector.getClientList(arn)
-      status <- agentPermissionsConnector.getOptinStatus(arn)
+      status <- agentPermissionsConnector.getOptInStatus(arn)
       _ <- sessionCacheRepository
         .putSession(
           DATA_KEY,

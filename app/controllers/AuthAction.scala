@@ -41,7 +41,7 @@ class AuthAction @Inject()(
   private val agentEnrolment = "HMRC-AS-AGENT"
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
-  def withAuthorisedAgent(body: Arn => Future[Result])(
+  def isAuthorisedAgent(body: Arn => Future[Result])(
     implicit ec: ExecutionContext, request: Request[_], appConfig: AppConfig) = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)

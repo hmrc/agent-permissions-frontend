@@ -18,9 +18,14 @@ package models
 
 import play.api.libs.json.Json
 
-case class Client(hmrcRef: String, name: String, taxService: String)
+case class Group(
+name: String,
+nameConfirmed: Boolean = false,
+clients: Option[Set[Client]] = None
+                       )
 
 
-object Client{
-  implicit val format = Json.format[Client]
+object Group{
+
+  implicit val format = Json.format[Group]
 }

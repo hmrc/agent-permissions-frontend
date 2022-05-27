@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import config.AppConfig
-import helpers.BaseISpec
+import helpers.BaseSpec
 import play.api.Application
 import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
 import play.api.mvc.Results.Ok
@@ -27,7 +27,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBear
 
 import scala.concurrent.Future
 
-class AuthActionSpec  extends BaseISpec {
+class AuthActionSpec  extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
@@ -50,7 +50,7 @@ class AuthActionSpec  extends BaseISpec {
 
         stubAuthorisationFails(MissingBearerToken())
 
-        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("")))
+        val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2F&origin=agent-permissions-frontend"
@@ -62,7 +62,7 @@ class AuthActionSpec  extends BaseISpec {
 
         stubAuthorisationFails(InsufficientEnrolments())
 
-        val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("")))
+        val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
         status(result) shouldBe FORBIDDEN
       }
 
@@ -71,7 +71,7 @@ class AuthActionSpec  extends BaseISpec {
 
           stubAuthorisationFails(UnsupportedAuthProvider())
 
-          val result = authAction.withAuthorisedAgent((arn) => Future.successful(Ok("")))
+          val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
           status(result) shouldBe FORBIDDEN
         }
       }

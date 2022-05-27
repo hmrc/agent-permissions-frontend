@@ -27,22 +27,22 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentPermissionsConnectorMocks extends MockFactory {
 
   def stubOptInStatusOk(arn: Arn)(optinStatus: OptinStatus)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.getOptinStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+    (agentPermissionsConnector.getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful (Some(optinStatus)))
 
   def stubOptInStatusError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.getOptinStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+    (agentPermissionsConnector.getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
   def stubPostOptInAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+    (agentPermissionsConnector.optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Done)
 
   def stubPostOptInError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.optin(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+    (agentPermissionsConnector.optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 

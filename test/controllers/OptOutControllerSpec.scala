@@ -18,16 +18,18 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.AgentPermissionsConnector
-import helpers.{BaseISpec, Css}
+import helpers.{BaseSpec, Css}
+import models.JourneySession
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.OptedInSingleUser
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInSingleUser, OptedOutEligible}
 import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.http.SessionKeys
 
-class OptOutControllerSpec extends BaseISpec {
+class OptOutControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
@@ -54,7 +56,8 @@ class OptOutControllerSpec extends BaseISpec {
     "display content for start" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInSingleUser)
+
+      await(sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = OptedInSingleUser)))
 
       val result = controller.start()(request)
       status(result) shouldBe OK
@@ -78,7 +81,8 @@ class OptOutControllerSpec extends BaseISpec {
     "display expected content" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInSingleUser)
+
+      await(sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = OptedInSingleUser)))
 
       val result = controller.showDoYouWantToOptOut()(request)
 
@@ -102,13 +106,16 @@ class OptOutControllerSpec extends BaseISpec {
     "redirect to 'you have opted out' page with answer 'true'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInSingleUser)
+
+      implicit val request = FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = OptedInSingleUser)))
+
       stubPostOptOutAccepted(arn)
 
-      val result = controller.submitDoYouWantToOptOut()(
-        FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
-          .withFormUrlEncodedBody("answer" -> "true")
-      )
+      val result = controller.submitDoYouWantToOptOut()(request)
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.OptOutController.showYouHaveOptedOut.url
     }
@@ -116,12 +123,15 @@ class OptOutControllerSpec extends BaseISpec {
     "redirect to 'manage dashboard' page when user decides not to opt out" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInSingleUser)
 
-      val result = controller.submitDoYouWantToOptOut()(
-        FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
-          .withFormUrlEncodedBody("answer" -> "false")
-      )
+      implicit val request = FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
+        .withFormUrlEncodedBody("answer" -> "false")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = OptedInSingleUser)))
+
+      val result = controller.submitDoYouWantToOptOut()(request)
+
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some("http://localhost:9401/agent-services-account/manage-account")
     }
@@ -129,12 +139,13 @@ class OptOutControllerSpec extends BaseISpec {
     "render correct error messages when form not filled in" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInSingleUser)
+      implicit val request = FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
+        .withFormUrlEncodedBody("answer" -> "")
+        .withSession(SessionKeys.sessionId -> "session-x")
 
-      val result = controller.submitDoYouWantToOptOut()(
-        FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
-        .withFormUrlEncodedBody("" -> "")
-      )
+      await(sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = OptedInSingleUser)))
+
+      val result = controller.submitDoYouWantToOptOut()(request)
 
       status(result) shouldBe OK
 
@@ -152,7 +163,7 @@ class OptOutControllerSpec extends BaseISpec {
     "display expected content" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInSingleUser)
+      await(sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
 
       val result = controller.showYouHaveOptedOut()(request)
 

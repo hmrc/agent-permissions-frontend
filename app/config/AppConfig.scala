@@ -16,12 +16,32 @@
 
 package config
 
+import com.google.inject.ImplementedBy
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.duration.Duration
+
+@ImplementedBy(classOf[AppConfigImpl])
+trait AppConfig {
+  val servicesConfig: ServicesConfig
+  val appName: String
+  val welshLanguageSupportEnabled: Boolean
+  val contactFrontendBaseUrl: String
+  val contactFrontendServiceId: String
+  val betaFeedbackUrl: String
+  val basGatewayUrl: String
+  val loginContinueUrl: String
+  val agentServicesAccountExternalUrl: String
+  val agentServicesAccountManageAccountPath: String
+  val agentServicesAccountManageAccountUrl: String
+  val agentPermissionsBaseUrl: String
+  val agentUserClientDetailsBaseUrl: String
+  val sessionCacheExpiryDuration: Duration
+}
 
 @Singleton
-class AppConfig @Inject()(servicesConfig: ServicesConfig) {
+class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig) extends AppConfig {
   val appName = servicesConfig.getString("appName")
   val welshLanguageSupportEnabled: Boolean = servicesConfig.getBoolean("features.welsh-language-support")
   val contactFrontendBaseUrl: String = servicesConfig.baseUrl("contact-frontend")
@@ -34,4 +54,5 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig) {
   val agentServicesAccountManageAccountUrl = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
   val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
   val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
+  val sessionCacheExpiryDuration: Duration = servicesConfig.getDuration("mongodb.cache.expiry")
 }

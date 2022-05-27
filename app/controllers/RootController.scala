@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.AgentPermissionsConnector
 import models.JourneySession
 import play.api.Logging
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Results}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -38,19 +38,19 @@ class RootController @Inject()(
   import authAction._
 
   val start: Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAgent{ arn =>
+    isAuthorisedAgent{ arn =>
       sessionCacheRepository.getFromSession(DATA_KEY).flatMap{
-        case Some(session) => if(session.isEligibleToOptIn)
+        case Some(session) => if(session.isEligibleToOptIn) //TODO: expand on this...maybe they should be redirected to groups, etc?
           Redirect(routes.OptInController.start.url).toFuture
         else if(session.isEligibleToOptOut) Redirect(routes.OptOutController.start.url).toFuture
         else {
           logger.warn(s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
           Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
         }
-        case None => agentPermissionsConnector.getOptinStatus(arn).flatMap{
+        case None => agentPermissionsConnector.getOptInStatus(arn).flatMap{
           case Some(status) =>
             sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = status))
-              .map(_ => Results.Redirect(routes.RootController.start.url))
+              .map(_ => Redirect(routes.RootController.start.url))
           case None => throw new RuntimeException("there was a problem when trying to get the opted-In status")
         }
       }

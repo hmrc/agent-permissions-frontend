@@ -17,10 +17,11 @@
 package models
 
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, OptedInNotReady, OptedInReady, OptedInSingleUser, OptedOutEligible, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, OptedInNotReady, OptedInReady, OptedInSingleUser, OptedOutEligible, OptedOutSingleUser, OptedOutWrongClientCount, OptinStatus}
 
 case class JourneySession(
                            optInStatus: OptinStatus,
+                           group: Option[Group] = None,
                            clientList: Option[Seq[Enrolment]] = None){
 
   val isEligibleToOptIn = optInStatus == OptedOutEligible
@@ -29,5 +30,11 @@ case class JourneySession(
 
 
 object JourneySession {
+
+  val isEligibleToOptIn: JourneySession => Boolean = session => session.optInStatus == OptedOutEligible
+  val isOptedIn: JourneySession => Boolean = session => session.optInStatus == OptedInReady || session.optInStatus == OptedInNotReady || session.optInStatus == OptedInSingleUser
+  val isOptedOut: JourneySession => Boolean = session => session.optInStatus == OptedOutEligible || session.optInStatus == OptedOutSingleUser || session.optInStatus == OptedOutWrongClientCount
+  val isOptedInComplete: JourneySession => Boolean = session => session.optInStatus == OptedInReady
+
   implicit val format: Format[JourneySession] = Json.format[JourneySession]
 }

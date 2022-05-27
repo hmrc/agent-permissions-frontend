@@ -19,10 +19,11 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.{CreateGroupForm, YesNoForm}
-import models.Client
+import models.{Client, Group}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
+import services.SessionCacheService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 
@@ -37,6 +38,7 @@ class GroupController @Inject()(
                                  confirm_group_name: confirm_group_name,
                                  client_group_list: client_group_list,
                                  val agentPermissionsConnector: AgentPermissionsConnector,
+                                 sessionCacheService: SessionCacheService,
                                  val sessionCacheRepository: SessionCacheRepository
                                )(
                                  implicit val appConfig: AppConfig, ec: ExecutionContext,
@@ -49,26 +51,23 @@ class GroupController @Inject()(
 
   def showCreateGroup: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedIn(arn) {
-        Ok(create(CreateGroupForm.form)).toFuture
+      isOptedInComplete(arn) { session =>
+        Ok(create(CreateGroupForm.form.fill(session.group.map(_.name).getOrElse("")))).toFuture
       }
     }
   }
 
   def submitCreateGroup: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedIn(arn) {
+      isOptedInComplete(arn) { session =>
         CreateGroupForm.form()
           .bindFromRequest
           .fold(
-            formWithErrors => {
+            formWithErrors =>
               Ok(create(formWithErrors)).toFuture
-            },
-            (name: String) => {
-              //save name
-              Redirect(routes.GroupController.showConfirmGroupName)
-                .withSession(request.session + ("groupName" -> name)).toFuture
-            }
+            ,
+            (name: String) =>
+              sessionCacheService.writeGroupNameAndRedirect(name)(routes.GroupController.showConfirmGroupName)(session)
           )
       }
     }
@@ -76,31 +75,30 @@ class GroupController @Inject()(
 
   def showConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedIn(arn) {
-        val groupName = request.session.get("groupName").getOrElse("")
+      isOptedInComplete(arn) { session =>
+        session.group.fold(
+          Redirect(routes.GroupController.showCreateGroup
+          ).toFuture)(grp =>
         Ok(confirm_group_name(
-          YesNoForm.form("group.name.confirm.required.error"), groupName)).toFuture
+          YesNoForm.form("group.name.confirm.required.error"), grp.name)).toFuture)
       }
     }
   }
 
   def submitConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedIn(arn) {
-        val groupName = request.session.get("groupName").getOrElse("")
+      isOptedInComplete(arn) { session =>
         YesNoForm
           .form("group.name.confirm.required.error")
           .bindFromRequest
           .fold(
-            formWithErrors => Ok(confirm_group_name(formWithErrors, groupName)).toFuture,
+            formWithErrors => Ok(confirm_group_name(formWithErrors, session.group.map(_.name).getOrElse(""))).toFuture,
             (nameIsCorrect: Boolean) => {
               if (nameIsCorrect)
-              //save group name to BE then redirect to add clients to group page
-                Redirect(routes.GroupController.showAddClients).toFuture
+              sessionCacheService.confirmGroupNameAndRedirect(routes.GroupController.showAddClients)(session)
               else
                 Redirect(routes.GroupController.showCreateGroup.url).toFuture
             }
-
           )
       }
     }
@@ -108,28 +106,26 @@ class GroupController @Inject()(
 
   def showAddClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedIn(arn) {
-        withSession { session =>
+      isOptedInComplete(arn) { session =>
           session.clientList match {
             case Some(enrolments) =>
               val clients = enrolments
-                .map(e => {
-                  val value = if (!e.identifiers.isEmpty) {
-                    obfuscatedPrefix.concat(e.identifiers(0).value.takeRight(4))
+                .map(e => { //TODO we will remove the client list from the session and instead need to call ES20? to get the client list each time we need it (per DM), so let's nmake a ClientList service that does this logic for us i.e. it will need to transform an auth Enrolment to a Client.
+                  val value = if (e.identifiers.nonEmpty) {
+                    obfuscatedPrefix.concat(e.identifiers.head.value.takeRight(4))
                   } else ""
                   Client(value, e.friendlyName, e.service)
                 })
               Ok(client_group_list(clients)).toFuture
             case None => Ok(client_group_list(Seq.empty)).toFuture
           }
-        }
       }
     }
   }
 
   def submitAddClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedIn(arn) {
+      isOptedInComplete(arn) { session =>
         Redirect(routes.GroupController.showAddClients).toFuture
       }
     }

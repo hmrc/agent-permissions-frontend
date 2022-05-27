@@ -18,14 +18,14 @@ package connectors
 
 import akka.Done
 import com.google.inject.AbstractModule
-import helpers.{AgentPermissionsConnectorMocks, BaseISpec, HttpClientMocks}
+import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.http.Status.CREATED
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
-class AgentPermissionsConnectorSpec extends BaseISpec with HttpClientMocks with AgentPermissionsConnectorMocks {
+class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with AgentPermissionsConnectorMocks {
 
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 

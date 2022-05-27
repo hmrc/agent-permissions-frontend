@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import helpers.{BaseISpec, Css}
+import helpers.{BaseSpec, Css}
 import models.JourneySession
 import org.jsoup.Jsoup
 import play.api.Application
@@ -28,9 +28,9 @@ import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptedOutSingleUser}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.http.UpstreamErrorResponse
+import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
 
-class OptInControllerSpec extends BaseISpec {
+class OptInControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
@@ -138,19 +138,22 @@ class OptInControllerSpec extends BaseISpec {
 
   "POST /opt-in/do-you-want-to-opt-in" should {
 
-
     "redirect to 'you have opted in' page with answer 'true'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedOutEligible)
+
+      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+
       stubPostOptInAccepted(arn)
       stubGetClientListOk(arn)(clientListData)
       stubOptInStatusOk(arn)(OptedInReady)
 
-      val result = controller.submitDoYouWantToOptIn()(
-        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-          .withFormUrlEncodedBody("answer" -> "true")
-      )
+      val result = controller.submitDoYouWantToOptIn()(request)
+
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.OptInController.showYouHaveOptedIn.url
     }
@@ -158,12 +161,15 @@ class OptInControllerSpec extends BaseISpec {
     "redirect to 'you have not opted in' page with answer 'false'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedOutEligible)
 
-      val result = controller.submitDoYouWantToOptIn()(
-        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-          .withFormUrlEncodedBody("answer" -> "false")
-      )
+      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        .withFormUrlEncodedBody("answer" -> "false")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+
+      val result = controller.submitDoYouWantToOptIn()(request)
+
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-not-opted-in")
     }
@@ -171,12 +177,14 @@ class OptInControllerSpec extends BaseISpec {
     "render correct error messages when form not filled in" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedOutEligible)
 
-      val result = controller.submitDoYouWantToOptIn()(
-        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-          .withFormUrlEncodedBody("" -> "")
-      )
+      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        .withFormUrlEncodedBody("answer" -> "")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+
+      val result = controller.submitDoYouWantToOptIn()(request)
 
       status(result) shouldBe OK
 
@@ -192,17 +200,20 @@ class OptInControllerSpec extends BaseISpec {
     "throw exception when there was a problem with optin call" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedOutEligible)
       stubPostOptInError(arn)
 
+      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+
       intercept[UpstreamErrorResponse] {
-        await(controller.submitDoYouWantToOptIn()(
-          FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-            .withFormUrlEncodedBody("answer" -> "true"))
-        )
+        await(controller.submitDoYouWantToOptIn()(request))
       }
     }
   }
+
 
   "GET /opt-in/you-have-opted-in" should {
     "display expected content with continueUrl of ASA dashboard when clientList is not in session" in {

@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import helpers.BaseISpec
+import helpers.BaseSpec
 import models.JourneySession
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
@@ -28,7 +28,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, OptedOutEligible, Op
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
-class RootControllerSpec extends BaseISpec {
+class RootControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]

@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import config.AppConfig
-import helpers.BaseISpec
+import helpers.BaseSpec
 import play.api.Application
 import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
 import play.api.mvc.Results.Ok
@@ -27,7 +27,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBear
 
 import scala.concurrent.Future
 
-class AuthActionSpec  extends BaseISpec {
+class AuthActionSpec  extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 

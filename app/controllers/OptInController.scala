@@ -17,9 +17,8 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.AgentPermissionsConnector
 import forms.YesNoForm
-import models.JourneySession
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
@@ -48,7 +47,7 @@ class OptInController @Inject()(
 
   def start: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withEligibleToOptIn(arn) {
+      isEligibleToOptIn(arn) { _ =>
         Future successful Ok(start_optIn())
       }
     }
@@ -56,7 +55,7 @@ class OptInController @Inject()(
 
   def showDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withEligibleToOptIn(arn) {
+      isEligibleToOptIn(arn) { _ =>
         Ok(want_to_opt_in(YesNoForm.form())).toFuture
       }
     }
@@ -64,7 +63,7 @@ class OptInController @Inject()(
 
   def submitDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withEligibleToOptIn(arn) {
+      isEligibleToOptIn(arn) { _ =>
         YesNoForm
           .form("do-you-want-to-opt-in.yes.error")
           .bindFromRequest
@@ -83,8 +82,8 @@ class OptInController @Inject()(
 
   //if there is a clientList available then proceed to Groups otherwise go back to the ASA dashboard (and wait)
   def showYouHaveOptedIn: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { _ =>
-      withSession { session =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { session =>
         session.clientList.fold(
           sessionCacheRepository.deleteFromSession(DATA_KEY).map(_ => Ok(you_have_opted_in(appConfig.agentServicesAccountManageAccountUrl))
         ))(_ => Ok(you_have_opted_in(routes.GroupController.showCreateGroup.url)).toFuture)

@@ -16,9 +16,9 @@
 
 package repository
 
-import helpers.BaseISpec
+import helpers.BaseSpec
 
-class SessionCacheRepositorySpec extends BaseISpec {
+class SessionCacheRepositorySpec extends BaseSpec {
 
 
 

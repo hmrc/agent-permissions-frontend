@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.AgentPermissionsConnector
 import models.JourneySession
 import play.api.Logging
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Results}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -40,7 +40,7 @@ class RootController @Inject()(
   val start: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent{ arn =>
       sessionCacheRepository.getFromSession(DATA_KEY).flatMap{
-        case Some(session) => if(session.isEligibleToOptIn)
+        case Some(session) => if(session.isEligibleToOptIn) //TODO: expand on this...maybe they should be redirected to groups, etc?
           Redirect(routes.OptInController.start.url).toFuture
         else if(session.isEligibleToOptOut) Redirect(routes.OptOutController.start.url).toFuture
         else {
@@ -50,7 +50,7 @@ class RootController @Inject()(
         case None => agentPermissionsConnector.getOptInStatus(arn).flatMap{
           case Some(status) =>
             sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = status))
-              .map(_ => Results.Redirect(routes.RootController.start.url))
+              .map(_ => Redirect(routes.RootController.start.url))
           case None => throw new RuntimeException("there was a problem when trying to get the opted-In status")
         }
       }

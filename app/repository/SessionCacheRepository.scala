@@ -32,6 +32,6 @@ class SessionCacheRepository@Inject() (val mongoComponent  : MongoComponent,
   mongoComponent = mongoComponent,
   collectionName = "sessions",
   replaceIndexes = true,
-  ttl = 10.seconds,
+  ttl = 15.minutes,
   timestampSupport = timestampSupport,
   sessionIdKey = SessionKeys.sessionId)

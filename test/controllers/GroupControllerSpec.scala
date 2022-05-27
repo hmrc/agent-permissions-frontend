@@ -17,25 +17,21 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import config.{AppConfig, AppConfigImpl}
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
 import models.{Group, JourneySession}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
-import play.api.{Application, Configuration}
+import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, Identifier, OptedInReady, OptedInSingleUser}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 class GroupControllerSpec extends BaseSpec {
-
 
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
@@ -60,10 +56,11 @@ class GroupControllerSpec extends BaseSpec {
   val controller = fakeApplication.injector.instanceOf[GroupController]
 
 
-  "create group" should {
+  "GET create group" should {
+
     "have correct layout and content" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
       val result = controller.showCreateGroup()(request)
 
       status(result) shouldBe OK
@@ -88,7 +85,7 @@ class GroupControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
 
       val result = controller.submitCreateGroup()(request)
 
@@ -104,7 +101,7 @@ class GroupControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
 
       val result = controller.submitCreateGroup()(request)
 
@@ -125,7 +122,7 @@ class GroupControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
+      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
 
       val result = controller.submitCreateGroup()(request)
 
@@ -161,6 +158,9 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.SUBMIT_BUTTON).text() shouldBe "Continue"
     }
 
+  }
+
+  "POST of confirm create group" should {
     "render correct error messages when name exceeds 32 chars" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 

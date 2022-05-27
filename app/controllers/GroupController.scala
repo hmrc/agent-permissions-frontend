@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.{CreateGroupForm, YesNoForm}
-import models.{Client, Group}
+import models.{Client}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository

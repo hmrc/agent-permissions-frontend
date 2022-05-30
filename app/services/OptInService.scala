@@ -17,12 +17,11 @@
 package services
 
 import akka.Done
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.DATA_KEY
-import models.JourneySession
+import connectors.AgentPermissionsConnector
+import controllers.OPTIN_STATUS
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -31,23 +30,16 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class OptInService @Inject()(
                               agentPermissionsConnector: AgentPermissionsConnector,
-                              agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
                               sessionCacheRepository: SessionCacheRepository
                             ) {
 
 
   def processOptIn(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     for {
-      _ <- agentPermissionsConnector.optIn(arn)
-      maybeClientList <- agentUserClientDetailsConnector.getClientList(arn)
-      status <- agentPermissionsConnector.getOptInStatus(arn)
-      _ <- sessionCacheRepository
-        .putSession(
-          DATA_KEY,
-          JourneySession(
-            optInStatus = status.getOrElse(throw new RuntimeException("could not complete opt-in process as opt-in status was unavailable")),
-            clientList = maybeClientList)
-        )
+      _               <- agentPermissionsConnector.optIn(arn)
+      maybeStatus     <- agentPermissionsConnector.getOptInStatus(arn)
+      status          = maybeStatus.getOrElse(throw new RuntimeException(s"could not get optin-status from backend"))
+      _               <- sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS,status)
     } yield Done
   }
 

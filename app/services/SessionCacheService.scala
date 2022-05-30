@@ -17,8 +17,8 @@
 package services
 
 import akka.Done
-import controllers.{DATA_KEY, ToFuture, routes}
-import models.{Group, JourneySession}
+import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, OPTIN_STATUS, ToFuture, routes}
+import models.Group
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request}
 import repository.SessionCacheRepository
@@ -31,14 +31,16 @@ import scala.concurrent.ExecutionContext
 class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheRepository) {
 
 
-  def writeGroupNameAndRedirect(name: String)(call: Call)(session: JourneySession)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-    val group = session.group.getOrElse(Group(name = name)).copy(name = name)
-    sessionCacheRepository.putSession(DATA_KEY, session.copy(group = Some(group))).map(_ => Redirect(call))
+  def writeGroupNameAndRedirect(name: String)(call: Call)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+    for {
+      _ <- sessionCacheRepository.putSession[String](GROUP_NAME, name)
+      _ <- sessionCacheRepository.putSession[Boolean](GROUP_NAME_CONFIRMED, false)
+    }yield Redirect(call)
   }
 
-  def confirmGroupNameAndRedirect(call: Call)(session: JourneySession)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-    session.group.fold(Redirect(routes.GroupController.showCreateGroup).toFuture) { grp =>
-      sessionCacheRepository.putSession(DATA_KEY, session.copy(group = Some(grp.copy(nameConfirmed = true)))).map(_ => Redirect(call))
-    }
+  def confirmGroupNameAndRedirect(call: Call)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+    for {
+      _ <- sessionCacheRepository.putSession[Boolean](GROUP_NAME_CONFIRMED, true)
+    } yield Redirect(call)
   }
 }

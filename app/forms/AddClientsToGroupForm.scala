@@ -20,17 +20,13 @@ import play.api.data.Form
 import play.api.data.Forms._
 
 
-object CreateGroupForm {
+object AddClientsToGroupForm {
 
-  def form(): Form[String] = {
+  def form(): Form[List[String]] = {
     Form(
       single(
-        "name" ->
-          text
-            .verifying("group.name.required", _.trim.nonEmpty)
-            .verifying("group.name.max.length", _.trim.length < 32)
+        "clients" -> list(text).verifying("error.client.list.empty", _.nonEmpty)
       )
     )
-
   }
 }

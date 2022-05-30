@@ -17,18 +17,14 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import config.{AppConfig, AppConfigImpl}
 import connectors.AgentPermissionsConnectorImpl
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.{Application, Configuration}
+import play.api.Application
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedInReady, OptedInSingleUser, OptedOutEligible, OptedOutSingleUser, OptedOutWrongClientCount, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.{HttpClient, HttpResponse}
-import uk.gov.hmrc.mongo.cache.DataKey
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.Future
 

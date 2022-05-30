@@ -18,13 +18,12 @@ package controllers
 
 import config.AppConfig
 import connectors.AgentPermissionsConnector
-import forms.{CreateGroupForm, YesNoForm}
+import forms.{AddClientsToGroupForm, CreateGroupForm, YesNoForm}
 import models.Client
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
 import services.{ClientListService, SessionCacheService}
-import uk.gov.hmrc.mongo.cache.DataKey
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 
@@ -115,13 +114,34 @@ class GroupController @Inject()(
             case None => Ok(client_group_list(Seq.empty))
           }
         }
+      /*
+      val clients = (1 to 20)
+        .map((e: Int) => {
+          val value = obfuscatedPrefix.concat(s"$e")
+          Client(value, s"name_$e", s"tax serv $e")
+        })
+      Ok(client_group_list(clients)).toFuture
+      */
       }
     }
 
     def submitAddClients: Action[AnyContent] = Action.async { implicit request =>
       isAuthorisedAgent { arn =>
         isOptedInComplete(arn) { session =>
-          Redirect(routes.GroupController.showAddClients).toFuture
+          AddClientsToGroupForm
+            .form()
+            .bindFromRequest()
+            .fold(
+              formWithErrors => {
+                Ok(client_group_list(Seq.empty, Some(formWithErrors))).toFuture
+              },
+              (clientsToAdd: Seq[String]) => {
+                println("***************")
+                println(clientsToAdd)
+                println("***************")
+                Redirect(routes.GroupController.showAddClients).toFuture
+              }
+            )
         }
       }
     }

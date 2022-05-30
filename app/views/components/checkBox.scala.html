@@ -17,14 +17,18 @@
 @this()
 
 @(
-        name: String,
-        value: String,
-        id: String = ""
+    name: Option[String] = None,
+    value: Option[String] = None,
+    id: Option[String] = None
 )(implicit msgs: Messages)
+
 
 <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
     <div class="govuk-checkboxes__item">
-        <input class="govuk-checkboxes__input" id=@id name=@name type="checkbox" value=@value>
+        <input class="govuk-checkboxes__input" type="checkbox"
+            @name.map(n =>  s"name=${n}")
+            @id.map(id =>  s"id=${id}")
+            @value.map(n => s"value='${n}'")>
         <label class="govuk-label govuk-checkboxes__label" for="add-client">
         </label>
     </div>

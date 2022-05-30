@@ -17,14 +17,12 @@
 package services
 
 import com.google.inject.AbstractModule
-import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, OPTIN_STATUS, routes}
+import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, routes}
 import helpers.BaseSpec
-import models.{Client, Group}
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers.{await, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.OptedInNotReady
 
 class SessionCacheServiceSpec extends BaseSpec {
 

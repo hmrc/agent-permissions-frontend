@@ -19,7 +19,6 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
-import models.Group
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application

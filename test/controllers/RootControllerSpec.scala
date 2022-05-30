@@ -19,7 +19,6 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.BaseSpec
-import models.JourneySession
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers._
@@ -77,7 +76,7 @@ class RootControllerSpec extends BaseSpec {
       "redirect to opt-in journey if the optin status is eligible to opt-in" in {
 
         stubAuthorisationGrantAccess(mockedAuthResponse)
-        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+        await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
         val result = controller.start()(request)
 
@@ -89,7 +88,7 @@ class RootControllerSpec extends BaseSpec {
       "redirect to opt-out journey if the optin status is eligible to opt-out" in {
 
         stubAuthorisationGrantAccess(mockedAuthResponse)
-        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
+        await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
         val result = controller.start()(request)
 
@@ -101,7 +100,7 @@ class RootControllerSpec extends BaseSpec {
       "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {
 
         stubAuthorisationGrantAccess(mockedAuthResponse)
-        await(sessioncacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutSingleUser)))
+        await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutSingleUser))
 
         val result = controller.start()(request)
 

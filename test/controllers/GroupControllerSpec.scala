@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
-import models.{Group, JourneySession}
+import models.Group
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
@@ -37,6 +37,8 @@ class GroupControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+
+  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
   override def moduleWithOverrides = new AbstractModule() {
 
@@ -56,38 +58,39 @@ class GroupControllerSpec extends BaseSpec {
   val controller = fakeApplication.injector.instanceOf[GroupController]
 
 
-  "GET create group" should {
+  "GET /group/group-name" should {
 
     "have correct layout and content" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
-      val result = controller.showCreateGroup()(request)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      val result = controller.showGroupName()(request)
 
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Create an access group - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Create an access group"
-      html.select(Css.form).attr("action") shouldBe "/agent-permissions/group/create"
+      html.select(Css.form).attr("action") shouldBe "/agent-permissions/group/group-name"
       html.select(Css.labelFor("name")).text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
       html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
     }
   }
 
-  "POST to /group/create" should {
+  "POST /group/group-name" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> "My Group Name")
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      val result = controller.submitCreateGroup()(request)
+      val result = controller.submitGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.GroupController.showConfirmGroupName.url
@@ -96,14 +99,14 @@ class GroupControllerSpec extends BaseSpec {
     "render correct error messages when form not filled in" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> "")
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      val result = controller.submitCreateGroup()(request)
+      val result = controller.submitGroupName()(request)
 
       status(result) shouldBe OK
 
@@ -117,14 +120,14 @@ class GroupControllerSpec extends BaseSpec {
     "render correct error messages when name exceeds 32 chars" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> RandomStringUtils.random(33))
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      val result = controller.submitCreateGroup()(request)
+      val result = controller.submitGroupName()(request)
 
       status(result) shouldBe OK
 
@@ -132,16 +135,16 @@ class GroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Create an access group - Manage Agent Permissions - GOV.UK"
       html.select(Css.errorSummaryForField("name")).text() shouldBe "Group name must be less than 32 characters long"
       html.select(Css.errorForField("name")).text() shouldBe "Error: Group name must be less than 32 characters long"
-
     }
   }
 
-  "GET confirm create group" should {
+  "GET /group/confirm-name" should {
 
     "have correct layout and content" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady, group = Some(Group(name = "XYZ")))))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
 
       val result = controller.showConfirmGroupName()(request)
 
@@ -158,17 +161,29 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.SUBMIT_BUTTON).text() shouldBe "Continue"
     }
 
-  }
+    "redirect to /group/group-name when there is no groupName in the session" in {
 
-  "POST of confirm create group" should {
-    "render correct error messages when name exceeds 32 chars" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
-        .withFormUrlEncodedBody("name" -> "XYZ")
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      val result = controller.showConfirmGroupName()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+    }
+  }
+
+  "POST /group/confirm-name" should {
+    "render correct error messages when nothing is submitted" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      implicit val request = FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
+        .withFormUrlEncodedBody("answer" -> "")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady, group = Some(Group(name = "XYZ")))))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -181,29 +196,30 @@ class GroupControllerSpec extends BaseSpec {
 
     }
 
-    "redirect to showCreateGroup when there is no name in session" in {
+    "redirect to /group/group-name when there is no name in session" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady, group = None)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.GroupController.showCreateGroup.url
+      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
     }
 
     "redirect to add-clients page when confirm group name 'yes' selected" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> "XYZ", "answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady, group = Some(Group(name = "XYZ")))))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -211,25 +227,26 @@ class GroupControllerSpec extends BaseSpec {
       redirectLocation(result) shouldBe Some(routes.GroupController.showAddClients.url)
     }
 
-    "redirect to create group page when confirm group name 'no' selected" in {
+    "redirect to /group/group-name when confirm group name 'no' selected" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitCreateGroup.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
         .withFormUrlEncodedBody("name" -> "XYZ", "answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady, group = Some(Group(name = "XYZ")))))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
 
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.GroupController.showCreateGroup.url)
+      redirectLocation(result) shouldBe Some(routes.GroupController.showGroupName.url)
     }
   }
 
-  "GET group list" should {
+  "GET group/add-clients" should {
 
-    "render with clients (enrolments)" in {
+    "render with clients" in {
 
       val fakeEnrolments = (1 to 10)
         .map(i => {
@@ -241,7 +258,11 @@ class GroupControllerSpec extends BaseSpec {
         })
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedInReady, clientList = Some(fakeEnrolments)))
+      stubGetClientListOk(arn)(fakeEnrolments)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
       val result = controller.showAddClients()(request)
 
@@ -273,7 +294,11 @@ class GroupControllerSpec extends BaseSpec {
     "render with NO CLIENTS" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      sessionCacheRepo.putSession(DATA_KEY, JourneySession(OptedInReady, None))
+      stubGetClientListOk(arn)(Seq.empty)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
       val result = controller.showAddClients()(request)
 
@@ -295,16 +320,13 @@ class GroupControllerSpec extends BaseSpec {
   }
 
   "POST add clients to list" should {
-    "render with clients (enrolments)" in {
+    "render with clients" in {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(
-        optInStatus = OptedInReady,
-        group = Some(Group(name = "XYZ", nameConfirmed = true)),
-        clientList = Some(Seq(Enrolment(service = "HMRC-MTD-VAT", state = "Activated", friendlyName = "JJ", identifiers = Seq(Identifier(key = "VRN", value = "123456789"))))))))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.submitAddClients()(request)
 
@@ -313,7 +335,4 @@ class GroupControllerSpec extends BaseSpec {
 
     }
   }
-
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
-
 }

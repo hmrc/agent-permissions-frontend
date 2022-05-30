@@ -20,13 +20,12 @@ import com.google.inject.AbstractModule
 import config.{AppConfig, AppConfigImpl}
 import connectors.AgentPermissionsConnectorImpl
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
-import models.JourneySession
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{Application, Configuration}
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedInReady, OptedInSingleUser, OptedOutEligible, OptedOutSingleUser, OptedOutWrongClientCount}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedInReady, OptedInSingleUser, OptedOutEligible, OptedOutSingleUser, OptedOutWrongClientCount, OptinStatus}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse}
 import uk.gov.hmrc.mongo.cache.DataKey
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -61,8 +60,8 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
     "execute body when status is OptedOutEligible and store status in journey session if no session exists" in  {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_ELIGIBLE" """))
-      val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)){ (_: JourneySession) => Future successful Results.Ok("")})
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
+      val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)){ (_: OptinStatus) => Future successful Results.Ok("")})
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS))
 
       sessionStored.isDefined shouldBe true
       status(result) shouldBe 200
@@ -70,9 +69,9 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
 
     "if a journey session is available then don't make a call to backend" in  {
 
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedOutEligible)))
-      //no call required
-      val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)){ (_: JourneySession) => Future successful Results.Ok("")})
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedOutEligible))
+      //no call to agent-permissions is required
+      val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)){ (_: OptinStatus) => Future successful Results.Ok("")})
 
       status(result) shouldBe 200
     }
@@ -80,8 +79,8 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
     "if not eligible to opt-in then redirect to root" in {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
-      val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)){ (_: JourneySession) => Future successful Results.Ok("")})
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
+      val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)){ (_: OptinStatus) => Future successful Results.Ok("")})
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS))
 
       sessionStored.isDefined shouldBe true
 
@@ -94,8 +93,8 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
     "execute body when status is any OptedIn status and store status in journey session if no session exists" in  {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-In_READY" """))
-      val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)){ (_: JourneySession) => Future successful Results.Ok("")})
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
+      val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)){ (_: OptinStatus) => Future successful Results.Ok("")})
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS))
 
       sessionStored.isDefined shouldBe true
       status(result) shouldBe 200
@@ -103,9 +102,9 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
 
     "if a journey session is available then don't make a call to backend" in  {
 
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedInReady))
       //no call to agent-permissions to get optInStatus is required
-      val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)){ (_: JourneySession) => Future successful Results.Ok("")})
+      val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)){ (_: OptinStatus) => Future successful Results.Ok("")})
 
       status(result) shouldBe 200
     }
@@ -114,9 +113,9 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
 
       mockHttpGet[HttpResponse](HttpResponse.apply(OK, s""" "Opted-Out_SINGLE_USER" """))
 
-      val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)){ (_: JourneySession) => Future successful Results.Ok("")})
+      val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)){ (_: OptinStatus) => Future successful Results.Ok("")})
 
-      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
+      val sessionStored = await(testSessionBehaviour.sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS))
 
       sessionStored.isDefined shouldBe true
 
@@ -127,19 +126,19 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
 
   "isOptedInComplete" should {
     "execute body when there is a session and the status is Opted-In_READY" in {
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
-      val result = await(testSessionBehaviour.isOptedInComplete(Arn(validArn))((_: JourneySession) => Future successful Results.Ok("")))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedInReady))
+      val result = await(testSessionBehaviour.isOptedInComplete(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok("")))
       status(result) shouldBe OK
     }
     "redirect to root when there is a session and the status is not Opted-In_READY" in {
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedInSingleUser)))
-      val result = testSessionBehaviour.isOptedInComplete(Arn(validArn))((_: JourneySession) => Future successful Results.Ok(""))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
+      val result = testSessionBehaviour.isOptedInComplete(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok(""))
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.RootController.start.url
     }
     "initialise session and execute body when there is no session and the status from the backend is Opted-In_READY" in {
       mockHttpGet[HttpResponse](HttpResponse.apply(OK, s""" "Opted-In_READY" """))
-      val result = testSessionBehaviour.isOptedInComplete(Arn(validArn))((_: JourneySession) => Future successful Results.Ok(""))
+      val result = testSessionBehaviour.isOptedInComplete(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok(""))
       status(result) shouldBe OK
     }
 
@@ -147,29 +146,29 @@ class SessionBehaviourSpec extends BaseSpec with HttpClientMocks with AgentPermi
 
   "isOptedOut" should {
     "execute body when there is a session and the status is Opted-Out_ELIGIBLE" in {
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedOutEligible)))
-      val result = await(testSessionBehaviour.isOptedOut(Arn(validArn))((_: JourneySession) => Future successful Results.Ok("")))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedOutEligible))
+      val result = await(testSessionBehaviour.isOptedOut(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok("")))
       status(result) shouldBe OK
     }
     "execute body when there is a session and the status is Opted-Out_SINGLE_USER" in {
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedOutSingleUser)))
-      val result = await(testSessionBehaviour.isOptedOut(Arn(validArn))((_: JourneySession) => Future successful Results.Ok("")))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedOutSingleUser))
+      val result = await(testSessionBehaviour.isOptedOut(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok("")))
       status(result) shouldBe OK
     }
     "execute body when there is a session and the status is Opted-Out_WRONG_CLIENT_COUNT" in {
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedOutWrongClientCount)))
-      val result = await(testSessionBehaviour.isOptedOut(Arn(validArn))((_: JourneySession) => Future successful Results.Ok("")))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedOutWrongClientCount))
+      val result = await(testSessionBehaviour.isOptedOut(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok("")))
       status(result) shouldBe OK
     }
     "redirect to root when there is a session and the status is Opted-In_READY" in {
-      await(testSessionBehaviour.sessionCacheRepository.putSession(DATA_KEY,JourneySession(optInStatus = OptedInReady)))
-      val result = testSessionBehaviour.isOptedOut(Arn(validArn))((_: JourneySession) => Future successful Results.Ok(""))
+      await(testSessionBehaviour.sessionCacheRepository.putSession(OPTIN_STATUS, OptedInReady))
+      val result = testSessionBehaviour.isOptedOut(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok(""))
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.RootController.start.url
     }
     "initialise session and execute body when there is no session and the status from the backend is Opted-Out_ELIGIBLE" in {
       mockHttpGet[HttpResponse](HttpResponse.apply(OK, s""" "Opted-Out_ELIGIBLE" """))
-      val result = testSessionBehaviour.isOptedOut(Arn(validArn))((_: JourneySession) => Future successful Results.Ok(""))
+      val result = testSessionBehaviour.isOptedOut(Arn(validArn))((_: OptinStatus) => Future successful Results.Ok(""))
       status(result) shouldBe OK
     }
   }

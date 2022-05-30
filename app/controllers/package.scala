@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import models.JourneySession
+import models.Client
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future
@@ -25,5 +26,13 @@ package object controllers {
     def toFuture = Future successful t
   }
 
-  val DATA_KEY: DataKey[JourneySession] = DataKey("journey")
+  val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
+  val isOptedIn: OptinStatus => Boolean = status => status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser
+  val isOptedOut: OptinStatus => Boolean = status => status == OptedOutEligible || status == OptedOutSingleUser || status == OptedOutWrongClientCount
+  val isOptedInComplete: OptinStatus => Boolean = status => status == OptedInReady
+
+  val OPTIN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
+  val GROUP_NAME: DataKey[String] = DataKey("groupName")
+  val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
+  val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
 }

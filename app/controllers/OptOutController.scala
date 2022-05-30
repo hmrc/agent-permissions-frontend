@@ -84,7 +84,7 @@ class OptOutController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedOut(arn) { _ =>
         sessionCacheRepository
-          .deleteFromSession(DATA_KEY)
+          .deleteFromSession(OPTIN_STATUS)
           .map(_ => Ok(you_have_opted_out()))
       }
     }

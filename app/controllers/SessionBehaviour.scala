@@ -17,12 +17,13 @@
 package controllers
 
 import connectors.AgentPermissionsConnector
-import models.JourneySession
+import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Request, Result}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,38 +33,45 @@ trait SessionBehaviour {
   val sessionCacheRepository: SessionCacheRepository
   val agentPermissionsConnector: AgentPermissionsConnector
 
-  def isEligibleToOptIn(arn: Arn)(body: JourneySession => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(JourneySession.isEligibleToOptIn)(arn)(body)(request, hc, ec)
+  def isEligibleToOptIn(arn: Arn)(body: OptinStatus => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(request, hc, ec)
 
-  def isOptedIn(arn: Arn)(body: JourneySession => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(JourneySession.isOptedIn)(arn)(body)(request, hc, ec)
+  def isOptedIn(arn: Arn)(body: OptinStatus => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    eligibleFor(controllers.isOptedIn)(arn)(body)(request, hc, ec)
 
-  def isOptedInComplete(arn: Arn)(body: JourneySession => Future[Result])(implicit request: Request[_], hc: HeaderCarrier,
+  def isOptedInComplete(arn: Arn)(body: OptinStatus => Future[Result])(implicit request: Request[_], hc: HeaderCarrier,
                                                                           ec: ExecutionContext): Future[Result] =
-    eligibleFor(JourneySession.isOptedInComplete)(arn)(body)(request, hc, ec)
+    eligibleFor(controllers.isOptedInComplete)(arn)(body)(request, hc, ec)
 
-  def isOptedOut(arn: Arn)(body: JourneySession => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(JourneySession.isOptedOut)(arn)(body)(request, hc, ec)
+  def isOptedOut(arn: Arn)(body: OptinStatus => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    eligibleFor(controllers.isOptedOut)(arn)(body)(request, hc, ec)
 
-  private def eligibleFor(predicate: JourneySession => Boolean)(arn: Arn)(body: JourneySession => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+  def withSession[T](dataKey: DataKey[T])(arn: Arn)(body: Option[T] => Future[Result])(implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+    sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS).flatMap{
+      case Some(status) if status == OptedInReady => sessionCacheRepository.getFromSession[T](dataKey).flatMap(data => body(data))
+      case _    => Redirect(routes.RootController.start).toFuture
+    }
+  }
+
+  private def eligibleFor(predicate: OptinStatus => Boolean)(arn: Arn)(body: OptinStatus => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
     sessionCacheRepository
-      .getFromSession[JourneySession](DATA_KEY).flatMap {
-      case Some(session) if predicate(session) => body(session)
+      .getFromSession[OptinStatus](OPTIN_STATUS).flatMap {
+      case Some(status) if predicate(status) => body(status)
       case Some(_) => Redirect(routes.RootController.start.url).toFuture
       case None =>
         initialiseSession(arn)
-          .flatMap(_ => sessionCacheRepository.getFromSession[JourneySession](DATA_KEY))
+          .flatMap(_ => sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS))
           .flatMap {
-            case Some(session) if predicate(session) => body(session)
-            case Some(_) => Redirect(routes.RootController.start.url).toFuture
+            case Some(status) if predicate(status) => body(status)
+            case Some(_) => Redirect(routes.RootController.start).toFuture
             case None => throw new RuntimeException(s"opt-in status could not be found for ${arn.value}")
           }
     }
   }
 
-    private def initialiseSession(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) =
+    private def initialiseSession(arn: Arn)(implicit request: Request[_], writes: Writes[OptinStatus], hc: HeaderCarrier, ec: ExecutionContext) =
       agentPermissionsConnector.getOptInStatus(arn).flatMap {
-        case Some(status) => sessionCacheRepository.putSession(DATA_KEY, JourneySession(optInStatus = status))
+        case Some(status) => sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
         case None => throw new RuntimeException(s"could not initialise session because opt-In status was not returned for ${arn.value}")
       }
 }

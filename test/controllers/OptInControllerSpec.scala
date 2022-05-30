@@ -19,13 +19,12 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
-import models.JourneySession
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptedOutSingleUser}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptedOutSingleUser, OptinStatus}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
@@ -146,10 +145,9 @@ class OptInControllerSpec extends BaseSpec {
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
       stubPostOptInAccepted(arn)
-      stubGetClientListOk(arn)(clientListData)
       stubOptInStatusOk(arn)(OptedInReady)
 
       val result = controller.submitDoYouWantToOptIn()(request)
@@ -166,7 +164,7 @@ class OptInControllerSpec extends BaseSpec {
         .withFormUrlEncodedBody("answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.submitDoYouWantToOptIn()(request)
 
@@ -182,7 +180,7 @@ class OptInControllerSpec extends BaseSpec {
         .withFormUrlEncodedBody("answer" -> "")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.submitDoYouWantToOptIn()(request)
 
@@ -206,7 +204,7 @@ class OptInControllerSpec extends BaseSpec {
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(DATA_KEY, JourneySession(optInStatus = OptedOutEligible)))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
       intercept[UpstreamErrorResponse] {
         await(controller.submitDoYouWantToOptIn()(request))
@@ -216,10 +214,10 @@ class OptInControllerSpec extends BaseSpec {
 
 
   "GET /opt-in/you-have-opted-in" should {
-    "display expected content with continueUrl of ASA dashboard when clientList is not in session" in {
+    "display expected content with continueUrl of ASA dashboard when client list not yet available" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession[JourneySession](DATA_KEY, JourneySession(optInStatus = OptedInNotReady, clientList = None)))
+      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -237,10 +235,10 @@ class OptInControllerSpec extends BaseSpec {
       html.select(Css.linkStyledAsButton).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
 
-    "display expected content with continueUrl of /groups when clientList is in session" in {
+    "display expected content with continueUrl of /group/group-name when optIn status is OptInReady" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession[JourneySession](DATA_KEY, JourneySession(optInStatus = OptedInNotReady, clientList = Some(clientListData))))
+      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -255,7 +253,7 @@ class OptInControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
 
       html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
-      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.GroupController.showCreateGroup.url
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.GroupController.showGroupName.url
     }
   }
 
@@ -263,6 +261,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.showYouHaveNotOptedIn()(request)
 

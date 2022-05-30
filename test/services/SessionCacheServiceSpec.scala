@@ -17,9 +17,9 @@
 package services
 
 import com.google.inject.AbstractModule
-import controllers.{DATA_KEY, routes}
+import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, OPTIN_STATUS, routes}
 import helpers.BaseSpec
-import models.{Client, Group, JourneySession}
+import models.{Client, Group}
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers.{await, defaultAwaitTimeout, redirectLocation}
@@ -47,53 +47,47 @@ class SessionCacheServiceSpec extends BaseSpec {
   val service = fakeApplication.injector.instanceOf[SessionCacheService]
 
   "writeGroupNameAndRedirect" should {
-    "over-write group name and redirect" in {
-      val session = JourneySession(optInStatus = OptedInNotReady, group = Some(Group(name = "my group name", clients = Some(Set(Client("123", "mr...", "vat"))))))
+    "over-write an existing group name and redirect" in {
 
-      val result = service.writeGroupNameAndRedirect("new group name")(routes.OptInController.start)(session)
+      await(sessionCacheRepo.putSession[String](GROUP_NAME, "shady"))
+      val result = service.writeGroupNameAndRedirect("new group name")(routes.OptInController.start)
 
       status(result) shouldBe SEE_OTHER
 
-      val savedSession = await(sessionCacheRepo.getFromSession(DATA_KEY))
+      val savedSession = await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
 
-      savedSession.get.group.get.name shouldBe "new group name"
-      savedSession.get.group.get.clients shouldBe Some(Set(Client("123", "mr...", "vat")))
+      savedSession.get shouldBe "new group name"
+
       redirectLocation(result).get shouldBe routes.OptInController.start.url
     }
-    "create new group if none exists and redirect" in {
-      val session = JourneySession(optInStatus = OptedInNotReady)
 
-      val result = service.writeGroupNameAndRedirect("new group name")(routes.OptInController.start)(session)
+    "create new group if none exists and redirect" in {
+
+      val result = service.writeGroupNameAndRedirect("new group name")(routes.OptInController.start)
 
       status(result) shouldBe SEE_OTHER
 
-      val savedSession = await(sessionCacheRepo.getFromSession(DATA_KEY))
+      val savedSession = await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
 
-      savedSession.get.group.get.name shouldBe "new group name"
+      savedSession.get shouldBe "new group name"
+
       redirectLocation(result).get shouldBe routes.OptInController.start.url
     }
   }
 
   "confirmGroupNameAndRedirect" should {
-    "update field in session if a group exists" in {
-      val session = JourneySession(optInStatus = OptedInNotReady, group = Some(Group(name = "my group name", clients = Some(Set(Client("123", "mr...", "vat"))))))
+    "update field in session if a group name exists" in {
 
-      val result = service.confirmGroupNameAndRedirect(routes.OptInController.start)(session)
+      await(sessionCacheRepo.putSession[String](GROUP_NAME, "shady"))
+      await(sessionCacheRepo.putSession[Boolean](GROUP_NAME_CONFIRMED, false))
 
-      val savedSession = await(sessionCacheRepo.getFromSession(DATA_KEY))
+      val result = service.confirmGroupNameAndRedirect(routes.OptInController.start)
+
+      val savedSession = await(sessionCacheRepo.getFromSession[Boolean](GROUP_NAME_CONFIRMED))
 
       status(result) shouldBe SEE_OTHER
-      savedSession.get.group.get.nameConfirmed shouldBe true
+      savedSession.get shouldBe true
       redirectLocation(result).get shouldBe routes.OptInController.start.url
-    }
-
-    "redirect to routes.GroupController.showCreateGroup when no group exists" in {
-      val session = JourneySession(optInStatus = OptedInNotReady)
-
-      val result = service.confirmGroupNameAndRedirect(routes.OptInController.start)(session)
-
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.GroupController.showCreateGroup.url
     }
   }
 

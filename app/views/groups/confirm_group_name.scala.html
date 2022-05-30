@@ -33,7 +33,7 @@
 @layout(
     title = msgs(msgs("group.confirm.h1", "XYZ")), msgs("service.name"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.GroupController.showCreateGroup.url)
+    backLinkHref = Some(routes.GroupController.showGroupName.url)
 ) {
     @h1(msgs("group.confirm.h1", groupName))
 

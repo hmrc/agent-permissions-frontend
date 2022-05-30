@@ -23,6 +23,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
 import services.OptInService
+import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -83,17 +84,19 @@ class OptInController @Inject()(
   //if there is a clientList available then proceed to Groups otherwise go back to the ASA dashboard (and wait)
   def showYouHaveOptedIn: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedIn(arn) { session =>
-        session.clientList.fold(
-          sessionCacheRepository.deleteFromSession(DATA_KEY).map(_ => Ok(you_have_opted_in(appConfig.agentServicesAccountManageAccountUrl))
-        ))(_ => Ok(you_have_opted_in(routes.GroupController.showCreateGroup.url)).toFuture)
+      isOptedIn(arn) { status => {
+        val continueUrl = if (status == OptedInReady) routes.GroupController.showGroupName.url else appConfig.agentServicesAccountManageAccountUrl
+        Ok(you_have_opted_in(continueUrl)).toFuture
+      }
       }
     }
   }
 
   def showYouHaveNotOptedIn: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { _ =>
-      Future.successful(Ok(you_have_not_opted_in()))
+    isAuthorisedAgent { arn =>
+      isEligibleToOptIn(arn) { _ =>
+        Future.successful(Ok(you_have_not_opted_in()))
+      }
     }
   }
 }

@@ -22,6 +22,7 @@ import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
+import services.OptInService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -34,6 +35,7 @@ class OptOutController @Inject()(
                                   mcc: MessagesControllerComponents,
                                   val agentPermissionsConnector: AgentPermissionsConnector,
                                   val sessionCacheRepository: SessionCacheRepository,
+                                  optInService: OptInService,
                                   opt_out_start: opt_out_start,
                                   want_to_opt_out: want_to_opt_out,
                                   you_have_opted_out: you_have_opted_out,
@@ -69,10 +71,9 @@ class OptOutController @Inject()(
           .fold(
             formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
             (iWantToOptOut: Boolean) => {
-              if (iWantToOptOut)
-                agentPermissionsConnector.optOut(arn)
-                  .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut.url))
-              else
+              if (iWantToOptOut) {
+                optInService.optOut(arn).map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut.url))
+              } else
                 Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
             }
           )
@@ -83,8 +84,7 @@ class OptOutController @Inject()(
   def showYouHaveOptedOut: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedOut(arn) { _ =>
-        sessionCacheRepository
-          .deleteFromSession(OPTIN_STATUS)
+        clearSession()
           .map(_ => Ok(you_have_opted_out()))
       }
     }

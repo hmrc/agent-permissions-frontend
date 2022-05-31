@@ -105,6 +105,7 @@ class OptOutControllerSpec extends BaseSpec {
     "redirect to 'you have opted out' page with answer 'true'" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedOutEligible)
 
       implicit val request = FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
         .withFormUrlEncodedBody("answer" -> "true")

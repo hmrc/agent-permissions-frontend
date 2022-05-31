@@ -28,7 +28,7 @@
         formWithCSRF: FormWithCSRF
 )
 
-@(clients: Seq[Client])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(clients: Seq[DisplayClient])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     clients.map(client =>

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import models.Client
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.mongo.cache.DataKey
 

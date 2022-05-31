@@ -19,7 +19,6 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
-import models.Group
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
@@ -27,7 +26,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, Identifier, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Identifier, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -57,6 +56,17 @@ class GroupControllerSpec extends BaseSpec {
 
   val controller = fakeApplication.injector.instanceOf[GroupController]
 
+
+  "GET /group/create-access-group" should {
+    "redirect to /group/group-name" in {
+
+      val result = controller.start()(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+    }
+  }
 
   "GET /group/group-name" should {
 
@@ -248,17 +258,16 @@ class GroupControllerSpec extends BaseSpec {
 
     "render with clients" in {
 
-      val fakeEnrolments = (1 to 10)
+      val fakeClients = (1 to 10)
         .map(i => {
-          Enrolment(
-            s"serviceName$i",
-            s"state$i",
+          Client(
+            s"HMRC-MTD-VAT~VRN~12345678$i",
             s"friendly$i",
-            List(Identifier("", s"ABCDEF$i")))
+           )
         })
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubGetClientListOk(arn)(fakeEnrolments)
+      stubGetClientListOk(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
@@ -281,14 +290,14 @@ class GroupControllerSpec extends BaseSpec {
       val trs = html.select(Css.tableWithId("client-list-table")).select("tbody tr")
       trs.size() shouldBe 10
       //first row
-      trs.get(0).select("td").get(1).text() shouldBe "xxxxDEF1"
+      trs.get(0).select("td").get(1).text() shouldBe "123456781"
       trs.get(0).select("td").get(2).text() shouldBe "friendly1"
-      trs.get(0).select("td").get(3).text() shouldBe "serviceName1"
+      trs.get(0).select("td").get(3).text() shouldBe "HMRC-MTD-VAT"
 
       //last row
-      trs.get(9).select("td").get(1).text() shouldBe "xxxxEF10"
+      trs.get(9).select("td").get(1).text() shouldBe "1234567810"
       trs.get(9).select("td").get(2).text() shouldBe "friendly10"
-      trs.get(9).select("td").get(3).text() shouldBe "serviceName10"
+      trs.get(9).select("td").get(3).text() shouldBe "HMRC-MTD-VAT"
     }
 
     "render with NO CLIENTS" in {

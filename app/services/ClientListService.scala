@@ -17,7 +17,7 @@
 package services
 
 import connectors.AgentUserClientDetailsConnector
-import models.Client
+import models.DisplayClient
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -28,12 +28,10 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ClientListService @Inject() (agentUserClientDetailsConnector: AgentUserClientDetailsConnector) {
 
-  private val obfuscatedPrefix = "xxxx"
-
-  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]] = {
+  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     for {
-    enrols    <- agentUserClientDetailsConnector.getClientList(arn)
-    clients   = enrols.map(enrols => enrols.map(enrol => Client(obfuscatedPrefix.concat(enrol.identifiers.head.value.takeRight(4)), enrol.friendlyName, enrol.service)))
-    } yield clients
+    clients         <- agentUserClientDetailsConnector.getClientList(arn)
+    displayClients  = clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))
+    } yield displayClients
   }
 }

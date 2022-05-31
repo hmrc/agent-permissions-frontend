@@ -21,7 +21,7 @@ import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.http.Status.{ACCEPTED, OK}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, Identifier}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks with AgentUserClientDetailsConnectorMocks {
@@ -42,28 +42,22 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
   val connector: AgentUserClientDetailsConnector = fakeApplication.injector.instanceOf[AgentUserClientDetailsConnectorImpl]
 
   "getClientList" should {
-    "return a Some[Seq[Enrolment]] when status response is OK" in {
+    "return a Some[Seq[Client]] when status response is OK" in {
       mockHttpGet[HttpResponse](HttpResponse.apply(OK,
       """[
           |{
-          |"service": "HMRC-MTD-IT",
-          |"state": "Active",
-          |"friendlyName": "Rapunzel",
-          |"identifiers": [{
-          |"key": "MTDITID",
-          |"value": "XX12345"
-          |}]
-          |}]""".stripMargin
+          |"enrolmentKey": "HMRC-MTD-IT~MTDITID~XX12345",
+          |"friendlyName": "Rapunzel"
+          |}
+          |]""".stripMargin
       )
       )
 
       connector.getClientList(arn).futureValue shouldBe Some(
         Seq(
-        Enrolment(
-          service = "HMRC-MTD-IT",
-          state = "Active",
-          friendlyName = "Rapunzel",
-          identifiers = List(Identifier(key = "MTDITID", value = "XX12345")))))
+        Client(
+          enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
+          friendlyName = "Rapunzel")))
     }
 
     "return None when status response is Accepted" in {

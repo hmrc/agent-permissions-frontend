@@ -20,6 +20,8 @@ POST       /opt-out/do-you-want-to-opt-out  controllers.OptOutController.submitD
 
 GET        /opt-out/you-have-opted-out      controllers.OptOutController.showYouHaveOptedOut
 
+GET        /group/create-access-group       controllers.GroupController.start
+
 GET        /group/group-name                controllers.GroupController.showGroupName
 POST       /group/group-name                controllers.GroupController.submitGroupName
 

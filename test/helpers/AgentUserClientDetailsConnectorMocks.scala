@@ -18,17 +18,17 @@ package helpers
 
 import connectors.AgentUserClientDetailsConnector
 import org.scalamock.scalatest.MockFactory
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Enrolment}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentUserClientDetailsConnectorMocks extends MockFactory{
 
-  def stubGetClientListOk(arn: Arn)(clientList: Option[Seq[Enrolment]])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def stubGetClientListOk(arn: Arn)(clientList: Seq[Client])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector.getClientList(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful (clientList))
+      .returning(Future successful (Some(clientList)))
 
   def stubGetClientListAccepted(arn: Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector.getClientList(_: Arn)(_: HeaderCarrier, _: ExecutionContext))

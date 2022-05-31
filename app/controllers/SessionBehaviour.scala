@@ -46,10 +46,13 @@ trait SessionBehaviour {
   def isOptedOut(arn: Arn)(body: OptinStatus => Future[Result])(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedOut)(arn)(body)(request, hc, ec)
 
-  def withSession[T](dataKey: DataKey[T])(arn: Arn)(body: Option[T] => Future[Result])(implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+  def isOptedInWithSessionItem[T](dataKey: DataKey[T])(arn: Arn)(body: Option[T] => Future[Result])(implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
     sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS).flatMap{
       case Some(status) if status == OptedInReady => sessionCacheRepository.getFromSession[T](dataKey).flatMap(data => body(data))
-      case _    => Redirect(routes.RootController.start).toFuture
+      case _    => agentPermissionsConnector.getOptInStatus(arn).flatMap{
+        case Some(status) if status == OptedInReady => sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status).flatMap(_ => body(None))
+        case _ => Redirect(routes.RootController.start).toFuture
+      }
     }
   }
 

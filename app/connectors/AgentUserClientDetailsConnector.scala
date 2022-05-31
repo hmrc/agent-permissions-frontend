@@ -23,7 +23,7 @@ import config.AppConfig
 import play.api.Logging
 import play.api.http.Status.{ACCEPTED, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Enrolment}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import javax.inject.{Inject, Singleton}
@@ -33,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   val http: HttpClient
 
-  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Enrolment]]]
+  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]]
 
 }
 
@@ -44,13 +44,13 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(implic
 
   private val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
-  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Enrolment]]] = {
+  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"
     monitor("ConsumedAPI-getClientList-GET") {
       http.GET[HttpResponse](url).map{
         response => response.status match {
           case ACCEPTED   => None
-          case OK         =>  response.json.asOpt[Seq[Enrolment]]
+          case OK         =>  response.json.asOpt[Seq[Client]]
           case e          => throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",e)
         }
       }

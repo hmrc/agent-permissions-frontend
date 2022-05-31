@@ -18,12 +18,13 @@ package controllers
 
 import config.AppConfig
 import connectors.AgentPermissionsConnector
+import forms.{CreateGroupForm, YesNoForm}
 import forms.{AddClientsToGroupForm, CreateGroupForm, YesNoForm}
-import models.Client
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
 import services.{ClientListService, SessionCacheService}
+import uk.gov.hmrc.agentmtdidentifiers.model.Client
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 
@@ -49,11 +50,14 @@ class GroupController @Inject()
 
   import authAction._
 
-  val obfuscatedPrefix = "xxxx"
+
+  def start = Action {
+    Redirect(routes.GroupController.showGroupName)
+  }
 
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withSession[String](GROUP_NAME)(arn) { maybeName =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
         Ok(create(CreateGroupForm.form.fill(maybeName.getOrElse("")))).toFuture
       }
     }
@@ -61,7 +65,7 @@ class GroupController @Inject()
 
   def submitGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withSession[String](GROUP_NAME)(arn) { _ =>
+      isOptedInComplete(arn){ _ =>
         CreateGroupForm.form()
           .bindFromRequest
           .fold(
@@ -77,8 +81,8 @@ class GroupController @Inject()
 
   def showConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withSession[String](GROUP_NAME)(arn) { maybeName =>
-        maybeName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { name =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
+        maybeName.fold(Redirect(routes.GroupController.showGroupName).toFuture){ name =>
           Ok(confirm_group_name(
             YesNoForm.form("group.name.confirm.required.error"), name)).toFuture
         }
@@ -88,7 +92,7 @@ class GroupController @Inject()
 
   def submitConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withSession[String](GROUP_NAME)(arn) { maybeName =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
         maybeName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { name =>
           YesNoForm
             .form("group.name.confirm.required.error")
@@ -107,33 +111,23 @@ class GroupController @Inject()
     }
   }
 
-  def showAddClients: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      withSession[Seq[Client]](GROUP_CLIENTS)(arn) { maybeClients =>
-        clientListService.getClientList(arn).map {
-          case Some(clientList) => Ok(client_group_list(clientList))
-          case None => Ok(client_group_list(Seq.empty))
+    def showAddClients: Action[AnyContent] = Action.async { implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInComplete(arn) { _ =>
+          clientListService.getClientList(arn).map {
+            case Some(clientList) => Ok(client_group_list(clientList))
+            case None => Ok(client_group_list(Seq.empty))
+          }
         }
       }
     }
-  }
 
-  def submitAddClients: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInComplete(arn) { session =>
-        AddClientsToGroupForm
-          .form()
-          .bindFromRequest()
-          .fold(
-            formWithErrors => {
-              Ok(client_group_list(Seq.empty, Some(formWithErrors))).toFuture
-            },
-            (clientsToAdd: Seq[String]) => {
-              Redirect(routes.GroupController.showAddClients).toFuture
-            }
-          )
+    def submitAddClients: Action[AnyContent] = Action.async { implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInComplete(arn) { _ =>
+          Redirect(routes.GroupController.showAddClients).toFuture
+        }
       }
     }
-  }
 
 }

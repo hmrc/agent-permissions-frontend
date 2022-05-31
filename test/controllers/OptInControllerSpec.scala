@@ -73,7 +73,7 @@ class OptInControllerSpec extends BaseSpec {
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 2
       paragraphs.get(0).text() shouldBe "If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups."
-      paragraphs.get(1).text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client?s tax information."
+      paragraphs.get(1).text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client’s tax information."
       html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
       html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
     }
@@ -132,8 +132,6 @@ class OptInControllerSpec extends BaseSpec {
       html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
     }
   }
-
-  import helpers.TestData._
 
   "POST /opt-in/do-you-want-to-opt-in" should {
 

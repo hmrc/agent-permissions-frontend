@@ -28,58 +28,57 @@
         formWithCSRF: FormWithCSRF
 )
 
-@(clients: Seq[DisplayClient])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(clients: Seq[DisplayClient], form: Option[Form[_]] = None)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@tableRows = @{
-    clients.map(client =>
-        Seq(
-            Html(checkBox(name = "bob", value = "smith").toString),
-            Html(client.hmrcRef),
-            Html(client.name),
-            Html(client.taxService),
+    @tableRows = @{
+        clients.map(client =>
+            Seq(
+                Html(checkBox(name = Some("clients[]"), value = Some(client.name)).toString),
+                Html(client.hmrcRef),
+                Html(client.name),
+                Html(client.taxService),
+            )
         )
-    )
+    }
 
-}
+    @layout(
+        title = msgs("group.client.list.h1", msgs("service.name")),
+        backLinkHref = Some(routes.OptInController.start.url),
+        formErrors = if(form.isDefined) form.get.errors else Seq.empty,
+        fullWidth = true,
+    ) {
 
-@layout(
-    title = msgs("group.client.list.h1", msgs("service.name")),
-    backLinkHref = Some(routes.OptInController.start.url),
-    fullWidth = true,
-) {
-
-    <div class="govuk-!-width-two-thirds">
-
-        @h1("group.client.list.h1")
-        @p("group.client.list.p1")
-    </div>
-
-    @formWithCSRF(action = routes.GroupController.submitAddClients) {
-
-        <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
-
-        @table(
-            id = Some("client-list-table"),
-            headings = Seq(
-                Html(checkBox(name = "selectAll", id = "select-all", value = "all").toString),
-                Html(msgs("group.client.list.table.th1")),
-                Html(msgs("group.client.list.table.th2")),
-                Html(msgs("group.client.list.table.th3")),
-            ),
-            rows = tableRows,
-        )
+        <div class="govuk-!-width-two-thirds">
+            @h1("group.client.list.h1")
+            @p("group.client.list.p1")
         </div>
-        @submit_button("group.client.list.submit.button")
+
+        @formWithCSRF(action = routes.GroupController.submitAddClients) {
+
+            <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
+
+            @table(
+                id = Some("client-list-table"),
+                headings = Seq(
+                    Html(checkBox(id = Some("select-all"), value=Some("all")).toString),
+                    Html(msgs("group.client.list.table.th1")),
+                    Html(msgs("group.client.list.table.th2")),
+                    Html(msgs("group.client.list.table.th3")),
+                ),
+                rows = tableRows,
+            )
+            </div>
+            @submit_button("group.client.list.submit.button")
+        }
+    }
+
+    <script @{
+        CSPNonce.attr
+    } >
+document.getElementById('select-all').onclick = function () {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    for (const box of checkboxes) {
+        box.checked = this.checked;
     }
 }
-
-<script @{
-    CSPNonce.attr
-} >
-        document.getElementById('select-all').onclick = function () {
-            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            for (const box of checkboxes) {
-                box.checked = this.checked;
-            }
-        }
 </script>

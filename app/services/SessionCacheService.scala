@@ -16,9 +16,7 @@
 
 package services
 
-import akka.Done
-import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, OPTIN_STATUS, ToFuture, routes}
-import models.Group
+import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request}
 import repository.SessionCacheRepository

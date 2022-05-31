@@ -19,6 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.{CreateGroupForm, YesNoForm}
+import forms.{AddClientsToGroupForm, CreateGroupForm, YesNoForm}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
@@ -31,20 +32,21 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class GroupController @Inject()(
-                                 authAction: AuthAction,
-                                 mcc: MessagesControllerComponents,
-                                 create: create,
-                                 confirm_group_name: confirm_group_name,
-                                 client_group_list: client_group_list,
-                                 val agentPermissionsConnector: AgentPermissionsConnector,
-                                 sessionCacheService: SessionCacheService,
-                                 val sessionCacheRepository: SessionCacheRepository,
-                                 clientListService: ClientListService
-                               )(
-                                 implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                 implicit override val messagesApi: MessagesApi
-                               ) extends FrontendController(mcc) with I18nSupport with SessionBehaviour {
+class GroupController @Inject()
+(
+  authAction: AuthAction,
+  mcc: MessagesControllerComponents,
+  create: create,
+  confirm_group_name: confirm_group_name,
+  client_group_list: client_group_list,
+  val agentPermissionsConnector: AgentPermissionsConnector,
+  sessionCacheService: SessionCacheService,
+  val sessionCacheRepository: SessionCacheRepository,
+  clientListService: ClientListService
+)(
+  implicit val appConfig: AppConfig, ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc) with I18nSupport with SessionBehaviour {
 
   import authAction._
 

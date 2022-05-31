@@ -50,7 +50,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(implic
       http.GET[HttpResponse](url).map{
         response => response.status match {
           case ACCEPTED   => None
-          case OK         =>  response.json.asOpt[Seq[Client]]
+          case OK         => response.json.asOpt[Seq[Client]]
           case e          => throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",e)
         }
       }

@@ -72,7 +72,7 @@ class OptInController @Inject()(
             formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
             (iWantToOptIn: Boolean) => {
               if (iWantToOptIn)
-                optInService.processOptIn(arn).map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
+                optInService.optIn(arn).map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
               else
                 Redirect(routes.OptInController.showYouHaveNotOptedIn.url).toFuture
             }

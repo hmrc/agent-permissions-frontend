@@ -9,7 +9,7 @@ continue=Continue
 common.yes.label=Yes
 common.no.label=No
 
-#common message keys. PLEASE DON'T DUPLICATE THINGS!
+
 continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
@@ -17,7 +17,7 @@ submit.button=Submit
 opt-in-info.h1=Opting in to use access groups
 opt-in-info.inset=By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login
 opt-in-info.p1=If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups.
-opt-in-info.p2=This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client?s tax information.
+opt-in-info.p2=This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client’s tax information.
 
 do-you-want-to-opt-in.h1=Do you want to opt in to use access groups?
 do-you-want-to-opt-in.yes.label=Yes, I want to opt-in
@@ -60,6 +60,7 @@ group.client.list.table.th1=HMRC reference
 group.client.list.table.th2=Client name
 group.client.list.table.th3=Tax service
 group.client.list.submit.button=Add clients
+error.client.list.empty=You must add at least one client 
 
 group.create.h1=Create an access group
 group.create.name.label=What do you want to call this access group?
@@ -70,4 +71,3 @@ group.name.required=Group name is required
 group.confirm.h1=Confirm group name for {0}
 group.confirm.name.label=Is the access group name correct?
 group.name.confirm.required.error=Please select an option.
-

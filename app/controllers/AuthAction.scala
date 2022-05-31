@@ -16,11 +16,11 @@
 
 package controllers
 
-import play.api.{Configuration, Environment, Logging}
+import config.AppConfig
 import play.api.mvc.Results.{Forbidden, Redirect}
 import play.api.mvc.{Request, Result}
+import play.api.{Configuration, Environment, Logging}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import config.AppConfig
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}

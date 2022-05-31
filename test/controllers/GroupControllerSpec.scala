@@ -19,7 +19,6 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
-import models.Group
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
@@ -258,7 +257,7 @@ class GroupControllerSpec extends BaseSpec {
         })
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubGetClientListOk(arn)(fakeEnrolments)
+      stubGetClientListOk(arn)(Some(fakeEnrolments))
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
@@ -291,10 +290,37 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(9).select("td").get(3).text() shouldBe "serviceName10"
     }
 
+    "render with None CLIENTS" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubGetClientListOk(arn)(None)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+
+      val result = controller.showAddClients()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Add clients to - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Add clients to"
+      val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
+      th.size() shouldBe 4
+      th.get(1).text() shouldBe "HMRC reference"
+      th.get(2).text() shouldBe "Client name"
+      th.get(3).text() shouldBe "Tax service"
+      val trs = html.select(Css.tableWithId("client-list-table")).select("tbody tr")
+      trs.size() shouldBe 0
+
+    }
+
     "render with NO CLIENTS" in {
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubGetClientListOk(arn)(Seq.empty)
+      stubGetClientListOk(arn)(Some(Seq.empty))
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
@@ -324,6 +350,7 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
+        .withFormUrlEncodedBody("clients[]" -> "one", "clients[]" -> "two", "clients[]" -> "three")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -333,6 +360,25 @@ class GroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.GroupController.showAddClients.url
 
+    }
+
+    "show an error when POSTED without clients" in {
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
+        .withFormUrlEncodedBody()
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      val result = controller.submitAddClients()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Error: Add clients to - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Add clients to"
+      html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must add at least one client"
     }
   }
 }

@@ -113,20 +113,12 @@ class GroupController @Inject()
 
   def showAddClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { selectedClients =>
-        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-          clientListService.getClientList(arn)(selectedClients).map {
-            case Some(clientList) =>
-              if (selectedClients.isDefined) {
-                val selectedClientHmrcRefs = selectedClients.getOrElse(Seq.empty).map(_.hmrcRef)
-                val displayClients = clientList.map(client =>
-                  if (selectedClientHmrcRefs.contains(client.hmrcRef)) client.copy(selected = true) else client
-                )
-                Ok(client_group_list(displayClients, maybeGroupName))
-              } else {
-                Ok(client_group_list(clientList, maybeGroupName))
-              }
-            case None => Ok(client_group_list(Seq.empty))
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+        isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeSelectedClients =>
+          maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
+            clientListService.getClientList(arn)(maybeSelectedClients)
+              .flatMap(maybeClients =>
+                Ok(client_group_list(maybeClients, groupName, AddClientsToGroupForm.form())).toFuture)
           }
         }
       }
@@ -135,26 +127,25 @@ class GroupController @Inject()
 
   def submitAddClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
       isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
-        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-          clientListService.getClientList(arn)(maybeClients).map {
-            case Some(clientList) =>
-              AddClientsToGroupForm
-                .form()
-                .bindFromRequest()
-                .fold(
-                  formWithErrors => {
-                    Ok(client_group_list(clientList, maybeGroupName, Some(formWithErrors)))
-                  },
-                  (clientsToAdd: Seq[String]) => {
-                    val clients = clientList.filter(client => clientsToAdd.contains(client.hmrcRef))
-                    sessionCacheService.writeGroupClientsToAddAndRedirect(clients)(routes.GroupController.showReviewClientsToAdd)
-                    Redirect(routes.GroupController.showReviewClientsToAdd)
-                  }
-                )
-            case None => Redirect(routes.GroupController.showAddClients)
+        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
+          clientListService.getClientList(arn)(maybeClients).flatMap { maybeClients =>
+            AddClientsToGroupForm
+              .form()
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  Ok(client_group_list(maybeClients, groupName, formWithErrors)).toFuture
+                },
+                (clientsToAdd: Seq[DisplayClient]) =>
+                  sessionCacheService
+                    .saveSelectedGroupClientsAndRedirect(clientsToAdd)(routes.GroupController.showReviewClientsToAdd)
+
+              )
           }
         }
+      }
       }
     }
   }
@@ -162,54 +153,66 @@ class GroupController @Inject()
 
   def showReviewClientsToAdd: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
       isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
-        for {
-          maybeGroupName <- sessionCacheRepository.getFromSession(GROUP_NAME)
-        } yield Ok(review_clients_to_add(maybeClients.getOrElse(Seq.empty), maybeGroupName))
+       maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture)(groupName =>
+          maybeClients.fold(Redirect(routes.GroupController.showAddClients).toFuture)( clients =>
+            Ok(review_clients_to_add(clients, groupName)).toFuture
+          )
+       )
+        }
       }
     }
   }
 
 
-  def submitReviewClientsToAdd: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent {
-        arn =>
-          isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) {
-            maybeClients =>
-              if (maybeClients.isDefined) {
-                YesNoForm
-                  .form()
-                  .bindFromRequest()
-                  .fold(
-
-                    formWithErrors => {
-                      for {
-                        maybeGroupName <- sessionCacheRepository.getFromSession(GROUP_NAME)
-                      } yield Ok(review_clients_to_add(maybeClients.get, maybeGroupName, Some
-                      (formWithErrors)))
-                        .toFuture
-                    },
-                    (needToAddMore: Boolean) => {
-                      if (needToAddMore) {
-                        //go back to add more
-                        Redirect(routes.GroupController.showAddClients.url).toFuture
-                      } else {
-                        //now add clients to the group
-                        println("************************")
-                        println(maybeClients.getOrElse(Seq.empty))
-                        println("************************")
-                        Redirect(routes.GroupController.showAddTeamMembers.url).toFuture
-                      }
-                    }
-                  )
-                Ok(review_clients_to_add(maybeClients.getOrElse(Seq.empty))).toFuture
-              } else {
-                Redirect(routes.GroupController.showAddClients).toFuture
-              }
-          }
-      }
-  }
+//  def submitReviewClientsToAdd: Action[AnyContent] = Action.async {
+//    implicit request =>
+//      isAuthorisedAgent {
+//        arn =>
+//          isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
+//            maybeClients.fold(Redirect(routes.GroupController.showAddClients))(_ =>
+//
+//            )
+//
+//
+//
+//
+//
+//            maybeClients =>
+//              if (maybeClients.isDefined) {
+//                YesNoForm
+//                  .form()
+//                  .bindFromRequest()
+//                  .fold(
+//
+//                    formWithErrors => {
+//                      for {
+//                        maybeGroupName <- sessionCacheRepository.getFromSession(GROUP_NAME)
+//                      } yield Ok(review_clients_to_add(maybeClients.get, maybeGroupName, Some
+//                      (formWithErrors)))
+//                        .toFuture
+//                    },
+//                    (needToAddMore: Boolean) => {
+//                      if (needToAddMore) {
+//                        //go back to add more
+//                        Redirect(routes.GroupController.showAddClients.url).toFuture
+//                      } else {
+//                        //now add clients to the group
+//                        println("************************")
+//                        println(maybeClients.getOrElse(Seq.empty))
+//                        println("************************")
+//                        Redirect(routes.GroupController.showAddTeamMembers.url).toFuture
+//                      }
+//                    }
+//                  )
+//                Ok(review_clients_to_add(maybeClients.getOrElse(Seq.empty))).toFuture
+//              } else {
+//                Redirect(routes.GroupController.showAddClients).toFuture
+//              }
+//          }
+//      }
+//  }
 
   def showAddTeamMembers: Action[AnyContent] = Action.async {
     implicit request =>

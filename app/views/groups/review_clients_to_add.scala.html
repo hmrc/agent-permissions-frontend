@@ -23,39 +23,35 @@
         layout: main_layout,
         p: p, h1: h1, caption: caption, a: a,
         table: table, submit_button: submit_button,
-        checkBox: checkBox,
-        formWithCSRF: FormWithCSRF
+        checkBox: checkBox
 )
 
 @(
-    clients: Seq[DisplayClient] = Seq.empty,
-    groupName: Option[String] = None,
-    form: Option[Form[Boolean]] = None
+    clients: Seq[DisplayClient],
+    groupName: String
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         clients.map(client =>
             Seq(
-                Html(client.hmrcRef),
                 Html(client.name),
+                Html(client.hmrcRef),
+                Html(client.taxService)
             )
         )
     }
 
     @layout(
-        title = msgs(msgs("group.client.list.h1",groupName.getOrElse("")), msgs("service.name")),
+        title = msgs(msgs("group.client.list.h1", groupName, msgs("service.name"))),
         backLinkHref = Some(routes.GroupController.showAddClients.url),
-        formErrors = if(form.isDefined) form.get.errors else Seq.empty,
-        fullWidth = true,
+        fullWidth = true
     ) {
 
         <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName.getOrElse("")))
-            @h1(msgs("group.client.review.h1", clients.size, groupName.getOrElse("the group")))
+            @caption(msgs("common.caption.group.name", groupName))
+            @h1(msgs("group.client.review.h1", clients.size, groupName))
             @p("group.client.list.p1")
         </div>
-
-        @formWithCSRF(action = routes.GroupController.submitAddClients) {
 
             <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
 
@@ -72,6 +68,8 @@
             <p class="govuk-!-margin-bottom-9">
                 @a("group.selected.clients.change", href = routes.GroupController.showAddClients.url)
             </p>
-            @submit_button("group.client.list.submit.button")
-        }
+
+            @a(key = "button.continue", href = routes.GroupController.showAddTeamMembers.url, classes = Some("govuk-govuk--button"))
+
+
     }

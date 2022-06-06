@@ -19,16 +19,20 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
+import models.DisplayClient
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
+
+import java.util.Base64
 
 class GroupControllerSpec extends BaseSpec {
 
@@ -279,8 +283,8 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Add clients to - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Add clients to"
+      html.title() shouldBe "Add clients to XYZ - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Add clients to XYZ"
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 4
@@ -295,9 +299,9 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(3).text() shouldBe "HMRC-MTD-VAT"
 
       //last row
-      trs.get(9).select("td").get(1).text() shouldBe "1234567810"
-      trs.get(9).select("td").get(2).text() shouldBe "friendly10"
-      trs.get(9).select("td").get(3).text() shouldBe "HMRC-MTD-VAT"
+      trs.get(9).select("td").get(1).text() shouldBe fakeClients.maxBy(_.friendlyName).enrolmentKey.split('~').last
+      trs.get(9).select("td").get(2).text() shouldBe fakeClients.maxBy(_.friendlyName).friendlyName
+      trs.get(9).select("td").get(3).text() shouldBe fakeClients.maxBy(_.friendlyName).enrolmentKey.split('~').head
     }
 
     "render with No CLIENTS" in {
@@ -315,8 +319,8 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Add clients to - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Add clients to"
+      html.title() shouldBe "Add clients to XYZ - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Add clients to XYZ"
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 4
       th.get(1).text() shouldBe "HMRC reference"
@@ -327,72 +331,71 @@ class GroupControllerSpec extends BaseSpec {
 
     }
 
-    "render with NO CLIENTS" in {
+   "redirect when no group name is in session" in {
+
+     stubAuthorisationGrantAccess(mockedAuthResponse)
+     await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+     val result = controller.showAddClients()(request)
+
+     status(result) shouldBe SEE_OTHER
+     redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+   }
+  }
+
+  "POST add clients to list" should {
+    "save selected clients to session and redirect to /group/add-clients/review" in {
+      val fakeClients =
+       List.tabulate(3)(i =>
+          Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubGetClientListOk(arn)(Seq.empty)
+      stubGetClientListOk(arn)(fakeClients)
+
+      val displayClients = fakeClients.map(client => DisplayClient.fromClient(client))
+      val encodedDisplayClients = displayClients.map( client =>  Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+
+      implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
+        .withFormUrlEncodedBody("clients[]" -> encodedDisplayClients.head, "clients[]" -> encodedDisplayClients.last)
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
-      val result = controller.showAddClients()(request)
-
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Add clients to - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Add clients to"
-      val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
-      th.size() shouldBe 4
-      th.get(1).text() shouldBe "HMRC reference"
-      th.get(2).text() shouldBe "Client name"
-      th.get(3).text() shouldBe "Tax service"
-      val trs = html.select(Css.tableWithId("client-list-table")).select("tbody tr")
-      trs.size() shouldBe 0
-
-    }
-  }
-
-  "POST add clients to list" should {
-    "render with clients" in {
-      val fakeClients = (1 to 4)
-        .map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i")
-        )
-      stubAuthorisationGrantAccess(mockedAuthResponse)
-      stubGetClientListOk(arn)(fakeClients)
-
-      implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
-        .withFormUrlEncodedBody("clients[]" -> "friendly1", "clients[]" -> "friendly2")
-        .withSession(SessionKeys.sessionId -> "session-x")
-
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-
       val result = controller.submitAddClients()(request)
 
-      status(result) shouldBe OK
-      redirectLocation(result).get shouldBe routes.GroupController.showAddClients.url
-
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showReviewClientsToAdd.url
+      val storedClients = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+      storedClients.get.toList shouldBe List(displayClients.head.copy(selected = true), displayClients.last.copy(selected = true))
     }
 
     "show an error when POSTED without clients" in {
+
+      val fakeClients =
+        List.tabulate(3)(i =>
+          Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
+
       stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubGetClientListOk(arn)(fakeClients)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
         .withFormUrlEncodedBody()
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+
 
       val result = controller.submitAddClients()(request)
 
-      status(result) shouldBe SEE_OTHER
-      //      val html = Jsoup.parse(contentAsString(result))
-      //
-      //      html.title() shouldBe "Error: Add clients to - Manage Agent Permissions - GOV.UK"
-      //      html.select(Css.H1).text() shouldBe "Add clients to"
-      //      html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must add at least one client"
+      status(result) shouldBe OK
+            val html = Jsoup.parse(contentAsString(result))
+
+            html.title() shouldBe "Error: Add clients to XYZ - Manage Agent Permissions - GOV.UK"
+            html.select(Css.H1).text() shouldBe "Add clients to XYZ"
+            html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must add at least one client"
     }
   }
 }

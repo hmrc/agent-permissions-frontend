@@ -18,6 +18,8 @@
 @import controllers.routes
 @import views.html.helper.CSPNonce
 @import views.html.main_layout
+@import java.util.Base64
+@import play.api.libs.json.Json
 
 @this(
         layout: main_layout,
@@ -30,32 +32,34 @@
 )
 
 @(
-    clients: Seq[DisplayClient] = Seq.empty,
-    groupName: Option[String] = None,
-    form: Option[Form[List[String]]] = None,
+    clients: Option[Seq[DisplayClient]] = None,
+    groupName: String,
+    form: Form[List[DisplayClient]]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        clients.map(client =>
+        clients.fold(Seq.empty[Seq[Html]])( _.map( client =>
             Seq(
-                Html(checkBox(name = Some("clients[]"), value = Some(client.hmrcRef), checked = client.selected).toString),
+                Html(checkBox(name = Some("clients[]"), value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)), checked = client.selected).toString),
                 Html(client.hmrcRef),
                 Html(client.name),
                 Html(client.taxService),
             )
         )
-    }
+        )
+        }
+
 
     @layout(
-        title = msgs("group.client.list.h1", msgs("service.name")),
-        backLinkHref = Some(routes.GroupController.showGroupName.url),
-        formErrors = if(form.isDefined) form.get.errors else Seq.empty,
+        title = msgs("group.client.list.h1", groupName),
+        backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
+        formErrors = form.errors,
         fullWidth = true,
     ) {
 
         <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName.getOrElse("")))
-            @h1(msgs("group.client.list.h1",groupName.getOrElse("")))
+            @caption(msgs("common.caption.group.name", groupName))
+            @h1(msgs("group.client.list.h1",groupName))
             @p("group.client.list.p1")
         </div>
 

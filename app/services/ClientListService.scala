@@ -28,11 +28,14 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ClientListService @Inject()(agentUserClientDetailsConnector: AgentUserClientDetailsConnector) {
 
-  def getClientList(arn: Arn)(maybeSelectedClients: Option[Seq[DisplayClient]] = None
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
+  def getClientList(arn: Arn)(maybeSelectedClients: Option[Seq[DisplayClient]] = None)
+                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     for {
-    clients         <- agentUserClientDetailsConnector.getClientList(arn)
-    displayClients  = clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))
-    } yield displayClients
+    es3Clients                    <- agentUserClientDetailsConnector.getClientList(arn)
+    es3AsDisplayClients            = es3Clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))
+    es3WithoutPreSelected          = es3AsDisplayClients.map(_.filterNot(dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef))))
+    mergedWithPreselected          = es3WithoutPreSelected.map( _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
+    sorted                         = mergedWithPreselected.map(_.sortBy(_.name))
+    } yield sorted
   }
 }

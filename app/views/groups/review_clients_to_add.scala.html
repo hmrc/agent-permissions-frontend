@@ -66,8 +66,13 @@
         </div>
 
         <p class="govuk-!-margin-bottom-9">
-        @a("group.selected.clients.change", href = routes.GroupController.showAddClients.url)
+        @a("group.selected.clients.change",
+            href = routes.GroupController.showAddClients.url,
+            id = Some("change-selected-clients")
+        )
         </p>
 
-        @link_as_button(href = routes.GroupController.showAddTeamMembers.url)
+        @link_as_button(
+            href = routes.GroupController.showAddTeamMembers.url,
+            id = "add-team-members")
     }

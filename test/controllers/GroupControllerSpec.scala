@@ -448,6 +448,10 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(9).select("td").get(0).text() shouldBe "client name 10"
       trs.get(9).select("td").get(1).text() shouldBe "123456710"
       trs.get(9).select("td").get(2).text() shouldBe "tax service 10"
+
+      html.select("a#change-selected-clients").attr("href") shouldBe routes.GroupController.showAddClients.url
+      html.select("a#add-team-members").attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
+      html.select("a#add-team-members").hasClass("govuk-button")
     }
   }
 }

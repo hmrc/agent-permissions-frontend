@@ -30,3 +30,8 @@ POST       /group/confirm-name              controllers.GroupController.submitCo
 
 GET        /group/add-clients               controllers.GroupController.showAddClients
 POST       /group/add-clients               controllers.GroupController.submitAddClients
+
+GET        /group/add-clients/review        controllers.GroupController.showReviewClientsToAdd
+POST       /group/add-clients/review        controllers.GroupController.submitReviewClientsToAdd
+
+GET        /group/add-team-members          controllers.GroupController.showAddTeamMembers

@@ -26,9 +26,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 @Singleton
-class ClientListService @Inject() (agentUserClientDetailsConnector: AgentUserClientDetailsConnector) {
+class ClientListService @Inject()(agentUserClientDetailsConnector: AgentUserClientDetailsConnector) {
 
-  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
+  def getClientList(arn: Arn)(maybeSelectedClients: Option[Seq[DisplayClient]] = None
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     for {
     clients         <- agentUserClientDetailsConnector.getClientList(arn)
     displayClients  = clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))

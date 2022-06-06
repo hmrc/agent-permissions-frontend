@@ -21,10 +21,8 @@
 
 @this(
         layout: main_layout,
-        p: p, h1: h1,
-        caption: caption,
-        table: table,
-        submit_button: submit_button,
+        p: p, h1: h1, caption: caption, a: a,
+        table: table, submit_button: submit_button,
         checkBox: checkBox,
         formWithCSRF: FormWithCSRF
 )
@@ -32,30 +30,28 @@
 @(
     clients: Seq[DisplayClient] = Seq.empty,
     groupName: Option[String] = None,
-    form: Option[Form[List[String]]] = None,
+    form: Option[Form[Boolean]] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         clients.map(client =>
             Seq(
-                Html(checkBox(name = Some("clients[]"), value = Some(client.hmrcRef), checked = client.selected).toString),
                 Html(client.hmrcRef),
                 Html(client.name),
-                Html(client.taxService),
             )
         )
     }
 
     @layout(
-        title = msgs("group.client.list.h1", msgs("service.name")),
-        backLinkHref = Some(routes.GroupController.showGroupName.url),
+        title = msgs(msgs("group.client.list.h1",groupName.getOrElse("")), msgs("service.name")),
+        backLinkHref = Some(routes.GroupController.showAddClients.url),
         formErrors = if(form.isDefined) form.get.errors else Seq.empty,
         fullWidth = true,
     ) {
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName.getOrElse("")))
-            @h1(msgs("group.client.list.h1",groupName.getOrElse("")))
+            @h1(msgs("group.client.review.h1", clients.size, groupName.getOrElse("the group")))
             @p("group.client.list.p1")
         </div>
 
@@ -66,25 +62,16 @@
             @table(
                 id = Some("client-list-table"),
                 headings = Seq(
-                    Html(checkBox(id = Some("select-all"), value=Some("all")).toString),
                     Html(msgs("group.client.list.table.th1")),
                     Html(msgs("group.client.list.table.th2")),
-                    Html(msgs("group.client.list.table.th3")),
                 ),
                 rows = tableRows,
             )
             </div>
+
+            <p class="govuk-!-margin-bottom-9">
+                @a("group.selected.clients.change", href = routes.GroupController.showAddClients.url)
+            </p>
             @submit_button("group.client.list.submit.button")
         }
     }
-
-    <script @{
-        CSPNonce.attr
-    } >
-document.getElementById('select-all').onclick = function () {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    for (const box of checkboxes) {
-        box.checked = this.checked;
-    }
-}
-</script>

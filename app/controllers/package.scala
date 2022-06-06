@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import models.DisplayClient
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -33,5 +34,5 @@ package object controllers {
   val OPTIN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
-  val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
+  val GROUP_CLIENTS_SELECTED: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
 }

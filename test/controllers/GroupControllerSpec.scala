@@ -26,7 +26,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Identifier, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -263,7 +263,7 @@ class GroupControllerSpec extends BaseSpec {
           Client(
             s"HMRC-MTD-VAT~VRN~12345678$i",
             s"friendly$i",
-           )
+          )
         })
 
       stubAuthorisationGrantAccess(mockedAuthResponse)
@@ -357,17 +357,21 @@ class GroupControllerSpec extends BaseSpec {
 
   "POST add clients to list" should {
     "render with clients" in {
+      val fakeClients = (1 to 4)
+        .map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i")
+        )
       stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubGetClientListOk(arn)(fakeClients)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
-        .withFormUrlEncodedBody("clients[]" -> "one", "clients[]" -> "two", "clients[]" -> "three")
+        .withFormUrlEncodedBody("clients[]" -> "friendly1", "clients[]" -> "friendly2")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.submitAddClients()(request)
 
-      status(result) shouldBe SEE_OTHER
+      status(result) shouldBe OK
       redirectLocation(result).get shouldBe routes.GroupController.showAddClients.url
 
     }
@@ -384,11 +388,11 @@ class GroupControllerSpec extends BaseSpec {
       val result = controller.submitAddClients()(request)
 
       status(result) shouldBe SEE_OTHER
-//      val html = Jsoup.parse(contentAsString(result))
-//
-//      html.title() shouldBe "Error: Add clients to - Manage Agent Permissions - GOV.UK"
-//      html.select(Css.H1).text() shouldBe "Add clients to"
-//      html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must add at least one client"
+      //      val html = Jsoup.parse(contentAsString(result))
+      //
+      //      html.title() shouldBe "Error: Add clients to - Manage Agent Permissions - GOV.UK"
+      //      html.select(Css.H1).text() shouldBe "Add clients to"
+      //      html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must add at least one client"
     }
   }
 }

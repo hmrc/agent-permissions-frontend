@@ -19,16 +19,19 @@
 @(
     name: Option[String] = None,
     value: Option[String] = None,
-    id: Option[String] = None
+    id: Option[String] = None,
+    checked: Boolean = false
 )(implicit msgs: Messages)
 
 
 <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
     <div class="govuk-checkboxes__item">
-        <input class="govuk-checkboxes__input" type="checkbox"
+        <input class="govuk-checkboxes__input"
+            type="checkbox"
             @name.map(n =>  s"name=${n}")
             @id.map(id =>  s"id=${id}")
-            @value.map(n => s"value='${n}'")>
+            @value.map(n => s"value=${n}")
+            @{if(checked)"checked"}>
         <label class="govuk-label govuk-checkboxes__label" for="add-client">
         </label>
     </div>

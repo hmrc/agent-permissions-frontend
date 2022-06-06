@@ -260,7 +260,7 @@ class GroupControllerSpec extends BaseSpec {
     }
   }
 
-  "GET group/add-clients" should {
+  s"GET ${routes.GroupController.showAddClients.url}" should {
 
     "render with clients" in {
 
@@ -346,6 +346,7 @@ class GroupControllerSpec extends BaseSpec {
   }
 
   "POST add clients to list" should {
+
     "save selected clients to session and redirect to /group/add-clients/review" in {
       val fakeClients =
        List.tabulate(3)(i =>
@@ -398,6 +399,55 @@ class GroupControllerSpec extends BaseSpec {
             html.title() shouldBe "Error: Add clients to XYZ - Manage Agent Permissions - GOV.UK"
             html.select(Css.H1).text() shouldBe "Add clients to XYZ"
             html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must add at least one client"
+    }
+  }
+
+  s"GET ${routes.GroupController.showReviewClientsToAdd.url}" should {
+
+    "render with selected clients" in {
+
+      val selectedClients = (1 to 10)
+        .map(i => {
+          DisplayClient(
+            s"1234567$i",
+            s"client name $i",
+            s"tax service $i",
+            true
+          )
+        })
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
+
+      val result = controller.showReviewClientsToAdd()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Add clients to $groupName - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"You have added 10 clients to $groupName"
+
+      val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
+      th.size() shouldBe 3
+      th.get(0).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Tax reference"
+      th.get(2).text() shouldBe "Tax service"
+      val trs = html.select(Css.tableWithId("client-list-table")).select("tbody tr")
+      trs.size() shouldBe 10
+      //first row
+      trs.get(0).select("td").get(0).text() shouldBe "client name 1"
+      trs.get(0).select("td").get(1).text() shouldBe "12345671"
+      trs.get(0).select("td").get(2).text() shouldBe "tax service 1"
+
+      //last row
+      trs.get(9).select("td").get(0).text() shouldBe "client name 10"
+      trs.get(9).select("td").get(1).text() shouldBe "123456710"
+      trs.get(9).select("td").get(2).text() shouldBe "tax service 10"
     }
   }
 }

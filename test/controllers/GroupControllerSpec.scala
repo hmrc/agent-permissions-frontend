@@ -128,8 +128,8 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Create an access group - Manage Agent Permissions - GOV.UK"
-      html.select(Css.errorSummaryForField("name")).text() shouldBe "Group name is required"
-      html.select(Css.errorForField("name")).text() shouldBe "Error: Group name is required"
+      html.select(Css.errorSummaryForField("name")).text() shouldBe "Enter an access group name"
+      html.select(Css.errorForField("name")).text() shouldBe "Error: Enter an access group name"
 
     }
 
@@ -149,8 +149,8 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Create an access group - Manage Agent Permissions - GOV.UK"
-      html.select(Css.errorSummaryForField("name")).text() shouldBe "Group name must be less than 32 characters long"
-      html.select(Css.errorForField("name")).text() shouldBe "Error: Group name must be less than 32 characters long"
+      html.select(Css.errorSummaryForField("name")).text() shouldBe "Access group name must be 38 characters or fewer"
+      html.select(Css.errorForField("name")).text() shouldBe "Error: Access group name must be 38 characters or fewer"
     }
   }
 
@@ -207,8 +207,8 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Confirm group name for " + groupName + " - Manage Agent Permissions - GOV.UK"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Please select an option."
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Please select an option."
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if the access group name is correct"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if the access group name is correct"
 
     }
 

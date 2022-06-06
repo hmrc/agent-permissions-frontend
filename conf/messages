@@ -66,12 +66,12 @@ group.client.review.h1=You have added {0} clients to {1}
 
 group.create.h1=Create an access group
 group.create.name.label=What do you want to call this access group?
-group.name.max.length=Group name must be less than 32 characters long
-group.name.required=Group name is required
+group.name.max.length=Access group name must be 38 characters or fewer
+group.name.required=Enter an access group name
 
 
 group.confirm.h1=Confirm group name for {0}
 group.confirm.name.label=Is the access group name correct?
-group.name.confirm.required.error=Please select an option.
+group.name.confirm.required.error=Select yes if the access group name is correct
 
 group.selected.clients.change=Change selected clients

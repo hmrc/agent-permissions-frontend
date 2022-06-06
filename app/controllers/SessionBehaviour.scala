@@ -72,11 +72,16 @@ trait SessionBehaviour {
     }
   }
 
-  private def initialiseSession(arn: Arn)(implicit request: Request[_], writes: Writes[OptinStatus], hc: HeaderCarrier, ec: ExecutionContext) =
-    agentPermissionsConnector.getOptInStatus(arn).flatMap {
-      case Some(status) => sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
-      case None => throw new RuntimeException(s"could not initialise session because opt-In status was not returned for ${arn.value}")
-    }
+    private def initialiseSession(arn: Arn)(implicit request: Request[_], writes: Writes[OptinStatus], hc: HeaderCarrier, ec: ExecutionContext) =
+      agentPermissionsConnector.getOptInStatus(arn).flatMap {
+        case Some(status) => sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
+        case None => throw new RuntimeException(s"could not initialise session because opt-In status was not returned for ${arn.value}")
+      }
+
+  def clearSession()(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+    Future.sequence(sessionKeys.map(sessionCacheRepository.deleteFromSession(_)))
+  }
+
 }
 
 

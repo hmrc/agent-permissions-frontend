@@ -16,16 +16,25 @@
 
 package forms
 
+import models.DisplayClient
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.libs.json.Json
+
+import java.util.Base64
 
 
 object AddClientsToGroupForm {
 
-  def form(): Form[List[String]] = {
+  def form(): Form[List[DisplayClient]] = {
     Form(
       single(
-        "clients" -> list(text).verifying("error.client.list.empty", _.nonEmpty)
+        "clients" -> list(text).transform[List[DisplayClient]](_.map(str => {
+          Json.parse(new String(Base64.getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient]}),
+          _.map(dc =>
+            Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](dc).toString().getBytes))
+        )
+          .verifying("error.client.list.empty", _.nonEmpty)
       )
     )
   }

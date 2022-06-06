@@ -16,7 +16,8 @@
 
 package services
 
-import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED}
+import controllers.{GROUP_CLIENTS_SELECTED, GROUP_NAME, GROUP_NAME_CONFIRMED}
+import models.DisplayClient
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request}
 import repository.SessionCacheRepository
@@ -41,4 +42,12 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
       _ <- sessionCacheRepository.putSession[Boolean](GROUP_NAME_CONFIRMED, true)
     } yield Redirect(call)
   }
+
+  def saveSelectedGroupClientsAndRedirect(clients: Seq[DisplayClient])(call: Call)(implicit request: Request[_], hc: HeaderCarrier,
+                                                                                   ec: ExecutionContext) = {
+    for {
+      _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED, clients.map(dc => dc.copy(selected = true)))
+    } yield Redirect(call)
+  }
+
 }

@@ -16,9 +16,13 @@
 
 package forms
 
+import models.DisplayClient
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.libs.json.Json
+
+import java.util.Base64
 
 class AddClientsToGroupFormsSpec extends AnyWordSpec
   with Matchers
@@ -28,16 +32,21 @@ class AddClientsToGroupFormsSpec extends AnyWordSpec
 
   "CreateGroupFrom binding" should {
 
-    "be fillable with a list of strings" in {
-      val validatedForm = AddClientsToGroupForm.form().fill(List("one", "two"))
+    val client1 = DisplayClient("123", "JD", "VAT")
+    val client2 = DisplayClient("456", "HH", "CGT")
+
+    val encode: DisplayClient => String = client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes)
+
+    "be fillable with a list of DisplayClients" in {
+      val validatedForm = AddClientsToGroupForm.form().fill(List(client1, client2))
       validatedForm.hasErrors shouldBe false
-      validatedForm.value shouldBe Option(List("one", "two"))
+      validatedForm.value shouldBe Option(List(client1, client2))
     }
 
     "be successful when non-empty" in {
-      val params: Map[String, List[String]] = Map(clients -> List("one", "two", "ten"))
+      val params: Map[String, List[String]] = Map(clients -> List(encode(client1), encode(client2)))
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.value shouldBe Some(List("one", "two", "ten"))
+      boundForm.value shouldBe Some(List(client1, client2))
     }
 
     "have errors when empty" in {

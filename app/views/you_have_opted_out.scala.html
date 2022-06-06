@@ -21,14 +21,13 @@
 
 @()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@layout(
-    title = msgs("you-have-opted-out.h1", msgs("service.name"))) {
+@layout(title = msgs("you-have-opted-out.h1", msgs("service.name"))) {
     @h1("you-have-opted-out.h1")
     @h2("you-have-opted-out.h2")
     @p("you-have-opted-out.p1")
     @p("you-have-opted-out.p2")
     @link_as_button(
-        messageKey = "you-have-opted-out.button",
+        key = "you-have-opted-out.button",
         href = appConfig.agentServicesAccountManageAccountUrl
     )
 }

@@ -19,17 +19,17 @@ package models
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentmtdidentifiers.model.Client
 
+case class DisplayClient(hmrcRef: String, name: String, taxService: String, selected: Boolean = false)
 
-case class DisplayClient(hmrcRef: String, name: String, taxService: String)
 
+case object DisplayClient{
 
-object DisplayClient{
   implicit val format = Json.format[DisplayClient]
 
-  def fromClient(client: Client): DisplayClient = {
+  def fromClient(client: Client, selected: Boolean = false): DisplayClient = {
     val keyElements = client.enrolmentKey.split('~')
     val hmrcRef = keyElements.last
     val taxService = keyElements.head
-    DisplayClient(hmrcRef, client.friendlyName, taxService)
+    DisplayClient(hmrcRef, client.friendlyName, taxService, selected)
   }
 }

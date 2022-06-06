@@ -18,38 +18,48 @@
 @import controllers.routes
 @import views.html.helper.CSPNonce
 @import views.html.main_layout
+@import java.util.Base64
+@import play.api.libs.json.Json
 
 @this(
         layout: main_layout,
         p: p, h1: h1,
+        caption: caption,
         table: table,
         submit_button: submit_button,
         checkBox: checkBox,
         formWithCSRF: FormWithCSRF
 )
 
-@(clients: Seq[DisplayClient], form: Option[Form[_]] = None)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    clients: Option[Seq[DisplayClient]] = None,
+    groupName: String,
+    form: Form[List[DisplayClient]]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        clients.map(client =>
+        clients.fold(Seq.empty[Seq[Html]])( _.map( client =>
             Seq(
-                Html(checkBox(name = Some("clients[]"), value = Some(client.name)).toString),
-                Html(client.hmrcRef),
+                Html(checkBox(name = Some("clients[]"), value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)), checked = client.selected).toString),
                 Html(client.name),
+                Html(client.hmrcRef),
                 Html(client.taxService),
             )
         )
-    }
+        )
+        }
+
 
     @layout(
-        title = msgs("group.client.list.h1", msgs("service.name")),
-        backLinkHref = Some(routes.OptInController.start.url),
-        formErrors = if(form.isDefined) form.get.errors else Seq.empty,
+        title = msgs("group.client.list.h1", groupName),
+        backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
+        formErrors = form.errors,
         fullWidth = true,
     ) {
 
         <div class="govuk-!-width-two-thirds">
-            @h1("group.client.list.h1")
+            @caption(msgs("common.caption.group.name", groupName))
+            @h1(msgs("group.client.list.h1",groupName))
             @p("group.client.list.p1")
         </div>
 

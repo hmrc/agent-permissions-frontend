@@ -16,13 +16,6 @@
 
 @this()
 
-@(key: String, classes: Option[String] = None, id: Option[String] = None)(implicit msgs: Messages)
+@(key: String = "", id: Option[String] = None)(implicit msgs: Messages)
 
-@cls = @{"govuk-heading-l ".concat(classes.getOrElse(""))}
-
-<h1 class="@cls">@Html(msgs(key))</h1>
-
-
-
-
-
+<span class="govuk-caption-l" @id.map(i=> { s"id =${i}"})>@msgs(key)</span>

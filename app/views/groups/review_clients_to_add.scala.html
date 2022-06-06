@@ -16,20 +16,19 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import views.html.helper.CSPNonce
 @import views.html.main_layout
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1, caption: caption, a: a,
-        table: table, submit_button: submit_button,
-        checkBox: checkBox
+    layout: main_layout,
+    p: p, h1: h1, a: a,
+    caption: caption,
+    link_as_button: link_as_button,
+    table: table,
+    submit_button: submit_button,
+    checkBox: checkBox
 )
 
-@(
-    clients: Seq[DisplayClient],
-    groupName: String
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(clients: Seq[DisplayClient], groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         clients.map(client =>
@@ -53,23 +52,22 @@
             @p("group.client.list.p1")
         </div>
 
-            <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
+        <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
 
-            @table(
-                id = Some("client-list-table"),
-                headings = Seq(
-                    Html(msgs("group.client.list.table.th1")),
-                    Html(msgs("group.client.list.table.th2")),
-                ),
-                rows = tableRows,
-            )
-            </div>
+        @table(
+            id = Some("client-list-table"),
+            headings = Seq(
+                Html(msgs("group.client.list.table.th1")),
+                Html(msgs("group.client.list.table.th2")),
+                Html(msgs("group.client.list.table.th3")),
+            ),
+            rows = tableRows,
+        )
+        </div>
 
-            <p class="govuk-!-margin-bottom-9">
-                @a("group.selected.clients.change", href = routes.GroupController.showAddClients.url)
-            </p>
+        <p class="govuk-!-margin-bottom-9">
+        @a("group.selected.clients.change", href = routes.GroupController.showAddClients.url)
+        </p>
 
-            @a(key = "button.continue", href = routes.GroupController.showAddTeamMembers.url, classes = Some("govuk-govuk--button"))
-
-
+        @link_as_button(href = routes.GroupController.showAddTeamMembers.url)
     }

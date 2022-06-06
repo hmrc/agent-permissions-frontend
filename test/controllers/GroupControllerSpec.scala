@@ -92,6 +92,8 @@ class GroupControllerSpec extends BaseSpec {
     }
   }
 
+  private val groupName = "XYZ"
+
   "POST /group/group-name" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
@@ -99,7 +101,7 @@ class GroupControllerSpec extends BaseSpec {
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> "My Group Name")
-        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withHeaders("Authorization" -> s"Bearer $groupName")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -115,7 +117,7 @@ class GroupControllerSpec extends BaseSpec {
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> "")
-        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withHeaders("Authorization" -> s"Bearer $groupName")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -136,7 +138,7 @@ class GroupControllerSpec extends BaseSpec {
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> RandomStringUtils.random(33))
-        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withHeaders("Authorization" -> s"Bearer $groupName")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -158,15 +160,15 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.showConfirmGroupName()(request)
 
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Confirm group name for XYZ - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Confirm group name for XYZ"
+      html.title() shouldBe "Confirm group name for " + groupName + " - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Confirm group name for " + groupName
       html.select(Css.form).attr("action") shouldBe "/agent-permissions/group/confirm-name"
       html.select(Css.legend).text() shouldBe "Is the access group name correct?"
       html.select("label[for=answer-yes]").text() shouldBe "Yes"
@@ -197,14 +199,14 @@ class GroupControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Confirm group name for XYZ - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Confirm group name for " + groupName + " - Manage Agent Permissions - GOV.UK"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Please select an option."
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Please select an option."
 
@@ -229,11 +231,11 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
-        .withFormUrlEncodedBody("name" -> "XYZ", "answer" -> "true")
+        .withFormUrlEncodedBody("name" -> groupName, "answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -245,11 +247,11 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
-        .withFormUrlEncodedBody("name" -> "XYZ", "answer" -> "false")
+        .withFormUrlEncodedBody("name" -> groupName, "answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -274,7 +276,7 @@ class GroupControllerSpec extends BaseSpec {
       stubGetClientListOk(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
       val result = controller.showAddClients()(request)
@@ -283,24 +285,24 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Add clients to XYZ - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Add clients to XYZ"
+      html.title() shouldBe s"Add clients to $groupName - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"Add clients to $groupName"
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "HMRC reference"
-      th.get(2).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client name"
+      th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs = html.select(Css.tableWithId("client-list-table")).select("tbody tr")
       trs.size() shouldBe 10
       //first row
-      trs.get(0).select("td").get(1).text() shouldBe "123456781"
-      trs.get(0).select("td").get(2).text() shouldBe "friendly1"
+      trs.get(0).select("td").get(1).text() shouldBe "friendly1"
+      trs.get(0).select("td").get(2).text() shouldBe "123456781"
       trs.get(0).select("td").get(3).text() shouldBe "HMRC-MTD-VAT"
 
       //last row
-      trs.get(9).select("td").get(1).text() shouldBe fakeClients.maxBy(_.friendlyName).enrolmentKey.split('~').last
-      trs.get(9).select("td").get(2).text() shouldBe fakeClients.maxBy(_.friendlyName).friendlyName
+      trs.get(9).select("td").get(1).text() shouldBe fakeClients.maxBy(_.friendlyName).friendlyName
+      trs.get(9).select("td").get(2).text() shouldBe fakeClients.maxBy(_.friendlyName).enrolmentKey.split('~').last
       trs.get(9).select("td").get(3).text() shouldBe fakeClients.maxBy(_.friendlyName).enrolmentKey.split('~').head
     }
 
@@ -310,7 +312,7 @@ class GroupControllerSpec extends BaseSpec {
       stubGetClientListOk(arn)(Seq.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
       val result = controller.showAddClients()(request)
@@ -319,12 +321,12 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Add clients to XYZ - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Add clients to XYZ"
+      html.title() shouldBe s"Add clients to $groupName - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"Add clients to $groupName"
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "HMRC reference"
-      th.get(2).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client name"
+      th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs = html.select(Css.tableWithId("client-list-table")).select("tbody tr")
       trs.size() shouldBe 0

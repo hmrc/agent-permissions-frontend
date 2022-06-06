@@ -41,8 +41,8 @@
         clients.fold(Seq.empty[Seq[Html]])( _.map( client =>
             Seq(
                 Html(checkBox(name = Some("clients[]"), value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)), checked = client.selected).toString),
-                Html(client.hmrcRef),
                 Html(client.name),
+                Html(client.hmrcRef),
                 Html(client.taxService),
             )
         )

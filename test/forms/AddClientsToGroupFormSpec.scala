@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 
 import java.util.Base64
 
-class AddClientsToGroupFormsSpec extends AnyWordSpec
+class AddClientsToGroupFormSpec extends AnyWordSpec
   with Matchers
   with GuiceOneAppPerSuite {
 

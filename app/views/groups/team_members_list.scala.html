@@ -16,49 +16,44 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import play.api.libs.json.Json
 @import views.html.helper.CSPNonce
 @import views.html.main_layout
-
 @import java.util.Base64
+@import play.api.libs.json.Json
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1,
-        caption: caption,
-        table: table,
-        submit_button: submit_button,
-        checkBox: checkBox,
-        formWithCSRF: FormWithCSRF
+    layout: main_layout,
+    p: p, h1: h1,
+    caption: caption,
+    table: table,
+    submit_button: submit_button,
+    checkBox: checkBox,
+    formWithCSRF: FormWithCSRF
 )
 
 @(
-    clients: Option[Seq[DisplayClient]] = None,
+    maybeTeamMembers: Option[Seq[TeamMember]] = None,
     groupName: String,
-    form: Form[List[DisplayClient]]
+    form: Form[List[TeamMember]]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
+        maybeTeamMembers.fold(Seq.empty[Seq[Html]])( _.map( member =>
             Seq(
-                Html(
-                    checkBox(
-                        name = Some("clients[]"),
-                        value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)),
-                        checked = client.selected
-                    ).toString
-                ),
-                Html(client.name),
-                Html(client.hmrcRef),
-                Html(client.taxService),
+                Html(checkBox(
+                    name = Some("members[]"),
+                    value = Some(Base64.getEncoder.encodeToString(Json.toJson[TeamMember](member).toString.getBytes)),
+                    checked = member.selected).toString),
+                Html(member.name),
+                Html(member.email),
             )
         )
         )
-    }
+        }
 
 
     @layout(
-        title = msgs("group.client.list.h1", groupName),
+        title = msgs("group.members.list.h1", groupName),
         backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
         formErrors = form.errors,
         fullWidth = true,
@@ -66,21 +61,20 @@
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs("group.client.list.h1", groupName))
-            @p("group.client.list.p1")
+            @h1(msgs("group.members.list.h1",groupName))
+            @p("group.members.list.p1")
         </div>
 
-        @formWithCSRF(action = routes.GroupController.submitAddClients) {
+        @formWithCSRF(action = routes.GroupController.submitAddTeamMembers) {
 
             <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
 
             @table(
                 id = Some("client-list-table"),
                 headings = Seq(
-                    Html(checkBox(id = Some("select-all"), value = Some("all")).toString),
-                    Html(msgs("group.client.list.table.th1")),
-                    Html(msgs("group.client.list.table.th2")),
-                    Html(msgs("group.client.list.table.th3")),
+                    Html(checkBox(id = Some("select-all"), value=Some("all")).toString),
+                    Html(msgs("group.members.list.table.th1")),
+                    Html(msgs("group.members.list.table.th2")),
                 ),
                 rows = tableRows,
             )

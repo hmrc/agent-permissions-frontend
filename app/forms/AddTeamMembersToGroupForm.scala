@@ -16,7 +16,7 @@
 
 package forms
 
-import models.DisplayClient
+import models.{DisplayClient, TeamMember}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json.{parse, toJson}
@@ -24,15 +24,15 @@ import play.api.libs.json.Json.{parse, toJson}
 import java.util.Base64.{getDecoder, getEncoder}
 
 
-object AddClientsToGroupForm {
+object AddTeamMembersToGroupForm {
 
-  def form(): Form[List[DisplayClient]] = {
+  def form(): Form[List[TeamMember]] = {
     Form(
       single(
-        "clients" -> list(text)
-          .transform[List[DisplayClient]](
-          _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient]),
-          _.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes))
+        "members" -> list(text)
+          .transform[List[TeamMember]](
+          _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember]),
+          _.map(dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes))
         )
           .verifying("error.client.list.empty", _.nonEmpty)
       )

@@ -53,7 +53,7 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
       )
       )
 
-      connector.getClientList(arn).futureValue shouldBe Some(
+      connector.getClients(arn).futureValue shouldBe Some(
         Seq(
         Client(
           enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
@@ -64,7 +64,7 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
 
       mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED,""))
 
-      connector.getClientList(arn).futureValue shouldBe None
+      connector.getClients(arn).futureValue shouldBe None
     }
 
     "throw error when status reponse is 5xx" in {
@@ -72,7 +72,7 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
       mockHttpGet[HttpResponse](HttpResponse.apply(503,""))
 
       intercept[UpstreamErrorResponse]{
-        await(connector.getClientList(arn))
+        await(connector.getClients(arn))
       }
     }
   }

@@ -21,7 +21,7 @@
 @this(govukTable: GovukTable)
 
 @(
-    headings: Seq[Html] = Seq.empty,
+    headings: Seq[(Html, Map[String, String])] = Seq.empty,
     rows: Seq[Seq[Html]],
     caption: Option[String] = None,
     captionClasses: String = "govuk-table__caption--m",
@@ -40,7 +40,7 @@
         caption = if(caption.isDefined) Some(msgs(caption.get)) else None,
         captionClasses = captionClasses,
         firstCellIsHeader = firstCellIsHeader,
-        head = Some(headings.map( heading => TH(content = HtmlContent(heading) ))),
+        head = Some(headings.map( heading => TH(content = HtmlContent(heading._1), attributes = heading._2))),
         rows = rows.map( row => row.map( cell => TD(content = HtmlContent(cell)))),
         attributes = attributes
     )

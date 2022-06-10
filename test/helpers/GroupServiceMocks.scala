@@ -29,7 +29,7 @@ trait GroupServiceMocks extends MockFactory{
   def stubGetTeamMembers(arn: Arn)(teamMembers: Seq[TeamMember])(implicit groupService: GroupService): Unit =
     (groupService.getTeamMembers(_: Arn)(_:Option[Seq[TeamMember]] )(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful (Some(teamMembers)))
+      .returning(Future successful Some(teamMembers))
 
   def stubGetClients(arn: Arn)(clients: Seq[DisplayClient])(implicit groupService: GroupService): Unit =
     (groupService.getClients(_: Arn)(_:Option[Seq[DisplayClient]] )(_: HeaderCarrier, _: ExecutionContext))

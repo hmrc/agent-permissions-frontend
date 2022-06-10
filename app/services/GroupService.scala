@@ -28,7 +28,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDetailsConnector) {
 
-  def getClients(arn: Arn)(maybeSelectedClients: Option[Seq[DisplayClient]] = None)
+  def getClients(arn: Arn)
+                (maybeSelectedClients: Option[Seq[DisplayClient]] = None)
                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     for {
     es3Clients                    <- agentUserClientDetailsConnector.getClients(arn)
@@ -43,8 +44,11 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
 
     val selectedOnes = maybeTeamMembers.getOrElse(Seq.empty)
     val members = (1 to 30)
-      .map(i => TeamMember(s"Name $i", s"bob$i@accounting.com",
-        !selectedOnes.filter(_.name.equals(s"Name $i")).isEmpty))
+      .map(i => TeamMember(
+        s"Name $i",
+        s"bob$i@accounting.com",
+        !selectedOnes.filter(_.name.equals(s"Name $i")).isEmpty)
+      )
     Future.successful(Some(members))
   }
 }

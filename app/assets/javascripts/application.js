@@ -10,6 +10,9 @@ $(document).ready(function() {
     var table = document.getElementById('client-list-table');
     new SortableTable(table)
 
+    // removes element only visible without js
+    var span = document.getElementById('no-js');
+    span.remove();
 
 //    // Accessible autocomplete for a select component with the id="client-auto-complete"
 //    var selectEl = document.querySelector('#client-auto-complete')

@@ -56,6 +56,7 @@ group.client.list.p1=Select clients for this access group by ticking the boxes. 
 group.client.list.filter.label=Find a client
 group.client.list.filter.hint=You can search by name, tax service or HMRC reference number
 group.client.list.filter.button=Search
+group.client.list.table.checkbox=Checkboxes
 group.client.list.table.th1=Client name
 group.client.list.table.th2=Tax reference
 group.client.list.table.th3=Tax service

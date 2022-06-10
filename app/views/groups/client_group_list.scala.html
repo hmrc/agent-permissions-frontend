@@ -72,7 +72,7 @@
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
                     (
-                        Html(span(key="").toString),
+                        Html(span("id" -> "no-js", classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox").toString),
                         Map("id" -> "select-all")
                     ),
                     (

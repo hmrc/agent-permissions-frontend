@@ -34,3 +34,4 @@ POST       /group/add-clients               controllers.GroupController.submitAd
 GET        /group/add-clients/review        controllers.GroupController.showReviewClientsToAdd
 
 GET        /group/add-team-members          controllers.GroupController.showAddTeamMembers
+POST       /group/add-team-members          controllers.GroupController.submitAddTeamMembers

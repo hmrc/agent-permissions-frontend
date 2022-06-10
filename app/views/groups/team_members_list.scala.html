@@ -1,0 +1,95 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.html.helper.CSPNonce
+@import views.html.main_layout
+@import java.util.Base64
+@import play.api.libs.json.Json
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1,
+    caption: caption,
+    table: table,
+    submit_button: submit_button,
+    checkBox: checkBox,
+    formWithCSRF: FormWithCSRF
+)
+
+@(
+    maybeTeamMembers: Option[Seq[TeamMember]] = None,
+    groupName: String,
+    form: Form[List[TeamMember]]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+    @tableRows = @{
+        maybeTeamMembers.fold(Seq.empty[Seq[Html]])( _.map( member =>
+            Seq(
+                Html(checkBox(
+                    name = Some("members[]"),
+                    value = Some(Base64.getEncoder.encodeToString(Json.toJson[TeamMember](member).toString.getBytes)),
+                    checked = member.selected).toString),
+                Html(member.name),
+                Html(member.email),
+            )
+        )
+        )
+        }
+
+
+    @layout(
+        title = msgs("group.members.list.h1", groupName),
+        backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
+        formErrors = form.errors,
+        fullWidth = true,
+    ) {
+
+        <div class="govuk-!-width-two-thirds">
+            @caption(msgs("common.caption.group.name", groupName))
+            @h1(msgs("group.members.list.h1",groupName))
+            @p("group.members.list.p1")
+        </div>
+
+        @formWithCSRF(action = routes.GroupController.submitAddTeamMembers) {
+
+            <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
+
+            @table(
+                id = Some("client-list-table"),
+                headings = Seq(
+                    Html(checkBox(id = Some("select-all"), value=Some("all")).toString),
+                    Html(msgs("group.members.list.table.th1")),
+                    Html(msgs("group.members.list.table.th2")),
+                ),
+                rows = tableRows,
+            )
+            </div>
+            @submit_button("save.and.continue.button")
+        }
+    }
+
+    <script @{
+        CSPNonce.attr
+    } >
+document.getElementById('select-all').onclick = function () {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    for (const box of checkboxes) {
+        box.checked = this.checked;
+    }
+}
+</script>

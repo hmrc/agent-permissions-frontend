@@ -17,7 +17,7 @@
 package services
 
 import connectors.AgentUserClientDetailsConnector
-import models.DisplayClient
+import models.{DisplayClient, TeamMember}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -26,16 +26,29 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 @Singleton
-class ClientListService @Inject()(agentUserClientDetailsConnector: AgentUserClientDetailsConnector) {
+class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDetailsConnector) {
 
-  def getClientList(arn: Arn)(maybeSelectedClients: Option[Seq[DisplayClient]] = None)
-                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
+  def getClients(arn: Arn)
+                (maybeSelectedClients: Option[Seq[DisplayClient]] = None)
+                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     for {
-    es3Clients                    <- agentUserClientDetailsConnector.getClientList(arn)
+    es3Clients                    <- agentUserClientDetailsConnector.getClients(arn)
     es3AsDisplayClients            = es3Clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))
     es3WithoutPreSelected          = es3AsDisplayClients.map(_.filterNot(dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef))))
     mergedWithPreselected          = es3WithoutPreSelected.map( _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
     sorted                         = mergedWithPreselected.map(_.sortBy(_.name))
     } yield sorted
+  }
+
+  def getTeamMembers(arn: Arn)(maybeTeamMembers: Option[Seq[TeamMember]] = None)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
+
+    val selectedOnes = maybeTeamMembers.getOrElse(Seq.empty)
+    val members = (1 to 30)
+      .map(i => TeamMember(
+        s"Name $i",
+        s"bob$i@accounting.com",
+        !selectedOnes.filter(_.name.equals(s"Name $i")).isEmpty)
+      )
+    Future.successful(Some(members))
   }
 }

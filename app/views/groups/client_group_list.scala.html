@@ -16,10 +16,11 @@
 
 @import config.AppConfig
 @import controllers.routes
+@import play.api.libs.json.Json
 @import views.html.helper.CSPNonce
 @import views.html.main_layout
+
 @import java.util.Base64
-@import play.api.libs.json.Json
 
 @this(
         layout: main_layout,
@@ -38,16 +39,22 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        clients.fold(Seq.empty[Seq[Html]])( _.map( client =>
+        clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
             Seq(
-                Html(checkBox(name = Some("clients[]"), value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)), checked = client.selected).toString),
+                Html(
+                    checkBox(
+                        name = Some("clients[]"),
+                        value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)),
+                        checked = client.selected
+                    ).toString
+                ),
                 Html(client.name),
                 Html(client.hmrcRef),
                 Html(client.taxService),
             )
         )
         )
-        }
+    }
 
 
     @layout(
@@ -59,7 +66,7 @@
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs("group.client.list.h1",groupName))
+            @h1(msgs("group.client.list.h1", groupName))
             @p("group.client.list.p1")
         </div>
 
@@ -90,7 +97,7 @@
                 rows = tableRows,
             )
             </div>
-            @submit_button("group.client.list.submit.button")
+            @submit_button("save.and.continue.button")
         }
     }
 

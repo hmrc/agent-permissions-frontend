@@ -43,6 +43,7 @@ abstract class BaseSpec extends AnyWordSpec
   with GuiceOneAppPerSuite
   with AuthMocks
   with ScalaFutures
+  with GroupServiceMocks
   with AgentPermissionsConnectorMocks
   with HttpClientMocks
   with CleanMongoCollectionSupport

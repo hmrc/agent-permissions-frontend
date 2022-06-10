@@ -4,15 +4,17 @@ service.text = Manage Agent Permissions
 generic.title={0} - {1} - GOV.UK
 error-prefix=Error:
 common.errorSummary.heading=There is a problem
-continue=Continue
 
 common.yes.label=Yes
 common.no.label=No
 common.caption.group.name={0} access group
+continue=Continue
 
 continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
+filter.apply=Apply filters
+filter.clear=Clear filters
 
 opt-in-info.h1=Opting in to use access groups
 opt-in-info.inset=By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login
@@ -51,20 +53,6 @@ you-have-opted-out.p1=You will need to log out and log back in to see this chang
 you-have-opted-out.p2=Your account will show that you have chosen to opt out of using access groups. If you wish to opt in to use this feature again you can do so from your agent services manage account page.
 you-have-opted-out.button=Return to manage account
 
-group.client.list.h1=Add clients to {0}
-group.client.list.p1=Select clients for this access group by ticking the boxes. You can also use the select all box or search. Then select the "Add clients" button.
-group.client.list.filter.label=Find a client
-group.client.list.filter.hint=You can search by name, tax service or HMRC reference number
-group.client.list.filter.button=Search
-group.client.list.table.checkbox=Checkboxes
-group.client.list.table.th1=Client name
-group.client.list.table.th2=Tax reference
-group.client.list.table.th3=Tax service
-group.client.list.submit.button=Add clients
-error.client.list.empty=You must add at least one client 
-
-group.client.review.h1=You have added {0} clients to {1}
-
 group.create.h1=Create an access group
 group.create.name.label=What do you want to call this access group?
 group.name.max.length=Access group name must be 38 characters or fewer
@@ -75,4 +63,26 @@ group.confirm.h1=Confirm group name for {0}
 group.confirm.name.label=Is the access group name correct?
 group.name.confirm.required.error=Select yes if the access group name is correct
 
+group.client.list.h1=Select clients
+group.client.list.p1=Select clients for this access group by ticking the boxes. You can also use the select all box or search. Then select the "Add clients" button.
+group.client.list.filter.label=Find a client
+group.client.list.filter.hint=You can search by name, tax service or HMRC reference number
+
+group.client.list.table.checkbox=Checkboxes
+group.client.list.table.th1=Client name
+group.client.list.table.th2=Tax reference
+group.client.list.table.th3=Tax service
+error.client.list.empty=You must add at least one client 
+
+group.client.review.h1=You have selected {0} clients
 group.selected.clients.change=Change selected clients
+
+group.members.list.h1=Select team members
+group.members.list.p1=Select team members for this access group by ticking the boxes. You can also use the select all box or filter by name or email address.
+group.members.list.filter.label=Filter by name or email
+group.members.list.table.th1=Name
+group.members.list.table.th2=Email
+error.members.list.empty=You must add at least one team member 
+
+
+

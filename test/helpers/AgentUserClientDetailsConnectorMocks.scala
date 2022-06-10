@@ -25,18 +25,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentUserClientDetailsConnectorMocks extends MockFactory{
 
-  def stubGetClientListOk(arn: Arn)(clientList: Seq[Client])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
-    (agentUserClientDetailsConnector.getClientList(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubGetClientsOk(arn: Arn)(clientList: Seq[Client])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector.getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful (Some(clientList)))
 
-  def stubGetClientListAccepted(arn: Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
-    (agentUserClientDetailsConnector.getClientList(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubGetClientsAccepted(arn: Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector.getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful None)
 
-  def stubGetClientListError(arn: Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
-    (agentUserClientDetailsConnector.getClientList(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubGetClientsError(arn: Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector.getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 }

@@ -33,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   val http: HttpClient
 
-  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]]
+  def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]]
 
 }
 
@@ -44,7 +44,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(implic
 
   private val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
-  def getClientList(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]] = {
+  def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"
     monitor("ConsumedAPI-getClientList-GET") {
       http.GET[HttpResponse](url).map{

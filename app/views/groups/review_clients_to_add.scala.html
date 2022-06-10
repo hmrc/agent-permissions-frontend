@@ -57,9 +57,18 @@
         @table(
             id = Some("client-list-table"),
             headings = Seq(
-                Html(msgs("group.client.list.table.th1")),
-                Html(msgs("group.client.list.table.th2")),
-                Html(msgs("group.client.list.table.th3")),
+                (
+                    Html(msgs("group.client.list.table.th1")),
+                    Map("aria-sort" -> "ascending")
+                ),
+                (
+                    Html(msgs("group.client.list.table.th2")),
+                    Map("aria-sort" -> "none")
+                ),
+                (
+                    Html(msgs("group.client.list.table.th3")),
+                    Map("aria-sort" -> "none")
+                ),
             ),
             rows = tableRows,
         )

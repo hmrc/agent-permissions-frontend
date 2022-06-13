@@ -16,14 +16,13 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import views.html.helper.CSPNonce
 @import views.html.main_layout
 @import java.util.Base64
 @import play.api.libs.json.Json
 
 @this(
     layout: main_layout,
-    p: p, h1: h1,
+    p: p, h1: h1, span: span,
     caption: caption,
     table: table,
     submit_button: submit_button,
@@ -71,11 +70,20 @@
 
             @table(
                 id = Some("client-list-table"),
+                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
-                    Html(checkBox(id = Some("select-all"), value=Some("all")).toString),
-                    Html(msgs("group.members.list.table.th1")),
-                    Html(msgs("group.members.list.table.th2")),
+                (
+                    Html(span(id=Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox").toString),
+                    Map("id" -> "select-all")
                 ),
+                (
+                    Html(msgs("group.members.list.table.th1")),
+                    Map("aria-sort" -> "ascending")
+                ),
+                (
+                    Html(msgs("group.members.list.table.th2")),
+                    Map("aria-sort" -> "none")
+                )),
                 rows = tableRows,
             )
             </div>
@@ -83,13 +91,3 @@
         }
     }
 
-    <script @{
-        CSPNonce.attr
-    } >
-document.getElementById('select-all').onclick = function () {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    for (const box of checkboxes) {
-        box.checked = this.checked;
-    }
-}
-</script>

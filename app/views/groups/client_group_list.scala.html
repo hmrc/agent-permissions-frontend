@@ -17,7 +17,6 @@
 @import config.AppConfig
 @import controllers.routes
 @import play.api.libs.json.Json
-@import views.html.helper.CSPNonce
 @import views.html.main_layout
 
 @import java.util.Base64
@@ -79,7 +78,7 @@
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
                     (
-                        Html(span("id" -> "no-js", classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox").toString),
+                        Html(span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox").toString),
                         Map("id" -> "select-all")
                     ),
                     (

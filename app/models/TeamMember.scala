@@ -17,9 +17,23 @@
 package models
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.agentmtdidentifiers.model.UserDetails
 
-case class TeamMember(name: String, email: String, selected: Boolean = false)
+case class TeamMember(name: String,
+                      email: String,
+                      userId: Option[String] = None,
+                      credentialRole: Option[String] = None,
+                      selected: Boolean = false)
 
 case object TeamMember{
   implicit val format = Json.format[TeamMember]
+
+  def fromUserDetails(user: UserDetails): TeamMember ={
+    TeamMember(
+      name = user.name.getOrElse(""),
+      email = user.email.getOrElse(""),
+      userId = user.userId,
+      credentialRole =  user.credentialRole
+    )
+  }
 }

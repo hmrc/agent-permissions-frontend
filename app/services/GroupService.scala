@@ -32,23 +32,29 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
                 (maybeSelectedClients: Option[Seq[DisplayClient]] = None)
                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     for {
-    es3Clients                    <- agentUserClientDetailsConnector.getClients(arn)
-    es3AsDisplayClients            = es3Clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))
-    es3WithoutPreSelected          = es3AsDisplayClients.map(_.filterNot(dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef))))
-    mergedWithPreselected          = es3WithoutPreSelected.map( _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
-    sorted                         = mergedWithPreselected.map(_.sortBy(_.name))
+      es3Clients <- agentUserClientDetailsConnector.getClients(arn)
+      es3AsDisplayClients = es3Clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))
+      es3WithoutPreSelected = es3AsDisplayClients.map(_.filterNot(dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef))))
+      mergedWithPreselected = es3WithoutPreSelected.map(_.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
+      sorted = mergedWithPreselected.map(_.sortBy(_.name))
     } yield sorted
   }
 
-  def getTeamMembers(arn: Arn)(maybeTeamMembers: Option[Seq[TeamMember]] = None)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
-
-    val selectedOnes = maybeTeamMembers.getOrElse(Seq.empty)
-    val members = (1 to 30)
-      .map(i => TeamMember(
-        s"Name $i",
-        s"bob$i@accounting.com",
-        !selectedOnes.filter(_.name.equals(s"Name $i")).isEmpty)
+  def getTeamMembers(arn: Arn)
+                    (maybeTeamMembers: Option[Seq[TeamMember]] = None)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
+    for {
+      es3Users <- agentUserClientDetailsConnector.getTeamMembers(arn)
+      es3AsTeamMembers = es3Users.map(list => list.map(TeamMember.fromUserDetails(_)))
+      es3WithoutPreSelected = es3AsTeamMembers.map(teamMembers =>
+        teamMembers.filterNot(teamMember =>
+          maybeTeamMembers.fold(false)(_.map(_.userId).contains(teamMember.userId))
+        )
       )
-    Future.successful(Some(members))
+      mergedWithPreselected = es3WithoutPreSelected
+                                .map(_.toList ::: maybeTeamMembers.getOrElse(List.empty).toList)
+                                .map(_.sortBy(_.name))
+    } yield mergedWithPreselected
+
   }
 }

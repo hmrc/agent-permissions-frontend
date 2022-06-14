@@ -32,8 +32,8 @@ class AddTeamMembersToGroupFormSpec extends AnyWordSpec
 
   "AddTeamMembersToGroup form binding" should {
 
-    val member1 = TeamMember("Bob", "bob@builds.com", true)
-    val member2 = TeamMember("Steve", "steve@abc.com", false)
+    val member1 = TeamMember("Bob", "bob@builds.com", None, None,true)
+    val member2 = TeamMember("Steve", "steve@abc.com", None, None, false)
 
     val encode: TeamMember => String = teamMember => Base64.getEncoder.encodeToString(Json.toJson(teamMember).toString.getBytes)
 

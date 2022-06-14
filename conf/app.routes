@@ -35,3 +35,7 @@ GET        /group/add-clients/review        controllers.GroupController.showRevi
 
 GET        /group/add-team-members          controllers.GroupController.showAddTeamMembers
 POST       /group/add-team-members          controllers.GroupController.submitAddTeamMembers
+
+GET        /group/add-team-members/review   controllers.GroupController.showReviewTeamMembersToAdd
+
+GET        /group/check-your-answers        controllers.GroupController.checkYourAnswers

@@ -84,5 +84,7 @@ group.members.list.table.th1=Name
 group.members.list.table.th2=Email
 error.members.list.empty=You must add at least one team member 
 
+group.teamMembers.review.h1=You have selected {0} clients
+group.selected.teamMembers.change=Change selected team members
 
 

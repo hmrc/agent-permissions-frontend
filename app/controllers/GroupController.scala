@@ -20,6 +20,7 @@ import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, CreateGroupForm, YesNoForm}
 import models.{DisplayClient, TeamMember}
+import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
@@ -29,6 +30,7 @@ import views.html.groups._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 @Singleton
 class GroupController @Inject()
@@ -48,7 +50,7 @@ class GroupController @Inject()
 )(
   implicit val appConfig: AppConfig, ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with SessionBehaviour {
+) extends FrontendController(mcc) with I18nSupport with SessionBehaviour with Logging {
 
   import authAction._
 
@@ -196,7 +198,12 @@ class GroupController @Inject()
                   },
                   (teamMembersToAdd: Seq[TeamMember]) =>
                     sessionCacheService
-                      .saveSelectedTeamMembers(teamMembersToAdd)(routes.GroupController.showReviewTeamMembersToAdd)
+                      .saveSelectedTeamMembers(teamMembersToAdd).transformWith {
+                        case Success(_)  => Redirect(routes.GroupController.showReviewTeamMembersToAdd).toFuture
+                        case Failure(ex) =>
+                          logger.warn(s"Unable to save team members in session ${ex.getMessage}")
+                          throw ex
+                    }
                 )
             }
           }
@@ -209,10 +216,10 @@ class GroupController @Inject()
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
-          maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture)( groupName =>
+          maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture)(groupName =>
             maybeTeamMembers.fold(
               Redirect(routes.GroupController.showAddTeamMembers).toFuture)
-            ( teamMembers =>
+            (teamMembers =>
               Ok(review_team_members_to_add(teamMembers, groupName)).toFuture
             )
           )

@@ -72,7 +72,7 @@ group.client.list.table.checkbox=Checkboxes
 group.client.list.table.th1=Client name
 group.client.list.table.th2=Tax reference
 group.client.list.table.th3=Tax service
-error.client.list.empty=You must add at least one client 
+error.client.list.empty=You must select at least one client 
 
 group.client.review.h1=You have selected {0} clients
 group.selected.clients.change=Change selected clients
@@ -82,9 +82,9 @@ group.members.list.p1=Select team members for this access group by ticking the b
 group.members.list.filter.label=Filter by name or email
 group.members.list.table.th1=Name
 group.members.list.table.th2=Email
-error.members.list.empty=You must add at least one team member 
+error.members.list.empty=You must select at least one team member 
 
-group.teamMembers.review.h1=You have selected {0} clients
+group.teamMembers.review.h1=You have selected {0} team members
 group.selected.teamMembers.change=Change selected team members
 
 

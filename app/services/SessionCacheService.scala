@@ -43,20 +43,24 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
     } yield Redirect(call)
   }
 
-  def saveSelectedGroupClientsAndRedirect(clients: Seq[DisplayClient])(call: Call)(implicit request: Request[_], hc: HeaderCarrier,
-                                                                                   ec: ExecutionContext) = {
+  def saveSelectedGroupClientsAndRedirect(clients: Seq[DisplayClient])
+                                         (call: Call)
+                                         (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
     for {
-      _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED, clients.map(dc => dc.copy(selected = true)))
+      _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](
+        GROUP_CLIENTS_SELECTED,
+        clients.map(dc => dc.copy(selected = true))
+      )
     } yield Redirect(call)
   }
 
-  def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])(call: Call)
+  def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])
                              (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-    for {
-      _ <- sessionCacheRepository.putSession[Seq[TeamMember]](
+
+    sessionCacheRepository.putSession[Seq[TeamMember]](
         GROUP_TEAM_MEMBERS_SELECTED,
         teamMembers.map(member => member.copy(selected = true))
-      )
-    } yield Redirect(call)
+    )
+
   }
 }

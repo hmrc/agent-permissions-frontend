@@ -34,7 +34,7 @@ object AddTeamMembersToGroupForm {
           _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember]),
           _.map(dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes))
         )
-          .verifying("error.client.list.empty", _.nonEmpty)
+          .verifying("error.members.list.empty", _.nonEmpty)
       )
     )
   }

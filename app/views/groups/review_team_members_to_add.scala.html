@@ -28,27 +28,26 @@
     checkBox: checkBox
 )
 
-@(clients: Seq[DisplayClient], groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(teamMembers: Seq[TeamMember], groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        clients.map(client =>
+        teamMembers.map(teamMember =>
             Seq(
-                Html(client.name),
-                Html(client.hmrcRef),
-                Html(client.taxService)
+                Html(teamMember.name),
+                Html(teamMember.email),
             )
         )
     }
 
     @layout(
-        title = msgs(msgs("group.client.list.h1", groupName, msgs("service.name"))),
-        backLinkHref = Some(routes.GroupController.showAddClients.url),
+        title = msgs(msgs("group.members.list.h1", groupName, msgs("service.name"))),
+        backLinkHref = Some(routes.GroupController.showAddTeamMembers.url),
         fullWidth = true
     ) {
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs("group.client.review.h1", clients.size))
+            @h1(msgs("group.teamMembers.review.h1", teamMembers.size))
         </div>
 
         <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
@@ -57,15 +56,11 @@
             id = Some("client-list-table"),
             headings = Seq(
                 (
-                    Html(msgs("group.client.list.table.th1")),
+                    Html(msgs("group.members.list.table.th1")),
                     Map("aria-sort" -> "ascending")
                 ),
                 (
-                    Html(msgs("group.client.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.client.list.table.th3")),
+                    Html(msgs("group.members.list.table.th2")),
                     Map("aria-sort" -> "none")
                 ),
             ),
@@ -74,13 +69,15 @@
         </div>
 
         <p class="govuk-!-margin-bottom-9">
-        @a("group.selected.clients.change",
-            href = routes.GroupController.showAddClients.url,
-            id = Some("change-selected-clients")
+        @a("group.selected.teamMembers.change",
+            href = routes.GroupController.showAddTeamMembers.url,
+            id = Some("change-selected-team-members")
         )
         </p>
 
         @link_as_button(
-            href = routes.GroupController.showAddTeamMembers.url,
-            id = "add-team-members")
+            href = routes.GroupController.checkYourAnswers.url,
+            id = "check-your-answers")
+
+   
     }

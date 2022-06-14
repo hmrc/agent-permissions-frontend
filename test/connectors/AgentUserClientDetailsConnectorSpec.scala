@@ -21,7 +21,7 @@ import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.http.Status.{ACCEPTED, OK}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks with AgentUserClientDetailsConnectorMocks {
@@ -67,12 +67,55 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
       connector.getClients(arn).futureValue shouldBe None
     }
 
-    "throw error when status reponse is 5xx" in {
+    "throw error when status response is 5xx" in {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(503,""))
 
       intercept[UpstreamErrorResponse]{
         await(connector.getClients(arn))
+      }
+    }
+  }
+
+  "getTeamMembers" should {
+    "return a Some[Seq[UserDetails]] when status response is OK" in {
+      mockHttpGet[HttpResponse](HttpResponse.apply(OK,
+        """[
+          |{
+          |"userId": "uid",
+          |"credentialRole": "cred-role",
+          |"name": "name",
+          |"email": "x@y.com"
+          |}
+          |]""".stripMargin
+      )
+      )
+
+      connector.getTeamMembers(arn).futureValue shouldBe Some(
+        Seq(
+          UserDetails(
+            userId = Some("uid"),
+            credentialRole = Some("cred-role"),
+            name = Some("name"),
+            email =Some("x@y.com")
+          )
+        )
+      )
+    }
+
+    "return None when status response is Accepted" in {
+
+      mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED,""))
+
+      connector.getTeamMembers(arn).futureValue shouldBe None
+    }
+
+    "throw error when status response is 5xx" in {
+
+      mockHttpGet[HttpResponse](HttpResponse.apply(503,""))
+
+      intercept[UpstreamErrorResponse]{
+        await(connector.getTeamMembers(arn))
       }
     }
   }

@@ -19,6 +19,7 @@ package services
 import com.google.inject.AbstractModule
 import controllers._
 import helpers.BaseSpec
+import models.TeamMember
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers.{await, defaultAwaitTimeout, redirectLocation}
@@ -86,6 +87,25 @@ class SessionCacheServiceSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       savedSession.get shouldBe true
       redirectLocation(result).get shouldBe routes.OptInController.start.url
+    }
+  }
+
+
+  "saveSelectedTeamMembers" should {
+    "puts Selected Team members in SessionCache Repo" in {
+      //given
+      val teamMembers: Seq[TeamMember] = (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
+
+      //when
+      await(service.saveSelectedTeamMembers(teamMembers))
+
+      //then
+      val maybeMembers = await(sessionCacheRepo.getFromSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED))
+
+      maybeMembers.isDefined shouldBe true
+      maybeMembers.get(0) shouldBe TeamMember("name1", "x1@xyz.com", None, None, true)
+      maybeMembers.get(1) shouldBe TeamMember("name2", "x2@xyz.com", None, None, true)
+      maybeMembers.get(2) shouldBe TeamMember("name3", "x3@xyz.com", None, None, true)
     }
   }
 

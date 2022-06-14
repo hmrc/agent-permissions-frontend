@@ -16,8 +16,8 @@
 
 package services
 
-import controllers.{GROUP_CLIENTS_SELECTED, GROUP_NAME, GROUP_NAME_CONFIRMED}
-import models.DisplayClient
+import controllers.{GROUP_CLIENTS_SELECTED, GROUP_NAME, GROUP_NAME_CONFIRMED, GROUP_TEAM_MEMBERS_SELECTED}
+import models.{DisplayClient, TeamMember}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request}
 import repository.SessionCacheRepository
@@ -34,7 +34,7 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
     for {
       _ <- sessionCacheRepository.putSession[String](GROUP_NAME, name)
       _ <- sessionCacheRepository.putSession[Boolean](GROUP_NAME_CONFIRMED, false)
-    }yield Redirect(call)
+    } yield Redirect(call)
   }
 
   def confirmGroupNameAndRedirect(call: Call)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
@@ -43,11 +43,24 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
     } yield Redirect(call)
   }
 
-  def saveSelectedGroupClientsAndRedirect(clients: Seq[DisplayClient])(call: Call)(implicit request: Request[_], hc: HeaderCarrier,
-                                                                                   ec: ExecutionContext) = {
+  def saveSelectedGroupClientsAndRedirect(clients: Seq[DisplayClient])
+                                         (call: Call)
+                                         (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
     for {
-      _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED, clients.map(dc => dc.copy(selected = true)))
+      _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](
+        GROUP_CLIENTS_SELECTED,
+        clients.map(dc => dc.copy(selected = true))
+      )
     } yield Redirect(call)
   }
 
+  def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])
+                             (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+
+    sessionCacheRepository.putSession[Seq[TeamMember]](
+        GROUP_TEAM_MEMBERS_SELECTED,
+        teamMembers.map(member => member.copy(selected = true))
+    )
+
+  }
 }

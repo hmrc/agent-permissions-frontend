@@ -402,7 +402,7 @@ class GroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
-      html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must add at least one client"
+      html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must select at least one client"
     }
   }
 
@@ -454,6 +454,7 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(9).select("td").get(2).text() shouldBe "tax service 10"
 
       html.select("a#change-selected-clients").attr("href") shouldBe routes.GroupController.showAddClients.url
+      html.select("a#add-team-members").text() shouldBe "Continue"
       html.select("a#add-team-members").attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
       html.select("a#add-team-members").hasClass("govuk-button")
     }
@@ -536,6 +537,132 @@ class GroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+    }
+  }
+
+  s"POST to ${routes.GroupController.submitAddTeamMembers.url}" should {
+
+    s"save selected clients to session and redirect to ${routes.GroupController.showReviewClientsToAdd.url}" in {
+      val selectedTeamMembers = (1 to 5)
+        .map(i => {
+          TeamMember(
+            s"team member $i",
+            s"x$i@xyz.com",
+            Some(s"1234 $i"),
+            None,
+            true
+          )
+        })
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubGetTeamMembers(arn)(selectedTeamMembers)
+      val encodedTeamMembers = selectedTeamMembers.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+
+      implicit val request = FakeRequest("POST", routes.GroupController.submitAddTeamMembers.url)
+        .withFormUrlEncodedBody(
+          "members[]" -> encodedTeamMembers.head,
+          "members[]" -> encodedTeamMembers.last
+        )
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+
+      val result = controller.submitAddTeamMembers()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showReviewTeamMembersToAdd.url
+      val maybeTeamMembers = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
+      maybeTeamMembers.get.toList shouldBe List(
+        selectedTeamMembers.head.copy(selected = true),
+        selectedTeamMembers.last.copy(selected = true))
+    }
+
+    "show an error when POSTED without team members" in {
+
+      val selectedTeamMembers = (1 to 5)
+        .map(i => {
+          TeamMember(
+            s"team member $i",
+            s"x$i@xyz.com",
+            Some(s"1234 $i"),
+            None,
+            true
+          )
+        })
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      stubGetTeamMembers(arn)(selectedTeamMembers)
+
+      implicit val request = FakeRequest("POST", routes.GroupController.submitAddTeamMembers.url)
+        .withFormUrlEncodedBody()
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+
+
+      val result = controller.submitAddTeamMembers()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select team members"
+      html.select(Css.errorSummaryForField("members")).text() shouldBe "You must select at least one team member"
+    }
+  }
+
+  s"GET ${routes.GroupController.showReviewTeamMembersToAdd.url}" should {
+
+    "render with selected team members" in {
+
+      val selectedTeamMembers = (1 to 5)
+        .map(i => {
+          TeamMember(
+            s"team member $i",
+            s"x$i@xyz.com",
+            Some(s"1234 $i"),
+            None,
+            true
+          )
+        })
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
+
+      val result = controller.showReviewTeamMembersToAdd()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Select team members - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"You have selected 5 team members"
+
+      val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
+      th.size() shouldBe 2
+      th.get(0).text() shouldBe "Name"
+      th.get(1).text() shouldBe "Email"
+      val trs = html.select(Css.tableWithId("client-list-table")).select("tbody tr")
+      trs.size() shouldBe 5
+      //first row
+      trs.get(0).select("td").get(0).text() shouldBe "team member 1"
+      trs.get(0).select("td").get(1).text() shouldBe "x1@xyz.com"
+
+      //last row
+      trs.get(4).select("td").get(0).text() shouldBe "team member 5"
+      trs.get(4).select("td").get(1).text() shouldBe "x5@xyz.com"
+
+      html.select("a#change-selected-team-members").attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
+      html.select("a#check-your-answers").text() shouldBe "Continue"
+      html.select("a#check-your-answers").attr("href") shouldBe routes.GroupController.checkYourAnswers.url
+      html.select("a#check-your-answers").hasClass("govuk-button")
     }
   }
 }

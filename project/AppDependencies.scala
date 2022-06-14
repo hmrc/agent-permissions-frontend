@@ -1,6 +1,3 @@
-import play.core.PlayVersion
-import play.sbt.PlayImport._
-import sbt.Keys.libraryDependencies
 import sbt._
 
 object AppDependencies {
@@ -9,7 +6,7 @@ object AppDependencies {
     "uk.gov.hmrc"             %% "bootstrap-frontend-play-28" % "5.24.0",
     "uk.gov.hmrc"             %% "play-frontend-hmrc"         % "3.15.0-play-28",
     "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"         % "0.63.0",
-    "uk.gov.hmrc"             %% "agent-mtd-identifiers"      % "0.39.0-play-28",
+    "uk.gov.hmrc"             %% "agent-mtd-identifiers"      % "0.40.0-play-28",
     "uk.gov.hmrc"             %% "agent-kenshoo-monitoring"   % "4.8.0-play-28",
   )
 

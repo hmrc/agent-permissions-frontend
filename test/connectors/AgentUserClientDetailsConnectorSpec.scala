@@ -21,7 +21,7 @@ import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.http.Status.{ACCEPTED, OK}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks with AgentUserClientDetailsConnectorMocks {

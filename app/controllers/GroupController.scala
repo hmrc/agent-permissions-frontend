@@ -43,6 +43,8 @@ class GroupController @Inject()
   review_clients_to_add: review_clients_to_add,
   team_members_list: team_members_list,
   review_team_members_to_add: review_team_members_to_add,
+  check_your_answers: check_your_answers,
+  group_created: group_created,
   val agentPermissionsConnector: AgentPermissionsConnector,
   sessionCacheService: SessionCacheService,
   val sessionCacheRepository: SessionCacheRepository,
@@ -199,10 +201,10 @@ class GroupController @Inject()
                   (teamMembersToAdd: Seq[TeamMember]) =>
                     sessionCacheService
                       .saveSelectedTeamMembers(teamMembersToAdd).transformWith {
-                        case Success(_)  => Redirect(routes.GroupController.showReviewTeamMembersToAdd).toFuture
-                        case Failure(ex) =>
-                          logger.warn(s"Unable to save team members in session ${ex.getMessage}")
-                          throw ex
+                      case Success(_) => Redirect(routes.GroupController.showReviewTeamMembersToAdd).toFuture
+                      case Failure(ex) =>
+                        logger.warn(s"Unable to save team members in session ${ex.getMessage}")
+                        throw ex
                     }
                 )
             }
@@ -228,8 +230,35 @@ class GroupController @Inject()
     }
   }
 
-  def checkYourAnswers: Action[AnyContent] = Action.async { implicit request =>
-    Ok("checkYourAnswers now").toFuture
+  def showCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+        maybeGroupName.fold(
+          Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
+          isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
+            isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
+              Ok(check_your_answers(groupName, maybeTeamMembers.map(_.length), maybeClients.map(_.length))).toFuture
+            }
+          }
+        }
+      }
+    }
+  }
+
+  def submitCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
+    //TODO: probably remove everything from the session here and persist, before redirecting
+    Redirect(routes.GroupController.showGroupCreated).toFuture
+  }
+
+  def showGroupCreated: Action[AnyContent] = Action.async { implicit request =>
+    //TODO: probably don't use session now but actual created group from wherever it's saved?
+    isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
+          Ok(group_created(groupName)).toFuture
+        }
+      }
+    }
   }
 
 }

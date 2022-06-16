@@ -30,7 +30,7 @@
 @(form: Form[String])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("group.create.h1", msgs("service.name")),
+    title = msgs("group.create.h1"),
     formErrors = form.errors,
     backLinkHref = Some(routes.GroupController.showAddClients.url)
 ) {

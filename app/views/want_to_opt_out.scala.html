@@ -30,7 +30,7 @@
 @(form: Form[Boolean])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("do-you-want-to-opt-out.h1", msgs("service.name")),
+    title = msgs("do-you-want-to-opt-out.h1"),
     formErrors = form.errors,
     backLinkHref = Some(routes.OptOutController.start.url)
 ) {

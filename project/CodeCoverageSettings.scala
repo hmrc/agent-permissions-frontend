@@ -16,9 +16,11 @@ object CodeCoverageSettings {
     "testOnly.*",
     "testOnlyDoNotUseInAppConf.*"
   )
+  private val excludedFiles: Seq[String] = Seq(".*group_created.template")
 
   val settings: Seq[Setting[_]] = Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
+    ScoverageKeys.coverageExcludedFiles := excludedFiles.mkString(";"),
     ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageMinimumStmtPerFile := 90,
     ScoverageKeys.coverageFailOnMinimum := true,

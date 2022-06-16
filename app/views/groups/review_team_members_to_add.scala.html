@@ -40,7 +40,7 @@
     }
 
     @layout(
-        title = msgs(msgs("group.members.list.h1", groupName, msgs("service.name"))),
+        title = msgs("group.teamMembers.review.title", groupName),
         backLinkHref = Some(routes.GroupController.showAddTeamMembers.url),
         fullWidth = true
     ) {
@@ -69,14 +69,14 @@
         </div>
 
         <p class="govuk-!-margin-bottom-9">
-        @a("group.selected.teamMembers.change",
-            href = routes.GroupController.showAddTeamMembers.url,
-            id = Some("change-selected-team-members")
-        )
+            @a("group.selected.teamMembers.change",
+                href = routes.GroupController.showAddTeamMembers.url,
+                id = Some("change-selected-team-members")
+            )
         </p>
 
         @link_as_button(
-            href = routes.GroupController.checkYourAnswers.url,
+            href = routes.GroupController.showCheckYourAnswers.url,
             id = "check-your-answers")
 
    

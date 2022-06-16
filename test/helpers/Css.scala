@@ -34,8 +34,12 @@ object Css {
   def labelFor(id: String): String = s"label[for=${id}]"
   def radioButtonsField(id: String): String = s"form .govuk-radios#$id"
   def tableWithId(id: String) = s"table.govuk-table#$id"
-  val SUBMIT_BUTTON = "main form button"
+  val submitButton = "main form button#continue[type=submit]"
   val linkStyledAsButton = "a#button-link.govuk-button"
   val currentLanguage = "ul.hmrc-language-select__list li.hmrc-language-select__list-item span[aria-current=true]";
   val alternateLanguage = ".hmrc-language-select__list .hmrc-language-select__list-item a.govuk-link";
+  val checkYourAnswersListRows = "dl.govuk-summary-list .govuk-summary-list__row"
+  val backLink = "a.govuk-back-link"
+  val confirmationPanelH1 = ".govuk-panel--confirmation h1.govuk-panel__title"
+  val confirmationPanelBody = ".govuk-panel--confirmation .govuk-panel__body"
 }

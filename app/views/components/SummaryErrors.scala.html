@@ -22,7 +22,7 @@
 @this(govukErrorSummary: GovukErrorSummary)
 
 
-@(formErrors: Seq[FormError] = Seq.empty)(implicit requestHeader: RequestHeader, messages: Messages)
+@(formErrors: Seq[FormError] = Seq.empty)(implicit messages: Messages)
 
 @if(formErrors.nonEmpty) {
     @govukErrorSummary(

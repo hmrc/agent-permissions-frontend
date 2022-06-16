@@ -17,17 +17,22 @@
 @import config.AppConfig
 @import views.html.main_layout
 
-@this(layout: main_layout, p: p, h1: h1, h2: h2, link_as_button: link_as_button)
+@this(layout: main_layout, p: p, h1: h1, h2: h2, a: a, govukPanel: GovukPanel)
 
-@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@layout(title = msgs("you-have-opted-out.h1")) {
-    @h1("you-have-opted-out.h1")
-    @h2("you-have-opted-out.h2")
-    @p("you-have-opted-out.p1")
-    @p("you-have-opted-out.p2")
-    @link_as_button(
-        key = "you-have-opted-out.button",
-        href = appConfig.agentServicesAccountManageAccountUrl
+@layout(title = msgs("group.created.h1", groupName)) {
+
+    @govukPanel(
+        Panel(
+            title = Text(msgs("group.created.h1")),
+            content = Text(msgs("group.created.panelContent", groupName))
+        )
     )
+
+    @h2("common.what.happens.next")
+    @p("group.created.p")
+    @a("group.created.a", href = appConfig.agentServicesAccountManageAccountUrl)
+
 }
+

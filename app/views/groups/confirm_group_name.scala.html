@@ -31,7 +31,7 @@
 @(form: Form[Boolean], groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs(msgs("group.confirm.h1", "XYZ")), msgs("service.name"),
+    title = msgs("group.confirm.h1", groupName),
     formErrors = form.errors,
     backLinkHref = Some(routes.GroupController.showGroupName.url)
 ) {

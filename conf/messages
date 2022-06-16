@@ -9,6 +9,8 @@ common.yes.label=Yes
 common.no.label=No
 common.caption.group.name={0} access group
 continue=Continue
+common.what.happens.next=What happens next?
+common.change=Change
 
 continue.button=Continue
 save.and.continue.button=Save and continue
@@ -74,8 +76,9 @@ group.client.list.table.th2=Tax reference
 group.client.list.table.th3=Tax service
 error.client.list.empty=You must select at least one client 
 
-group.client.review.h1=You have selected {0} clients
+group.clients.review.h1=You have selected {0} clients
 group.selected.clients.change=Change selected clients
+group.clients.review.title=Review selected clients
 
 group.members.list.h1=Select team members
 group.members.list.p1=Select team members for this access group by ticking the boxes. You can also use the select all box or filter by name or email address.
@@ -86,5 +89,17 @@ error.members.list.empty=You must select at least one team member
 
 group.teamMembers.review.h1=You have selected {0} team members
 group.selected.teamMembers.change=Change selected team members
+group.teamMembers.review.title=Review selected team members
 
+cya.h1=Check your answers
+cya.p=Confirm clients and team members selected for this access group
+cya.inset=The team members you have selected will have permission to view and manage the tax affairs of all the clients in this access group
+
+cya.th.clients=Clients
+cya.th.members=Team members
+
+group.created.h1=Access group created
+group.created.panelContent={0} access group is now active
+group.created.p=The team members you selected can now view and manage the tax affairs of all the clients in this access group
+group.created.a=Return to manage account
 

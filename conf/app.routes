@@ -1,41 +1,44 @@
 # microservice specific routes
 
-->         /hmrc-frontend                   hmrcfrontend.Routes
+->      /hmrc-frontend                   hmrcfrontend.Routes
 
-GET        /assets/*file                    controllers.Assets.versioned(path = "/public", file: Asset)
+GET     /assets/*file                    controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET        /                                controllers.RootController.start
+GET     /                                controllers.RootController.start
 
-GET        /opt-in/start                    controllers.OptInController.start
-GET        /opt-in/do-you-want-to-opt-in    controllers.OptInController.showDoYouWantToOptIn
-POST       /opt-in/do-you-want-to-opt-in    controllers.OptInController.submitDoYouWantToOptIn
+GET     /opt-in/start                    controllers.OptInController.start
+GET     /opt-in/do-you-want-to-opt-in    controllers.OptInController.showDoYouWantToOptIn
+POST    /opt-in/do-you-want-to-opt-in    controllers.OptInController.submitDoYouWantToOptIn
 
-GET        /opt-in/you-have-opted-in        controllers.OptInController.showYouHaveOptedIn
-GET        /opt-in/you-have-not-opted-in    controllers.OptInController.showYouHaveNotOptedIn
+GET     /opt-in/you-have-opted-in        controllers.OptInController.showYouHaveOptedIn
+GET     /opt-in/you-have-not-opted-in    controllers.OptInController.showYouHaveNotOptedIn
 
-GET        /opt-out/start                   controllers.OptOutController.start
+GET     /opt-out/start                   controllers.OptOutController.start
 
-GET        /opt-out/do-you-want-to-opt-out  controllers.OptOutController.showDoYouWantToOptOut
-POST       /opt-out/do-you-want-to-opt-out  controllers.OptOutController.submitDoYouWantToOptOut
+GET     /opt-out/do-you-want-to-opt-out  controllers.OptOutController.showDoYouWantToOptOut
+POST    /opt-out/do-you-want-to-opt-out  controllers.OptOutController.submitDoYouWantToOptOut
 
-GET        /opt-out/you-have-opted-out      controllers.OptOutController.showYouHaveOptedOut
+GET     /opt-out/you-have-opted-out      controllers.OptOutController.showYouHaveOptedOut
 
-GET        /group/create-access-group       controllers.GroupController.start
+GET     /group/create-access-group       controllers.GroupController.start
 
-GET        /group/group-name                controllers.GroupController.showGroupName
-POST       /group/group-name                controllers.GroupController.submitGroupName
+GET     /group/group-name                controllers.GroupController.showGroupName
+POST    /group/group-name                controllers.GroupController.submitGroupName
 
-GET        /group/confirm-name              controllers.GroupController.showConfirmGroupName
-POST       /group/confirm-name              controllers.GroupController.submitConfirmGroupName
+GET     /group/confirm-name              controllers.GroupController.showConfirmGroupName
+POST    /group/confirm-name              controllers.GroupController.submitConfirmGroupName
 
-GET        /group/add-clients               controllers.GroupController.showAddClients
-POST       /group/add-clients               controllers.GroupController.submitAddClients
+GET     /group/select-clients               controllers.GroupController.showAddClients
+POST    /group/select-clients               controllers.GroupController.submitAddClients
 
-GET        /group/add-clients/review        controllers.GroupController.showReviewClientsToAdd
+GET     /group/select-clients/review        controllers.GroupController.showReviewClientsToAdd
 
-GET        /group/add-team-members          controllers.GroupController.showAddTeamMembers
-POST       /group/add-team-members          controllers.GroupController.submitAddTeamMembers
+GET     /group/select-team-members          controllers.GroupController.showAddTeamMembers
+POST    /group/select-team-members          controllers.GroupController.submitAddTeamMembers
 
-GET        /group/add-team-members/review   controllers.GroupController.showReviewTeamMembersToAdd
+GET     /group/select-team-members/review   controllers.GroupController.showReviewTeamMembersToAdd
 
-GET        /group/check-your-answers        controllers.GroupController.checkYourAnswers
+GET     /group/check-your-answers        controllers.GroupController.showCheckYourAnswers
+POST    /group/check-your-answers        controllers.GroupController.submitCheckYourAnswers
+
+GET     /group/group-created             controllers.GroupController.showGroupCreated

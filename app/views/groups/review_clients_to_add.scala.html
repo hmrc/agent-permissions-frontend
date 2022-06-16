@@ -41,14 +41,14 @@
     }
 
     @layout(
-        title = msgs(msgs("group.client.list.h1", groupName, msgs("service.name"))),
+        title = msgs("group.clients.review.title", groupName),
         backLinkHref = Some(routes.GroupController.showAddClients.url),
         fullWidth = true
     ) {
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs("group.client.review.h1", clients.size))
+            @h1(msgs("group.clients.review.h1", clients.size))
         </div>
 
         <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">

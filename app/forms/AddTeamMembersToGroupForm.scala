@@ -16,7 +16,7 @@
 
 package forms
 
-import models.{DisplayClient, TeamMember}
+import models.TeamMember
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json.{parse, toJson}

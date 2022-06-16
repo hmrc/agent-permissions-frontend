@@ -91,7 +91,7 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.form).attr("action") shouldBe "/agent-permissions/group/group-name"
       html.select(Css.labelFor("name")).text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
-      html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
   }
 
@@ -177,7 +177,7 @@ class GroupControllerSpec extends BaseSpec {
       html.select("label[for=answer-yes]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
-      html.select(Css.SUBMIT_BUTTON).text() shouldBe "Continue"
+      html.select(Css.submitButton).text() shouldBe "Continue"
     }
 
     "redirect to /group/group-name when there is no groupName in the session" in {
@@ -291,6 +291,7 @@ class GroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
+
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 4
       th.get(1).text() shouldBe "Client name"
@@ -433,8 +434,9 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe s"Select clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe s"Review selected clients - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 10 clients"
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showAddClients.url
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 3
@@ -486,6 +488,7 @@ class GroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showReviewClientsToAdd.url
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 3
@@ -549,8 +552,7 @@ class GroupControllerSpec extends BaseSpec {
             s"team member $i",
             s"x$i@xyz.com",
             Some(s"1234 $i"),
-            None,
-            true
+            None
           )
         })
 
@@ -642,8 +644,9 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe s"Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe s"Review selected team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 5 team members"
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 2
@@ -661,8 +664,82 @@ class GroupControllerSpec extends BaseSpec {
 
       html.select("a#change-selected-team-members").attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
       html.select("a#check-your-answers").text() shouldBe "Continue"
-      html.select("a#check-your-answers").attr("href") shouldBe routes.GroupController.checkYourAnswers.url
+      html.select("a#check-your-answers").attr("href") shouldBe routes.GroupController.showCheckYourAnswers.url
       html.select("a#check-your-answers").hasClass("govuk-button")
     }
   }
+
+  s"GET ${routes.GroupController.showCheckYourAnswers.url}" should {
+
+    "render correctly check you answers page" in {
+
+      val selectedClients = (1 to 3).map(i => {DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)})
+      val selectedTeamMembers = (1 to 5).map(i => {TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"), None, true)})
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
+      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
+
+      val result = controller.showCheckYourAnswers()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Check your answers - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Check your answers"
+      html.select(Css.H2).text() shouldBe "Confirm clients and team members selected for this access group"
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showReviewTeamMembersToAdd.url
+
+      val cyaRows = html.select(Css.checkYourAnswersListRows)
+      cyaRows.size() shouldBe 2
+      cyaRows.get(0).select("dt").text() shouldBe "Clients"
+      cyaRows.get(0).select("dd").get(0).text() shouldBe "3"
+      cyaRows.get(0).select("dd").get(1).text() shouldBe "Change"
+
+      cyaRows.get(1).select("dt").text() shouldBe "Team members"
+      cyaRows.get(1).select("dd").get(0).text() shouldBe "5"
+      cyaRows.get(1).select("dd").get(1).text() shouldBe "Change"
+
+      html.select(Css.insetText).text() shouldBe "The team members you have selected will have permission to view and manage the tax affairs of all the clients in this access group"
+      html.select(Css.form).attr("action") shouldBe routes.GroupController.submitCheckYourAnswers.url
+      html.select(Css.submitButton).text() shouldBe "Continue"
+
+    }
+  }
+
+  s"GET ${routes.GroupController.showGroupCreated.url}" should {
+
+    "render correctly the confirmation page page" in {
+
+      val selectedClients = (1 to 4).map(i => {DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)})
+      val selectedTeamMembers = (1 to 6).map(i => {TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"),
+        None, true)})
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
+      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
+
+      val result = controller.showGroupCreated()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Access group created - Manage Agent Permissions - GOV.UK"
+      html.select(Css.confirmationPanelH1).text() shouldBe "Access group created"
+      html.select(Css.confirmationPanelBody).text() shouldBe "XYZ access group is now active"
+      html.select(Css.H2).text() shouldBe "What happens next?"
+      html.select(Css.backLink).size() shouldBe 0
+
+      html.select(Css.paragraphs).get(0).text shouldBe "The team members you selected can now view and manage the tax affairs of all the clients in this access group"
+
+
+    }
+  }
+
 }

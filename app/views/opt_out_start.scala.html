@@ -23,7 +23,7 @@
 @()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("opt-out-info.h1", msgs("service.name")),
+    title = msgs("opt-out-info.h1"),
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
 ) {
     @h1("opt-out-info.h1")

@@ -129,7 +129,7 @@ class OptInControllerSpec extends BaseSpec {
       answerRadios.select("label[for=true]").text() shouldBe "Yes, I want to opt-in"
       answerRadios.select("label[for=false]").text() shouldBe "No, I want to remain opted-out"
 
-      html.select(Css.SUBMIT_BUTTON).text() shouldBe "Save and continue"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
   }
 
@@ -189,7 +189,7 @@ class OptInControllerSpec extends BaseSpec {
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Please select an option."
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Please select an option."
 
-      html.select(Css.SUBMIT_BUTTON)
+      html.select(Css.submitButton)
 
     }
 

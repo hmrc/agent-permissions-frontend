@@ -25,6 +25,8 @@
     p: p, h1: h1, span: span,
     caption: caption,
     table: table,
+    submit_button_group: submit_button_group,
+    textbox: textbox,
     submit_button: submit_button,
     checkBox: checkBox,
     formWithCSRF: FormWithCSRF
@@ -65,6 +67,21 @@
         </div>
 
         @formWithCSRF(action = routes.GroupController.submitAddTeamMembers) {
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+                    @textbox(
+                    field = form("filter"),
+                    label = "group.members.list.filter.label",
+                    labelClasses = "govuk-label--s",
+                    classes = "govuk-input--width-20"
+                    )
+                </div>
+
+                <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
+                    @submit_button_group()
+                </div>
+            </div>
 
             <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
 

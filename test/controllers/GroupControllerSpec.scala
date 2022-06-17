@@ -421,13 +421,13 @@ class GroupControllerSpec extends BaseSpec {
 
       //given
       stubAuthorisationGrantAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       implicit val request = FakeRequest(
         "POST",
         routes.GroupController.submitAddClients.url
       ).withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
 
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       //when
       val result = controller.submitAddClients()(request)
 

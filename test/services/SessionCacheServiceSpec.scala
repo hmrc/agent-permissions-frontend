@@ -94,17 +94,16 @@ class SessionCacheServiceSpec extends BaseSpec {
     "Remove selected clients from SessionCache Repo" in {
       //given
       val clients = Seq(DisplayClient("whatever","",""))
-      sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients)
 
-      //and
-      val membersInSessionCache = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+      val (membersInSessionCache, maybeMembers) = (for {
+        _ <- sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients)
+        membersInSessionCache <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+        _ <- service.clearSelectedClients()
+        maybeMembers <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+      } yield (membersInSessionCache, maybeMembers)).futureValue
+
       membersInSessionCache.get.length shouldBe 1
 
-      //when
-      service.clearSelectedClients()
-
-      //then
-      val maybeMembers = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
       maybeMembers.isDefined shouldBe false
     }
   }
@@ -114,17 +113,14 @@ class SessionCacheServiceSpec extends BaseSpec {
       //given
       val clients = Seq(DisplayClient("whatever","",""))
 
-      //and
-      val membersInSessionCache = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+      val (membersInSessionCache, maybeMembers) = (for {
+        membersInSessionCache <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+        _ <- service.saveSelectedClients(clients)
+        maybeMembers <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+      } yield (membersInSessionCache, maybeMembers)).futureValue
+
       membersInSessionCache.isDefined shouldBe false
-
-      //when
-      service.saveSelectedClients(clients)
-
-      //then
-      val maybeMembers = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
       maybeMembers.isDefined shouldBe true
-      //and
       maybeMembers.get.head.hmrcRef shouldBe "whatever"
     }
   }
@@ -151,17 +147,15 @@ class SessionCacheServiceSpec extends BaseSpec {
     "Remove selected Team members from SessionCache Repo" in {
       //given
       val teamMembers: Seq[TeamMember] = (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
-      sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,teamMembers)
 
-      //and
-      val membersInSessionCache = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
+      val (membersInSessionCache, maybeMembers) = (for {
+        _ <- sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,teamMembers)
+        membersInSessionCache <- sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+        _ <- service.clearSelectedTeamMembers()
+        maybeMembers<- sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+      } yield (membersInSessionCache, maybeMembers)).futureValue
+
       membersInSessionCache.get.length shouldBe 3
-
-      //when
-      service.clearSelectedTeamMembers()
-
-      //then
-      val maybeMembers = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
       maybeMembers.isDefined shouldBe false
     }
   }

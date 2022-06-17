@@ -43,24 +43,29 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
     } yield Redirect(call)
   }
 
-  def saveSelectedGroupClientsAndRedirect(clients: Seq[DisplayClient])
-                                         (call: Call)
-                                         (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-    for {
-      _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](
-        GROUP_CLIENTS_SELECTED,
-        clients.map(dc => dc.copy(selected = true))
-      )
-    } yield Redirect(call)
+  def saveSelectedClients(clients: Seq[DisplayClient])
+                         (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+    sessionCacheRepository.putSession[Seq[DisplayClient]](
+      GROUP_CLIENTS_SELECTED,
+      clients.map(dc => dc.copy(selected = true))
+    )
+  }
+
+  def clearSelectedClients()(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+      sessionCacheRepository.deleteFromSession(GROUP_CLIENTS_SELECTED)
+
   }
 
   def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])
                              (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
 
     sessionCacheRepository.putSession[Seq[TeamMember]](
-        GROUP_TEAM_MEMBERS_SELECTED,
-        teamMembers.map(member => member.copy(selected = true))
+      GROUP_TEAM_MEMBERS_SELECTED,
+      teamMembers.map(member => member.copy(selected = true))
     )
+  }
 
+  def clearSelectedTeamMembers()(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+    sessionCacheRepository.deleteFromSession(GROUP_TEAM_MEMBERS_SELECTED)
   }
 }

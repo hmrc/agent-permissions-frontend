@@ -25,7 +25,7 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
@@ -380,6 +380,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "show an error when POSTED without clients" in {
 
+      //given
       val fakeClients =
         List.tabulate(3)(i =>
           Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
@@ -388,22 +389,51 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
       stubGetClients(arn)(displayClients)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
-        .withFormUrlEncodedBody()
+      implicit val request = FakeRequest(
+        "POST",
+        routes.GroupController.submitAddClients.url
+      ).withFormUrlEncodedBody()
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, displayClients))
 
+      //and
+      await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe true
 
+      //when
       val result = controller.submitAddClients()(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
+      //then
       html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
       html.select(Css.errorSummaryForField("clients")).text() shouldBe "You must select at least one client"
+      //and should have cleared the previously selected clients from the session
+      await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
+
+    }
+
+    "redirect to createGroup when POSTED without groupName in Session" in {
+
+      //given
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      implicit val request = FakeRequest(
+        "POST",
+        routes.GroupController.submitAddClients.url
+      ).withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitAddClients()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      Helpers.redirectLocation(result) shouldBe Some(routes.GroupController.showGroupName.url)
     }
   }
 
@@ -583,6 +613,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "show an error when POSTED without team members" in {
 
+      //given
       val selectedTeamMembers = (1 to 5)
         .map(i => {
           TeamMember(
@@ -603,16 +634,25 @@ class GroupControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
+      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
 
+      //and
+      await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe true
 
+      //when
       val result = controller.submitAddTeamMembers()(request)
 
+      //then
       status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
 
+      //and
+      val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
       html.select(Css.errorSummaryForField("members")).text() shouldBe "You must select at least one team member"
+
+      //and should have cleared the previously team members from the session
+      await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
     }
   }
 
@@ -673,8 +713,12 @@ class GroupControllerSpec extends BaseSpec {
 
     "render correctly check you answers page" in {
 
-      val selectedClients = (1 to 3).map(i => {DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)})
-      val selectedTeamMembers = (1 to 5).map(i => {TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"), None, true)})
+      val selectedClients = (1 to 3).map(i => {
+        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)
+      })
+      val selectedTeamMembers = (1 to 5).map(i => {
+        TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"), None, true)
+      })
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -714,9 +758,13 @@ class GroupControllerSpec extends BaseSpec {
 
     "render correctly the confirmation page page" in {
 
-      val selectedClients = (1 to 4).map(i => {DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)})
-      val selectedTeamMembers = (1 to 6).map(i => {TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"),
-        None, true)})
+      val selectedClients = (1 to 4).map(i => {
+        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)
+      })
+      val selectedTeamMembers = (1 to 6).map(i => {
+        TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"),
+          None, true)
+      })
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

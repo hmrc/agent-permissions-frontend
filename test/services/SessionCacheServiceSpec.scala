@@ -19,7 +19,7 @@ package services
 import com.google.inject.AbstractModule
 import controllers._
 import helpers.BaseSpec
-import models.TeamMember
+import models.{DisplayClient, TeamMember}
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers.{await, defaultAwaitTimeout, redirectLocation}
@@ -90,6 +90,44 @@ class SessionCacheServiceSpec extends BaseSpec {
     }
   }
 
+  "clearSelectedClients" should {
+    "Remove selected clients from SessionCache Repo" in {
+      //given
+      val clients = Seq(DisplayClient("whatever","",""))
+      sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients)
+
+      //and
+      val membersInSessionCache = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+      membersInSessionCache.get.length shouldBe 1
+
+      //when
+      service.clearSelectedClients()
+
+      //then
+      val maybeMembers = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+      maybeMembers.isDefined shouldBe false
+    }
+  }
+
+  "saveSelectedClients" should {
+    "Add selected clients to SessionCache Repo" in {
+      //given
+      val clients = Seq(DisplayClient("whatever","",""))
+
+      //and
+      val membersInSessionCache = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+      membersInSessionCache.isDefined shouldBe false
+
+      //when
+      service.saveSelectedClients(clients)
+
+      //then
+      val maybeMembers = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+      maybeMembers.isDefined shouldBe true
+      //and
+      maybeMembers.get.head.hmrcRef shouldBe "whatever"
+    }
+  }
 
   "saveSelectedTeamMembers" should {
     "puts Selected Team members in SessionCache Repo" in {
@@ -106,6 +144,25 @@ class SessionCacheServiceSpec extends BaseSpec {
       maybeMembers.get(0) shouldBe TeamMember("name1", "x1@xyz.com", None, None, true)
       maybeMembers.get(1) shouldBe TeamMember("name2", "x2@xyz.com", None, None, true)
       maybeMembers.get(2) shouldBe TeamMember("name3", "x3@xyz.com", None, None, true)
+    }
+  }
+
+  "clearSelectedTeamMembers" should {
+    "Remove selected Team members from SessionCache Repo" in {
+      //given
+      val teamMembers: Seq[TeamMember] = (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
+      sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,teamMembers)
+
+      //and
+      val membersInSessionCache = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
+      membersInSessionCache.get.length shouldBe 3
+
+      //when
+      service.clearSelectedTeamMembers()
+
+      //then
+      val maybeMembers = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
+      maybeMembers.isDefined shouldBe false
     }
   }
 

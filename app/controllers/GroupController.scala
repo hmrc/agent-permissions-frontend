@@ -142,12 +142,15 @@ class GroupController @Inject()
                 .bindFromRequest()
                 .fold(
                   formWithErrors => {
-                    Ok(client_group_list(maybeClients, groupName, formWithErrors)).toFuture
+                    sessionCacheService.clearSelectedClients()
+                    val unselectedClients: Option[Seq[DisplayClient]] = maybeClients.fold(
+                      Option.empty[Seq[DisplayClient]]) { clients => Some(clients.map(_.copy(selected = false))) }
+                    Ok(client_group_list(unselectedClients, groupName, formWithErrors)).toFuture
                   },
                   (clientsToAdd: Seq[DisplayClient]) =>
-                    sessionCacheService
-                      .saveSelectedGroupClientsAndRedirect(clientsToAdd)(routes.GroupController.showReviewClientsToAdd)
-
+                    sessionCacheService.saveSelectedClients(clientsToAdd).map(_ =>
+                      Redirect(routes.GroupController.showReviewClientsToAdd)
+                    )
                 )
             }
           }
@@ -190,13 +193,17 @@ class GroupController @Inject()
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeClients =>
           maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
-            groupService.getTeamMembers(arn)(maybeClients).flatMap { maybeClients =>
+            groupService.getTeamMembers(arn)(maybeClients).flatMap { maybeTeamMembers =>
               AddTeamMembersToGroupForm
                 .form()
                 .bindFromRequest()
                 .fold(
                   formWithErrors => {
-                    Ok(team_members_list(maybeClients, groupName, formWithErrors)).toFuture
+                    sessionCacheService.clearSelectedTeamMembers()
+                    val unselectedTeamMembers = maybeTeamMembers.fold(Option.empty[Seq[TeamMember]]) {
+                      teamMembers => Some(teamMembers.map(_.copy(selected = false)))
+                    }
+                    Ok(team_members_list(unselectedTeamMembers, groupName, formWithErrors)).toFuture
                   },
                   (teamMembersToAdd: Seq[TeamMember]) =>
                     sessionCacheService

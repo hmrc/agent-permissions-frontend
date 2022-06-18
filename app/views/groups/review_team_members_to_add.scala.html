@@ -41,7 +41,7 @@
 
     @layout(
         title = msgs("group.teamMembers.review.title", groupName),
-        backLinkHref = Some(routes.GroupController.showAddTeamMembers.url),
+        backLinkHref = Some(routes.GroupController.showSelectTeamMembers.url),
         fullWidth = true
     ) {
 
@@ -70,7 +70,7 @@
 
         <p class="govuk-!-margin-bottom-9">
             @a("group.selected.teamMembers.change",
-                href = routes.GroupController.showAddTeamMembers.url,
+                href = routes.GroupController.showSelectTeamMembers.url,
                 id = Some("change-selected-team-members")
             )
         </p>

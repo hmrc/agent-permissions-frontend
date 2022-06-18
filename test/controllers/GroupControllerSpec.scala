@@ -17,21 +17,21 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest}
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
-import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.SessionKeys
+import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
 
 import java.util.Base64
 
@@ -243,7 +243,7 @@ class GroupControllerSpec extends BaseSpec {
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.GroupController.showAddClients.url)
+      redirectLocation(result) shouldBe Some(routes.GroupController.showSelectClients.url)
     }
 
     "redirect to /group/group-name when confirm group name 'no' selected" in {
@@ -263,7 +263,7 @@ class GroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.GroupController.showAddClients.url}" should {
+  s"GET ${routes.GroupController.showSelectClients.url}" should {
 
     "render with clients" in {
 
@@ -283,7 +283,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
-      val result = controller.showAddClients()(request)
+      val result = controller.showSelectClients()(request)
 
       status(result) shouldBe OK
 
@@ -320,7 +320,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
-      val result = controller.showAddClients()(request)
+      val result = controller.showSelectClients()(request)
 
       status(result) shouldBe OK
 
@@ -343,7 +343,7 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      val result = controller.showAddClients()(request)
+      val result = controller.showSelectClients()(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
@@ -352,7 +352,7 @@ class GroupControllerSpec extends BaseSpec {
 
   "POST add clients to list" should {
 
-    s"save selected clients to session and redirect to ${routes.GroupController.showReviewClientsToAdd.url}" in {
+    s"save selected clients to session and redirect to ${routes.GroupController.showReviewSelectedClients.url}" in {
       val fakeClients =
         List.tabulate(3)(i =>
           Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
@@ -362,7 +362,7 @@ class GroupControllerSpec extends BaseSpec {
       stubGetClients(arn)(displayClients)
       val encodedDisplayClients = displayClients.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitAddClients.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
         .withFormUrlEncodedBody("clients[]" -> encodedDisplayClients.head, "clients[]" -> encodedDisplayClients.last)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -370,10 +370,10 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
-      val result = controller.submitAddClients()(request)
+      val result = controller.submitSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.GroupController.showReviewClientsToAdd.url
+      redirectLocation(result).get shouldBe routes.GroupController.showReviewSelectedClients.url
       val storedClients = await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
       storedClients.get.toList shouldBe List(displayClients.head.copy(selected = true), displayClients.last.copy(selected = true))
     }
@@ -391,7 +391,7 @@ class GroupControllerSpec extends BaseSpec {
 
       implicit val request = FakeRequest(
         "POST",
-        routes.GroupController.submitAddClients.url
+        routes.GroupController.submitSelectedClients.url
       ).withFormUrlEncodedBody()
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -403,7 +403,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe true
 
       //when
-      val result = controller.submitAddClients()(request)
+      val result = controller.submitSelectedClients()(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -424,12 +424,13 @@ class GroupControllerSpec extends BaseSpec {
 
       implicit val request = FakeRequest(
         "POST",
-        routes.GroupController.submitAddClients.url
+        routes.GroupController.submitSelectedClients.url
       ).withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
       //when
-      val result = controller.submitAddClients()(request)
+      val result = controller.submitSelectedClients()(request)
 
       //then
       status(result) shouldBe SEE_OTHER
@@ -437,7 +438,7 @@ class GroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.GroupController.showReviewClientsToAdd.url}" should {
+  s"GET ${routes.GroupController.showReviewSelectedClients.url}" should {
 
     "render with selected clients" in {
 
@@ -447,6 +448,7 @@ class GroupControllerSpec extends BaseSpec {
             s"1234567$i",
             s"client name $i",
             s"tax service $i",
+            s"id-key-$i",
             true
           )
         })
@@ -458,7 +460,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
 
-      val result = controller.showReviewClientsToAdd()(request)
+      val result = controller.showReviewSelectedClients()(request)
 
       status(result) shouldBe OK
 
@@ -466,7 +468,7 @@ class GroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Review selected clients - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 10 clients"
-      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showAddClients.url
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showSelectClients.url
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 3
@@ -485,14 +487,37 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(9).select("td").get(1).text() shouldBe "123456710"
       trs.get(9).select("td").get(2).text() shouldBe "tax service 10"
 
-      html.select("a#change-selected-clients").attr("href") shouldBe routes.GroupController.showAddClients.url
+      html.select("a#change-selected-clients").attr("href") shouldBe routes.GroupController.showSelectClients.url
       html.select("a#add-team-members").text() shouldBe "Continue"
-      html.select("a#add-team-members").attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
+      html.select("a#add-team-members").attr("href") shouldBe routes.GroupController.showSelectTeamMembers.url
       html.select("a#add-team-members").hasClass("govuk-button")
+    }
+
+    "redirect when no group name is in session" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      val result = controller.showReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+    }
+
+    "redirect to SELECT CLIENTS page when no selected clients are in the session" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+
+      val result = controller.showReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showSelectClients.url
     }
   }
 
-  s"GET ${routes.GroupController.showAddTeamMembers.url}" should {
+  s"GET ${routes.GroupController.showSelectTeamMembers.url}" should {
 
     "render with team members" in {
       val fakeTeamMembers = (1 to 10)
@@ -510,7 +535,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
-      val result = controller.showAddTeamMembers()(request)
+      val result = controller.showSelectTeamMembers()(request)
 
       status(result) shouldBe OK
 
@@ -518,7 +543,7 @@ class GroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
-      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showReviewClientsToAdd.url
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showReviewSelectedClients.url
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 3
@@ -544,7 +569,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
-      val result = controller.showAddTeamMembers()(request)
+      val result = controller.showSelectTeamMembers()(request)
 
       status(result) shouldBe OK
 
@@ -566,16 +591,16 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      val result = controller.showAddTeamMembers()(request)
+      val result = controller.showSelectTeamMembers()(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
     }
   }
 
-  s"POST to ${routes.GroupController.submitAddTeamMembers.url}" should {
+  s"POST to ${routes.GroupController.submitSelectedTeamMembers.url}" should {
 
-    s"save selected clients to session and redirect to ${routes.GroupController.showReviewClientsToAdd.url}" in {
+    s"save selected clients to session and redirect to ${routes.GroupController.showReviewSelectedClients.url}" in {
       val selectedTeamMembers = (1 to 5)
         .map(i => {
           TeamMember(
@@ -590,7 +615,7 @@ class GroupControllerSpec extends BaseSpec {
       stubGetTeamMembers(arn)(selectedTeamMembers)
       val encodedTeamMembers = selectedTeamMembers.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitAddTeamMembers.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
         .withFormUrlEncodedBody(
           "members[]" -> encodedTeamMembers.head,
           "members[]" -> encodedTeamMembers.last
@@ -601,10 +626,10 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
-      val result = controller.submitAddTeamMembers()(request)
+      val result = controller.submitSelectedTeamMembers()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.GroupController.showReviewTeamMembersToAdd.url
+      redirectLocation(result).get shouldBe routes.GroupController.showReviewSelectedTeamMembers.url
       val maybeTeamMembers = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
       maybeTeamMembers.get.toList shouldBe List(
         selectedTeamMembers.head.copy(selected = true),
@@ -628,7 +653,7 @@ class GroupControllerSpec extends BaseSpec {
       stubAuthorisationGrantAccess(mockedAuthResponse)
       stubGetTeamMembers(arn)(selectedTeamMembers)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitAddTeamMembers.url)
+      implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
         .withFormUrlEncodedBody()
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -640,7 +665,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe true
 
       //when
-      val result = controller.submitAddTeamMembers()(request)
+      val result = controller.submitSelectedTeamMembers()(request)
 
       //then
       status(result) shouldBe OK
@@ -654,9 +679,29 @@ class GroupControllerSpec extends BaseSpec {
       //and should have cleared the previously team members from the session
       await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
     }
+
+    "redirect to createGroup when POSTED without groupName in Session" in {
+
+      //given
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+
+      implicit val request = FakeRequest(
+        "POST",
+        routes.GroupController.submitSelectedTeamMembers.url
+      ).withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      //when
+      val result = controller.submitSelectedTeamMembers()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      Helpers.redirectLocation(result) shouldBe Some(routes.GroupController.showGroupName.url)
+    }
   }
 
-  s"GET ${routes.GroupController.showReviewTeamMembersToAdd.url}" should {
+  s"GET ${routes.GroupController.showReviewSelectedTeamMembers.url}" should {
 
     "render with selected team members" in {
 
@@ -678,7 +723,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
 
-      val result = controller.showReviewTeamMembersToAdd()(request)
+      val result = controller.showReviewSelectedTeamMembers()(request)
 
       status(result) shouldBe OK
 
@@ -686,7 +731,7 @@ class GroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Review selected team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 5 team members"
-      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showSelectTeamMembers.url
 
       val th = html.select(Css.tableWithId("client-list-table")).select("thead th")
       th.size() shouldBe 2
@@ -702,10 +747,22 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(0).text() shouldBe "team member 5"
       trs.get(4).select("td").get(1).text() shouldBe "x5@xyz.com"
 
-      html.select("a#change-selected-team-members").attr("href") shouldBe routes.GroupController.showAddTeamMembers.url
+      html.select("a#change-selected-team-members").attr("href") shouldBe routes.GroupController.showSelectTeamMembers.url
       html.select("a#check-your-answers").text() shouldBe "Continue"
       html.select("a#check-your-answers").attr("href") shouldBe routes.GroupController.showCheckYourAnswers.url
       html.select("a#check-your-answers").hasClass("govuk-button")
+    }
+
+
+    "redirect when no group name is in session" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      val result = controller.showReviewSelectedTeamMembers()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
     }
   }
 
@@ -714,7 +771,7 @@ class GroupControllerSpec extends BaseSpec {
     "render correctly check you answers page" in {
 
       val selectedClients = (1 to 3).map(i => {
-        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)
+        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"id-key-$i",true)
       })
       val selectedTeamMembers = (1 to 5).map(i => {
         TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"), None, true)
@@ -735,7 +792,7 @@ class GroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Check your answers - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Check your answers"
       html.select(Css.H2).text() shouldBe "Confirm clients and team members selected for this access group"
-      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showReviewTeamMembersToAdd.url
+      html.select(Css.backLink).attr("href") shouldBe routes.GroupController.showReviewSelectedTeamMembers.url
 
       val cyaRows = html.select(Css.checkYourAnswersListRows)
       cyaRows.size() shouldBe 2
@@ -752,6 +809,94 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Continue"
 
     }
+
+    "redirect when no group name is in session" in {
+
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      val result = controller.showCheckYourAnswers()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+    }
+  }
+
+  s"POST to ${routes.GroupController.showCheckYourAnswers.url}" should{
+
+    "redirect to Group Name page if no group name in session" in {
+
+      //given no GROUP_NAME in session
+      implicit val request = FakeRequest(
+        "POST",
+        routes.GroupController.submitCheckYourAnswers.url)
+        .withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      //when
+      val result = controller.submitCheckYourAnswers()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      Helpers.redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+    }
+
+    "make expected call to agent-permissions api to create group " in{
+      //given
+      val clients = (1 to 4).map( i =>
+        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"idKey$i")
+      )
+      val teamMembers = (1 to 2).map(i => TeamMember(s"member $i", s"x$i@a.com", Some(s"$i"), None))
+      implicit val request = FakeRequest(
+        "POST",
+        routes.GroupController.submitCheckYourAnswers.url)
+        .withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients))
+      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+
+      //and we expect the following call to the agentPermissionsConnector
+      val expectedAgents = teamMembers.map(tm => AgentUser(tm.userId.get, tm.name))
+      val expectedEnrolments = clients.map(DisplayClient.toEnrolment(_))
+      val expectedGroupRequest = GroupRequest(groupName, Some(expectedAgents), Some(expectedEnrolments))
+      expectCreateGroupSuccess(arn, expectedGroupRequest)
+
+      //when
+      val result = controller.submitCheckYourAnswers()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      Helpers.redirectLocation(result).get shouldBe routes.GroupController.showGroupCreated.url
+    }
+
+    "render error page if Create fails" in{
+      //given
+      val clients = (1 to 4).map( i =>
+        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"idKey$i")
+      )
+      val teamMembers = (1 to 2).map(i => TeamMember(s"member $i", s"x$i@a.com", Some(s"$i"), None))
+      implicit val request = FakeRequest(
+        "POST",
+        routes.GroupController.submitCheckYourAnswers.url)
+        .withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
+      stubAuthorisationGrantAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients))
+      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+
+      //and we expect the following call to the agentPermissionsConnector
+      expectCreateGroupFails(arn)
+
+      //when
+      val caught = intercept[UpstreamErrorResponse]{
+        await(controller.submitCheckYourAnswers()(request))
+      }
+      caught.statusCode shouldBe BAD_REQUEST
+    }
   }
 
   s"GET ${routes.GroupController.showGroupCreated.url}" should {
@@ -759,7 +904,7 @@ class GroupControllerSpec extends BaseSpec {
     "render correctly the confirmation page page" in {
 
       val selectedClients = (1 to 4).map(i => {
-        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", true)
+        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"id-key-$i",true)
       })
       val selectedTeamMembers = (1 to 6).map(i => {
         TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"),

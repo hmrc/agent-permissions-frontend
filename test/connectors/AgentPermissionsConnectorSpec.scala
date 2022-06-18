@@ -20,7 +20,7 @@ import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
-import play.api.http.Status.CREATED
+import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
@@ -58,13 +58,13 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
   "postOptin" should {
     "return Done when successful" in {
 
-      mockHttpPost[HttpResponse](HttpResponse.apply(CREATED, ""))
+      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
       connector.optIn(arn).futureValue shouldBe Done
     }
     "throw an exception when there was a problem" in {
 
-      mockHttpPost[HttpResponse](HttpResponse.apply(503, ""))
-      intercept[UpstreamErrorResponse]{
+      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
+      intercept[UpstreamErrorResponse] {
         await(connector.optIn(arn))
       }
     }
@@ -73,16 +73,41 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
   "postOptOut" should {
     "return Done when successful" in {
 
-      mockHttpPost[HttpResponse](HttpResponse.apply(CREATED, ""))
+      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
       connector.optOut(arn).futureValue shouldBe Done
     }
 
     "throw an exception when there was a problem" in {
 
-      mockHttpPost[HttpResponse](HttpResponse.apply(503, ""))
-      intercept[UpstreamErrorResponse]{
+      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
+      intercept[UpstreamErrorResponse] {
         await(connector.optOut(arn))
       }
+    }
+  }
+
+
+  "post Create Group" should {
+
+    "return Done when response code is 201 CREATED" in {
+
+      val groupRequest = GroupRequest("name of group", None, None)
+      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/group/create "
+      val mockResponse = HttpResponse.apply(CREATED, "response Body")
+      mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
+      connector.createGroup(arn)(groupRequest).futureValue shouldBe Done
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      val groupRequest = GroupRequest("name of group", None, None)
+      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/group/create "
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.createGroup(arn)(groupRequest))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
   }
 }

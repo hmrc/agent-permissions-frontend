@@ -32,8 +32,8 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
 
   "CreateGroupFrom binding" should {
 
-    val client1 = DisplayClient("123", "JD", "VAT")
-    val client2 = DisplayClient("456", "HH", "CGT")
+    val client1 = DisplayClient("123", "JD", "VAT",s"id-key-1")
+    val client2 = DisplayClient("456", "HH", "CGT", s"id-key-2")
 
     val encode: DisplayClient => String = client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes)
 

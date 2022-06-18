@@ -38,7 +38,7 @@
 
 @layout(
     title = msgs("cya.h1"),
-    backLinkHref = Some(routes.GroupController.showReviewTeamMembersToAdd.url)
+    backLinkHref = Some(routes.GroupController.showReviewSelectedTeamMembers.url)
 ) {
 
     @h1(msgs("cya.h1", groupName))
@@ -49,12 +49,12 @@
             SummaryListData(
                 "cya.th.clients",
                 numberOfClients.getOrElse(0).toString,
-                routes.GroupController.showAddClients
+                routes.GroupController.showSelectClients
             ),
             SummaryListData(
                 "cya.th.members",
                 numberOfTeamMembers.getOrElse(0).toString,
-                routes.GroupController.showAddTeamMembers
+                routes.GroupController.showSelectTeamMembers
             ),
         )
     )

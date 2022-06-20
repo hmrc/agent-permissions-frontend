@@ -17,8 +17,9 @@
 package helpers
 
 import akka.Done
-import connectors.AgentPermissionsConnector
+import connectors.{AgentPermissionsConnector, GroupRequest}
 import org.scalamock.scalatest.MockFactory
+import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
@@ -50,4 +51,18 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector.optOut(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Done)
+
+  def expectCreateGroupSuccess(arn: Arn, groupRequest: GroupRequest)
+                              (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector.createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, groupRequest, *, *)
+      .returning(Future successful Done)
+
+  def expectCreateGroupFails(arn: Arn)
+                            (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector.createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
+      .throwing(UpstreamErrorResponse.apply("error", BAD_REQUEST))
+
+
 }

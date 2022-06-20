@@ -36,7 +36,7 @@ class GroupServiceSpec extends BaseSpec {
     "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
       //given
       val fakeClients: Seq[Client] = (1 to 10)
-        .map(i => Client(s"enrolmentKey$i", s"friendlyName$i"))
+        .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
 
       (mockAgentUserClientDetailsConnector.getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
@@ -49,8 +49,19 @@ class GroupServiceSpec extends BaseSpec {
       //then
       clients.size shouldBe 10
       clients(0).name shouldBe "friendlyName1"
+      clients(0).identifierKey shouldBe "enrolmentKey1"
+      clients(0).hmrcRef shouldBe "hmrcRef1"
+      clients(0).taxService shouldBe "tax1"
+
       clients(5).name shouldBe "friendlyName5"
+      clients(5).identifierKey shouldBe "enrolmentKey5"
+      clients(5).hmrcRef shouldBe "hmrcRef5"
+      clients(5).taxService shouldBe "tax5"
+
       clients(9).name shouldBe "friendlyName9"
+      clients(9).hmrcRef shouldBe "hmrcRef9"
+      clients(9).identifierKey shouldBe "enrolmentKey9"
+      clients(9).taxService shouldBe "tax9"
 
     }
   }

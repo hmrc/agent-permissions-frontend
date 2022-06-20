@@ -55,7 +55,7 @@
 
     @layout(
         title = msgs("group.members.list.h1", groupName),
-        backLinkHref = Some(routes.GroupController.showReviewClientsToAdd.url),
+        backLinkHref = Some(routes.GroupController.showReviewSelectedClients.url),
         formErrors = form.errors,
         fullWidth = true,
     ) {
@@ -66,7 +66,7 @@
             @p("group.members.list.p1")
         </div>
 
-        @formWithCSRF(action = routes.GroupController.submitAddTeamMembers) {
+        @formWithCSRF(action = routes.GroupController.submitSelectedTeamMembers) {
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-one-third">

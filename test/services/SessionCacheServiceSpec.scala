@@ -93,7 +93,7 @@ class SessionCacheServiceSpec extends BaseSpec {
   "clearSelectedClients" should {
     "Remove selected clients from SessionCache Repo" in {
       //given
-      val clients = Seq(DisplayClient("whatever","",""))
+      val clients = Seq(DisplayClient("whatever","","",""))
 
       val (membersInSessionCache, maybeMembers) = (for {
         _ <- sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients)
@@ -109,19 +109,21 @@ class SessionCacheServiceSpec extends BaseSpec {
   }
 
   "saveSelectedClients" should {
+
     "Add selected clients to SessionCache Repo" in {
       //given
-      val clients = Seq(DisplayClient("whatever","",""))
+      val clients = Seq(DisplayClient("whatever","","",""))
 
-      val (membersInSessionCache, maybeMembers) = (for {
-        membersInSessionCache <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+      val (initialEmptySession, savedClients) = (for {
+        emptySession <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
         _ <- service.saveSelectedClients(clients)
-        maybeMembers <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
-      } yield (membersInSessionCache, maybeMembers)).futureValue
+        savedClients <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+      } yield (emptySession, savedClients)).futureValue
 
-      membersInSessionCache.isDefined shouldBe false
-      maybeMembers.isDefined shouldBe true
-      maybeMembers.get.head.hmrcRef shouldBe "whatever"
+      //then
+      initialEmptySession.isDefined shouldBe false
+      savedClients.isDefined shouldBe true
+      savedClients.get.head.hmrcRef shouldBe "whatever"
     }
   }
 
@@ -148,15 +150,15 @@ class SessionCacheServiceSpec extends BaseSpec {
       //given
       val teamMembers: Seq[TeamMember] = (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
 
-      val (membersInSessionCache, maybeMembers) = (for {
+      val (membersInSessionCache, clearedSessionCacheValue) = (for {
         _ <- sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,teamMembers)
         membersInSessionCache <- sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
         _ <- service.clearSelectedTeamMembers()
-        maybeMembers<- sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
-      } yield (membersInSessionCache, maybeMembers)).futureValue
+        clearedSessionCache<- sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+      } yield (membersInSessionCache, clearedSessionCache)).futureValue
 
       membersInSessionCache.get.length shouldBe 3
-      maybeMembers.isDefined shouldBe false
+      clearedSessionCacheValue.isDefined shouldBe false
     }
   }
 

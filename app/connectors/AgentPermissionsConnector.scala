@@ -23,8 +23,9 @@ import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import play.api.Logging
 import play.api.http.Status.{CREATED, OK}
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, Enrolment, OptinStatus}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -32,17 +33,22 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AgentPermissionsConnectorImpl])
-trait AgentPermissionsConnector extends HttpAPIMonitor with   Logging{
+trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
+
   val http: HttpClient
 
   def getOptInStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
+
   def optIn(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
   def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
 
 @Singleton
 class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
-                                         (implicit metrics: Metrics, appConfig: AppConfig)
+                                             (implicit metrics: Metrics, appConfig: AppConfig)
   extends AgentPermissionsConnector {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
@@ -51,8 +57,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
   override def getOptInStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin-status"
-    monitor("ConsumedAPI-GetOptinStatus-GET"){
-      http.GET[HttpResponse](url).map{ response =>
+    monitor("ConsumedAPI-GetOptinStatus-GET") {
+      http.GET[HttpResponse](url).map { response =>
         response.status match {
           case OK => response.json.asOpt[OptinStatus]
           case e => logger.warn(s"getOptInStatus returned status $e ${response.body}"); None
@@ -63,11 +69,11 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
   def optIn(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin"
-    monitor("ConsumedAPI-optin-POST"){
-      http.POSTEmpty[HttpResponse](url).map{ response =>
+    monitor("ConsumedAPI-optin-POST") {
+      http.POSTEmpty[HttpResponse](url).map { response =>
         response.status match {
           case CREATED => Done
-          case e => throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}",e)
+          case e => throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}", e)
         }
       }
     }
@@ -75,13 +81,32 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
   def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optout"
-    monitor("ConsumedAPI-optout-POST"){
-      http.POSTEmpty[HttpResponse](url).map{ response =>
+    monitor("ConsumedAPI-optout-POST") {
+      http.POSTEmpty[HttpResponse](url).map { response =>
         response.status match {
           case CREATED => Done
-          case e => throw UpstreamErrorResponse(s"error sending opt out request",e)
+          case e => throw UpstreamErrorResponse(s"error sending opt out request", e)
         }
       }
     }
   }
+
+
+  def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/group/create "
+    monitor("ConsumedAPI-createGroup-POST") {
+      http.POST[GroupRequest, HttpResponse](url, groupRequest).map { response =>
+        response.status match {
+          case CREATED        => Done
+          case anyOtherStatus => throw UpstreamErrorResponse(s"error posting createGroup request to $url", anyOtherStatus)
+        }
+      }
+    }
+  }
+}
+
+case class GroupRequest(groupName: String, teamMembers: Option[Seq[AgentUser]], clients: Option[Seq[Enrolment]])
+
+case object GroupRequest {
+  implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] = Json.format[GroupRequest]
 }

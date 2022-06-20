@@ -8,11 +8,23 @@ continue=Continue
 
 common.yes.label=Yes
 common.no.label=No
-
+common.caption.group.name={0} access group
+continue=Continue
+common.what.happens.next=What happens next?
+common.change=Change
 
 continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
+filter.apply=Apply filters
+filter.clear=Clear filters
+
+tax-service.mdt-it=Making Tax Digital for Income Tax
+tax-service.vat=VAT
+tax-service.ppt=Plastic Packaging Tax
+tax-service.cgt=Capital Gains Tax on UK Property account
+tax-service.trusts=Maintain a Trust or Estate
+
 
 opt-in-info.h1=Opting in to use access groups
 opt-in-info.inset=By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login
@@ -53,8 +65,8 @@ you-have-opted-out.button=Return to manage account
 
 group.client.list.h1=Add clients to
 group.client.list.p1=Select clients for this access group by ticking the boxes. You can also use the select all box or search. Then select the "Add clients" button.
-group.client.list.filter.label=Find a client
-group.client.list.filter.hint=You can search by name, tax service or HMRC reference number
+client-filter.text.label=Filter by tax reference or client name
+client-filter.select.label=Filter by tax service
 group.client.list.filter.button=Search
 group.client.list.table.th1=HMRC reference
 group.client.list.table.th2=Client name

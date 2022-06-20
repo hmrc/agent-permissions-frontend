@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import play.api.libs.json.Json
+@import utils.ViewUtils._
 @import views.html.main_layout
 
 @import java.util.Base64
@@ -27,6 +28,9 @@
     caption: caption,
     table: table,
     submit_button: submit_button,
+    submit_button_group: submit_button_group,
+    textbox: textbox,
+    input_select: input_select,
     checkBox: checkBox,
     formWithCSRF: FormWithCSRF
 )
@@ -70,6 +74,29 @@
         </div>
 
         @formWithCSRF(action = routes.GroupController.submitAddClients) {
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-quarter">
+                    @textbox(
+                    field = form("filter"),
+                    label = "client-filter.text.label",
+                    labelClasses = "govuk-label--s",
+                    classes = "govuk-input--width-20"
+                    )
+                </div>
+
+                <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
+                @input_select(
+                    field = form("filter"),
+                    label = msgs("client-filter.select.label"),
+                    options = getFiltersByTaxService()
+                )
+                </div>
+
+                <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
+                @submit_button_group()
+                </div>
+            </div>
 
             <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
 

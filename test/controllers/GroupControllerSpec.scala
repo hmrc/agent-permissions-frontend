@@ -901,21 +901,12 @@ class GroupControllerSpec extends BaseSpec {
 
   s"GET ${routes.GroupController.showGroupCreated.url}" should {
 
-    "render correctly the confirmation page page" in {
+    "render correctly the confirmation page" in {
 
-      val selectedClients = (1 to 4).map(i => {
-        DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"id-key-$i",true)
-      })
-      val selectedTeamMembers = (1 to 6).map(i => {
-        TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"),
-          None, true)
-      })
       stubAuthorisationGrantAccess(mockedAuthResponse)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
-      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
-      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
+      await(sessionCacheRepo.putSession(NAME_OF_GROUP_CREATED, groupName))
 
       val result = controller.showGroupCreated()(request)
 

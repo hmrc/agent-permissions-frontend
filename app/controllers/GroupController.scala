@@ -282,7 +282,9 @@ class GroupController @Inject()
           createGroupResponse.transformWith {
             case Success(_) =>
               sessionCacheService.clearAll()
-              Redirect(routes.GroupController.showGroupCreated).toFuture
+              sessionCacheRepository
+                .putSession[String](NAME_OF_GROUP_CREATED, groupName)
+                .map(_ => Redirect(routes.GroupController.showGroupCreated))
             case Failure(ex) =>
               throw ex
           }
@@ -292,12 +294,13 @@ class GroupController @Inject()
   }
 
   def showGroupCreated: Action[AnyContent] = Action.async { implicit request =>
-    //TODO: probably don't use session now but actual created group from wherever it's saved?
     isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
+      isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) { maybeGroupName =>
+        maybeGroupName.fold(
+          Redirect(routes.GroupController.showGroupName).toFuture
+        )(groupName =>
           Ok(group_created(groupName)).toFuture
-        }
+        )
       }
     }
   }

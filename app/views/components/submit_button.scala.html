@@ -22,12 +22,14 @@
 @(
     messageKey: String = "continue.button",
     id: String = "continue",
+        name: String = "continue",
+        value: String = "continue",
     submitClass: Option[String] = None
 )(implicit msgs: Messages)
 
 
 @button(Button(
-    attributes = Map("id" -> s"${id}"),
+    attributes = Map("id" -> s"$id", "name" -> s"$name", "value" -> s"$value"),
     classes = s"${submitClass.getOrElse("")}",
     inputType = Some("submit"),
     content = Text(msgs(messageKey))

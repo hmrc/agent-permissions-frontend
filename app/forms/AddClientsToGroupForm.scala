@@ -20,22 +20,65 @@ import models.DisplayClient
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json.{parse, toJson}
+import uk.gov.voa.play.form.Condition
+import uk.gov.voa.play.form.ConditionalMappings._
 
 import java.util.Base64.{getDecoder, getEncoder}
 
 
+
+case class AddClientsToGroup(hiddenClients: Boolean, search: Option[String], filter: Option[String], clients: Option[List[DisplayClient]])
+
 object AddClientsToGroupForm {
 
-  def form(): Form[List[DisplayClient]] = {
-    Form(
-      single(
-        "clients" -> list(text)
-          .transform[List[DisplayClient]](
-          _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient]),
-          _.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes))
+
+  private def fieldIsEmpty(fieldName: String): Condition = _.get(fieldName).exists(v => v.isEmpty)
+
+  def form(buttonPressed: String = "continue"): Form[AddClientsToGroup] = {
+    buttonPressed match {
+      case "continue" =>
+        Form(
+          mapping(
+            "hiddenClients" -> boolean,
+            "search" -> optional(text),
+            "filter" -> optional(text),
+            "clients" -> mandatoryIfFalse("hiddenClients", list(text)
+              .transform[List[DisplayClient]](
+                _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient]),
+                _.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes))
+              ).verifying("must select a client", _.nonEmpty)
+            )
+          )(AddClientsToGroup.apply)(AddClientsToGroup.unapply _)
         )
-          .verifying("error.client.list.empty", _.nonEmpty)
+      case "filter" =>
+        Form(
+          mapping(
+            "hiddenClients" -> boolean,
+            "search" -> mandatoryIf(fieldIsEmpty("filter"), text.verifying("you must enter search", _.nonEmpty)),
+            "filter" -> mandatoryIf(fieldIsEmpty("search"), text.verifying("enter a filter term", _.nonEmpty)),
+            "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
+              maybeStrList => maybeStrList.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
+              maybeDisplayClientList => maybeDisplayClientList.map(displayClientList => displayClientList.map(
+                dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)
+              ))
+            )
+          )(AddClientsToGroup.apply)(AddClientsToGroup.unapply _)
+        )
+      case "clear" =>
+      Form(
+        mapping(
+          "hiddenClients" -> boolean,
+          "search" -> optional(text),
+          "filter" -> optional(text),
+          "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
+            maybeStrList => maybeStrList.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
+            maybeDisplayClientList => maybeDisplayClientList.map(displayClientList => displayClientList.map(
+              dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)
+            ))
+          )
+        )(AddClientsToGroup.apply)(AddClientsToGroup.unapply _)
       )
-    )
+      case e => throw new RuntimeException(s"invalid button $e")
+    }
   }
 }

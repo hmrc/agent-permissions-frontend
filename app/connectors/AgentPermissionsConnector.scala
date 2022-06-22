@@ -44,6 +44,8 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
   def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
 }
 
 @Singleton
@@ -103,10 +105,28 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
       }
     }
   }
+
+  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] =  {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups-information "
+    monitor("ConsumedAPI-groupSummaries-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK             => response.json.asOpt[Seq[GroupSummary]]
+          case anyOtherStatus => throw UpstreamErrorResponse(s"error getting group summary for arn $arn, from $url", anyOtherStatus)
+        }
+      }
+    }
+  }
 }
 
 case class GroupRequest(groupName: String, teamMembers: Option[Seq[AgentUser]], clients: Option[Seq[Enrolment]])
 
 case object GroupRequest {
   implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] = Json.format[GroupRequest]
+}
+
+case class GroupSummary(groupId: String, groupName: String, clientCount: Int, teamMemberCount: Int)
+
+case object GroupSummary{
+  implicit val formatCreateAccessGroupRequest: OFormat[GroupSummary] = Json.format[GroupSummary]
 }

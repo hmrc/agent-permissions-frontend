@@ -18,6 +18,12 @@ submit.button=Submit
 filter.apply=Apply filters
 filter.clear=Clear filters
 
+cya.th.clients=Clients
+cya.th.members=Team members
+
+error.select-clients.empty=You must select at least one client
+error.search-filter.empty=You must enter a tax reference, client name or select a tax service to apply filters
+
 tax-service.mdt-it=Making Tax Digital for Income Tax
 tax-service.vat=VAT
 tax-service.ppt=Plastic Packaging Tax
@@ -102,8 +108,6 @@ cya.h1=Check your answers
 cya.p=Confirm clients and team members selected for this access group
 cya.inset=The team members you have selected will have permission to view and manage the tax affairs of all the clients in this access group
 
-cya.th.clients=Clients
-cya.th.members=Team members
 
 group.created.h1=Access group created
 group.created.panelContent={0} access group is now active

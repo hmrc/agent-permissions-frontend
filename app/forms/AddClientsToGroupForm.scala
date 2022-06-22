@@ -56,7 +56,7 @@ object AddClientsToGroupForm {
               ))
             )
           )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
-            .verifying("error.search-filter.empty", x => x.filter.isDefined || x.search.isDefined)
+            .verifying(error="error.search-filter.empty", x => x.filter.isDefined || x.search.isDefined)
         )
       case Clear =>
       Form(

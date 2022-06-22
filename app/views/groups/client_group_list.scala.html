@@ -20,6 +20,7 @@
 @import utils.ViewUtils._
 @import views.html.main_layout
 @import models.AddClientsToGroup
+@import models.ButtonSelect.{Clear, Continue, Filter}
 
 @import java.util.Base64
 
@@ -57,7 +58,7 @@
                 ),
                 Html(client.name),
                 Html(client.hmrcRef),
-                Html(client.taxService),
+                Html(displayTaxServiceFromServiceKey(client.taxService)),
             )
         )
         )
@@ -72,6 +73,10 @@
     ) {
 
     <p>@form</p>
+    <p>Errors = @form.errors</p>
+    <p>Global errors = @form.globalErrors</p>
+    <p>Clients @form.errors.map(error => error.key).contains("clients")</p>
+    <p>Filters @form.errors.map(error => error.message).contains("error.search-filter.empty")</p>
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
@@ -84,6 +89,22 @@
         <input type="hidden" name="hiddenClients" value=@hiddenClientsExist.getOrElse(false)>
 
             <div class="govuk-grid-row">
+                @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
+                <div class="govuk-form-group govuk-form-group--error">
+                }
+
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                        Filters
+                    </legend>
+
+                @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
+                    <p id="filter-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">Error:</span>
+                        @msgs("error.search-filter.empty")
+                    </p>
+                    }
+
                 <div class="govuk-grid-column-one-quarter">
                     @textbox(
                     field = form("search"),
@@ -104,7 +125,19 @@
                 <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
                 @submit_button_group()
                 </div>
+                </fieldset>
+                    @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
             </div>
+
+
+
+        @if(form.errors.map(error => error.key).contains("clients")) {
+        <div class="govuk-form-group govuk-form-group--error">
+            <p id="clients-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                @msgs("error.select-clients.empty")
+            </p>
+            }
 
             <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
 
@@ -131,6 +164,8 @@
                 rows = tableRows,
             )
             </div>
+            @if(form.errors.map(error => error.key).contains("clients")) {</div>}
+
             @submit_button("save.and.continue.button")
         }
     }

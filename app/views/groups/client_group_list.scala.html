@@ -49,6 +49,8 @@
                 Html(
                     checkBox(
                         name = Some("clients[]"),
+                        id = Some(s"add-client-${Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)}"),
+                        label = client.name,
                         value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)),
                         checked = client.selected
                     ).toString

@@ -16,27 +16,22 @@
 
 package forms
 
-import models.DisplayClient
+import models.ButtonSelect.{Clear, Continue, Filter}
+import models.{ButtonSelect, DisplayClient}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json.{parse, toJson}
-import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
 
 import java.util.Base64.{getDecoder, getEncoder}
-
-
 
 case class AddClientsToGroup(hiddenClients: Boolean, search: Option[String], filter: Option[String], clients: Option[List[DisplayClient]])
 
 object AddClientsToGroupForm {
 
-
-  private def fieldIsEmpty(fieldName: String): Condition = _.get(fieldName).exists(v => v.isEmpty)
-
-  def form(buttonPressed: String = "continue"): Form[AddClientsToGroup] = {
+  def form(buttonPressed: ButtonSelect = Continue): Form[AddClientsToGroup] = {
     buttonPressed match {
-      case "continue" =>
+      case Continue =>
         Form(
           mapping(
             "hiddenClients" -> boolean,
@@ -46,16 +41,16 @@ object AddClientsToGroupForm {
               .transform[List[DisplayClient]](
                 _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient]),
                 _.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes))
-              ).verifying("must select a client", _.nonEmpty)
+              ).verifying("error.select-clients.empty", _.nonEmpty)
             )
           )(AddClientsToGroup.apply)(AddClientsToGroup.unapply _)
         )
-      case "filter" =>
+      case Filter =>
         Form(
           mapping(
             "hiddenClients" -> boolean,
-            "search" -> mandatoryIf(fieldIsEmpty("filter"), text.verifying("you must enter search", _.nonEmpty)),
-            "filter" -> mandatoryIf(fieldIsEmpty("search"), text.verifying("enter a filter term", _.nonEmpty)),
+            "search" -> optional(text),
+            "filter" -> optional(text),
             "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
               maybeStrList => maybeStrList.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
               maybeDisplayClientList => maybeDisplayClientList.map(displayClientList => displayClientList.map(
@@ -63,8 +58,9 @@ object AddClientsToGroupForm {
               ))
             )
           )(AddClientsToGroup.apply)(AddClientsToGroup.unapply _)
+            .verifying("error.search-filter.empty", x => x.filter.isDefined || x.search.isDefined)
         )
-      case "clear" =>
+      case Clear =>
       Form(
         mapping(
           "hiddenClients" -> boolean,

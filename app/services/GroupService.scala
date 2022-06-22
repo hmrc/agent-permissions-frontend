@@ -83,7 +83,9 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
     for {
       clients             <- getClients(arn).map(_.map(_.toVector))
       maybeTaxService     = formData.filter
-      resultByTaxService  = maybeTaxService.fold(clients)(term => clients.map(_.filter(_.taxService == term)))
+      resultByTaxService  = maybeTaxService.fold(clients)(term => if(term == "TRUST") clients.map(_.filter(_.taxService.contains("HMRC-TERS")))
+      else clients.map(_.filter(_.taxService == term))
+      )
       maybeTaxRefOrName   = formData.search
       resultByName        = maybeTaxRefOrName.fold(resultByTaxService)(term => resultByTaxService.map(_.filter(_.name.contains(term))))
       resultByTaxRef      = maybeTaxRefOrName.fold(resultByTaxService)(term => resultByTaxService.map(_.filter(_.hmrcRef.contains(term))))

@@ -1,11 +1,15 @@
 @import "lib/govuk-frontend/govuk/base";
 @import "moj-frontend.min.css";
 
-div#scrollable-table-container {
+div.scrollable-table-container {
   max-height: 300px;
   overflow-y: auto;
   border-top:1px solid lightgray;
   border-bottom:1px solid lightgray;
+
+    &.scrollable-table-container:focus {
+        outline: 4px solid $govuk-focus-colour
+    }
 
   table {
     th, td{

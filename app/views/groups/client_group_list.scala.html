@@ -69,14 +69,9 @@
         title = msgs("group.client.list.h1", groupName),
         backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
         formErrors = form.errors,
+        customError = Some("search"),
         fullWidth = true,
     ) {
-
-    <p>@form</p>
-    <p>Errors = @form.errors</p>
-    <p>Global errors = @form.globalErrors</p>
-    <p>Clients @form.errors.map(error => error.key).contains("clients")</p>
-    <p>Filters @form.errors.map(error => error.message).contains("error.search-filter.empty")</p>
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
@@ -139,7 +134,7 @@
             </p>
             }
 
-            <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
+            <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients">
 
             @table(
                 id = Some("client-list-table"),

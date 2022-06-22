@@ -39,7 +39,7 @@ package object controllers {
   val GROUP_TEAM_MEMBERS_SELECTED: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
-  val HIDDEN_CLIENTS: DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
+  val HIDDEN_CLIENTS_EXIST: DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
 
   val sessionKeys = List(OPTIN_STATUS, GROUP_NAME, GROUP_NAME_CONFIRMED, GROUP_CLIENTS)
 

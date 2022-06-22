@@ -19,7 +19,7 @@
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
 @import views.html.main_layout
-@import forms.AddClientsToGroup
+@import models.AddClientsToGroup
 
 @import java.util.Base64
 
@@ -39,7 +39,7 @@
 @(
     clients: Option[Seq[DisplayClient]] = None,
     groupName: String,
-        hiddenClientsExist: Option[Boolean],
+    hiddenClientsExist: Option[Boolean],
     form: Form[AddClientsToGroup]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -69,6 +69,8 @@
         fullWidth = true,
     ) {
 
+    <p>@form</p>
+
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
             @h1(msgs("group.client.list.h1", groupName))
@@ -77,7 +79,7 @@
 
         @formWithCSRF(action = routes.GroupController.submitSelectedClients) {
 
-    <input type="hidden" name="hiddenClients" value=@hiddenClientsExist.getOrElse(false)>
+        <input type="hidden" name="hiddenClients" value=@hiddenClientsExist.getOrElse(false)>
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-one-quarter">

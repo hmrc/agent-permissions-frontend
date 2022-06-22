@@ -17,10 +17,10 @@
 package controllers
 
 import config.AppConfig
+import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, CreateGroupForm, YesNoForm}
+import models.{ButtonSelect, DisplayClient, TeamMember}
 import connectors.{AgentPermissionsConnector, GroupRequest}
-import forms.{AddClientsToGroup, AddClientsToGroupForm, AddTeamMembersToGroupForm, CreateGroupForm, YesNoForm}
 import models.DisplayClient.toEnrolment
-import models.{DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -59,7 +59,7 @@ class GroupController @Inject()
   import authAction._
 
 
-  def start = Action {
+  def start: Action[AnyContent] = Action {
     Redirect(routes.GroupController.showGroupName)
   }
 
@@ -124,7 +124,7 @@ class GroupController @Inject()
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
           isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(arn) { maybeFilteredResult =>
-            isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS)(arn) { maybeHiddenClients =>
+            isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS_EXIST)(arn) { maybeHiddenClients =>
               if (maybeFilteredResult.isDefined) Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, AddClientsToGroupForm.form())).toFuture
               else groupService.getClients(arn).flatMap { maybeClients =>
                 Ok(client_group_list(maybeClients, groupName, maybeHiddenClients, AddClientsToGroupForm.form())).toFuture
@@ -139,28 +139,31 @@ class GroupController @Inject()
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
 
-      val buttonPressed = request.body.asFormUrlEncoded
-        .fold("")(someMap => someMap
-          .getOrElse("continue", someMap.getOrElse("filter", throw new RuntimeException("invalid button value"))).last)
+      val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
+        .fold(ButtonSelect.Continue: ButtonSelect)(someMap => ButtonSelect(someMap
+          .getOrElse(ButtonSelect.Continue, someMap.getOrElse(ButtonSelect.Filter, throw new RuntimeException("invalid button value"))).last))
 
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
           isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(arn) { maybeFilteredResult =>
-            isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS)(arn) { maybeHiddenClients =>
-
+            isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS_EXIST)(arn) { maybeHiddenClients =>
               AddClientsToGroupForm
-                .form(buttonPressed)
+                .form(buttonSelection)
                 .bindFromRequest()
                 .fold(
                   formWithErrors => {
-                    if (maybeFilteredResult.isDefined) Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, formWithErrors)).toFuture
-                    else groupService.getClients(arn).flatMap { maybeClients =>
-                      Ok(client_group_list(maybeClients, groupName, maybeHiddenClients, formWithErrors)).toFuture
-                    }
+                    for {
+                      _       <- if(buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else ().toFuture
+                      result  <- if(maybeFilteredResult.isDefined)
+                                  Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, formWithErrors)).toFuture
+                                    else groupService.getClients(arn).flatMap { maybeClients =>
+                                      Ok(client_group_list(maybeClients, groupName, maybeHiddenClients, formWithErrors)).toFuture
+                      }
+                    } yield result
                   },
                   formData => {
-                    groupService.processFormData(buttonPressed)(arn)(formData).map(_ =>
-                      if(buttonPressed == "continue") Redirect(routes.GroupController.showReviewSelectedClients)
+                    groupService.processFormData(buttonSelection)(arn)(formData).map(_ =>
+                      if(buttonSelection == ButtonSelect.Continue) Redirect(routes.GroupController.showReviewSelectedClients)
                       else Redirect(routes.GroupController.showSelectClients))
                   }
                 )

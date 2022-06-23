@@ -20,6 +20,7 @@ import connectors.AgentUserClientDetailsConnector
 import helpers.BaseSpec
 import models.{DisplayClient, TeamMember}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -28,8 +29,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class GroupServiceSpec extends BaseSpec {
 
   val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  val service = new GroupService(mockAgentUserClientDetailsConnector)
+  val service = new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
 
 
   "getClients" should {
@@ -43,7 +45,7 @@ class GroupServiceSpec extends BaseSpec {
         .returning(Future successful Some(fakeClients))
 
       //when
-      val maybeClients: Option[Seq[DisplayClient]] = await(service.getClients(arn)(None))
+      val maybeClients: Option[Seq[DisplayClient]] = await(service.getClients(arn))
       val clients: Seq[DisplayClient] = maybeClients.get
 
       //then

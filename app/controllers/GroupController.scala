@@ -125,7 +125,8 @@ class GroupController @Inject()
         maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
           isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(arn) { maybeFilteredResult =>
             isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS_EXIST)(arn) { maybeHiddenClients =>
-              if (maybeFilteredResult.isDefined) Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, AddClientsToGroupForm.form())).toFuture
+              if (maybeFilteredResult.isDefined)
+                Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, AddClientsToGroupForm.form())).toFuture
               else groupService.getClients(arn).flatMap { maybeClients =>
                 Ok(client_group_list(maybeClients, groupName, maybeHiddenClients, AddClientsToGroupForm.form())).toFuture
               }
@@ -138,11 +139,9 @@ class GroupController @Inject()
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-
       val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
         .fold(ButtonSelect.Continue: ButtonSelect)(someMap => ButtonSelect(someMap
-          .getOrElse(ButtonSelect.Continue, someMap.getOrElse(ButtonSelect.Filter, throw new RuntimeException("invalid button value"))).last))
-
+          .getOrElse(ButtonSelect.Continue, someMap.getOrElse(ButtonSelect.Filter, throw new RuntimeException("invalid button value for submitAddClients"))).last))
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
           isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(arn) { maybeFilteredResult =>
@@ -153,7 +152,9 @@ class GroupController @Inject()
                 .fold(
                   formWithErrors => {
                     for {
-                      _       <- if(buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else ().toFuture
+                      _       <- if(buttonSelection == ButtonSelect.Continue)
+                        sessionCacheService.clearSelectedClients()
+                      else ().toFuture
                       result  <- if(maybeFilteredResult.isDefined)
                                   Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, formWithErrors)).toFuture
                                     else groupService.getClients(arn).flatMap { maybeClients =>

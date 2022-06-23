@@ -38,7 +38,7 @@ object ButtonSelect {
    case "clear" => Clear
  }
 
-  implicit def unapply(o: ButtonSelect): String = o match {
+   implicit def unapply(o: ButtonSelect): String = o match {
    case Continue => "continue"
    case Filter => "filter"
    case Clear => "clear"

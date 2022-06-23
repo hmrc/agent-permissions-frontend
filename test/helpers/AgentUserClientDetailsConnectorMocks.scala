@@ -18,7 +18,7 @@ package helpers
 
 import connectors.AgentUserClientDetailsConnector
 import org.scalamock.scalatest.MockFactory
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,6 +37,21 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory{
 
   def stubGetClientsError(arn: Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector.getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .throwing(UpstreamErrorResponse.apply("error", 503))
+
+  def stubGetTeamMembersOk(arn:Arn)(teamMembers: Seq[UserDetails])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector.getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful Some(teamMembers))
+
+  def stubGetTeamMembersAccepted(arn:Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector.getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful None)
+
+  def stubGetTeamMembersError(arn:Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector.getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 }

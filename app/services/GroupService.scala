@@ -49,14 +49,14 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
                     (maybeTeamMembers: Option[Seq[TeamMember]] = None)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
     for {
-      es3Users              <- agentUserClientDetailsConnector.getTeamMembers(arn)
-      es3AsTeamMembers      = es3Users.map(list => list.map(TeamMember.fromUserDetails(_)))
-      es3WithoutPreSelected = es3AsTeamMembers.map(teamMembers =>
+      ugsUsers              <- agentUserClientDetailsConnector.getTeamMembers(arn)
+      ugsAsTeamMembers      = ugsUsers.map(list => list.map(TeamMember.fromUserDetails(_)))
+      ugsWithoutPreSelected = ugsAsTeamMembers.map(teamMembers =>
                                 teamMembers.filterNot(teamMember =>
                                   maybeTeamMembers.fold(false)(_.map(_.userId).contains(teamMember.userId))
         )
       )
-      mergedWithPreselected = es3WithoutPreSelected
+      mergedWithPreselected = ugsWithoutPreSelected
                                 .map(_.toList ::: maybeTeamMembers.getOrElse(List.empty).toList)
                                 .map(_.sortBy(_.name))
     } yield mergedWithPreselected

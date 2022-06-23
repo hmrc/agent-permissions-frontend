@@ -16,10 +16,11 @@
 
 package forms
 
-import models.DisplayClient
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.data.FormError
 import play.api.libs.json.Json
 
 import java.util.Base64
@@ -28,6 +29,9 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
   with Matchers
   with GuiceOneAppPerSuite {
 
+  val hiddenClients = "hiddenClients"
+  val search = "search"
+  val filter = "filter"
   val clients = "clients[]"
 
   "CreateGroupFrom binding" should {
@@ -37,24 +41,54 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
 
     val encode: DisplayClient => String = client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes)
 
-    "be fillable with a list of DisplayClients" in {
-      val validatedForm = AddClientsToGroupForm.form().fill(List(client1, client2))
+    "be fillable with a AddClientsToGroup" in {
+      val validatedForm = AddClientsToGroupForm.form().fill(AddClientsToGroup(false, None, None, Some(List(client1, client2))))
       validatedForm.hasErrors shouldBe false
-      validatedForm.value shouldBe Option(List(client1, client2))
+      validatedForm.value shouldBe Option(AddClientsToGroup(false, None, None, Some(List(client1, client2))))
     }
 
-    "be successful when non-empty" in {
-      val params: Map[String, List[String]] = Map(clients -> List(encode(client1), encode(client2)))
+    "be successful when clients are non-empty" in {
+      val params = Map(
+        hiddenClients -> List("false"),
+        search -> List.empty,
+        filter -> List.empty,
+        clients -> List(encode(client1), encode(client2)
+        )
+      )
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.value shouldBe Some(List(client1, client2))
+      boundForm.value shouldBe Some(AddClientsToGroup(false, None, None, Some(List(client1, client2))))
     }
 
-    "have errors when empty" in {
-      val params: Map[String, List[String]] = Map(clients -> List.empty[String])
+    "be successful when button is Clear and form is empty" in {
+      val params = Map(
+        hiddenClients -> List("false"),
+        search -> List.empty,
+        filter -> List.empty,
+        clients -> List.empty
+      )
+      val boundForm = AddClientsToGroupForm.form(ButtonSelect.Clear).bindFromRequest(params)
+      boundForm.value shouldBe Some(AddClientsToGroup(false, None, None, None))
+    }
+
+    "have errors when clients is empty and hiddenClients is false" in {
+      val params = Map(
+        hiddenClients -> List("false"),
+        search -> List.empty,
+        filter -> List.empty,
+        clients -> List.empty)
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.value shouldBe None
+      boundForm.errors shouldBe List(FormError("clients", List("error.select-clients.empty")))
     }
 
+    "have errors when button is Filter and search and filter fields are empty" in {
+      val params = Map(
+        hiddenClients -> List("false"),
+        search -> List.empty,
+        filter -> List.empty,
+        clients -> List(encode(client1), encode(client2)))
+      val boundForm = AddClientsToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
+      boundForm.errors shouldBe List(FormError("", List("error.search-filter.empty")))
+    }
   }
 
 }

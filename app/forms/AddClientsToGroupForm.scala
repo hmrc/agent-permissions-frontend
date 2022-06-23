@@ -50,8 +50,8 @@ object AddClientsToGroupForm {
             "search" -> optional(text),
             "filter" -> optional(text),
             "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
-              maybeStrList => maybeStrList.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
-              maybeDisplayClientList => maybeDisplayClientList.map(displayClientList => displayClientList.map(
+              _.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
+              _.map(displayClientList => displayClientList.map(
                 dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)
               ))
             )
@@ -65,8 +65,8 @@ object AddClientsToGroupForm {
           "search" -> optional(text),
           "filter" -> optional(text),
           "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
-            maybeStrList => maybeStrList.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
-            maybeDisplayClientList => maybeDisplayClientList.map(displayClientList => displayClientList.map(
+            _.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
+            _.map(displayClientList => displayClientList.map(
               dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)
             ))
           )

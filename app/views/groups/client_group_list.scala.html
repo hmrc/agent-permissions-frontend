@@ -90,7 +90,7 @@
 
                 <fieldset class="govuk-fieldset">
                     <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                        Filters
+                        @msgs("filter.legend")
                     </legend>
 
                 @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {

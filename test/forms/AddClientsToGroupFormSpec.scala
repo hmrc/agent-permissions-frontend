@@ -29,7 +29,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
   with Matchers
   with GuiceOneAppPerSuite {
 
-  val hiddenClients = "hiddenClients"
+  val hasSelectedClients = "hasSelectedClients"
   val search = "search"
   val filter = "filter"
   val clients = "clients[]"
@@ -49,7 +49,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
 
     "be successful when clients are non-empty" in {
       val params = Map(
-        hiddenClients -> List("false"),
+        hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List.empty,
         clients -> List(encode(client1), encode(client2)
@@ -61,7 +61,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
 
     "be successful when button is Clear and form is empty" in {
       val params = Map(
-        hiddenClients -> List("false"),
+        hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List.empty,
         clients -> List.empty
@@ -72,7 +72,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
 
     "have errors when clients is empty and hiddenClients is false" in {
       val params = Map(
-        hiddenClients -> List("false"),
+        hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List.empty,
         clients -> List.empty)
@@ -82,7 +82,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
 
     "have errors when button is Filter and search and filter fields are empty" in {
       val params = Map(
-        hiddenClients -> List("false"),
+        hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List.empty,
         clients -> List(encode(client1), encode(client2)))

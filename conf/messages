@@ -15,6 +15,7 @@ common.change=Change
 continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
+filter.legend=Filters
 filter.apply=Apply filters
 filter.clear=Clear filters
 

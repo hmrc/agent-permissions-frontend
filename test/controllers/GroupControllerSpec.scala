@@ -413,7 +413,7 @@ class GroupControllerSpec extends BaseSpec {
 
         implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
           .withFormUrlEncodedBody(
-            "hiddenClients" -> "false",
+            "hasSelectedClients" -> "false",
             "clients[0]" -> encodedDisplayClients.head,
             "clients[1]" -> encodedDisplayClients.last,
             "search" -> "",
@@ -448,7 +448,7 @@ class GroupControllerSpec extends BaseSpec {
 
         implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
           .withFormUrlEncodedBody(
-            "hiddenClients" -> "false",
+            "hasSelectedClients" -> "false",
             "clients[0]" -> encodedDisplayClients.head,
             "clients[1]" -> encodedDisplayClients.last,
             "search" -> "friendly0",
@@ -484,7 +484,7 @@ class GroupControllerSpec extends BaseSpec {
 
         implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
           .withFormUrlEncodedBody(
-            "hiddenClients" -> "false",
+            "hasSelectedClients" -> "false",
             "clients[0]" -> encodedDisplayClients.head,
             "clients[1]" -> encodedDisplayClients.last,
             "search" -> "",
@@ -523,7 +523,7 @@ class GroupControllerSpec extends BaseSpec {
           "POST",
           routes.GroupController.submitSelectedClients.url
         ).withFormUrlEncodedBody(
-          "hiddenClients" -> "false",
+          "hasSelectedClients" -> "false",
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
@@ -564,7 +564,7 @@ class GroupControllerSpec extends BaseSpec {
         "POST",
         routes.GroupController.submitSelectedClients.url
       ).withFormUrlEncodedBody(
-        "hiddenClients" -> "false",
+        "hasSelectedClients" -> "false",
         "clients" -> "",
         "search" -> "",
         "filter" -> "",
@@ -599,7 +599,7 @@ class GroupControllerSpec extends BaseSpec {
           "POST",
           routes.GroupController.submitSelectedClients.url
         ).withFormUrlEncodedBody(
-          "hiddenClients" -> "false",
+          "hasSelectedClients" -> "false",
           "filter" -> "",
           "filter" -> "filter"
         ).withSession(SessionKeys.sessionId -> "session-x")

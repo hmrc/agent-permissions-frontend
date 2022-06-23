@@ -32,10 +32,10 @@ object AddClientsToGroupForm {
       case Continue =>
         Form(
           mapping(
-            "hiddenClients" -> boolean,
+            "hasSelectedClients" -> boolean,
             "search" -> optional(text),
             "filter" -> optional(text),
-            "clients" -> mandatoryIfFalse("hiddenClients", list(text)
+            "clients" -> mandatoryIfFalse("hasSelectedClients", list(text)
               .transform[List[DisplayClient]](
                 _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient]),
                 _.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes))
@@ -46,7 +46,7 @@ object AddClientsToGroupForm {
       case Filter =>
         Form(
           mapping(
-            "hiddenClients" -> boolean,
+            "hasSelectedClients" -> boolean,
             "search" -> optional(text),
             "filter" -> optional(text),
             "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
@@ -61,7 +61,7 @@ object AddClientsToGroupForm {
       case Clear =>
       Form(
         mapping(
-          "hiddenClients" -> boolean,
+          "hasSelectedClients" -> boolean,
           "search" -> optional(text),
           "filter" -> optional(text),
           "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](

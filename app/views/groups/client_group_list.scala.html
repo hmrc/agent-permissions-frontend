@@ -81,7 +81,7 @@
 
         @formWithCSRF(action = routes.GroupController.submitSelectedClients) {
 
-        <input type="hidden" name="hiddenClients" value=@hiddenClientsExist.getOrElse(false)>
+        <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
 
             <div class="govuk-grid-row">
                 @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {

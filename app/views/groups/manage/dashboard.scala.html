@@ -1,0 +1,85 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import views.html.main_layout
+@import connectors.GroupSummary
+@import views.components.models.SummaryListData
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1, h2: h2,
+        summary_list: summary_list,
+    govukTabs: GovukTabs
+)
+
+@(summaries : (Seq[GroupSummary], Seq[DisplayClient]))(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@groupSummaries = {
+    @h2("group.manage.tabs.1.label")
+    @summaries._1.map{ summary =>
+        @h2(summary.groupName)
+        @summary_list(Seq(
+            SummaryListData(
+                "common.clients",
+                summary.clientCount.toString,
+                routes.ManageGroupController.showManageGroupClients(summary.groupId)
+            ),
+            SummaryListData(
+                "common.teamMembers",
+                summary.teamMemberCount.toString,
+                routes.ManageGroupController.showManageGroupTeamMembers(summary.groupId)
+            ),
+        ))
+
+        <hr  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+        style="height:3px;border-width:0;color:#c6c6c6;background-color:#c6c6c6">
+
+
+    }
+}
+
+@unassignedClients = {
+    @summaries._2.map{ client =>
+        <p>@{client.hmrcRef}</p>
+        <p>@{client.name}</p>
+        <p>@{client.taxService}</p>
+    }
+}
+
+@layout(title = msgs("group.manage.h1")) {
+
+
+    @h1("group.manage.h1")
+    @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"))
+
+    @govukTabs(Tabs(
+        id = Some("manage-groups-tabs"),
+        items = Seq(
+            TabItem(
+                id = Some("groups-panel"),
+                label = msgs("group.manage.tabs.1.label"),
+                panel = TabPanel(content = HtmlContent(groupSummaries))
+            ),
+            TabItem(
+                id = Some("clients-panel"),
+                label = msgs("group.manage.tabs.2.label"),
+                panel = TabPanel(content = HtmlContent(unassignedClients))
+            )
+        )
+    ))
+
+}

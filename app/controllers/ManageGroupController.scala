@@ -17,12 +17,14 @@
 package controllers
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
+import connectors.{AgentPermissionsConnector, GroupSummary}
+import models.DisplayClient
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import views.html.groups.manage.dashboard
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -32,6 +34,7 @@ class ManageGroupController @Inject()
 (
   authAction: AuthAction,
   mcc: MessagesControllerComponents,
+  dashboard: dashboard,
   val agentPermissionsConnector: AgentPermissionsConnector,
   val sessionCacheRepository: SessionCacheRepository,
 )(
@@ -47,12 +50,18 @@ class ManageGroupController @Inject()
         response <- agentPermissionsConnector.groupsSummaries(arn)
       } yield response
 
-      summaries.map{s =>
-        println(s)
-        Ok(s.toString)
+      summaries.map { s: Option[(Seq[GroupSummary], Seq[DisplayClient])] =>
+        Ok(dashboard(s.getOrElse((Seq.empty[GroupSummary], Seq.empty[DisplayClient]))))
       }
     }
+  }
 
+  def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    Ok(s"not yet implemented ${groupId}").toFuture
+  }
+
+  def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    Ok(s"not yet implemented ${groupId}").toFuture
   }
 
 }

@@ -12,6 +12,9 @@ continue=Continue
 common.what.happens.next=What happens next?
 common.change=Change
 
+common.clients=Clients
+common.teamMembers=Team members
+
 continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
@@ -102,11 +105,13 @@ cya.h1=Check your answers
 cya.p=Confirm clients and team members selected for this access group
 cya.inset=The team members you have selected will have permission to view and manage the tax affairs of all the clients in this access group
 
-cya.th.clients=Clients
-cya.th.members=Team members
-
 group.created.h1=Access group created
 group.created.panelContent={0} access group is now active
 group.created.p=The team members you selected can now view and manage the tax affairs of all the clients in this access group
 group.created.a=Return to manage account
+
+group.manage.h1=Manage Access Groups
+group.manage.p=The team members in the group will be able to manage the tax affairs of clients in the group
+group.manage.tabs.1.label=Access Groups
+group.manage.tabs.2.label=Unassigned clients
 

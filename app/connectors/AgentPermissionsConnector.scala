@@ -21,11 +21,12 @@ import com.codahale.metrics.MetricRegistry
 import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
+import models.DisplayClient
 import play.api.Logging
 import play.api.http.Status.{CREATED, OK}
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, Enrolment, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, Client, Enrolment, OptinStatus}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -45,7 +46,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
+  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]]
 }
 
 @Singleton
@@ -106,14 +107,21 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] =  {
+  def groupsSummaries(arn: Arn)
+                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]] =  {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups-information "
     monitor("ConsumedAPI-groupSummaries-GET") {
       http.GET[HttpResponse](url).map { response =>
-        response.status match {
-          case OK             => response.json.asOpt[Seq[GroupSummary]]
+        println(response.json.toString())
+
+        val maybeSummaries = response.status match {
+          case OK => response.json.asOpt[AccessGroupSummaries]
           case anyOtherStatus => throw UpstreamErrorResponse(s"error getting group summary for arn $arn, from $url", anyOtherStatus)
         }
+        val maybeTuple = maybeSummaries.map { maybeSummaries =>
+          (maybeSummaries.groups, maybeSummaries.unassignedClients.map(DisplayClient.fromClient(_)).toSeq)
+        }
+        maybeTuple
       }
     }
   }
@@ -129,4 +137,10 @@ case class GroupSummary(groupId: String, groupName: String, clientCount: Int, te
 
 case object GroupSummary{
   implicit val formatCreateAccessGroupRequest: OFormat[GroupSummary] = Json.format[GroupSummary]
+}
+
+case class AccessGroupSummaries(groups: Seq[GroupSummary], unassignedClients: Set[Client])
+
+object AccessGroupSummaries {
+  implicit val format: OFormat[AccessGroupSummaries] = Json.format[AccessGroupSummaries]
 }

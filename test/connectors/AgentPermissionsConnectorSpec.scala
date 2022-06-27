@@ -19,10 +19,12 @@ package connectors
 import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
+import models.DisplayClient
 import play.api.Application
-import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR}
+import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, OK}
+import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with AgentPermissionsConnectorMocks {
@@ -106,6 +108,47 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
       mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.createGroup(arn)(groupRequest))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "GET GroupSummaries" should {
+
+    "return successfully" in {
+      //given
+      val groupSummaries = Seq(
+        GroupSummary("groupId", "groupName", 33, 9)
+      )
+      val groupSummaryResponse = AccessGroupSummaries(
+        groupSummaries,
+        Set(Client("taxService~identKey~hmrcRef", "name"))
+      )
+      val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups-information"
+      val mockJsonResponseBody = Json.toJson(groupSummaryResponse).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      //when
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //and
+      val expectedTransformedResponse = Some(
+        (groupSummaries,
+        Seq(DisplayClient("hmrcRef","name","taxService","identKey")))
+      )
+      //then
+      connector.groupsSummaries(arn).futureValue shouldBe expectedTransformedResponse
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      //given
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.groupsSummaries(arn))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }

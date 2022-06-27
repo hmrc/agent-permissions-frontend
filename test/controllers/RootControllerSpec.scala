@@ -51,7 +51,7 @@ class RootControllerSpec extends BaseSpec {
     "no session is available" should {
       "retrieve opt-in status from backend and redirect to self if status available" in {
 
-        stubAuthorisationGrantAccess(mockedAuthResponse)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
         stubOptInStatusOk(arn)(OptedOutEligible)
 
         val result = controller.start()(request)
@@ -63,7 +63,7 @@ class RootControllerSpec extends BaseSpec {
 
       "throw an exception if there was no response from the backend" in {
 
-        stubAuthorisationGrantAccess(mockedAuthResponse)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
         stubOptInStatusError(arn)
 
         intercept[UpstreamErrorResponse] {
@@ -75,7 +75,7 @@ class RootControllerSpec extends BaseSpec {
     "a session is available" should {
       "redirect to opt-in journey if the optin status is eligible to opt-in" in {
 
-        stubAuthorisationGrantAccess(mockedAuthResponse)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
         await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
         val result = controller.start()(request)
@@ -87,7 +87,7 @@ class RootControllerSpec extends BaseSpec {
 
       "redirect to opt-out journey if the optin status is eligible to opt-out" in {
 
-        stubAuthorisationGrantAccess(mockedAuthResponse)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
         await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
         val result = controller.start()(request)
@@ -99,7 +99,7 @@ class RootControllerSpec extends BaseSpec {
 
       "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {
 
-        stubAuthorisationGrantAccess(mockedAuthResponse)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
         await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutSingleUser))
 
         val result = controller.start()(request)

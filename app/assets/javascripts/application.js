@@ -6,7 +6,7 @@ $(document).ready(function () {
     */
 
     // MOJ sortable table
-    var table = document.getElementById('client-list-table');
+    var table = document.getElementById('sortable-table');
     if (table !== null) {
         window.MOJFrontend.initAll()
 

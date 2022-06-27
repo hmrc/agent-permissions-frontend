@@ -111,15 +111,13 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]] =  {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups-information "
     monitor("ConsumedAPI-groupSummaries-GET") {
-      http.GET[HttpResponse](url).map { response =>
-        println(response.json.toString())
-
-        val maybeSummaries = response.status match {
+      http.GET[HttpResponse](url).map { response: HttpResponse =>
+        val eventuallySummaries = response.status match {
           case OK => response.json.asOpt[AccessGroupSummaries]
           case anyOtherStatus => throw UpstreamErrorResponse(s"error getting group summary for arn $arn, from $url", anyOtherStatus)
         }
-        val maybeTuple = maybeSummaries.map { maybeSummaries =>
-          (maybeSummaries.groups, maybeSummaries.unassignedClients.map(DisplayClient.fromClient(_)).toSeq)
+        val maybeTuple = eventuallySummaries.map { summaries =>
+          (summaries.groups, summaries.unassignedClients.map(DisplayClient.fromClient(_)).toSeq)
         }
         maybeTuple
       }

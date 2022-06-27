@@ -46,22 +46,26 @@ class ManageGroupController @Inject()
 
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      val summaries = for {
+      val eventuallySummaries = for {
         response <- agentPermissionsConnector.groupsSummaries(arn)
       } yield response
 
-      summaries.map { s: Option[(Seq[GroupSummary], Seq[DisplayClient])] =>
-        Ok(dashboard(s.getOrElse((Seq.empty[GroupSummary], Seq.empty[DisplayClient]))))
+      eventuallySummaries.map { summaries: Option[(Seq[GroupSummary], Seq[DisplayClient])] =>
+        Ok(dashboard(summaries.getOrElse((Seq.empty[GroupSummary], Seq.empty[DisplayClient]))))
       }
     }
   }
 
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    Ok(s"not yet implemented ${groupId}").toFuture
+    isAuthorisedAgent { arn =>
+      Ok(s"showManageGroupClients not yet implemented ${groupId}").toFuture
+    }
   }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    Ok(s"not yet implemented ${groupId}").toFuture
+    isAuthorisedAgent { arn =>
+      Ok(s"showManageGroupTeamMembers not yet implemented ${groupId}").toFuture
+    }
   }
 
 }

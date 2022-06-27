@@ -17,12 +17,12 @@
 @this()
 
 @(
-    key: String,
-    size: String = "m",
-    classes: Option[String] = None,
-    id: Option[String] = None
+  key: String,
+  size: String = "s",
+  classes: Option[String] = None,
+  id: Option[String] = None
 )(implicit msgs: Messages)
 
 @cls = @{s"govuk-heading-$size ".concat(classes.getOrElse(""))}
 
-<h2 class ="@cls" @id.map(i => { s"id =${i}"})>@msgs(key)</h2>
+<h3 class ="@cls" @id.map(i => { s"id =${i}"})>@msgs(key)</h3>

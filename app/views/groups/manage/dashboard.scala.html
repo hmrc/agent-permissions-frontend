@@ -15,56 +15,99 @@
  *@
 
 @import config.AppConfig
-@import views.html.main_layout
 @import connectors.GroupSummary
 @import views.components.models.SummaryListData
+@import views.html.main_layout
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, h2: h2,
-        summary_list: summary_list,
-    govukTabs: GovukTabs
+    layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, table: table,
+        a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs
 )
 
-@(summaries : (Seq[GroupSummary], Seq[DisplayClient]))(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(summaries: (Seq[GroupSummary], Seq[DisplayClient]))(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @groupSummaries = {
     @h2("group.manage.tabs.1.label")
-    @summaries._1.map{ summary =>
-        @h2(summary.groupName)
-        @summary_list(Seq(
-            SummaryListData(
-                "common.clients",
-                summary.clientCount.toString,
-                routes.ManageGroupController.showManageGroupClients(summary.groupId)
-            ),
-            SummaryListData(
-                "common.teamMembers",
-                summary.teamMemberCount.toString,
-                routes.ManageGroupController.showManageGroupTeamMembers(summary.groupId)
-            ),
-        ))
+    @if(!summaries._1.isEmpty){
+        @summaries._1.map { summary =>
 
-        <hr  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-        style="height:3px;border-width:0;color:#c6c6c6;background-color:#c6c6c6">
+            @h3(summary.groupName)
+            @summary_list(
+                Seq(
+                    SummaryListData(
+                        "common.clients",
+                        summary.clientCount.toString,
+                        routes.ManageGroupController.showManageGroupClients(summary.groupId)
+                    ),
+                    SummaryListData(
+                        "common.teamMembers",
+                        summary.teamMemberCount.toString,
+                        routes.ManageGroupController.showManageGroupTeamMembers(summary.groupId)
+                    ),
+                )
+            )
 
+            <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+            style="height: 3px;
+                border-width: 0;
+                color: #c6c6c6;
+                background-color: #c6c6c6">
+
+        }
 
     }
+    @if(summaries._1.isEmpty){
+        @h3("group.manage.no.groups.h3")
+        @a_button("group.manage.no.groups.button",
+            href=routes.GroupController.showGroupName.url)
+    }
+
+}
+
+@unassignedClientTableRows = @{
+    summaries._2.map(client =>
+        Seq(
+            Html(client.name),
+            Html(client.hmrcRef),
+            Html(client.taxService)
+        )
+    )
 }
 
 @unassignedClients = {
-    @summaries._2.map{ client =>
-        <p>@{client.hmrcRef}</p>
-        <p>@{client.name}</p>
-        <p>@{client.taxService}</p>
+    @h2("group.manage.tabs.2.label")
+
+    @if(!summaries._2.isEmpty) {
+        @table(
+            id = Some("sortable-table"),
+            headings = Seq(
+                (
+                    Html(msgs("group.client.list.table.th1")),
+                    Map("aria-sort" -> "ascending")
+                ),
+                (
+                    Html(msgs("group.client.list.table.th2")),
+                    Map("aria-sort" -> "none")
+                ),
+                (
+                    Html(msgs("group.client.list.table.th3")),
+                    Map("aria-sort" -> "none")
+                ),
+            ),
+            rows = unassignedClientTableRows
+        )
     }
+    @if(summaries._2.isEmpty) {
+        @h3("group.manage.no.unassigned.clients.h3")
+    }
+
 }
 
 @layout(title = msgs("group.manage.h1")) {
 
 
     @h1("group.manage.h1")
-    @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"))
+    @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id= Some("info"))
 
     @govukTabs(Tabs(
         id = Some("manage-groups-tabs"),

@@ -48,7 +48,7 @@ class AuthActionSpec  extends BaseSpec {
     "the user hasn't logged in" should {
       "redirect the user to log in " in {
 
-        stubAuthorisationFails(MissingBearerToken())
+        expectAuthorisationFails(MissingBearerToken())
 
         val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
@@ -60,7 +60,7 @@ class AuthActionSpec  extends BaseSpec {
     "the user has InsufficentEnrolments" should {
       "return FORBIDDEN" in {
 
-        stubAuthorisationFails(InsufficientEnrolments())
+        expectAuthorisationFails(InsufficientEnrolments())
 
         val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
         status(result) shouldBe FORBIDDEN
@@ -69,7 +69,7 @@ class AuthActionSpec  extends BaseSpec {
       "the user has UnsupportedAuthProvider" should {
         "return FORBIDDEN" in {
 
-          stubAuthorisationFails(UnsupportedAuthProvider())
+          expectAuthorisationFails(UnsupportedAuthProvider())
 
           val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
           status(result) shouldBe FORBIDDEN

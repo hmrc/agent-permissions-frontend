@@ -34,9 +34,9 @@ case object DisplayClient {
 
   def fromClient(client: Client, selected: Boolean = false): DisplayClient = {
     val keyElements = client.enrolmentKey.split('~')
-    val hmrcRef = keyElements.last
-    val identifierKey = keyElements(1)
     val taxService = keyElements.head
+    val identifierKey = keyElements(1)
+    val hmrcRef = keyElements.last
     DisplayClient(hmrcRef, client.friendlyName, taxService, identifierKey, selected)
   }
 

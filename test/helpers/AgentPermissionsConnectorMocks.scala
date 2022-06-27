@@ -17,7 +17,8 @@
 package helpers
 
 import akka.Done
-import connectors.{AgentPermissionsConnector, GroupRequest}
+import connectors.{AgentPermissionsConnector, GroupRequest, GroupSummary}
+import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
@@ -63,6 +64,12 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector.createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", BAD_REQUEST))
+
+  def expectGetGroupSummarySuccess(arn: Arn, summaries: (Seq[GroupSummary], Seq[DisplayClient]))
+                              (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector.groupsSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful Some(summaries))
 
 
 }

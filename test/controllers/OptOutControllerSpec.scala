@@ -54,7 +54,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "display content for start" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
 
@@ -79,7 +79,7 @@ class OptOutControllerSpec extends BaseSpec {
   "GET /opt-out/do-you-want-to-opt-out" should {
     "display expected content" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
 
@@ -104,7 +104,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "redirect to 'you have opted out' page with answer 'true'" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
       implicit val request = FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
@@ -122,7 +122,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "redirect to 'manage dashboard' page when user decides not to opt out" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
         .withFormUrlEncodedBody("answer" -> "false")
@@ -138,7 +138,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "render correct error messages when form not filled in" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       implicit val request = FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
         .withFormUrlEncodedBody("answer" -> "")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -162,7 +162,7 @@ class OptOutControllerSpec extends BaseSpec {
   "GET /opt-out/you-have-opted-out" should {
     "display expected content" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.showYouHaveOptedOut()(request)

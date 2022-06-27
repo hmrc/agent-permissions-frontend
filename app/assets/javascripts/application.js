@@ -1,18 +1,21 @@
-$(document).ready(function() {
-/* Ministry of Justice frontend components
-*  ---------------------------------------
-*  Source: https://github.com/ministryofjustice/moj-frontend/releases
-*  2022-05-18 - version 1.4.2
-*/
-    window.MOJFrontend.initAll()
+$(document).ready(function () {
+    /* Ministry of Justice frontend components
+    *  ---------------------------------------
+    *  Source: https://github.com/ministryofjustice/moj-frontend/releases
+    *  2022-05-18 - version 1.4.2
+    */
 
     // MOJ sortable table
-    var table = document.getElementById('client-list-table');
-    new SortableTable(table)
+    var table = document.getElementById('sortable-table');
+    if (table !== null) {
+        window.MOJFrontend.initAll()
 
-    // removes element only visible without js
-    var span = document.getElementById('no-js');
-    span.remove();
+        new SortableTable(table)
+
+        // removes element only visible without js
+        var span = document.getElementById('no-js');
+        span.remove();
+    }
 
 //    // Accessible autocomplete for a select component with the id="client-auto-complete"
 //    var selectEl = document.querySelector('#client-auto-complete')

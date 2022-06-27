@@ -59,7 +59,7 @@ class OptInControllerSpec extends BaseSpec {
 
     "display content for start" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.start()(request)
@@ -82,7 +82,7 @@ class OptInControllerSpec extends BaseSpec {
 
       val nonAgentEnrolmentKey = "IR-SA"
       val mockedAuthResponse = Enrolments(Set(Enrolment(nonAgentEnrolmentKey, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
 
@@ -92,7 +92,7 @@ class OptInControllerSpec extends BaseSpec {
     "return Forbidden when user is not an admin" in {
 
       val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(Assistant)
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
 
@@ -101,7 +101,7 @@ class OptInControllerSpec extends BaseSpec {
 
     "redirect user to root when user is not eligible" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedOutSingleUser)
 
       val result = controller.start()(request)
@@ -113,7 +113,7 @@ class OptInControllerSpec extends BaseSpec {
   "GET /opt-in/do-you-want-to-opt-in" should {
     "display expected content" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.showDoYouWantToOptIn()(request)
@@ -137,7 +137,7 @@ class OptInControllerSpec extends BaseSpec {
 
     "redirect to 'you have opted in' page with answer 'true'" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
         .withFormUrlEncodedBody("answer" -> "true")
@@ -156,7 +156,7 @@ class OptInControllerSpec extends BaseSpec {
 
     "redirect to 'you have not opted in' page with answer 'false'" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
         .withFormUrlEncodedBody("answer" -> "false")
@@ -172,7 +172,7 @@ class OptInControllerSpec extends BaseSpec {
 
     "render correct error messages when form not filled in" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
         .withFormUrlEncodedBody("answer" -> "")
@@ -195,7 +195,7 @@ class OptInControllerSpec extends BaseSpec {
 
     "throw exception when there was a problem with optin call" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubPostOptInError(arn)
 
       implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -214,7 +214,7 @@ class OptInControllerSpec extends BaseSpec {
   "GET /opt-in/you-have-opted-in" should {
     "display expected content with continueUrl of ASA dashboard when client list not yet available" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
 
       val result = controller.showYouHaveOptedIn()(request)
@@ -235,7 +235,7 @@ class OptInControllerSpec extends BaseSpec {
 
     "display expected content with continueUrl of /group/group-name when optIn status is OptInReady" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
 
       val result = controller.showYouHaveOptedIn()(request)
@@ -258,7 +258,7 @@ class OptInControllerSpec extends BaseSpec {
   "GET /opt-in/you-have-not-opted-in" should {
     "display expected content" in {
 
-      stubAuthorisationGrantAccess(mockedAuthResponse)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.showYouHaveNotOptedIn()(request)

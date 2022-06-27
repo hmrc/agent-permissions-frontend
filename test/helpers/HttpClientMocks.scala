@@ -25,7 +25,15 @@ import scala.concurrent.{ExecutionContext, Future}
 trait HttpClientMocks extends MockFactory {
 
   def mockHttpGet[A](response: A)(implicit mockHttpClient: HttpClient): Unit = {
-    (mockHttpClient.GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
+    (mockHttpClient.GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])
+      (_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *, *, *)
+      .returns(Future.successful(response))
+  }
+
+  def mockHttpGetWithUrl[A](expectedUrl: String, response: A)(implicit mockHttpClient: HttpClient): Unit = {
+    (mockHttpClient.GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])
+      (_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *, *, *)
       .returns(Future.successful(response))
   }

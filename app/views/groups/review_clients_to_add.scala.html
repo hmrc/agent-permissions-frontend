@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import utils.ViewUtils._
 
 @this(
     layout: main_layout,
@@ -35,7 +36,7 @@
             Seq(
                 Html(client.name),
                 Html(client.hmrcRef),
-                Html(client.taxService)
+                Html(displayTaxServiceFromServiceKey(client.taxService))
             )
         )
     }
@@ -51,7 +52,7 @@
             @h1(msgs("group.clients.review.h1", clients.size))
         </div>
 
-        <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
+        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
 
         @table(
             id = Some("client-list-table"),

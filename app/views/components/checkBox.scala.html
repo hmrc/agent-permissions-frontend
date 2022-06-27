@@ -20,6 +20,7 @@
     name: Option[String] = None,
     value: Option[String] = None,
     id: Option[String] = None,
+    label: String = "",
     checked: Boolean = false
 )(implicit msgs: Messages)
 
@@ -28,11 +29,12 @@
     <div class="govuk-checkboxes__item">
         <input class="govuk-checkboxes__input"
             type="checkbox"
-            @name.map(n =>  s"name=${n}")
-            @id.map(id =>  s"id=${id}")
+            @name.map(n => s"name=${n}")
+            @id.map(id => s"id=${id}")
             @value.map(n => s"value=${n}")
             @{if(checked)"checked"}>
-        <label class="govuk-label govuk-checkboxes__label" for="add-client">
+        <label class="govuk-label govuk-checkboxes__label" @id.map(id => s"for=${id}")>
+           <span class="govuk-visually-hidden">@label</span>
         </label>
     </div>
 </div>

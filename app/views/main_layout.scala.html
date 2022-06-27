@@ -32,6 +32,7 @@
     title: String,
     userIsLoggedIn: Boolean = true,
     formErrors: Seq[FormError] = Seq.empty,
+    customError: Option[String] = None,
     hasTimeout: Boolean = true,
     backLinkHref: Option[String] = None,
     fullWidth: Boolean = false,
@@ -41,7 +42,7 @@
 @mainContentWithTechIssueHelper = {
     <div class="govuk-grid-row">
         <div class="@if(fullWidth) {govuk-grid-column-full-width} else {govuk-grid-column-two-thirds}">
-            @summaryErrors(formErrors)
+            @summaryErrors(formErrors, customError)
             @mainContent
             <div class="govuk-!-margin-bottom-9 govuk-!-margin-top-9">
             @hmrcReportTechnicalIssueHelper()

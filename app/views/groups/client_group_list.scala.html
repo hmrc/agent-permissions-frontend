@@ -19,6 +19,8 @@
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
 @import views.html.main_layout
+@import models.AddClientsToGroup
+@import models.ButtonSelect.{Clear, Continue, Filter}
 
 @import java.util.Base64
 
@@ -38,7 +40,8 @@
 @(
     clients: Option[Seq[DisplayClient]] = None,
     groupName: String,
-    form: Form[List[DisplayClient]]
+    hiddenClientsExist: Option[Boolean],
+    form: Form[AddClientsToGroup]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -47,13 +50,15 @@
                 Html(
                     checkBox(
                         name = Some("clients[]"),
+                        id = Some(s"add-client-${Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)}"),
+                        label = client.name,
                         value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)),
                         checked = client.selected
                     ).toString
                 ),
                 Html(client.name),
                 Html(client.hmrcRef),
-                Html(client.taxService),
+                Html(displayTaxServiceFromServiceKey(client.taxService)),
             )
         )
         )
@@ -64,6 +69,7 @@
         title = msgs("group.client.list.h1", groupName),
         backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
         formErrors = form.errors,
+        customError = Some("search"),
         fullWidth = true,
     ) {
 
@@ -75,10 +81,28 @@
 
         @formWithCSRF(action = routes.GroupController.submitSelectedClients) {
 
+        <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
+
             <div class="govuk-grid-row">
+                @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
+                <div class="govuk-form-group govuk-form-group--error">
+                }
+
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                        @msgs("filter.legend")
+                    </legend>
+
+                @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
+                    <p id="filter-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">Error:</span>
+                        @msgs("error.search-filter.empty")
+                    </p>
+                    }
+
                 <div class="govuk-grid-column-one-quarter">
                     @textbox(
-                    field = form("filter"),
+                    field = form("search"),
                     label = "client-filter.text.label",
                     labelClasses = "govuk-label--s",
                     classes = "govuk-input--width-20"
@@ -96,9 +120,21 @@
                 <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
                 @submit_button_group()
                 </div>
+                </fieldset>
+                    @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
             </div>
 
-            <div class="govuk-!-margin-bottom-8" id="scrollable-table-container">
+
+
+        @if(form.errors.map(error => error.key).contains("clients")) {
+        <div class="govuk-form-group govuk-form-group--error">
+            <p id="clients-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span>
+                @msgs("error.select-clients.empty")
+            </p>
+            }
+
+            <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
 
             @table(
                 id = Some("client-list-table"),
@@ -123,6 +159,8 @@
                 rows = tableRows,
             )
             </div>
+            @if(form.errors.map(error => error.key).contains("clients")) {</div>}
+
             @submit_button("save.and.continue.button")
         }
     }

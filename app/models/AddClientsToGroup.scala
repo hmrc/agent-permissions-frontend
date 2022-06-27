@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
-@import uk.gov.hmrc.govukfrontend.views.html.components.{Text, Button}
+package models
 
-@this(button: GovukButton)
+case class AddClientsToGroup(
+                               hasSelectedClients: Boolean,
+                               search: Option[String],
+                               filter: Option[String],
+                               clients: Option[List[DisplayClient]]
+                             )
 
-@(
-    messageKey: String = "continue.button",
-    id: String = "continue",
-    name: String = "continue",
-    value: String = "continue",
-    submitClass: Option[String] = None
-)(implicit msgs: Messages)
-
-
-@button(Button(
-    attributes = Map("id" -> s"$id", "name" -> s"$name", "value" -> s"$value"),
-    classes = s"${submitClass.getOrElse("")}",
-    inputType = Some("submit"),
-    content = Text(msgs(messageKey))
-))

@@ -18,8 +18,12 @@ common.teamMembers=Team members
 continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
+filter.legend=Filters
 filter.apply=Apply filters
 filter.clear=Clear filters
+
+error.select-clients.empty=You must select at least one client
+error.search-filter.empty=You must enter a tax reference, client name or select a tax service to apply filters
 
 tax-service.mdt-it=Making Tax Digital for Income Tax
 tax-service.vat=VAT

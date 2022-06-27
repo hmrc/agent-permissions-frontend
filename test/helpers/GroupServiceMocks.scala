@@ -18,6 +18,7 @@ package helpers
 
 import models.{DisplayClient, TeamMember}
 import org.scalamock.scalatest.MockFactory
+import play.api.mvc.Request
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,7 +33,7 @@ trait GroupServiceMocks extends MockFactory{
       .returning(Future successful Some(teamMembers))
 
   def stubGetClients(arn: Arn)(clients: Seq[DisplayClient])(implicit groupService: GroupService): Unit =
-    (groupService.getClients(_: Arn)(_:Option[Seq[DisplayClient]] )(_: HeaderCarrier, _: ExecutionContext))
+    (groupService.getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful (Some(clients)))
 }

@@ -66,6 +66,7 @@ class GroupControllerSpec extends BaseSpec {
 
 
   "GET /group/create-access-group" should {
+
     "redirect to /group/group-name" in {
 
       val result = controller.start()(request)

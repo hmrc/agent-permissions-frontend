@@ -24,6 +24,8 @@ filter.clear=Clear filters
 
 error.select-clients.empty=You must select at least one client
 error.search-filter.empty=You must enter a tax reference, client name or select a tax service to apply filters
+error.select-members.empty=You must select at least one team member
+error.search-members.empty=You must enter a name or email to apply filters
 
 tax-service.mdt-it=Making Tax Digital for Income Tax
 tax-service.vat=VAT

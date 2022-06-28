@@ -17,8 +17,8 @@
 package services
 
 import connectors.AgentUserClientDetailsConnector
-import controllers.{FILTERED_CLIENTS, GROUP_CLIENTS_SELECTED, HIDDEN_CLIENTS_EXIST}
-import models.{ButtonSelect, DisplayClient, TeamMember, AddClientsToGroup}
+import controllers.{FILTERED_CLIENTS, FILTERED_TEAM_MEMBERS, GROUP_CLIENTS_SELECTED, GROUP_TEAM_MEMBERS_SELECTED, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST}
+import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, TeamMember}
 import models.ButtonSelect._
 import play.api.mvc.Request
 import repository.SessionCacheRepository
@@ -46,18 +46,18 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
   }
 
   def getTeamMembers(arn: Arn)
-                    (maybeTeamMembers: Option[Seq[TeamMember]] = None)
+                    (maybeSelectedTeamMembers: Option[Seq[TeamMember]] = None)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
     for {
       ugsUsers              <- agentUserClientDetailsConnector.getTeamMembers(arn)
-      ugsAsTeamMembers      = ugsUsers.map(list => list.map(TeamMember.fromUserDetails(_)))
+      ugsAsTeamMembers      = ugsUsers.map(list => list.map(TeamMember.fromUserDetails))
       ugsWithoutPreSelected = ugsAsTeamMembers.map(teamMembers =>
                                 teamMembers.filterNot(teamMember =>
-                                  maybeTeamMembers.fold(false)(_.map(_.userId).contains(teamMember.userId))
+                                  maybeSelectedTeamMembers.fold(false)(_.map(_.userId).contains(teamMember.userId))
         )
       )
       mergedWithPreselected = ugsWithoutPreSelected
-                                .map(_.toList ::: maybeTeamMembers.getOrElse(List.empty).toList)
+                                .map(_.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
                                 .map(_.sortBy(_.name))
     } yield mergedWithPreselected
 
@@ -65,8 +65,7 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
 
 
 
-   def addClientsToGroup(formData: AddClientsToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext) =
-
+   def addClientsToGroup(formData: AddClientsToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
     for {
       filteredResult      <- sessionCacheRepository.getFromSession(FILTERED_CLIENTS)
       oldSessionClients   <- sessionCacheRepository.getFromSession(GROUP_CLIENTS_SELECTED)
@@ -76,6 +75,18 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
       formDiffHidden      = formClients.map(_ diff hiddenSelected.getOrElse(List.empty))
       newSessionClients   = formDiffHidden.map(_ ::: hiddenSelected.map(_.toList).getOrElse(List.empty)) //combine the hidden selected with the new one's in the form
       _                   = newSessionClients.map(clients => sessionCacheRepository.putSession(GROUP_CLIENTS_SELECTED, clients))
+    } yield ()
+
+  def addTeamMembersToGroup(formData: AddTeamMembersToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
+    for {
+      filteredResult          <- sessionCacheRepository.getFromSession(FILTERED_TEAM_MEMBERS)
+      oldSessionTeamMembers   <- sessionCacheRepository.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+      formTeamMembers         = formData.members.map(_.map(_.copy(selected = true))) //make them selected to store in session
+      selectedFiltered        = filteredResult.map(_.filter(_.selected).toList)
+      hiddenSelected          = oldSessionTeamMembers.map(old => old diff selectedFiltered.getOrElse(old)) // make this Nil if there was no filter applied
+      formDiffHidden          = formTeamMembers.map(_ diff hiddenSelected.getOrElse(List.empty))
+      newSessionMembers       = formDiffHidden.map(_ ::: hiddenSelected.map(_.toList).getOrElse(List.empty)) //combine the hidden selected with the new one's in the form
+      _                       = newSessionMembers.map(members => sessionCacheRepository.putSession(GROUP_TEAM_MEMBERS_SELECTED, members))
     } yield ()
 
   def filterClients(arn: Arn)(formData: AddClientsToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
@@ -97,7 +108,22 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
     } yield result
   }
 
-  def processFormData(buttonPress: ButtonSelect)(arn: Arn)(formData: AddClientsToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext) = {
+  def filterTeamMembers(arn: Arn)(formData: AddTeamMembersToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
+    for {
+      selectedTeamMembers <- sessionCacheRepository.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+      teamMembers         <- getTeamMembers(arn)(selectedTeamMembers).map(_.map(_.toVector))
+      maybeNameOrEmail    = formData.search
+      resultByName        = maybeNameOrEmail.fold(teamMembers)(term => teamMembers.map(_.filter(_.name.toLowerCase.contains(term.toLowerCase))))
+      resultByEmail       = maybeNameOrEmail.fold(teamMembers)(term => teamMembers.map(_.filter(_.email.toLowerCase.contains(term.toLowerCase))))
+      consolidatedResult  = resultByName.map(_ ++ resultByEmail.getOrElse(Vector.empty)).map(_.distinct)
+      result              = consolidatedResult.map(_.toVector)
+      _                   = result.map(filteredResult => sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS, filteredResult))
+      hiddenTeamMembers   = result.map(_.filter(_.selected) diff teamMembers.map(_.filter(_.selected)).getOrElse(Vector.empty))
+      _                   = hiddenTeamMembers.map(hidden => if(hidden.nonEmpty) sessionCacheRepository.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true))
+    } yield result
+  }
+
+  def processFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(formData: AddClientsToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
     buttonPress match {
       case Clear  =>
         for {
@@ -111,14 +137,36 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
           _               <- addClientsToGroup(formData)
           _               <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
           _               <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
-
         } yield ()
 
       case Filter   =>
         for {
           _               <- addClientsToGroup(formData)
           _               <- filterClients(arn)(formData)
+        } yield ()
+    }
+  }
 
+  def processFormDataForTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(formData: AddTeamMembersToGroup)(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] = {
+    buttonPress match {
+      case Clear  =>
+        for {
+          _                 <- addTeamMembersToGroup(formData)
+          _                 <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
+          _                 <- sessionCacheRepository.deleteFromSession(HIDDEN_TEAM_MEMBERS_EXIST)
+        } yield ()
+
+      case Continue =>
+        for {
+          _               <- addTeamMembersToGroup(formData)
+          _               <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
+          _               <- sessionCacheRepository.deleteFromSession(HIDDEN_TEAM_MEMBERS_EXIST)
+        } yield ()
+
+      case Filter   =>
+        for {
+          _               <- addTeamMembersToGroup(formData)
+          _               <- filterTeamMembers(arn)(formData)
         } yield ()
     }
   }

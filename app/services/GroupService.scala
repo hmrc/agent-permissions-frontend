@@ -98,8 +98,8 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
       else clients.map(_.filter(_.taxService == term))
       )
       maybeTaxRefOrName   = formData.search
-      resultByName        = maybeTaxRefOrName.fold(resultByTaxService)(term => resultByTaxService.map(_.filter(_.name.contains(term))))
-      resultByTaxRef      = maybeTaxRefOrName.fold(resultByTaxService)(term => resultByTaxService.map(_.filter(_.hmrcRef.contains(term))))
+      resultByName        = maybeTaxRefOrName.fold(resultByTaxService)(term => resultByTaxService.map(_.filter(_.name.toLowerCase.contains(term.toLowerCase))))
+      resultByTaxRef      = maybeTaxRefOrName.fold(resultByTaxService)(term => resultByTaxService.map(_.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase))))
       consolidatedResult  = resultByName.map(_ ++ resultByTaxRef.getOrElse(Vector.empty)).map(_.distinct)
       result              = consolidatedResult.map(_.toVector)
       _                   = result.map(filteredResult => sessionCacheRepository.putSession(FILTERED_CLIENTS, filteredResult))

@@ -25,8 +25,8 @@ class ButtonSelectSpec extends BaseSpec{
 
     "give correct type of button"  in {
       ButtonSelect.apply("continue") shouldBe ButtonSelect.Continue
-      ButtonSelect.apply("filter") shouldBe ButtonSelect.Filter
-      ButtonSelect.apply("clear") shouldBe ButtonSelect.Clear
+      ButtonSelect.apply("submitFilter") shouldBe ButtonSelect.Filter
+      ButtonSelect.apply("submitClear") shouldBe ButtonSelect.Clear
     }
 
   }
@@ -34,8 +34,8 @@ class ButtonSelectSpec extends BaseSpec{
 
     "give expected string"  in {
       unapply(ButtonSelect.Continue) shouldBe "continue"
-      unapply(ButtonSelect.Filter) shouldBe "filter"
-      unapply(ButtonSelect.Clear) shouldBe "clear"
+      unapply(ButtonSelect.Filter) shouldBe "submitFilter"
+      unapply(ButtonSelect.Clear) shouldBe "submitClear"
     }
 
   }

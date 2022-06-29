@@ -142,7 +142,7 @@ class GroupController @Inject()
       val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
         .fold(ButtonSelect.Continue: ButtonSelect)(someMap =>
           ButtonSelect(
-            someMap.getOrElse("continue", someMap.getOrElse("filter", someMap.getOrElse("clear", throw new RuntimeException("invalid button value for submitAddClients")))).last
+            someMap.getOrElse("continue", someMap.getOrElse("submitFilter", someMap.getOrElse("submitClear", throw new RuntimeException("invalid button value for submitAddClients")))).last
           )
         )
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
@@ -217,7 +217,7 @@ class GroupController @Inject()
       val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
         .fold(ButtonSelect.Continue: ButtonSelect)(someMap =>
           ButtonSelect(
-            someMap.getOrElse("continue", someMap.getOrElse("filter", someMap.getOrElse("clear", throw new RuntimeException("invalid button value for submitAddClients")))).last
+            someMap.getOrElse("continue", someMap.getOrElse("submitFilter", someMap.getOrElse("submitClear", throw new RuntimeException("invalid button value for submitAddClients")))).last
           )
         )
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>

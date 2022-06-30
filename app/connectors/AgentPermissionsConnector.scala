@@ -23,7 +23,7 @@ import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import models.DisplayClient
 import play.api.Logging
-import play.api.http.Status.{CREATED, OK}
+import play.api.http.Status.{CREATED, NOT_FOUND, OK}
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model._
@@ -136,8 +136,12 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         response.status match {
           case OK => response.json.asOpt[AccessGroup]
+          case NOT_FOUND =>
+            logger.warn( s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+            None
           case anyOtherStatus => throw UpstreamErrorResponse(s"error getting group details for group $id, from $url",
             anyOtherStatus)
+
         }
       }
     }

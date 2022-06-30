@@ -20,6 +20,7 @@ object CodeCoverageSettings {
   private val excludedFiles: Seq[String] = Seq(
     ".*group_created.template",
     ".*rename_group_complete.template",
+    ".*group_not_found.template",
     ".*ViewUtils.*"
   )
 

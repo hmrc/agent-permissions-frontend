@@ -31,6 +31,9 @@ tax-service.ppt=Plastic Packaging Tax
 tax-service.cgt=Capital Gains Tax on UK Property account
 tax-service.trusts=Maintain a Trust or Estate
 
+group.not.found.error.h1=Access group not found
+group.not.found.error.p=Please check the url or return to the Manage groups page
+group.not.found.error.a=Back to manage groups page
 
 opt-in-info.h1=Opting in to use access groups
 opt-in-info.inset=By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login

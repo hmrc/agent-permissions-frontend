@@ -24,7 +24,7 @@ import models.DisplayClient
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
-import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -128,8 +128,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       val clientsTrs = unassignedClientsPanel.select("table tbody tr")
       clientsTrs.size() shouldBe 8
 
-      html.select(backLink).size() shouldBe 0
-
+      val backlink = html.select(backLink)
+      backlink.size() shouldBe 1
+      backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      backlink.text() shouldBe "Back"
 
     }
 
@@ -180,8 +182,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       val table = unassignedClientsPanel.select("table")
       table.size() shouldBe 0
 
-      html.select(backLink).size() shouldBe 0
-
+      val backlink = html.select(backLink)
+      backlink.size() shouldBe 1
+      backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      backlink.text() shouldBe "Back"
     }
   }
 
@@ -245,7 +249,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
-    "redirect when no group is returned for this group id" in {
+    "render NOT_FOUND when no group is found for this group id" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -254,8 +258,13 @@ class ManageGroupControllerSpec extends BaseSpec {
       //when
       val result = controller.showRenameGroup(groupId)(request)
 
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+      status(result) shouldBe NOT_FOUND
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group not found - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group not found"
+      html.select(Css.paragraphs).text() shouldBe "Please check the url or return to the Manage groups page"
+      html.select(Css.linkStyledAsButton).text() shouldBe "Back to manage groups page"
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
     }
   }
 
@@ -296,8 +305,13 @@ class ManageGroupControllerSpec extends BaseSpec {
       //when
       val result = controller.submitRenameGroup(groupId)(request)
 
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+      status(result) shouldBe NOT_FOUND
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group not found - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group not found"
+      html.select(Css.paragraphs).text() shouldBe "Please check the url or return to the Manage groups page"
+      html.select(Css.linkStyledAsButton).text() shouldBe "Back to manage groups page"
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
     }
   }
 

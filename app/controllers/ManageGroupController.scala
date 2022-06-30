@@ -22,7 +22,7 @@ import forms.GroupNameForm
 import models.DisplayClient
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc._
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -39,11 +39,12 @@ class ManageGroupController @Inject()
   dashboard: dashboard,
   rename_group: rename_group,
   rename_group_complete: rename_group_complete,
+  group_not_found: group_not_found,
   val agentPermissionsConnector: AgentPermissionsConnector,
   val sessionCacheRepository: SessionCacheRepository,
 )(
   implicit val appConfig: AppConfig, ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  implicit override val messagesApi: MessagesApi,
 ) extends FrontendController(mcc) with I18nSupport with SessionBehaviour with Logging {
 
   import authAction._
@@ -81,12 +82,8 @@ class ManageGroupController @Inject()
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val eventuallyGroup = for {
-          response <- agentPermissionsConnector.getGroup(groupId)
-        } yield response
-        eventuallyGroup.map(_.fold(
-          Redirect(routes.ManageGroupController.showManageGroups)
-        ) { group => Ok(rename_group(GroupNameForm.form.fill(group.groupName), group, groupId)) }
+        agentPermissionsConnector.getGroup(groupId).map(_.fold (groupNotFound)
+        ( group => Ok(rename_group(GroupNameForm.form.fill(group.groupName), group, groupId)) )
         )
       }
     }
@@ -95,10 +92,8 @@ class ManageGroupController @Inject()
   def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).map(maybeGroup =>
-          maybeGroup.fold(
-            Redirect(routes.ManageGroupController.showManageGroups)
-          ) { (group: AccessGroup) =>
+        agentPermissionsConnector.getGroup(groupId).map(maybeGroup => {
+          maybeGroup.fold (groupNotFound){ (group: AccessGroup) =>
             GroupNameForm.form()
               .bindFromRequest
               .fold(formWithErrors => {
@@ -113,6 +108,7 @@ class ManageGroupController @Inject()
               }
               )
           }
+        }
         )
       }
     }
@@ -125,7 +121,6 @@ class ManageGroupController @Inject()
           group <- agentPermissionsConnector.getGroup(groupId)
           oldName <- sessionCacheRepository.getFromSession(GROUP_RENAMED_FROM)
         } yield (group, oldName)
-
         result.map(tuple =>
           Ok(rename_group_complete(tuple._2.get, tuple._1.get.groupName))
         )
@@ -142,5 +137,10 @@ class ManageGroupController @Inject()
       }
     }
   }
+
+  private def groupNotFound(implicit request: MessagesRequest[AnyContent]) : Result = {
+    NotFound(group_not_found())
+  }
+
 
 }

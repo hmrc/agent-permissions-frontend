@@ -781,7 +781,7 @@ class GroupControllerSpec extends BaseSpec {
       th.get(2).text() shouldBe "Email"
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
-      trs.size() shouldBe 5
+      trs.size() shouldBe 10
       //first row
       trs.get(0).select("td").get(1).text() shouldBe "John"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
@@ -866,13 +866,14 @@ class GroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         stubGetTeamMembersOk(arn)(users)
+        stubGetTeamMembersOk(arn)(users)
 
         implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
           .withFormUrlEncodedBody(
             "hasAlreadySelected" -> "false",
             "members[]" -> encodedTeamMembers.head,
             "members[]" -> encodedTeamMembers.last,
-            "search" -> "1",
+            "search" -> "10",
             "submitFilter" -> "submitFilter"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -885,16 +886,19 @@ class GroupControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showSelectTeamMembers.url
+        val hiddenTeamMembers = await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST))
+        hiddenTeamMembers.get.booleanValue()
         val storedTeamMembers = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
         storedTeamMembers.get.toList shouldBe List(teamMembers.head.copy(selected = true), teamMembers.last.copy(selected = true))
         val filteredTeamMembers = await(sessionCacheRepo.getFromSession(FILTERED_TEAM_MEMBERS))
-        filteredTeamMembers.get.toList shouldBe List(teamMembers.head.copy(selected = true))
+        filteredTeamMembers.get.toList shouldBe List(teamMembers.last.copy(selected = true))
       }
 
       s"button is Clear and redirect to ${routes.GroupController.showSelectTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         stubGetTeamMembersOk(arn)(users)
+
 
         implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
           .withFormUrlEncodedBody(
@@ -917,7 +921,7 @@ class GroupControllerSpec extends BaseSpec {
         val storedTeamMembers = await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
         storedTeamMembers.get.toList shouldBe List(teamMembers.head.copy(selected = true), teamMembers.last.copy(selected = true))
         val filteredTeamMembers = await(sessionCacheRepo.getFromSession(FILTERED_TEAM_MEMBERS))
-        filteredTeamMembers.get.toList shouldBe None
+        filteredTeamMembers.isEmpty
       }
     }
 
@@ -961,7 +965,7 @@ class GroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      stubGetClientsOk(arn)(fakeClients)
+      stubGetTeamMembersOk(arn)(users)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
         .withFormUrlEncodedBody(
@@ -1000,7 +1004,7 @@ class GroupControllerSpec extends BaseSpec {
       implicit val request = FakeRequest(
         "POST",
         routes.GroupController.submitSelectedTeamMembers.url
-      ).withFormUrlEncodedBody().withSession(SessionKeys.sessionId -> "session-x")
+      ).withFormUrlEncodedBody(   "continue" -> "continue").withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 

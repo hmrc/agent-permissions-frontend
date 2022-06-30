@@ -103,7 +103,7 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
       consolidatedResult  = resultByName.map(_ ++ resultByTaxRef.getOrElse(Vector.empty)).map(_.distinct)
       result              = consolidatedResult.map(_.toVector)
       _                   = result.map(filteredResult => sessionCacheRepository.putSession(FILTERED_CLIENTS, filteredResult))
-      hiddenClients       = result.map(_.filter(_.selected) diff clients.map(_.filter(_.selected)).getOrElse(Vector.empty))
+      hiddenClients       = clients.map(_.filter(_.selected) diff result.getOrElse(Vector.empty).filter(_.selected))
       _                   = hiddenClients.map(hidden => if(hidden.nonEmpty) sessionCacheRepository.putSession(HIDDEN_CLIENTS_EXIST, true))
     } yield result
   }
@@ -118,7 +118,7 @@ class GroupService @Inject()(agentUserClientDetailsConnector: AgentUserClientDet
       consolidatedResult  = resultByName.map(_ ++ resultByEmail.getOrElse(Vector.empty)).map(_.distinct)
       result              = consolidatedResult.map(_.toVector)
       _                   = result.map(filteredResult => sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS, filteredResult))
-      hiddenTeamMembers   = result.map(_.filter(_.selected) diff teamMembers.map(_.filter(_.selected)).getOrElse(Vector.empty))
+      hiddenTeamMembers   = teamMembers.map(_.filter(_.selected) diff result.map(_.filter(_.selected)).getOrElse(Vector.empty))
       _                   = hiddenTeamMembers.map(hidden => if(hidden.nonEmpty) sessionCacheRepository.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true))
     } yield result
   }

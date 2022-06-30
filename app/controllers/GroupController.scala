@@ -221,9 +221,9 @@ class GroupController @Inject()
           )
         )
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
         isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeSelectedTeamMembers =>
           isOptedInWithSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)(arn) { maybeFilteredResult =>
-          maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
             groupService.getTeamMembers(arn)(maybeSelectedTeamMembers).flatMap { maybeTeamMembers =>
               isOptedInWithSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)(arn) { maybeHiddenTeamMembers =>
               AddTeamMembersToGroupForm

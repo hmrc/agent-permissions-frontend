@@ -53,7 +53,7 @@ class AddTeamMembersToGroupFormSpec extends AnyWordSpec
         members -> List(encode(member1), encode(member2))
       )
       val boundForm = AddTeamMembersToGroupForm.form(ButtonSelect.Continue).bindFromRequest(params)
-      boundForm.value shouldBe AddTeamMembersToGroup(hasAlreadySelected = false,None,Some(List(member1, member2)))
+      boundForm.value shouldBe Some(AddTeamMembersToGroup(hasAlreadySelected = false,None,Some(List(member1, member2))))
     }
 
     "have errors when team members is empty and hasAlreadySelected is false" in {
@@ -73,7 +73,7 @@ class AddTeamMembersToGroupFormSpec extends AnyWordSpec
         members -> List(encode(member1), encode(member2))
       )
       val boundForm = AddTeamMembersToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
-      boundForm.value shouldBe AddTeamMembersToGroup(hasAlreadySelected = false,Some("abc"),Some(List(member1, member2)))
+      boundForm.value shouldBe Some(AddTeamMembersToGroup(hasAlreadySelected = false,Some("abc"),Some(List(member1, member2))))
     }
 
     "have errors when button is Filter and search field is empty" in {

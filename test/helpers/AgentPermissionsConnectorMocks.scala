@@ -21,7 +21,7 @@ import connectors.{AgentPermissionsConnector, GroupRequest, GroupSummary}
 import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.BAD_REQUEST
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, OptinStatus}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -65,11 +65,16 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", BAD_REQUEST))
 
-  def expectGetGroupSummarySuccess(arn: Arn, summaries: (Seq[GroupSummary], Seq[DisplayClient]))
+  def expectGetGroupSummarySuccess(arn: Arn, summaries: Option[(Seq[GroupSummary], Seq[DisplayClient])])
                               (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector.groupsSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful Some(summaries))
+      .returning(Future successful summaries)
 
+  def expectGetGroupSuccess(id: String, group: Option[AccessGroup] )
+                                  (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector.getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, *, *)
+      .returning(Future successful group)
 
 }

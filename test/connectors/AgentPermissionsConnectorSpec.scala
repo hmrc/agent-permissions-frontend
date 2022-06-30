@@ -24,8 +24,10 @@ import play.api.Application
 import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
+
+import java.time.LocalDate
 
 class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with AgentPermissionsConnectorMocks {
 
@@ -128,7 +130,6 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
       val mockJsonResponseBody = Json.toJson(groupSummaryResponse).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
-      //when
       mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //and
@@ -136,6 +137,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
         (groupSummaries,
         Seq(DisplayClient("hmrcRef","name","taxService","identKey")))
       )
+
       //then
       connector.groupsSummaries(arn).futureValue shouldBe expectedTransformedResponse
     }
@@ -152,5 +154,74 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
+  }
+
+  "GET Group" should {
+
+    "return successfully" in {
+      //given
+      val anyDate = LocalDate.of(1970, 1, 1).atStartOfDay()
+
+      val groupId = 234234
+      val agent = AgentUser("agentId", "Bob Builder")
+      val accessGroup = AccessGroup(arn, "groupName", anyDate, anyDate, agent, agent,
+        Some(Set(agent)),
+        Some(Set(Enrolment("service", "state", "friendly", Seq(Identifier("key", "value"))))))
+
+      val expectedUrl = s"http://localhost:9447/agent-permissions/gid/${groupId}/group"
+      val mockJsonResponseBody = Json.toJson(accessGroup).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //and
+      val expectedTransformedResponse = Some(accessGroup)
+
+      //then
+      connector.getGroup(groupId.toString).futureValue shouldBe expectedTransformedResponse
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      //given
+      val groupId = "234234"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.getGroup(groupId))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "PATCH update Group" should {
+
+    "return Done when response code is OK" in {
+
+      val groupId = "234234"
+      val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
+      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val mockResponse = HttpResponse.apply(OK, "response Body")
+      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+      connector.updateGroup(groupId, groupRequest).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      val groupId = "234234"
+      val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
+      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.updateGroup(groupId, groupRequest))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
   }
 }

@@ -20,7 +20,7 @@
 @import views.html.main_layout
 
 @this(
-    layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, table: table,
+    layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a, table: table,
         a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs
 )
 
@@ -46,7 +46,10 @@
                     ),
                 )
             )
-
+            @a("group.manage.rename",
+                href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
+                classes = Some("govuk-!-margin-right-9"))
+            @a("group.manage.delete", href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
             <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
             style="height: 3px;
                 border-width: 0;

@@ -20,7 +20,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 
 
-object CreateGroupForm {
+object GroupNameForm {
 
   def form(): Form[String] = {
     Form(

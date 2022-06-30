@@ -38,6 +38,7 @@ package object controllers {
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
   val GROUP_TEAM_MEMBERS_SELECTED: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
+  val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val HIDDEN_CLIENTS_EXIST: DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
 

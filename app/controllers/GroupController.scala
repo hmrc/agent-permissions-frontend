@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, CreateGroupForm, YesNoForm}
+import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
 import models.{ButtonSelect, DisplayClient, TeamMember}
 import connectors.{AgentPermissionsConnector, GroupRequest}
 import models.DisplayClient.toEnrolment
@@ -66,7 +66,7 @@ class GroupController @Inject()
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
-        Ok(create(CreateGroupForm.form.fill(maybeName.getOrElse("")))).toFuture
+        Ok(create(GroupNameForm.form.fill(maybeName.getOrElse("")))).toFuture
       }
     }
   }
@@ -74,7 +74,7 @@ class GroupController @Inject()
   def submitGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        CreateGroupForm.form()
+        GroupNameForm.form()
           .bindFromRequest
           .fold(
             formWithErrors =>

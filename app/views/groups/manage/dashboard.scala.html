@@ -20,8 +20,9 @@
 @import views.html.main_layout
 
 @this(
-    layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, table: table,
-        a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs
+    layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a,
+    table: table, textbox: textbox, input_select: input_select,
+    a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs
 )
 
 @(summaries: (Seq[GroupSummary], Seq[DisplayClient]))(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -46,7 +47,10 @@
                     ),
                 )
             )
-
+            @a("group.manage.rename",
+                href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
+                classes = Some("govuk-!-margin-right-9"))
+            @a("group.manage.delete", href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
             <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
             style="height: 3px;
                 border-width: 0;
@@ -103,7 +107,8 @@
 
 }
 
-@layout(title = msgs("group.manage.h1")) {
+@layout(title = msgs("group.manage.h1"),
+    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)) {
 
 
     @h1("group.manage.h1")
@@ -124,5 +129,7 @@
             )
         )
     ))
+
+    @a_button("group.manage.no.groups.button", routes.GroupController.showGroupName.url)
 
 }

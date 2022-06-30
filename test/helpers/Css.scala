@@ -36,7 +36,7 @@ object Css {
   def tableWithId(id: String) = s"table.govuk-table#$id"
   def tabPanelWithIdOf(id: String) = s".govuk-tabs__panel#$id"
   val submitButton = "main form button#continue[type=submit]"
-  val linkStyledAsButton = "a#button-link.govuk-button"
+  val linkStyledAsButton = "a.govuk-button"
   val currentLanguage = "ul.hmrc-language-select__list li.hmrc-language-select__list-item span[aria-current=true]";
   val alternateLanguage = ".hmrc-language-select__list .hmrc-language-select__list-item a.govuk-link";
   val checkYourAnswersListRows = "dl.govuk-summary-list .govuk-summary-list__row"

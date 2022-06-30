@@ -69,10 +69,6 @@
             @p("group.members.list.p1")
         </div>
 
-<p>@form</p>
-<p>Errors = @form.errors</p>
-<p>HasAlreadySelected = @hiddenTeamMembersExist.getOrElse(false)</p>
-
         @formWithCSRF(action = routes.GroupController.submitSelectedTeamMembers) {
 
         <input type="hidden" name="hasAlreadySelected" value=@hiddenTeamMembersExist.getOrElse(false)>

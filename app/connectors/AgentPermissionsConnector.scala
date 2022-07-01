@@ -102,7 +102,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
 
   def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/group/create "
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
     monitor("ConsumedAPI-createGroup-POST") {
       http.POST[GroupRequest, HttpResponse](url, groupRequest).map { response =>
         response.status match {
@@ -115,7 +115,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
   def groupsSummaries(arn: Arn)
                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]] =  {
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups-information "
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
     monitor("ConsumedAPI-groupSummaries-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         val eventuallySummaries = response.status match {
@@ -131,7 +131,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   override def getGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
-    val url = s"$baseUrl/agent-permissions/gid/${id}/group"
+    val url = s"$baseUrl/agent-permissions/groups/${id}"
     monitor("ConsumedAPI-group-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         response.status match {

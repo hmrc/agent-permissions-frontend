@@ -23,7 +23,7 @@ import scala.concurrent.Future
 package object controllers {
 
   implicit class ToFuture[T](t: T) {
-    def toFuture = Future successful t
+    def toFuture: Future[T] = Future successful t
   }
 
   val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
@@ -36,11 +36,17 @@ package object controllers {
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
   val GROUP_CLIENTS_SELECTED: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
-  val GROUP_TEAM_MEMBERS_SELECTED: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
+
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
   val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
+
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val HIDDEN_CLIENTS_EXIST: DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
+  
+  val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("filteredTeamMembers")
+  val HIDDEN_TEAM_MEMBERS_EXIST: DataKey[Boolean] = DataKey("hiddenTeamMembers")
+  val GROUP_TEAM_MEMBERS_SELECTED: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
+
 
   val sessionKeys = List(OPTIN_STATUS, GROUP_NAME, GROUP_NAME_CONFIRMED, GROUP_CLIENTS)
 

@@ -33,13 +33,30 @@ class GroupServiceSpec extends BaseSpec {
 
   val service = new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
 
+  val fakeClients: Seq[Client] = (1 to 10)
+    .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
+
+  val users: Seq[UserDetails] = (1 to 3)
+    .map(i => UserDetails(userId = Option(s"user$i"),
+      None,
+      Some(s"Name $i"),
+      Some(s"bob$i@accounting.com")
+    )
+    )
+
+  val fakeTeamMembers: Seq[TeamMember] = (1 to 5)
+    .map(i => {
+      TeamMember(
+        s"John $i",
+        "User",
+        Some("John"),
+        Some(s"john$i@abc.com"),
+      )
+    })
 
   "getClients" should {
     "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
       //given
-      val fakeClients: Seq[Client] = (1 to 10)
-        .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
-
       (mockAgentUserClientDetailsConnector.getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful Some(fakeClients))
@@ -70,15 +87,7 @@ class GroupServiceSpec extends BaseSpec {
 
   "getTeamMembers" should {
     "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones" in {
-
-      val users: Seq[UserDetails] = (1 to 3)
-        .map(i => UserDetails(userId = Option(s"user$i"),
-          None,
-          Some(s"Name $i"),
-          Some(s"bob$i@accounting.com")
-        )
-        )
-
+      //given
       (mockAgentUserClientDetailsConnector.getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful Some(users))
@@ -95,6 +104,15 @@ class GroupServiceSpec extends BaseSpec {
       teamMembers(0).selected shouldBe false
 
     }
+  }
+
+  // TODO implement tests for addClient/addTeamMember, refactor processFormData?
+  "filterClients" should {
+
+  }
+
+  "filterTeamMembers" should {
+
   }
 
 }

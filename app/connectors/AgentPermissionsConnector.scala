@@ -53,6 +53,8 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def deleteGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
 
 @Singleton
@@ -156,6 +158,20 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
           case OK             => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
+        }
+      }
+    }
+  }
+
+  override def deleteGroup(id: String)
+                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/groups/${id}"
+    monitor("ConsumedAPI-update group-PATCH") {
+      http.DELETE[HttpResponse](url).map { response =>
+        response.status match {
+          case OK             => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error DELETING update group request to $url", anyOtherStatus)
         }
       }
     }

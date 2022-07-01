@@ -355,7 +355,38 @@ class ManageGroupControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.body().text() shouldBe s"delete group not yet implemented ${accessGroup.groupName}"
+      html.title() shouldBe "Delete group - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Delete group"
+      html.select(Css.form).attr("action") shouldBe s"/agent-permissions/delete-group/${accessGroup._id}"
+      html.select(Css.legend).text() shouldBe s"Are you sure you want to delete ${accessGroup.groupName} access group?"
+      html.select("label[for=answer-yes]").text() shouldBe "Yes"
+      html.select("label[for=answer-no]").text() shouldBe "No"
+      html.select(Css.form + " input[name=answer]").size() shouldBe 2
+      html.select(Css.submitButton).text() shouldBe "Continue"
+    }
+  }
+
+  s"POST ${routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString)}" should {
+
+    "render correctly the confirm DELETE group page" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.submitDeleteGroup(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.body().text() shouldBe s"not implemented ${accessGroup._id}"
+
     }
   }
 

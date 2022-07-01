@@ -1,0 +1,56 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.components.models.{LegendData, RadioData}
+@import views.html.main_layout
+@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1, caption: caption,
+    radioButtons: radioButtons,
+    submit_button: submit_button,
+    formWithCSRF: FormWithCSRF
+)
+
+@(form: Form[Boolean], group: AccessGroup)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@layout(
+    title = msgs("group.delete.h1", group.groupName),
+    formErrors = form.errors,
+    backLinkHref = Some(routes.ManageGroupController.showManageGroups.url)
+) {
+    @caption(msgs("common.caption.group.name", group.groupName))
+    @h1("group.delete.h1")
+
+    @formWithCSRF(action = routes.ManageGroupController.submitDeleteGroup(group._id.toString)) {
+
+        @radioButtons(
+            field = form("answer"),
+            items = Seq(
+                RadioData("true", "common.yes.label", id = Some("answer-yes")),
+                RadioData("false", "common.no.label", id = Some("answer-no"))
+            ),
+            legend = Some(LegendData(msg = msgs("group.delete.name.label",group.groupName),
+                classes = Some("govuk-!-font-weight-bold"))),
+            classes = "govuk-radios--inline"
+        )
+
+        @submit_button()
+    }
+}

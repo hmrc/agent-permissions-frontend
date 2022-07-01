@@ -18,7 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
-import forms.GroupNameForm
+import forms.{GroupNameForm, YesNoForm}
 import models.DisplayClient
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -40,6 +40,7 @@ class ManageGroupController @Inject()
   rename_group: rename_group,
   rename_group_complete: rename_group_complete,
   group_not_found: group_not_found,
+  confirm_delete_group: confirm_delete_group,
   val agentPermissionsConnector: AgentPermissionsConnector,
   val sessionCacheRepository: SessionCacheRepository,
 )(
@@ -80,38 +81,27 @@ class ManageGroupController @Inject()
   }
 
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).map(_.fold (groupNotFound)
-        ( group => Ok(rename_group(GroupNameForm.form.fill(group.groupName), group, groupId)) )
-        )
-      }
-    }
+    withGroupForAuthorisedOptedAgent(groupId, group =>
+      Ok(rename_group(GroupNameForm.form.fill(group.groupName), group, groupId))
+    )
   }
 
   def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).map(maybeGroup => {
-          maybeGroup.fold (groupNotFound){ (group: AccessGroup) =>
-            GroupNameForm.form()
-              .bindFromRequest
-              .fold(formWithErrors => {
-                Ok(rename_group(formWithErrors, group, groupId))
-              }, (newName: String) => {
-                for {
-                  _ <- sessionCacheRepository.putSession[String](GROUP_RENAMED_FROM, group.groupName)
-                  patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
-                  _ <- agentPermissionsConnector.updateGroup(groupId, patchRequestBody)
-                } yield ()
-                Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
-              }
-              )
-          }
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) =>
+      GroupNameForm.form()
+        .bindFromRequest
+        .fold(formWithErrors => {
+          Ok(rename_group(formWithErrors, group, groupId))
+        }, (newName: String) => {
+          for {
+            _ <- sessionCacheRepository.putSession[String](GROUP_RENAMED_FROM, group.groupName)
+            patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
+            _ <- agentPermissionsConnector.updateGroup(groupId, patchRequestBody)
+          } yield ()
+          Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
         }
         )
-      }
-    }
+    )
   }
 
   def showGroupRenamed(groupId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -129,16 +119,31 @@ class ManageGroupController @Inject()
   }
 
   def showDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent( groupId, (group: AccessGroup) =>
+        Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), group))
+    )
+  }
+
+  def submitDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent( groupId, (group: AccessGroup) =>
+      Ok(s"not implemented ${groupId}")
+    )
+  }
+
+  private def withGroupForAuthorisedOptedAgent(groupId: String, fn: AccessGroup => Result)(
+    implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig) = {
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).map { maybeGroup =>
-          Ok(s"delete group not yet implemented ${maybeGroup.get.groupName}")
-        }
+        agentPermissionsConnector.getGroup(groupId).map(maybeGroup =>
+          maybeGroup.fold(groupNotFound) { group =>
+            fn(group)
+          }
+        )
       }
     }
   }
 
-  private def groupNotFound(implicit request: MessagesRequest[AnyContent]) : Result = {
+  private def groupNotFound(implicit request: MessagesRequest[AnyContent]): Result = {
     NotFound(group_not_found())
   }
 

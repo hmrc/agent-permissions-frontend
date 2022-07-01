@@ -96,7 +96,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     "return Done when response code is 201 CREATED" in {
 
       val groupRequest = GroupRequest("name of group", None, None)
-      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/group/create "
+      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
       val mockResponse = HttpResponse.apply(CREATED, "response Body")
       mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
       connector.createGroup(arn)(groupRequest).futureValue shouldBe Done
@@ -105,7 +105,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     "throw an exception for any other HTTP response code" in {
 
       val groupRequest = GroupRequest("name of group", None, None)
-      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/group/create "
+      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
       val caught = intercept[UpstreamErrorResponse] {
@@ -126,7 +126,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
         groupSummaries,
         Set(Client("taxService~identKey~hmrcRef", "name"))
       )
-      val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups-information"
+      val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
       val mockJsonResponseBody = Json.toJson(groupSummaryResponse).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
@@ -168,7 +168,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
         Some(Set(agent)),
         Some(Set(Enrolment("service", "state", "friendly", Seq(Identifier("key", "value"))))))
 
-      val expectedUrl = s"http://localhost:9447/agent-permissions/gid/${groupId}/group"
+      val expectedUrl = s"http://localhost:9447/agent-permissions/groups/${groupId}"
       val mockJsonResponseBody = Json.toJson(accessGroup).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 

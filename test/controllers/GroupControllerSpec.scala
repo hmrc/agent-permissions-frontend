@@ -102,9 +102,9 @@ class GroupControllerSpec extends BaseSpec {
 
   }
 
-  "GET /group/create-access-group" should {
+  s"GET /" should {
 
-    "redirect to /group/group-name" in {
+    s"redirect to ${routes.GroupController.showGroupName}" in {
 
       val result = controller.start()(request)
 
@@ -114,7 +114,7 @@ class GroupControllerSpec extends BaseSpec {
     }
   }
 
-  "GET /group/group-name" should {
+  s"GET ${routes.GroupController.showGroupName}" should {
 
     "have correct layout and content" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -134,7 +134,7 @@ class GroupControllerSpec extends BaseSpec {
     }
   }
 
-  "POST /group/group-name" should {
+  s"POST ${routes.GroupController.showGroupName}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)

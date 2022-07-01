@@ -33,6 +33,9 @@ tax-service.ppt=Plastic Packaging Tax
 tax-service.cgt=Capital Gains Tax on UK Property account
 tax-service.trusts=Maintain a Trust or Estate
 
+group.not.found.error.h1=Access group not found
+group.not.found.error.p=Please check the url or return to the Manage groups page
+group.not.found.error.a=Back to manage groups page
 
 opt-in-info.h1=Opting in to use access groups
 opt-in-info.inset=By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login
@@ -125,4 +128,13 @@ group.manage.no.groups.h3=No groups found
 group.manage.no.groups.p=You can create an access group to control which team members can manage the tax affairs of clients in the group
 group.manage.no.groups.button=Create new access group
 group.manage.no.unassigned.clients.h3=No unassigned clients found
+group.manage.rename=Rename group
+group.manage.delete=Delete group
 
+group.rename.h1=Rename group
+
+group.renamed.h1=Access group renamed
+group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
+group.renamed.p=You can rename groups any time from the ‘manage access groups’ section
+
+group.renamed.a=Return to manage access groups

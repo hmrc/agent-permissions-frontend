@@ -22,6 +22,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.data.FormError
 import play.api.libs.json.Json
+import play.api.libs.json.Json.toJson
 
 import java.util.Base64
 
@@ -33,12 +34,13 @@ class AddTeamMembersToGroupFormSpec extends AnyWordSpec
   val search = "search"
   val members = "members[]"
 
+  val member1 = TeamMember("Bob", "bob@builds.com", None, None, selected = true)
+  val member2 = TeamMember("Steve", "steve@abc.com", None, None)
+
+  val encode: TeamMember => String = teamMember => Base64.getEncoder.encodeToString(Json.toJson(teamMember).toString.getBytes)
+
   "AddTeamMembersToGroup form binding" should {
 
-    val member1 = TeamMember("Bob", "bob@builds.com", None, None, selected = true)
-    val member2 = TeamMember("Steve", "steve@abc.com", None, None)
-
-    val encode: TeamMember => String = teamMember => Base64.getEncoder.encodeToString(Json.toJson(teamMember).toString.getBytes)
 
     "be fillable with a AddTeamMembersToGroup" in {
       val validatedForm = AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(hasAlreadySelected = false, None, Some(List(member1, member2))))
@@ -96,6 +98,40 @@ class AddTeamMembersToGroupFormSpec extends AnyWordSpec
       boundForm.value shouldBe Some(AddTeamMembersToGroup(hasAlreadySelected = false, None, None))
     }
 
+  }
+
+  "Add TeamMembersToGroup unbind form" should {
+
+    "give expected Map of data Continue" in {
+      val model = AddTeamMembersToGroup(hasAlreadySelected = false, None, Some(List(member1, member2)))
+      AddTeamMembersToGroupForm.form(ButtonSelect.Continue)
+        .mapping
+        .unbind(model) shouldBe Map(
+        "hasAlreadySelected" -> "false",
+        "members[0]" -> Base64.getEncoder.encodeToString(toJson[TeamMember](member1).toString().getBytes),
+        "members[1]" -> Base64.getEncoder.encodeToString(toJson[TeamMember](member2).toString().getBytes),
+      )
+    }
+
+    "give expected Map of data Filter" in {
+      val model = AddTeamMembersToGroup(hasAlreadySelected = false, Option("Ab"), Some(List(member1)))
+      AddTeamMembersToGroupForm.form(ButtonSelect.Filter)
+        .mapping
+        .unbind(model) shouldBe Map(
+        "hasAlreadySelected" -> "false",
+        "search" -> "Ab",
+        "members[0]" -> Base64.getEncoder.encodeToString(toJson[TeamMember](member1).toString().getBytes),
+      )
+    }
+
+    "give expected Map of data Clear" in {
+      val model = AddTeamMembersToGroup(hasAlreadySelected = false, None, None)
+      AddTeamMembersToGroupForm.form(ButtonSelect.Clear)
+        .mapping
+        .unbind(model) shouldBe Map(
+        "hasAlreadySelected" -> "false",
+      )
+    }
   }
 
 }

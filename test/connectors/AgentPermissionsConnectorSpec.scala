@@ -224,4 +224,31 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     }
 
   }
+
+  "DELETE Group" should {
+
+    "return Done when response code is OK" in {
+
+      val groupId = "234234"
+      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val mockResponse = HttpResponse.apply(OK, "response Body")
+      mockHttpDELETE[HttpResponse](url, mockResponse)
+      connector.deleteGroup(groupId).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      val groupId = "234234"
+      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
+      mockHttpDELETE[HttpResponse](url, mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.deleteGroup(groupId))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+  }
 }

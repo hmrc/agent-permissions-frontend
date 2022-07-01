@@ -62,9 +62,9 @@
     }
     @if(summaries._1.isEmpty){
         @h3("group.manage.no.groups.h3")
-        @a_button("group.manage.no.groups.button",
-            href=routes.GroupController.showGroupName.url)
     }
+
+    @a_button("group.manage.no.groups.button", href=routes.GroupController.showGroupName.url)
 
 }
 
@@ -130,6 +130,5 @@
         )
     ))
 
-    @a_button("group.manage.no.groups.button", routes.GroupController.showGroupName.url)
 
 }

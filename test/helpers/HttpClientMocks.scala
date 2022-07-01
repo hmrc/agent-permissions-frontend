@@ -58,4 +58,11 @@ trait HttpClientMocks extends MockFactory {
       .expects(url, input, *, *, *, *, *)
       .returns(Future.successful(output))
   }
+
+  def mockHttpDELETE[O](url: String, output: O)(implicit mockHttpClient: HttpClient): Unit = {
+    (mockHttpClient.DELETE(_: String, _: Seq[(String, String)])
+    ( _: HttpReads[O], _: HeaderCarrier, _: ExecutionContext))
+      .expects(url, *, *, *, *)
+      .returns(Future.successful(output))
+  }
 }

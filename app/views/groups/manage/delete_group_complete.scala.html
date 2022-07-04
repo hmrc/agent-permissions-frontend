@@ -19,20 +19,18 @@
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, a: a, govukPanel: GovukPanel)
 
-@(oldGroupName: String, newGroupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(deletedGroupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@layout(title = msgs("group.renamed.h1")) {
+@layout(title = msgs("group.deleted.h1", deletedGroupName)) {
 
     @govukPanel(
-        Panel(
-            title = Text(msgs("group.renamed.h1")),
-            content = HtmlContent(msgs("group.renamed.panelContent", oldGroupName, newGroupName))
-        )
+        Panel(title = Text(msgs("group.deleted.h1", deletedGroupName)))
     )
 
     @h2("common.what.happens.next")
-    @p("group.renamed.p")
-    @a("common.return.to.dashboard", href = appConfig.agentServicesAccountManageAccountUrl)
+    @p("group.deleted.p")
+    @a( "common.return.to.dashboard",
+        id = Some("returnToDashboard"), href = routes.ManageGroupController.showManageGroups.url)
 
 }
 

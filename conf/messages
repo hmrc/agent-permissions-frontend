@@ -137,9 +137,12 @@ group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
 group.renamed.p=You can rename groups any time from the ‘manage access groups’ section
 
-group.renamed.a=Return to manage access groups
+common.return.to.dashboard=Return to manage access groups
 
 group.delete.h1=Delete group
 group.delete.name.label=Are you sure you want to delete {0} access group?
-group.delete.select.error=Please select an option.
+group.delete.select.error=Select ‘yes’ if you would like to delete the group.
+
+group.deleted.h1={0} access group deleted
+group.deleted.p=Clients from this group will now be visible to all team members, unless they are in other groups.
 

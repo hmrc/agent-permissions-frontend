@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageGroupController @Inject()
@@ -41,6 +41,7 @@ class ManageGroupController @Inject()
   rename_group_complete: rename_group_complete,
   group_not_found: group_not_found,
   confirm_delete_group: confirm_delete_group,
+  delete_group_complete: delete_group_complete,
   val agentPermissionsConnector: AgentPermissionsConnector,
   val sessionCacheRepository: SessionCacheRepository,
 )(
@@ -126,12 +127,38 @@ class ManageGroupController @Inject()
 
   def submitDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent( groupId, (group: AccessGroup) =>
-      Ok(s"not implemented ${groupId}")
+      YesNoForm
+        .form("group.delete.select.error")
+        .bindFromRequest
+        .fold(
+          formWithErrors => Ok(confirm_delete_group(formWithErrors, group)),
+          (answer: Boolean) => {
+            if (answer) {
+              for {
+                _ <- sessionCacheRepository.putSession[String](GROUP_DELETED_NAME, group.groupName)
+                _ <- agentPermissionsConnector.deleteGroup(groupId)
+              } yield ()
+              Redirect(routes.ManageGroupController.showGroupDeleted.url)
+            }
+            else
+              Redirect(routes.ManageGroupController.showManageGroups.url)
+          }
+        )
     )
   }
 
+  def showGroupDeleted: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        sessionCacheRepository.getFromSession(GROUP_DELETED_NAME).map(groupName =>
+          Ok(delete_group_complete(groupName.getOrElse("")))
+        )
+      }
+    }
+  }
+
   private def withGroupForAuthorisedOptedAgent(groupId: String, fn: AccessGroup => Result)(
-    implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig) = {
+    implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig) : Future[Result] = {
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         agentPermissionsConnector.getGroup(groupId).map(maybeGroup =>

@@ -53,3 +53,5 @@ GET     /access-group-renamed/:groupId      controllers.ManageGroupController.sh
 
 GET     /delete-group/:groupId              controllers.ManageGroupController.showDeleteGroup(groupId: String)
 POST    /delete-group/:groupId              controllers.ManageGroupController.submitDeleteGroup(groupId: String)
+
+GET     /access-group-deleted               controllers.ManageGroupController.showGroupDeleted

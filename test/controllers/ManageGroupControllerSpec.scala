@@ -368,11 +368,12 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   s"POST ${routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString)}" should {
 
-    "render correctly the confirm DELETE group page" in {
+    "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
+      implicit val request = FakeRequest("POST",
+        routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString).url)
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -383,10 +384,58 @@ class ManageGroupControllerSpec extends BaseSpec {
       val result = controller.submitDeleteGroup(accessGroup._id.toString)(request)
 
       //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-      html.body().text() shouldBe s"not implemented ${accessGroup._id}"
+      status(result) shouldBe SEE_OTHER
+      //and
+      redirectLocation(result) shouldBe Some(routes.ManageGroupController.showGroupDeleted.url)
 
+    }
+
+    "render correctly the DASHBOARD group page when 'no' selected" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      implicit val request = FakeRequest("POST",
+        routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString).url)
+        .withFormUrlEncodedBody("answer" -> "false")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.submitDeleteGroup(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      //and
+      redirectLocation(result) shouldBe Some(routes.ManageGroupController.showManageGroups.url)
+
+    }
+  }
+
+  s"GET ${routes.ManageGroupController.showGroupDeleted}" should {
+
+    "render correctly" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_DELETED_NAME, "Rubbish"))
+
+      //when
+      val result = controller.showGroupDeleted(request)
+
+      //then
+      status(result) shouldBe OK
+
+      //and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Rubbish access group deleted - Manage Agent Permissions - GOV.UK"
+      html.select(Css.confirmationPanelH1).text() shouldBe "Rubbish access group deleted"
+      html.select(Css.H2).text() shouldBe "What happens next?"
+      html.select(Css.paragraphs).get(0).text() shouldBe "Clients from this group will now be visible to all team members, unless they are in other groups."
+      html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
+      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+      html.select(Css.backLink).size() shouldBe 0
     }
   }
 

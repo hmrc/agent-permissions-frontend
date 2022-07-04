@@ -36,17 +36,17 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
   val filter = "filter"
   val clients = "clients[]"
 
-  val client1 = DisplayClient("123", "JD", "VAT", s"id-key-1")
-  val client2 = DisplayClient("456", "HH", "CGT", s"id-key-2")
+  val client1: DisplayClient = DisplayClient("123", "JD", "VAT", s"id-key-1")
+  val client2: DisplayClient = DisplayClient("456", "HH", "CGT", s"id-key-2")
 
   "CreateGroupFrom binding" should {
 
     val encode: DisplayClient => String = client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes)
 
     "be fillable with a AddClientsToGroup" in {
-      val validatedForm = AddClientsToGroupForm.form().fill(AddClientsToGroup(false, None, None, Some(List(client1, client2))))
+      val validatedForm = AddClientsToGroupForm.form().fill(AddClientsToGroup(hasSelectedClients = false, None, None, Some(List(client1, client2))))
       validatedForm.hasErrors shouldBe false
-      validatedForm.value shouldBe Option(AddClientsToGroup(false, None, None, Some(List(client1, client2))))
+      validatedForm.value shouldBe Option(AddClientsToGroup(hasSelectedClients = false, None, None, Some(List(client1, client2))))
     }
 
     "be successful when clients are non-empty" in {
@@ -58,7 +58,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
         )
       )
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.value shouldBe Some(AddClientsToGroup(false, None, None, Some(List(client1, client2))))
+      boundForm.value shouldBe Some(AddClientsToGroup(hasSelectedClients = false, None, None, Some(List(client1, client2))))
     }
 
     "be successful when button is Clear and form is empty" in {
@@ -69,7 +69,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
         clients -> List.empty
       )
       val boundForm = AddClientsToGroupForm.form(ButtonSelect.Clear).bindFromRequest(params)
-      boundForm.value shouldBe Some(AddClientsToGroup(false, None, None, None))
+      boundForm.value shouldBe Some(AddClientsToGroup(hasSelectedClients = false, None, None, None))
     }
 
     "be successful when button is Filter and form is non-empty" in {
@@ -80,7 +80,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
         clients -> List(encode(client1), encode(client2))
       )
       val boundForm = AddClientsToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
-      boundForm.value shouldBe Some(AddClientsToGroup(false, None, Some("abc"), Some(List(client1, client2))))
+      boundForm.value shouldBe Some(AddClientsToGroup(hasSelectedClients = false, None, Some("abc"), Some(List(client1, client2))))
     }
 
     "have errors when clients is empty and hiddenClients is false" in {
@@ -116,7 +116,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
   "Unbind form" should {
 
     "give expected Map of data Continue" in {
-      val model = AddClientsToGroup(false, None, None, Some(List(client1, client2)))
+      val model = AddClientsToGroup(hasSelectedClients = false, None, None, Some(List(client1, client2)))
       AddClientsToGroupForm.form(Continue)
         .mapping
         .unbind(model) shouldBe Map(
@@ -127,7 +127,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
     }
 
     "give expected Map of data Filter" in {
-      val model = AddClientsToGroup(false, Option("Ab"), Option("Bc"), Some(List(client1)))
+      val model = AddClientsToGroup(hasSelectedClients = false, Option("Ab"), Option("Bc"), Some(List(client1)))
       AddClientsToGroupForm.form(Clear)
         .mapping
         .unbind(model) shouldBe Map(
@@ -139,7 +139,7 @@ class AddClientsToGroupFormSpec extends AnyWordSpec
     }
 
     "give expected Map of data Clear" in {
-      val model = AddClientsToGroup(false, None, None, None)
+      val model = AddClientsToGroup(hasSelectedClients = false, None, None, None)
       AddClientsToGroupForm.form(Filter)
         .mapping
         .unbind(model) shouldBe Map(

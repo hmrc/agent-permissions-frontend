@@ -26,21 +26,21 @@ object ButtonSelect {
     override val value = "continue"
   }
   case object Filter extends ButtonSelect {
-    override val value = "filter"
+    override val value = "submitFilter"
   }
   case object Clear extends ButtonSelect {
-    override val value = "clear"
+    override val value = "submitClear"
   }
 
  def apply(s: String): ButtonSelect = s match {
    case "continue" => Continue
-   case "filter"  => Filter
-   case "clear" => Clear
+   case "submitFilter"  => Filter
+   case "submitClear" => Clear
  }
 
    implicit def unapply(o: ButtonSelect): String = o match {
    case Continue => "continue"
-   case Filter => "filter"
-   case Clear => "clear"
+   case Filter => "submitFilter"
+   case Clear => "submitClear"
  }
 }

@@ -16,28 +16,9 @@
 
 package models
 
-import helpers.BaseSpec
-import models.ButtonSelect.unapply
+case class AddTeamMembersToGroup(
+                               hasAlreadySelected: Boolean,
+                               search: Option[String],
+                               members: Option[List[TeamMember]]
+                             )
 
-class ButtonSelectSpec extends BaseSpec{
-
-  "apply" should {
-
-    "give correct type of button"  in {
-      ButtonSelect.apply("continue") shouldBe ButtonSelect.Continue
-      ButtonSelect.apply("submitFilter") shouldBe ButtonSelect.Filter
-      ButtonSelect.apply("submitClear") shouldBe ButtonSelect.Clear
-    }
-
-  }
-  "unapply" should {
-
-    "give expected string"  in {
-      unapply(ButtonSelect.Continue) shouldBe "continue"
-      unapply(ButtonSelect.Filter) shouldBe "submitFilter"
-      unapply(ButtonSelect.Clear) shouldBe "submitClear"
-    }
-
-  }
-
-}

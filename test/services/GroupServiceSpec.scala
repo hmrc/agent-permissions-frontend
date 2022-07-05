@@ -28,21 +28,24 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GroupServiceSpec extends BaseSpec {
 
-  val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
+  val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  lazy val sessionCacheRepo: SessionCacheRepository =
+    new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  val service = new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
+  val service =
+    new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
 
   val fakeClients: Seq[Client] = (1 to 10)
     .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
 
   val users: Seq[UserDetails] = (1 to 3)
-    .map(i => UserDetails(userId = Option(s"user$i"),
-      None,
-      Some(s"Name $i"),
-      Some(s"bob$i@accounting.com")
-    )
-    )
+    .map(
+      i =>
+        UserDetails(userId = Option(s"user$i"),
+                    None,
+                    Some(s"Name $i"),
+                    Some(s"bob$i@accounting.com")))
 
   val fakeTeamMembers: Seq[TeamMember] = (1 to 5)
     .map(i => {
@@ -57,12 +60,14 @@ class GroupServiceSpec extends BaseSpec {
   "getClients" should {
     "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
       //given
-      (mockAgentUserClientDetailsConnector.getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      (mockAgentUserClientDetailsConnector
+        .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful Some(fakeClients))
 
       //when
-      val maybeClients: Option[Seq[DisplayClient]] = await(service.getClients(arn))
+      val maybeClients: Option[Seq[DisplayClient]] =
+        await(service.getClients(arn))
       val clients: Seq[DisplayClient] = maybeClients.get
 
       //then
@@ -88,12 +93,14 @@ class GroupServiceSpec extends BaseSpec {
   "getTeamMembers" should {
     "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones" in {
       //given
-      (mockAgentUserClientDetailsConnector.getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      (mockAgentUserClientDetailsConnector
+        .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful Some(users))
 
       //when
-      val maybeTeamMembers: Option[Seq[TeamMember]] = await(service.getTeamMembers(arn)(None))
+      val maybeTeamMembers: Option[Seq[TeamMember]] =
+        await(service.getTeamMembers(arn)(None))
       val teamMembers: Seq[TeamMember] = maybeTeamMembers.get
 
       //then
@@ -107,12 +114,8 @@ class GroupServiceSpec extends BaseSpec {
   }
 
   // TODO implement tests for addClient/addTeamMember, refactor processFormData?
-  "filterClients" should {
+  "filterClients" should {}
 
-  }
-
-  "filterTeamMembers" should {
-
-  }
+  "filterTeamMembers" should {}
 
 }

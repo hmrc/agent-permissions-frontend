@@ -25,15 +25,20 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait GroupServiceMocks extends MockFactory{
+trait GroupServiceMocks extends MockFactory {
 
-  def stubGetTeamMembers(arn: Arn)(teamMembers: Seq[TeamMember])(implicit groupService: GroupService): Unit =
-    (groupService.getTeamMembers(_: Arn)(_:Option[Seq[TeamMember]] )(_: HeaderCarrier, _: ExecutionContext))
+  def stubGetTeamMembers(arn: Arn)(teamMembers: Seq[TeamMember])(
+      implicit groupService: GroupService): Unit =
+    (groupService
+      .getTeamMembers(_: Arn)(_: Option[Seq[TeamMember]])(_: HeaderCarrier,
+                                                          _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Some(teamMembers))
 
-  def stubGetClients(arn: Arn)(clients: Seq[DisplayClient])(implicit groupService: GroupService): Unit =
-    (groupService.getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+  def stubGetClients(arn: Arn)(clients: Seq[DisplayClient])(
+      implicit groupService: GroupService): Unit =
+    (groupService
+      .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful (Some(clients)))
 }

@@ -23,22 +23,30 @@ import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, OptedOutEligible, OptedOutSingleUser}
+import uk.gov.hmrc.agentmtdidentifiers.model.{
+  OptedInReady,
+  OptedOutEligible,
+  OptedOutSingleUser
+}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class RootControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
+    mock[AgentPermissionsConnector]
 
-  lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
+  lazy val sessioncacheRepo: SessionCacheRepository =
+    new SessionCacheRepository(mongoComponent, timestampSupport)
 
   override def moduleWithOverrides = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
-      bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AuthAction])
+        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+      bind(classOf[AgentPermissionsConnector])
+        .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
     }
   }

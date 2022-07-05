@@ -20,9 +20,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class YesNoFormSpec extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite {
+class YesNoFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   val answerFieldName = "answer"
 
@@ -43,17 +41,16 @@ class YesNoFormSpec extends AnyWordSpec
     }
 
     "Be invalid with provided error message key when 'answer' field name not present in params" in {
-      val params : Map[String, String] = Map.empty
+      val params: Map[String, String] = Map.empty
       val validatedForm = YesNoForm.form("my.error.key").bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm.error(answerFieldName).get.message shouldBe "my.error.key"
     }
 
     "unbind" in {
-      YesNoForm.form("my.error.key").mapping.unbind(true) shouldBe Map("answer" -> "true")
+      YesNoForm.form("my.error.key").mapping.unbind(true) shouldBe Map(
+        "answer" -> "true")
     }
   }
-
-
 
 }

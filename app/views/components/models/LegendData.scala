@@ -18,7 +18,7 @@ package views.components.models
 
 /** provides terser data for the verbose GovukLegend */
 case class LegendData(
-                       msg: String,
-                       classes: Option[String] = None,
-                       isH1: Boolean = false
-                     )
+    msg: String,
+    classes: Option[String] = None,
+    isH1: Boolean = false
+)

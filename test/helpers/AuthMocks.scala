@@ -28,15 +28,19 @@ trait AuthMocks extends MockFactory {
 
   type GrantAccess = Enrolments ~ Option[CredentialRole]
 
-  def expectAuthorisationGrantsAccess(response: GrantAccess)(implicit authConnector: AuthConnector): Unit =
+  def expectAuthorisationGrantsAccess(response: GrantAccess)(
+      implicit authConnector: AuthConnector): Unit =
     (authConnector
-      .authorise(_: Predicate, _: Retrieval[GrantAccess])(_: HeaderCarrier, _: ExecutionContext))
+      .authorise(_: Predicate, _: Retrieval[GrantAccess])(_: HeaderCarrier,
+                                                          _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future successful response)
 
-  def expectAuthorisationFails(throwable: Throwable)(implicit authConnector: AuthConnector): Unit =
+  def expectAuthorisationFails(throwable: Throwable)(
+      implicit authConnector: AuthConnector): Unit =
     (authConnector
-      .authorise(_: Predicate, _: Retrieval[GrantAccess])(_: HeaderCarrier, _: ExecutionContext))
+      .authorise(_: Predicate, _: Retrieval[GrantAccess])(_: HeaderCarrier,
+                                                          _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future failed throwable)
 }

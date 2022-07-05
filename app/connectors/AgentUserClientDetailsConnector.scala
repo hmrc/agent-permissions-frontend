@@ -24,7 +24,12 @@ import play.api.Logging
 import play.api.http.Status.{ACCEPTED, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{
+  HeaderCarrier,
+  HttpClient,
+  HttpResponse,
+  UpstreamErrorResponse
+}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,40 +38,57 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   val http: HttpClient
 
-  def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]]
+  def getClients(arn: Arn)(implicit hc: HeaderCarrier,
+                           ec: ExecutionContext): Future[Option[Seq[Client]]]
 
-  def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[UserDetails]]]
+  def getTeamMembers(arn: Arn)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Option[Seq[UserDetails]]]
 
 }
 
 @Singleton
-class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(implicit metrics: Metrics, appConfig: AppConfig) extends AgentUserClientDetailsConnector with HttpAPIMonitor with Logging {
+class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
+    implicit metrics: Metrics,
+    appConfig: AppConfig)
+    extends AgentUserClientDetailsConnector
+    with HttpAPIMonitor
+    with Logging {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
-  def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[Client]]] = {
+  def getClients(arn: Arn)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Option[Seq[Client]]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"
     monitor("ConsumedAPI-getClientList-GET") {
-      http.GET[HttpResponse](url).map{
-        response => response.status match {
-          case ACCEPTED   => None
-          case OK         => response.json.asOpt[Seq[Client]]
-          case e          => throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",e)
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case ACCEPTED => None
+          case OK       => response.json.asOpt[Seq[Client]]
+          case e =>
+            throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
+                                        e)
         }
       }
     }
   }
 
-  override def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[UserDetails]]] = {
-    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/team-members"
+  override def getTeamMembers(arn: Arn)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Option[Seq[UserDetails]]] = {
+    val url =
+      s"$baseUrl/agent-user-client-details/arn/${arn.value}/team-members"
     monitor("ConsumedAPI-team-members-GET") {
-      http.GET[HttpResponse](url).map{
-        response => response.status match {
-          case ACCEPTED   => None
-          case OK         => response.json.asOpt[Seq[UserDetails]]
-          case e          => throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",e)
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case ACCEPTED => None
+          case OK       => response.json.asOpt[Seq[UserDetails]]
+          case e =>
+            throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
+                                        e)
         }
       }
     }

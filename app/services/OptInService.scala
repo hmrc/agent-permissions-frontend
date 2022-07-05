@@ -29,24 +29,31 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class OptInService @Inject()(
-                              agentPermissionsConnector: AgentPermissionsConnector,
-                              sessionCacheRepository: SessionCacheRepository
-                            ) {
+    agentPermissionsConnector: AgentPermissionsConnector,
+    sessionCacheRepository: SessionCacheRepository
+) {
 
-
-  def optIn(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def optIn(arn: Arn)(implicit request: Request[_],
+                      hc: HeaderCarrier,
+                      ec: ExecutionContext): Future[Done] = {
     optingTo(agentPermissionsConnector.optIn)(arn)(request, hc, ec)
   }
 
-  def optOut(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+  def optOut(arn: Arn)(implicit request: Request[_],
+                       hc: HeaderCarrier,
+                       ec: ExecutionContext): Future[Done] =
     optingTo(agentPermissionsConnector.optOut)(arn)(request, hc, ec)
 
-  private def optingTo(func: Arn => Future[Done])(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  private def optingTo(func: Arn => Future[Done])(arn: Arn)(
+      implicit request: Request[_],
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Done] = {
     for {
-      _               <- func(arn)
-      maybeStatus     <- agentPermissionsConnector.getOptInStatus(arn)
-      status          = maybeStatus.getOrElse(throw new RuntimeException(s"could not get optin-status from backend"))
-      _               <- sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS,status)
+      _ <- func(arn)
+      maybeStatus <- agentPermissionsConnector.getOptInStatus(arn)
+      status = maybeStatus.getOrElse(
+        throw new RuntimeException(s"could not get optin-status from backend"))
+      _ <- sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
     } yield Done
   }
 

@@ -27,8 +27,8 @@ import repository.SessionCacheRepository
 
 class SessionCacheServiceSpec extends BaseSpec {
 
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
-
+  lazy val sessionCacheRepo: SessionCacheRepository =
+    new SessionCacheRepository(mongoComponent, timestampSupport)
 
   override def moduleWithOverrides = new AbstractModule() {
 
@@ -36,7 +36,6 @@ class SessionCacheServiceSpec extends BaseSpec {
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
     }
   }
-
 
   override implicit lazy val fakeApplication: Application =
     appBuilder
@@ -49,11 +48,13 @@ class SessionCacheServiceSpec extends BaseSpec {
     "over-write an existing group name and redirect" in {
 
       await(sessionCacheRepo.putSession[String](GROUP_NAME, "shady"))
-      val result = service.writeGroupNameAndRedirect("new group name")(routes.OptInController.start)
+      val result = service.writeGroupNameAndRedirect("new group name")(
+        routes.OptInController.start)
 
       status(result) shouldBe SEE_OTHER
 
-      val savedSession = await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
+      val savedSession =
+        await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
 
       savedSession.get shouldBe "new group name"
 
@@ -62,11 +63,13 @@ class SessionCacheServiceSpec extends BaseSpec {
 
     "create new group if none exists and redirect" in {
 
-      val result = service.writeGroupNameAndRedirect("new group name")(routes.OptInController.start)
+      val result = service.writeGroupNameAndRedirect("new group name")(
+        routes.OptInController.start)
 
       status(result) shouldBe SEE_OTHER
 
-      val savedSession = await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
+      val savedSession =
+        await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
 
       savedSession.get shouldBe "new group name"
 
@@ -80,9 +83,11 @@ class SessionCacheServiceSpec extends BaseSpec {
       await(sessionCacheRepo.putSession[String](GROUP_NAME, "shady"))
       await(sessionCacheRepo.putSession[Boolean](GROUP_NAME_CONFIRMED, false))
 
-      val result = service.confirmGroupNameAndRedirect(routes.OptInController.start)
+      val result =
+        service.confirmGroupNameAndRedirect(routes.OptInController.start)
 
-      val savedSession = await(sessionCacheRepo.getFromSession[Boolean](GROUP_NAME_CONFIRMED))
+      val savedSession =
+        await(sessionCacheRepo.getFromSession[Boolean](GROUP_NAME_CONFIRMED))
 
       status(result) shouldBe SEE_OTHER
       savedSession.get shouldBe true
@@ -93,11 +98,12 @@ class SessionCacheServiceSpec extends BaseSpec {
   "clearSelectedClients" should {
     "Remove selected clients from SessionCache Repo" in {
       //given
-      val clients = Seq(DisplayClient("whatever","","",""))
+      val clients = Seq(DisplayClient("whatever", "", "", ""))
 
       val (membersInSessionCache, maybeMembers) = (for {
         _ <- sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients)
-        membersInSessionCache <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+        membersInSessionCache <- sessionCacheRepo.getFromSession(
+          GROUP_CLIENTS_SELECTED)
         _ <- service.clearSelectedClients()
         maybeMembers <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
       } yield (membersInSessionCache, maybeMembers)).futureValue
@@ -112,7 +118,7 @@ class SessionCacheServiceSpec extends BaseSpec {
 
     "Add selected clients to SessionCache Repo" in {
       //given
-      val clients = Seq(DisplayClient("whatever","","",""))
+      val clients = Seq(DisplayClient("whatever", "", "", ""))
 
       val (initialEmptySession, savedClients) = (for {
         emptySession <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
@@ -130,37 +136,55 @@ class SessionCacheServiceSpec extends BaseSpec {
   "saveSelectedTeamMembers" should {
     "puts Selected Team members in SessionCache Repo" in {
       //given
-      val teamMembers: Seq[TeamMember] = (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
+      val teamMembers: Seq[TeamMember] =
+        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
 
       //when
       await(service.saveSelectedTeamMembers(teamMembers))
 
       //then
-      val maybeMembers = await(sessionCacheRepo.getFromSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED))
+      val maybeMembers = await(
+        sessionCacheRepo.getFromSession[Seq[TeamMember]](
+          GROUP_TEAM_MEMBERS_SELECTED))
 
       maybeMembers.isDefined shouldBe true
-      maybeMembers.get(0) shouldBe TeamMember("name1", "x1@xyz.com", None, None, true)
-      maybeMembers.get(1) shouldBe TeamMember("name2", "x2@xyz.com", None, None, true)
-      maybeMembers.get(2) shouldBe TeamMember("name3", "x3@xyz.com", None, None, true)
+      maybeMembers.get(0) shouldBe TeamMember("name1",
+                                              "x1@xyz.com",
+                                              None,
+                                              None,
+                                              true)
+      maybeMembers.get(1) shouldBe TeamMember("name2",
+                                              "x2@xyz.com",
+                                              None,
+                                              None,
+                                              true)
+      maybeMembers.get(2) shouldBe TeamMember("name3",
+                                              "x3@xyz.com",
+                                              None,
+                                              None,
+                                              true)
     }
   }
 
   "clearSelectedTeamMembers" should {
     "Remove selected Team members from SessionCache Repo" in {
       //given
-      val teamMembers: Seq[TeamMember] = (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
+      val teamMembers: Seq[TeamMember] =
+        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
 
       val (membersInSessionCache, clearedSessionCacheValue) = (for {
-        _ <- sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,teamMembers)
-        membersInSessionCache <- sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+        _ <- sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,
+                                         teamMembers)
+        membersInSessionCache <- sessionCacheRepo.getFromSession(
+          GROUP_TEAM_MEMBERS_SELECTED)
         _ <- service.clearSelectedTeamMembers()
-        clearedSessionCache<- sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+        clearedSessionCache <- sessionCacheRepo.getFromSession(
+          GROUP_TEAM_MEMBERS_SELECTED)
       } yield (membersInSessionCache, clearedSessionCache)).futureValue
 
       membersInSessionCache.get.length shouldBe 3
       clearedSessionCacheValue.isDefined shouldBe false
     }
   }
-
 
 }

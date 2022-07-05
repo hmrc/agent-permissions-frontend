@@ -18,4 +18,4 @@ package views.components.models
 
 import play.api.mvc.Call
 
-case class SummaryListData (key: String, value: String, link: Call)
+case class SummaryListData(key: String, value: String, link: Call)

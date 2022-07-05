@@ -41,18 +41,30 @@ trait AppConfig {
 }
 
 @Singleton
-class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig) extends AppConfig {
+class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
+    extends AppConfig {
   val appName = servicesConfig.getString("appName")
-  val welshLanguageSupportEnabled: Boolean = servicesConfig.getBoolean("features.welsh-language-support")
-  val contactFrontendBaseUrl: String = servicesConfig.baseUrl("contact-frontend")
-  val contactFrontendServiceId: String = servicesConfig.getString("contact-frontend.serviceId")
-  val betaFeedbackUrl: String = s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
-  val basGatewayUrl: String = servicesConfig.getString("microservice.services.bas-gateway.external-url")
-  val loginContinueUrl: String = servicesConfig.getString("microservice.services.bas-gateway.login-continue")
-  val agentServicesAccountExternalUrl: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.external-url")
-  val agentServicesAccountManageAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.manage-account-path")
+  val welshLanguageSupportEnabled: Boolean =
+    servicesConfig.getBoolean("features.welsh-language-support")
+  val contactFrontendBaseUrl: String =
+    servicesConfig.baseUrl("contact-frontend")
+  val contactFrontendServiceId: String =
+    servicesConfig.getString("contact-frontend.serviceId")
+  val betaFeedbackUrl: String =
+    s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
+  val basGatewayUrl: String =
+    servicesConfig.getString("microservice.services.bas-gateway.external-url")
+  val loginContinueUrl: String =
+    servicesConfig.getString("microservice.services.bas-gateway.login-continue")
+  val agentServicesAccountExternalUrl: String = servicesConfig.getString(
+    "microservice.services.agent-services-account-frontend.external-url")
+  val agentServicesAccountManageAccountPath: String = servicesConfig.getString(
+    "microservice.services.agent-services-account-frontend.manage-account-path")
   val agentServicesAccountManageAccountUrl = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
-  val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
-  val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
-  val sessionCacheExpiryDuration: Duration = servicesConfig.getDuration("mongodb.cache.expiry")
+  val agentPermissionsBaseUrl: String =
+    servicesConfig.baseUrl("agent-permissions")
+  val agentUserClientDetailsBaseUrl: String =
+    servicesConfig.baseUrl("agent-user-client-details")
+  val sessionCacheExpiryDuration: Duration =
+    servicesConfig.getDuration("mongodb.cache.expiry")
 }

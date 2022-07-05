@@ -29,30 +29,40 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class RootController @Inject()(
-                              authAction: AuthAction,
-  mcc: MessagesControllerComponents,
-  agentPermissionsConnector: AgentPermissionsConnector,
-  sessionCacheRepository: SessionCacheRepository)(implicit val appConfig: AppConfig, ec: ExecutionContext)
-    extends FrontendController(mcc) with Logging {
+    authAction: AuthAction,
+    mcc: MessagesControllerComponents,
+    agentPermissionsConnector: AgentPermissionsConnector,
+    sessionCacheRepository: SessionCacheRepository)(
+    implicit val appConfig: AppConfig,
+    ec: ExecutionContext)
+    extends FrontendController(mcc)
+    with Logging {
 
   import authAction._
 
   val start: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent{ arn =>
-      sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS).flatMap{
-        case Some(status) => if(controllers.isEligibleToOptIn(status))
-          Redirect(routes.OptInController.start.url).toFuture
-        else if(controllers.isOptedIn(status)) Redirect(routes.OptOutController.start.url).toFuture
-        else {
-          logger.warn(s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
-          Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
-        }
-        case None => agentPermissionsConnector.getOptInStatus(arn).flatMap{
-          case Some(status) =>
-            sessionCacheRepository.putSession(OPTIN_STATUS, status)
-              .map(_ => Redirect(routes.RootController.start.url))
-          case None => throw new RuntimeException("there was a problem when trying to get the opted-In status")
-        }
+    isAuthorisedAgent { arn =>
+      sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS).flatMap {
+        case Some(status) =>
+          if (controllers.isEligibleToOptIn(status))
+            Redirect(routes.OptInController.start.url).toFuture
+          else if (controllers.isOptedIn(status))
+            Redirect(routes.OptOutController.start.url).toFuture
+          else {
+            logger.warn(
+              s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
+            Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+          }
+        case None =>
+          agentPermissionsConnector.getOptInStatus(arn).flatMap {
+            case Some(status) =>
+              sessionCacheRepository
+                .putSession(OPTIN_STATUS, status)
+                .map(_ => Redirect(routes.RootController.start.url))
+            case None =>
+              throw new RuntimeException(
+                "there was a problem when trying to get the opted-In status")
+          }
       }
     }
   }

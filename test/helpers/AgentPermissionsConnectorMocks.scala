@@ -28,67 +28,85 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentPermissionsConnectorMocks extends MockFactory {
 
-  def stubOptInStatusOk(arn: Arn)(optinStatus: OptinStatus)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubOptInStatusOk(arn: Arn)(optinStatus: OptinStatus)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful (Some(optinStatus)))
 
-  def stubOptInStatusError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubOptInStatusError(arn: Arn)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def stubPostOptInAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubPostOptInAccepted(arn: Arn)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Done)
 
-  def stubPostOptInError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubPostOptInError(arn: Arn)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def stubPostOptOutAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.optOut(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def stubPostOptOutAccepted(arn: Arn)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .optOut(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Done)
 
-  def expectCreateGroupSuccess(arn: Arn, groupRequest: GroupRequest)
-                              (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+  def expectCreateGroupSuccess(arn: Arn, groupRequest: GroupRequest)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier,
+                                            _: ExecutionContext))
       .expects(arn, groupRequest, *, *)
       .returning(Future successful Done)
 
-  def expectCreateGroupFails(arn: Arn)
-                            (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+  def expectCreateGroupFails(arn: Arn)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier,
+                                            _: ExecutionContext))
       .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", BAD_REQUEST))
 
-  def expectGetGroupSummarySuccess(arn: Arn, summaries: Option[(Seq[GroupSummary], Seq[DisplayClient])])
-                              (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.groupsSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+  def expectGetGroupSummarySuccess(
+      arn: Arn,
+      summaries: Option[(Seq[GroupSummary], Seq[DisplayClient])])(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .groupsSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful summaries)
 
-  def expectGetGroupSuccess(id: String, group: Option[AccessGroup] )
-                                  (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+  def expectGetGroupSuccess(id: String, group: Option[AccessGroup])(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful group)
 
-  def getGroupNameCheckReturns(ok: Boolean)(arn: Arn, name: String)
-                              (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+  def getGroupNameCheckReturns(ok: Boolean)(arn: Arn, name: String)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, name, *, *)
       .returning(Future successful ok)
 
-  def getGroupNameCheckError(arn: Arn, name: String)
-                            (implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
-    (agentPermissionsConnector.groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+  def getGroupNameCheckError(arn: Arn, name: String)(
+      implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, name, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
-
-
 
 }

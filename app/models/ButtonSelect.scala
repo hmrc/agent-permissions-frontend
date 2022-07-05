@@ -16,7 +16,7 @@
 
 package models
 
-sealed trait ButtonSelect{
+sealed trait ButtonSelect {
   val value: String
 }
 
@@ -32,15 +32,15 @@ object ButtonSelect {
     override val value = "submitClear"
   }
 
- def apply(s: String): ButtonSelect = s match {
-   case "continue" => Continue
-   case "submitFilter"  => Filter
-   case "submitClear" => Clear
- }
+  def apply(s: String): ButtonSelect = s match {
+    case "continue"     => Continue
+    case "submitFilter" => Filter
+    case "submitClear"  => Clear
+  }
 
-   implicit def unapply(o: ButtonSelect): String = o match {
-   case Continue => "continue"
-   case Filter => "submitFilter"
-   case Clear => "submitClear"
- }
+  implicit def unapply(o: ButtonSelect): String = o match {
+    case Continue => "continue"
+    case Filter   => "submitFilter"
+    case Clear    => "submitClear"
+  }
 }

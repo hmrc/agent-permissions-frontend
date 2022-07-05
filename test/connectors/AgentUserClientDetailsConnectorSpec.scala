@@ -24,7 +24,10 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
-class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks with AgentUserClientDetailsConnectorMocks {
+class AgentUserClientDetailsConnectorSpec
+    extends BaseSpec
+    with HttpClientMocks
+    with AgentUserClientDetailsConnectorMocks {
 
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 
@@ -39,39 +42,39 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
     appBuilder
       .build()
 
-  val connector: AgentUserClientDetailsConnector = fakeApplication.injector.instanceOf[AgentUserClientDetailsConnectorImpl]
+  val connector: AgentUserClientDetailsConnector =
+    fakeApplication.injector.instanceOf[AgentUserClientDetailsConnectorImpl]
 
   "getClientList" should {
     "return a Some[Seq[Client]] when status response is OK" in {
-      mockHttpGet[HttpResponse](HttpResponse.apply(OK,
-      """[
+      mockHttpGet[HttpResponse](
+        HttpResponse.apply(
+          OK,
+          """[
           |{
           |"enrolmentKey": "HMRC-MTD-IT~MTDITID~XX12345",
           |"friendlyName": "Rapunzel"
           |}
           |]""".stripMargin
-      )
-      )
+        ))
 
       connector.getClients(arn).futureValue shouldBe Some(
-        Seq(
-        Client(
-          enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
-          friendlyName = "Rapunzel")))
+        Seq(Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
+                   friendlyName = "Rapunzel")))
     }
 
     "return None when status response is Accepted" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED,""))
+      mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
 
       connector.getClients(arn).futureValue shouldBe None
     }
 
     "throw error when status response is 5xx" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(503,""))
+      mockHttpGet[HttpResponse](HttpResponse.apply(503, ""))
 
-      intercept[UpstreamErrorResponse]{
+      intercept[UpstreamErrorResponse] {
         await(connector.getClients(arn))
       }
     }
@@ -79,8 +82,10 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
 
   "getTeamMembers" should {
     "return a Some[Seq[UserDetails]] when status response is OK" in {
-      mockHttpGet[HttpResponse](HttpResponse.apply(OK,
-        """[
+      mockHttpGet[HttpResponse](
+        HttpResponse.apply(
+          OK,
+          """[
           |{
           |"userId": "uid",
           |"credentialRole": "cred-role",
@@ -88,8 +93,7 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
           |"email": "x@y.com"
           |}
           |]""".stripMargin
-      )
-      )
+        ))
 
       connector.getTeamMembers(arn).futureValue shouldBe Some(
         Seq(
@@ -97,7 +101,7 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
             userId = Some("uid"),
             credentialRole = Some("cred-role"),
             name = Some("name"),
-            email =Some("x@y.com")
+            email = Some("x@y.com")
           )
         )
       )
@@ -105,16 +109,16 @@ class AgentUserClientDetailsConnectorSpec extends BaseSpec with HttpClientMocks 
 
     "return None when status response is Accepted" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED,""))
+      mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
 
       connector.getTeamMembers(arn).futureValue shouldBe None
     }
 
     "throw error when status response is 5xx" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(503,""))
+      mockHttpGet[HttpResponse](HttpResponse.apply(503, ""))
 
-      intercept[UpstreamErrorResponse]{
+      intercept[UpstreamErrorResponse] {
         await(connector.getTeamMembers(arn))
       }
     }

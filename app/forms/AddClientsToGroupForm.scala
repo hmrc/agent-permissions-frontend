@@ -35,11 +35,18 @@ object AddClientsToGroupForm {
             "hasSelectedClients" -> boolean,
             "search" -> optional(text),
             "filter" -> optional(text),
-            "clients" -> mandatoryIfFalse("hasSelectedClients", list(text)
-              .transform[List[DisplayClient]](
-                _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient]),
-                _.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes))
-              ).verifying("error.select-clients.empty", _.nonEmpty)
+            "clients" -> mandatoryIfFalse(
+              "hasSelectedClients",
+              list(text)
+                .transform[List[DisplayClient]](
+                  _.map(str =>
+                    parse(new String(getDecoder.decode(
+                      str.replaceAll("'", "")))).as[DisplayClient]),
+                  _.map(dc =>
+                    getEncoder.encodeToString(
+                      toJson[DisplayClient](dc).toString().getBytes))
+                )
+                .verifying("error.select-clients.empty", _.nonEmpty)
             )
           )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
         )
@@ -49,29 +56,46 @@ object AddClientsToGroupForm {
             "hasSelectedClients" -> boolean,
             "search" -> optional(text),
             "filter" -> optional(text),
-            "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
-              _.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
-              _.map(displayClientList => displayClientList.map(
-                dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)
-              ))
-            )
+            "clients" -> optional(list(text))
+              .transform[Option[List[DisplayClient]]](
+                _.map(strList =>
+                  strList.map(str =>
+                    parse(new String(getDecoder.decode(
+                      str.replaceAll("'", "")))).as[DisplayClient])),
+                _.map(
+                  displayClientList =>
+                    displayClientList.map(
+                      dc =>
+                        getEncoder.encodeToString(
+                          toJson[DisplayClient](dc).toString().getBytes)
+                  ))
+              )
           )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
-            .verifying(error="error.search-filter.empty", x => x.filter.isDefined || x.search.isDefined)
+            .verifying(error = "error.search-filter.empty",
+                       x => x.filter.isDefined || x.search.isDefined)
         )
       case Clear =>
-      Form(
-        mapping(
-          "hasSelectedClients" -> boolean,
-          "search" -> optional(text),
-          "filter" -> optional(text),
-          "clients" -> optional(list(text)).transform[Option[List[DisplayClient]]](
-            _.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[DisplayClient])),
-            _.map(displayClientList => displayClientList.map(
-              dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)
-            ))
-          )
-        )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
-      )
+        Form(
+          mapping(
+            "hasSelectedClients" -> boolean,
+            "search" -> optional(text),
+            "filter" -> optional(text),
+            "clients" -> optional(list(text))
+              .transform[Option[List[DisplayClient]]](
+                _.map(strList =>
+                  strList.map(str =>
+                    parse(new String(getDecoder.decode(
+                      str.replaceAll("'", "")))).as[DisplayClient])),
+                _.map(
+                  displayClientList =>
+                    displayClientList.map(
+                      dc =>
+                        getEncoder.encodeToString(
+                          toJson[DisplayClient](dc).toString().getBytes)
+                  ))
+              )
+          )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
+        )
       case e => throw new RuntimeException(s"invalid button $e")
     }
   }

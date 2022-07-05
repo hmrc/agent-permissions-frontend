@@ -17,7 +17,12 @@
 package controllers
 
 import config.AppConfig
-import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
+import forms.{
+  AddClientsToGroupForm,
+  AddTeamMembersToGroupForm,
+  GroupNameForm,
+  YesNoForm
+}
 import models.{ButtonSelect, DisplayClient, TeamMember}
 import connectors.{AgentPermissionsConnector, GroupRequest}
 import models.DisplayClient.toEnrolment
@@ -35,30 +40,32 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 @Singleton
-class GroupController @Inject()
-(
-  authAction: AuthAction,
-  mcc: MessagesControllerComponents,
-  create: create,
-  confirm_group_name: confirm_group_name,
-  access_group_name_exists: access_group_name_exists,
-  client_group_list: client_group_list,
-  review_clients_to_add: review_clients_to_add,
-  team_members_list: team_members_list,
-  review_team_members_to_add: review_team_members_to_add,
-  check_your_answers: check_your_answers,
-  group_created: group_created,
-  val agentPermissionsConnector: AgentPermissionsConnector,
-  sessionCacheService: SessionCacheService,
-  val sessionCacheRepository: SessionCacheRepository,
-  groupService: GroupService
+class GroupController @Inject()(
+    authAction: AuthAction,
+    mcc: MessagesControllerComponents,
+    create: create,
+    confirm_group_name: confirm_group_name,
+    access_group_name_exists: access_group_name_exists,
+    client_group_list: client_group_list,
+    review_clients_to_add: review_clients_to_add,
+    team_members_list: team_members_list,
+    review_team_members_to_add: review_team_members_to_add,
+    check_your_answers: check_your_answers,
+    group_created: group_created,
+    val agentPermissionsConnector: AgentPermissionsConnector,
+    sessionCacheService: SessionCacheService,
+    val sessionCacheRepository: SessionCacheRepository,
+    groupService: GroupService
 )(
-  implicit val appConfig: AppConfig, ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with SessionBehaviour with Logging {
+    implicit val appConfig: AppConfig,
+    ec: ExecutionContext,
+    implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
+    with I18nSupport
+    with SessionBehaviour
+    with Logging {
 
   import authAction._
-
 
   def start: Action[AnyContent] = Action {
     Redirect(routes.GroupController.showGroupName)
@@ -75,283 +82,409 @@ class GroupController @Inject()
   def submitGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        GroupNameForm.form()
+        GroupNameForm
+          .form()
           .bindFromRequest
           .fold(
-            formWithErrors =>
-              Ok(create(formWithErrors)).toFuture
-            ,
+            formWithErrors => Ok(create(formWithErrors)).toFuture,
             (name: String) =>
-              sessionCacheService.writeGroupNameAndRedirect(name)(routes.GroupController.showConfirmGroupName)
+              sessionCacheService.writeGroupNameAndRedirect(name)(
+                routes.GroupController.showConfirmGroupName)
           )
       }
     }
   }
 
-  def showConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
-        maybeName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { name =>
-          Ok(confirm_group_name(
-            YesNoForm.form("group.name.confirm.required.error"), name)).toFuture
+  def showConfirmGroupName: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
+          maybeName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture) { name =>
+            Ok(
+              confirm_group_name(
+                YesNoForm.form("group.name.confirm.required.error"),
+                name)).toFuture
+          }
         }
       }
-    }
   }
 
-  def submitConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
-        maybeName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { name =>
-          YesNoForm
-            .form("group.name.confirm.required.error")
-            .bindFromRequest
-            .fold(
-              formWithErrors => Ok(confirm_group_name(formWithErrors, name)).toFuture,
-              (nameIsCorrect: Boolean) => {
-                if (nameIsCorrect)
-                        agentPermissionsConnector.groupNameCheck(arn, name).flatMap(nameAvailable =>
-                        if(nameAvailable) sessionCacheService.confirmGroupNameAndRedirect(routes.GroupController.showSelectClients)
-                        else Redirect(routes.GroupController.showAccessGroupNameExists).toFuture
-                        )
-
-                else
-                  Redirect(routes.GroupController.showGroupName.url).toFuture
-              }
-            )
+  def submitConfirmGroupName: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeName =>
+          maybeName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture) { name =>
+            YesNoForm
+              .form("group.name.confirm.required.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors =>
+                  Ok(confirm_group_name(formWithErrors, name)).toFuture,
+                (nameIsCorrect: Boolean) => {
+                  if (nameIsCorrect)
+                    agentPermissionsConnector
+                      .groupNameCheck(arn, name)
+                      .flatMap(
+                        nameAvailable =>
+                          if (nameAvailable)
+                            sessionCacheService.confirmGroupNameAndRedirect(
+                              routes.GroupController.showSelectClients)
+                          else
+                            Redirect(
+                              routes.GroupController.showAccessGroupNameExists).toFuture)
+                  else
+                    Redirect(routes.GroupController.showGroupName.url).toFuture
+                }
+              )
+          }
         }
       }
-    }
   }
 
-  def showAccessGroupNameExists: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent{ arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn){ maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
-          Ok(access_group_name_exists(groupName)).toFuture
+  def showAccessGroupNameExists: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          maybeGroupName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture) {
+            groupName =>
+              Ok(access_group_name_exists(groupName)).toFuture
+          }
         }
       }
-    }
   }
 
   def showSelectClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
-          isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(arn) { maybeFilteredResult =>
-            isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS_EXIST)(arn) { maybeHiddenClients =>
-              if (maybeFilteredResult.isDefined)
-                Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, AddClientsToGroupForm.form())).toFuture
-              else groupService.getClients(arn).flatMap { maybeClients =>
-                Ok(client_group_list(maybeClients, groupName, maybeHiddenClients, AddClientsToGroupForm.form())).toFuture
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
-        .fold(ButtonSelect.Continue: ButtonSelect)(someMap =>
-          ButtonSelect(
-            someMap.getOrElse("continue", someMap.getOrElse("submitFilter", someMap.getOrElse("submitClear", throw new RuntimeException("invalid button value for submitAddClients")))).last
-          )
-        )
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
-          isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(arn) { maybeFilteredResult =>
-            isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS_EXIST)(arn) { maybeHiddenClients =>
-              AddClientsToGroupForm
-                .form(buttonSelection)
-                .bindFromRequest()
-                .fold(
-                  formWithErrors => {
-                    for {
-                      _       <- if(buttonSelection == ButtonSelect.Continue)
-                        sessionCacheService.clearSelectedClients()
-                      else ().toFuture
-                      result  <- if(maybeFilteredResult.isDefined)
-                                  Ok(client_group_list(maybeFilteredResult, groupName, maybeHiddenClients, formWithErrors)).toFuture
-                                    else groupService.getClients(arn).flatMap { maybeClients =>
-                                      Ok(client_group_list(maybeClients, groupName, maybeHiddenClients, formWithErrors)).toFuture
+        maybeGroupName.fold(
+          Redirect(routes.GroupController.showGroupName).toFuture) {
+          groupName =>
+            isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(arn) {
+              maybeFilteredResult =>
+                isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS_EXIST)(arn) {
+                  maybeHiddenClients =>
+                    if (maybeFilteredResult.isDefined)
+                      Ok(
+                        client_group_list(
+                          maybeFilteredResult,
+                          groupName,
+                          maybeHiddenClients,
+                          AddClientsToGroupForm.form())).toFuture
+                    else
+                      groupService.getClients(arn).flatMap { maybeClients =>
+                        Ok(
+                          client_group_list(
+                            maybeClients,
+                            groupName,
+                            maybeHiddenClients,
+                            AddClientsToGroupForm.form())).toFuture
                       }
-                    } yield result
-                  },
-                  formData => {
-                    groupService.processFormDataForClients(buttonSelection)(arn)(formData).map(_ =>
-                      if(buttonSelection == ButtonSelect.Continue) Redirect(routes.GroupController.showReviewSelectedClients)
-                      else Redirect(routes.GroupController.showSelectClients))
-                  }
-                )
+                }
             }
-          }
-        }
-    }
-    }
-  }
-
-  def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
-          maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture)(groupName =>
-            maybeClients.fold(Redirect(routes.GroupController.showSelectClients).toFuture)(clients =>
-              Ok(review_clients_to_add(clients, groupName)).toFuture
-            )
-          )
         }
       }
     }
   }
 
-  def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeSelectedTeamMembers =>
-          isOptedInWithSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)(arn) { maybeFilteredResult =>
-            isOptedInWithSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)(arn) { maybeHiddenTeamMembers =>
-              maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
-                if (maybeFilteredResult.isDefined)
-                  Ok(team_members_list(maybeFilteredResult, groupName, maybeHiddenTeamMembers, AddTeamMembersToGroupForm.form())).toFuture
-                else groupService.getTeamMembers(arn)(maybeSelectedTeamMembers).flatMap { maybeTeamMembers =>
-                  Ok(team_members_list(maybeTeamMembers, groupName, maybeHiddenTeamMembers, AddTeamMembersToGroupForm.form())).toFuture
+  def submitSelectedClients: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
+          .fold(ButtonSelect.Continue: ButtonSelect)(
+            someMap =>
+              ButtonSelect(
+                someMap
+                  .getOrElse(
+                    "continue",
+                    someMap.getOrElse(
+                      "submitFilter",
+                      someMap.getOrElse(
+                        "submitClear",
+                        throw new RuntimeException(
+                          "invalid button value for submitAddClients"))))
+                  .last
+            ))
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          maybeGroupName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture) {
+            groupName =>
+              isOptedInWithSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS)(
+                arn) { maybeFilteredResult =>
+                isOptedInWithSessionItem[Boolean](HIDDEN_CLIENTS_EXIST)(arn) {
+                  maybeHiddenClients =>
+                    AddClientsToGroupForm
+                      .form(buttonSelection)
+                      .bindFromRequest()
+                      .fold(
+                        formWithErrors => {
+                          for {
+                            _ <- if (buttonSelection == ButtonSelect.Continue)
+                              sessionCacheService.clearSelectedClients()
+                            else ().toFuture
+                            result <- if (maybeFilteredResult.isDefined)
+                              Ok(
+                                client_group_list(maybeFilteredResult,
+                                                  groupName,
+                                                  maybeHiddenClients,
+                                                  formWithErrors)).toFuture
+                            else
+                              groupService.getClients(arn).flatMap {
+                                maybeClients =>
+                                  Ok(
+                                    client_group_list(maybeClients,
+                                                      groupName,
+                                                      maybeHiddenClients,
+                                                      formWithErrors)).toFuture
+                              }
+                          } yield result
+                        },
+                        formData => {
+                          groupService
+                            .processFormDataForClients(buttonSelection)(arn)(
+                              formData)
+                            .map(
+                              _ =>
+                                if (buttonSelection == ButtonSelect.Continue)
+                                  Redirect(routes.GroupController.showReviewSelectedClients)
+                                else
+                                  Redirect(
+                                    routes.GroupController.showSelectClients))
+                        }
+                      )
                 }
               }
-            }
           }
         }
       }
-    }
   }
 
-  def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
-        .fold(ButtonSelect.Continue: ButtonSelect)(someMap =>
-          ButtonSelect(
-            someMap.getOrElse("continue", someMap.getOrElse("submitFilter", someMap.getOrElse("submitClear", throw new RuntimeException("invalid button value for submitAddClients")))).last
-          )
-        )
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
-        isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeSelectedTeamMembers =>
-          isOptedInWithSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)(arn) { maybeFilteredResult =>
-            groupService.getTeamMembers(arn)(maybeSelectedTeamMembers).flatMap { maybeTeamMembers =>
-              isOptedInWithSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)(arn) { maybeHiddenTeamMembers =>
-              AddTeamMembersToGroupForm
-                .form(buttonSelection)
-                .bindFromRequest()
-                .fold(
-                  formWithErrors => {
-                    for {
-                      _       <- if(buttonSelection == ButtonSelect.Continue)
-                        sessionCacheService.clearSelectedTeamMembers()
+  def showReviewSelectedClients: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(
+            arn) { maybeClients =>
+            maybeGroupName.fold(
+              Redirect(routes.GroupController.showGroupName).toFuture)(
+              groupName =>
+                maybeClients.fold(Redirect(
+                  routes.GroupController.showSelectClients).toFuture)(clients =>
+                  Ok(review_clients_to_add(clients, groupName)).toFuture))
+          }
+        }
+      }
+  }
 
-                      else ().toFuture
-                      result  <- if(maybeFilteredResult.isDefined)
-                        Ok(team_members_list(maybeFilteredResult, groupName, maybeHiddenTeamMembers, formWithErrors)).toFuture
-                      else {
-                        Ok(team_members_list(maybeTeamMembers, groupName, maybeHiddenTeamMembers, formWithErrors)).toFuture
-                      }
-                    } yield result
-                  },
-                  formData => {
-                    groupService.processFormDataForTeamMembers(buttonSelection)(arn)(formData).map(_ =>
-                      if(buttonSelection == ButtonSelect.Continue) Redirect(routes.GroupController.showReviewSelectedTeamMembers)
-                      else Redirect(routes.GroupController.showSelectTeamMembers))
+  def showSelectTeamMembers: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          isOptedInWithSessionItem[Seq[TeamMember]](
+            GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeSelectedTeamMembers =>
+            isOptedInWithSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)(
+              arn) { maybeFilteredResult =>
+              isOptedInWithSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)(arn) {
+                maybeHiddenTeamMembers =>
+                  maybeGroupName.fold(
+                    Redirect(routes.GroupController.showGroupName).toFuture) {
+                    groupName =>
+                      if (maybeFilteredResult.isDefined)
+                        Ok(
+                          team_members_list(
+                            maybeFilteredResult,
+                            groupName,
+                            maybeHiddenTeamMembers,
+                            AddTeamMembersToGroupForm.form())).toFuture
+                      else
+                        groupService
+                          .getTeamMembers(arn)(maybeSelectedTeamMembers)
+                          .flatMap { maybeTeamMembers =>
+                            Ok(
+                              team_members_list(
+                                maybeTeamMembers,
+                                groupName,
+                                maybeHiddenTeamMembers,
+                                AddTeamMembersToGroupForm.form())).toFuture
+                          }
                   }
-                )
               }
             }
           }
         }
       }
-      }
-    }
   }
 
-  def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
-          maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture)(groupName =>
-            maybeTeamMembers.fold(
-              Redirect(routes.GroupController.showSelectTeamMembers).toFuture)
-            (teamMembers =>
-              Ok(review_team_members_to_add(teamMembers, groupName)).toFuture
-            )
-          )
-        }
-      }
-    }
-  }
-
-  def showCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(
-          Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
-          isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
-            isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
-              Ok(check_your_answers(groupName, maybeTeamMembers.map(_.length), maybeClients.map(_.length))).toFuture
-            }
+  def submitSelectedTeamMembers: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        val buttonSelection: ButtonSelect = request.body.asFormUrlEncoded
+          .fold(ButtonSelect.Continue: ButtonSelect)(
+            someMap =>
+              ButtonSelect(
+                someMap
+                  .getOrElse(
+                    "continue",
+                    someMap.getOrElse(
+                      "submitFilter",
+                      someMap.getOrElse(
+                        "submitClear",
+                        throw new RuntimeException(
+                          "invalid button value for submitAddClients"))))
+                  .last
+            ))
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          maybeGroupName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture) {
+            groupName =>
+              isOptedInWithSessionItem[Seq[TeamMember]](
+                GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeSelectedTeamMembers =>
+                isOptedInWithSessionItem[Seq[TeamMember]](
+                  FILTERED_TEAM_MEMBERS)(arn) { maybeFilteredResult =>
+                  groupService
+                    .getTeamMembers(arn)(maybeSelectedTeamMembers)
+                    .flatMap { maybeTeamMembers =>
+                      isOptedInWithSessionItem[Boolean](
+                        HIDDEN_TEAM_MEMBERS_EXIST)(arn) {
+                        maybeHiddenTeamMembers =>
+                          AddTeamMembersToGroupForm
+                            .form(buttonSelection)
+                            .bindFromRequest()
+                            .fold(
+                              formWithErrors => {
+                                for {
+                                  _ <- if (buttonSelection == ButtonSelect.Continue)
+                                    sessionCacheService
+                                      .clearSelectedTeamMembers()
+                                  else ().toFuture
+                                  result <- if (maybeFilteredResult.isDefined)
+                                    Ok(
+                                      team_members_list(
+                                        maybeFilteredResult,
+                                        groupName,
+                                        maybeHiddenTeamMembers,
+                                        formWithErrors)).toFuture
+                                  else {
+                                    Ok(
+                                      team_members_list(
+                                        maybeTeamMembers,
+                                        groupName,
+                                        maybeHiddenTeamMembers,
+                                        formWithErrors)).toFuture
+                                  }
+                                } yield result
+                              },
+                              formData => {
+                                groupService
+                                  .processFormDataForTeamMembers(
+                                    buttonSelection)(arn)(formData)
+                                  .map(_ =>
+                                    if (buttonSelection == ButtonSelect.Continue)
+                                      Redirect(routes.GroupController.showReviewSelectedTeamMembers)
+                                    else Redirect(routes.GroupController.showSelectTeamMembers))
+                              }
+                            )
+                      }
+                    }
+                }
+              }
           }
         }
       }
-    }
   }
 
-  def submitCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(
-          Redirect(routes.GroupController.showGroupName).toFuture
-        ) { groupName =>
-          val createGroupResponse = for {
-            enrolments: Option[Seq[Enrolment]] <-
-              sessionCacheRepository.getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
+  def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          isOptedInWithSessionItem[Seq[TeamMember]](
+            GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
+            maybeGroupName.fold(
+              Redirect(routes.GroupController.showGroupName).toFuture)(
+              groupName =>
+                maybeTeamMembers.fold(Redirect(
+                  routes.GroupController.showSelectTeamMembers).toFuture)(
+                  teamMembers =>
+                    Ok(review_team_members_to_add(teamMembers, groupName)).toFuture))
+          }
+        }
+      }
+  }
+
+  def showCheckYourAnswers: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          maybeGroupName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture) {
+            groupName =>
+              isOptedInWithSessionItem[Seq[TeamMember]](
+                GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
+                isOptedInWithSessionItem[Seq[DisplayClient]](
+                  GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
+                  Ok(
+                    check_your_answers(groupName,
+                                       maybeTeamMembers.map(_.length),
+                                       maybeClients.map(_.length))).toFuture
+                }
+              }
+          }
+        }
+      }
+  }
+
+  def submitCheckYourAnswers: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+          maybeGroupName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture
+          ) { groupName =>
+            val createGroupResponse = for {
+              enrolments: Option[Seq[Enrolment]] <- sessionCacheRepository
+                .getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
                 .flatMap { maybeClients: Option[Seq[DisplayClient]] =>
                   Future(
                     maybeClients.map(dcs => dcs.map(toEnrolment(_)))
                   )
                 }
 
-            members: Option[Seq[AgentUser]] <-
-              sessionCacheRepository.getFromSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)
+              members: Option[Seq[AgentUser]] <- sessionCacheRepository
+                .getFromSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)
                 .flatMap { maybeTeamMembers: Option[Seq[TeamMember]] =>
-                  Future(maybeTeamMembers.map(tms => tms.map(tm => AgentUser(tm.userId.get, tm.name))))
+                  Future(maybeTeamMembers.map(tms =>
+                    tms.map(tm => AgentUser(tm.userId.get, tm.name))))
                 }
 
-            groupRequest = GroupRequest(groupName, members, enrolments)
-            response <- agentPermissionsConnector.createGroup(arn)(groupRequest)
+              groupRequest = GroupRequest(groupName, members, enrolments)
+              response <- agentPermissionsConnector.createGroup(arn)(
+                groupRequest)
 
-          } yield response
+            } yield response
 
-          createGroupResponse.transformWith {
-            case Success(_) =>
-              sessionCacheService.clearAll()
-              sessionCacheRepository
-                .putSession[String](NAME_OF_GROUP_CREATED, groupName)
-                .map(_ => Redirect(routes.GroupController.showGroupCreated))
-            case Failure(ex) =>
-              throw ex
+            createGroupResponse.transformWith {
+              case Success(_) =>
+                sessionCacheService.clearAll()
+                sessionCacheRepository
+                  .putSession[String](NAME_OF_GROUP_CREATED, groupName)
+                  .map(_ => Redirect(routes.GroupController.showGroupCreated))
+              case Failure(ex) =>
+                throw ex
+            }
           }
         }
       }
-    }
   }
 
   def showGroupCreated: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) { maybeGroupName =>
-        maybeGroupName.fold(
-          Redirect(routes.GroupController.showGroupName).toFuture
-        )(groupName =>
-          Ok(group_created(groupName)).toFuture
-        )
+      isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) {
+        maybeGroupName =>
+          maybeGroupName.fold(
+            Redirect(routes.GroupController.showGroupName).toFuture
+          )(groupName => Ok(group_created(groupName)).toFuture)
       }
     }
   }

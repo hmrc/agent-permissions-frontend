@@ -20,25 +20,25 @@ import org.scalatest.matchers.should
 import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-
-class AppConfigTest extends AnyWordSpecLike with should.Matchers with GuiceOneAppPerSuite  {
+class AppConfigTest
+    extends AnyWordSpecLike
+    with should.Matchers
+    with GuiceOneAppPerSuite {
 
   private val appConfig = app.injector.instanceOf[AppConfig]
 
-  "Welsh language" should{
-    "be enabled" in{
+  "Welsh language" should {
+    "be enabled" in {
       appConfig.welshLanguageSupportEnabled shouldBe true
     }
   }
   "contact microservice config and beta feedback settings" should {
-    "give correct serviceId code for contact" in{
+    "give correct serviceId code for contact" in {
       appConfig.contactFrontendServiceId shouldBe "AOSS"
     }
     "give correct beta feedback url" in {
       appConfig.betaFeedbackUrl shouldBe "http://localhost:9250/contact/beta-feedback?service=AOSS"
     }
   }
-
-
 
 }

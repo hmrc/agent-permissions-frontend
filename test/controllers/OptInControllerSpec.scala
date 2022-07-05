@@ -24,7 +24,13 @@ import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptedOutSingleUser, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.{
+  OptedInNotReady,
+  OptedInReady,
+  OptedOutEligible,
+  OptedOutSingleUser,
+  OptinStatus
+}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
@@ -32,21 +38,25 @@ import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
 class OptInControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
-
+  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
+    mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector
+    : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  lazy val sessionCacheRepo: SessionCacheRepository =
+    new SessionCacheRepository(mongoComponent, timestampSupport)
 
   override def moduleWithOverrides = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
-      bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AuthAction])
+        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+      bind(classOf[AgentPermissionsConnector])
+        .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
+      bind(classOf[AgentUserClientDetailsConnector])
+        .toInstance(mockAgentUserClientDetailsConnector)
     }
   }
-
 
   override implicit lazy val fakeApplication: Application =
     appBuilder
@@ -68,20 +78,32 @@ class OptInControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Opting in to use access groups - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Opting in to use access groups"
-      html.select(Css.insetText).text() shouldBe "By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login"
+      html
+        .select(Css.insetText)
+        .text() shouldBe "By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login"
       //if adding a para please test it!
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 2
-      paragraphs.get(0).text() shouldBe "If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups."
-      paragraphs.get(1).text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client’s tax information."
+      paragraphs
+        .get(0)
+        .text() shouldBe "If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups."
+      paragraphs
+        .get(1)
+        .text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client’s tax information."
       html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
-      html.select(Css.linkStyledAsButton).attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
+      html
+        .select(Css.linkStyledAsButton)
+        .attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
     }
 
     "return Forbidden when user is not an Agent" in {
 
       val nonAgentEnrolmentKey = "IR-SA"
-      val mockedAuthResponse = Enrolments(Set(Enrolment(nonAgentEnrolmentKey, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
+      val mockedAuthResponse = Enrolments(
+        Set(
+          Enrolment(nonAgentEnrolmentKey,
+                    agentEnrolmentIdentifiers,
+                    "Activated"))) and Some(User)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
@@ -91,7 +113,10 @@ class OptInControllerSpec extends BaseSpec {
 
     "return Forbidden when user is not an admin" in {
 
-      val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(Assistant)
+      val mockedAuthResponse = Enrolments(Set(Enrolment(
+        agentEnrolment,
+        agentEnrolmentIdentifiers,
+        "Activated"))) and Some(Assistant)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
@@ -122,12 +147,20 @@ class OptInControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Do you want to opt in to use access groups?"
-      html.select(Css.form).attr("action") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
+      html
+        .select(Css.H1)
+        .text() shouldBe "Do you want to opt in to use access groups?"
+      html
+        .select(Css.form)
+        .attr("action") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
 
       val answerRadios = html.select(Css.radioButtonsField("answer"))
-      answerRadios.select("label[for=true]").text() shouldBe "Yes, I want to opt-in"
-      answerRadios.select("label[for=false]").text() shouldBe "No, I want to remain opted-out"
+      answerRadios
+        .select("label[for=true]")
+        .text() shouldBe "Yes, I want to opt-in"
+      answerRadios
+        .select("label[for=false]")
+        .text() shouldBe "No, I want to remain opted-out"
 
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
@@ -139,9 +172,10 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request =
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
@@ -158,25 +192,28 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-        .withFormUrlEncodedBody("answer" -> "false")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request =
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.submitDoYouWantToOptIn()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-not-opted-in")
+      redirectLocation(result) shouldBe Some(
+        "/agent-permissions/opt-in/you-have-not-opted-in")
     }
 
     "render correct error messages when form not filled in" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
-      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-        .withFormUrlEncodedBody("answer" -> "")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request =
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+          .withFormUrlEncodedBody("answer" -> "")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
@@ -186,8 +223,12 @@ class OptInControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Please select an option."
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Please select an option."
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "Please select an option."
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: Please select an option."
 
       html.select(Css.submitButton)
 
@@ -198,9 +239,10 @@ class OptInControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubPostOptInError(arn)
 
-      implicit val request = FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request =
+        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
@@ -210,12 +252,12 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-
   "GET /opt-in/you-have-opted-in" should {
     "display expected content with continueUrl of ASA dashboard when client list not yet available" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
+      await(
+        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -223,20 +265,30 @@ class OptInControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "You have opted in to use access groups - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "You have opted in to use access groups"
+      html
+        .select(Css.H1)
+        .text() shouldBe "You have opted in to use access groups"
 
       html.select(Css.H2).text() shouldBe "What happens next"
 
-      html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text() shouldBe "You now need to create access groups and assign clients and team members to them."
 
-      html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
-      html.select(Css.linkStyledAsButton).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html
+        .select(Css.linkStyledAsButton)
+        .text() shouldBe "Create an access group"
+      html
+        .select(Css.linkStyledAsButton)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
 
     "display expected content with continueUrl of /group/group-name when optIn status is OptInReady" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
+      await(
+        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -244,14 +296,23 @@ class OptInControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "You have opted in to use access groups - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "You have opted in to use access groups"
+      html
+        .select(Css.H1)
+        .text() shouldBe "You have opted in to use access groups"
 
       html.select(Css.H2).text() shouldBe "What happens next"
 
-      html.select(Css.paragraphs).get(0).text() shouldBe "You now need to create access groups and assign clients and team members to them."
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text() shouldBe "You now need to create access groups and assign clients and team members to them."
 
-      html.select(Css.linkStyledAsButton).text() shouldBe "Create an access group"
-      html.select(Css.linkStyledAsButton).attr("href") shouldBe routes.GroupController.showGroupName.url
+      html
+        .select(Css.linkStyledAsButton)
+        .text() shouldBe "Create an access group"
+      html
+        .select(Css.linkStyledAsButton)
+        .attr("href") shouldBe routes.GroupController.showGroupName.url
     }
   }
 
@@ -259,7 +320,9 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedOutEligible))
+      await(
+        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS,
+                                                 OptedOutEligible))
 
       val result = controller.showYouHaveNotOptedIn()(request)
 
@@ -267,13 +330,22 @@ class OptInControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "You have not opted-in to use access groups - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "You have not opted-in to use access groups"
+      html
+        .select(Css.H1)
+        .text() shouldBe "You have not opted-in to use access groups"
       html.select(Css.H2).text() shouldBe "What happens next"
 
-      html.select(Css.paragraphs).get(0).text() shouldBe "You can opt in at any time later"
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text() shouldBe "You can opt in at any time later"
 
-      html.select(Css.linkStyledAsButton).text() shouldBe "Back to manage groups page"
-      html.select(Css.linkStyledAsButton).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html
+        .select(Css.linkStyledAsButton)
+        .text() shouldBe "Back to manage groups page"
+      html
+        .select(Css.linkStyledAsButton)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
 
     }
   }

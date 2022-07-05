@@ -21,12 +21,15 @@ import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.DisplayClient
 import play.api.Application
-import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, OK}
+import play.api.http.Status.{CONFLICT, CREATED, INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import play.utils.UriEncoding
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
 
 class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with AgentPermissionsConnectorMocks {
@@ -251,4 +254,46 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     }
 
   }
+
+  "GET groupNameCheck" should {
+    "return true if the name is available for the ARN" in {
+
+      val groupName = URLEncoder.encode("my fav%& clients", UTF_8.name)
+      val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/group-name-check?name=$groupName"
+
+      val mockResponse = HttpResponse.apply(OK, "")
+
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      connector.groupNameCheck(arn, groupName).futureValue shouldBe true
+    }
+
+    "return false if the name already exists for the ARN" in {
+
+      val groupName = URLEncoder.encode("my fav%& clients", UTF_8.name)
+      val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/group-name-check?name=$groupName"
+
+      val mockResponse = HttpResponse.apply(CONFLICT, "")
+
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      connector.groupNameCheck(arn, groupName).futureValue shouldBe false
+    }
+
+      "throw exception when it fails" in {
+
+        val groupName = URLEncoder.encode("my fav%& clients", UTF_8.name)
+        val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/group-name-check?name=$groupName"
+
+        val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
+
+        mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+        //then
+        val caught = intercept[UpstreamErrorResponse] {
+          await(connector.groupNameCheck(arn, groupName))
+        }
+        caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      }
+    }
 }

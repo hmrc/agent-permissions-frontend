@@ -23,13 +23,15 @@ import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import models.DisplayClient
 import play.api.Logging
-import play.api.http.Status.{CREATED, NOT_FOUND, OK}
+import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets.UTF_8
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,6 +57,8 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
   def deleteGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def groupNameCheck(arn: Arn, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
 }
 
 @Singleton
@@ -97,6 +101,23 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
         response.status match {
           case CREATED => Done
           case e => throw UpstreamErrorResponse(s"error sending opt out request", e)
+        }
+      }
+    }
+  }
+
+
+  def groupNameCheck(arn: Arn, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
+
+    val encodedName = URLEncoder.encode(name, UTF_8.name)
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/access-group-name-check?name=$encodedName"
+
+    monitor("ConsumedAPI-accessGroupNameCheck-GET"){
+      http.GET[HttpResponse](url).map{ response =>
+        response.status match {
+          case OK => true
+          case CONFLICT => false
+          case e => throw UpstreamErrorResponse("error on groupNameCheck" , e)
         }
       }
     }

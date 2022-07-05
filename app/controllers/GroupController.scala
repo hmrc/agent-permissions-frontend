@@ -41,6 +41,7 @@ class GroupController @Inject()
   mcc: MessagesControllerComponents,
   create: create,
   confirm_group_name: confirm_group_name,
+  access_group_name_exists: access_group_name_exists,
   client_group_list: client_group_list,
   review_clients_to_add: review_clients_to_add,
   team_members_list: team_members_list,
@@ -109,11 +110,25 @@ class GroupController @Inject()
               formWithErrors => Ok(confirm_group_name(formWithErrors, name)).toFuture,
               (nameIsCorrect: Boolean) => {
                 if (nameIsCorrect)
-                  sessionCacheService.confirmGroupNameAndRedirect(routes.GroupController.showSelectClients)
+                        agentPermissionsConnector.groupNameCheck(arn, name).flatMap(nameAvailable =>
+                        if(nameAvailable) sessionCacheService.confirmGroupNameAndRedirect(routes.GroupController.showSelectClients)
+                        else Redirect(routes.GroupController.showAccessGroupNameExists).toFuture
+                        )
+
                 else
                   Redirect(routes.GroupController.showGroupName.url).toFuture
               }
             )
+        }
+      }
+    }
+  }
+
+  def showAccessGroupNameExists: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent{ arn =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn){ maybeGroupName =>
+        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) { groupName =>
+          Ok(access_group_name_exists(groupName)).toFuture
         }
       }
     }

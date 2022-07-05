@@ -267,8 +267,27 @@ class GroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
     }
 
+    s"redirect to ${routes.GroupController.showAccessGroupNameExists.url} when the access group name already exists" in {
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      getGroupNameCheckReturns(false)(arn, groupName)
+
+      implicit val request = FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+
+      val result = controller.submitConfirmGroupName()(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe routes.GroupController.showAccessGroupNameExists.url
+    }
+
     "redirect to add-clients page when confirm group name 'yes' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      getGroupNameCheckReturns(true)(arn, groupName)
 
       implicit val request = FakeRequest("POST", routes.GroupController.submitGroupName.url)
         .withFormUrlEncodedBody("name" -> groupName, "answer" -> "true")
@@ -297,6 +316,30 @@ class GroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(routes.GroupController.showGroupName.url)
+    }
+  }
+
+  s"GET ${routes.GroupController.showAccessGroupNameExists.url}" should {
+
+    "display content" in {
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+
+      val result = controller.showAccessGroupNameExists()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Access group name already exists - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group name already exists"
+      html.select(Css.paragraphs).get(0).text shouldBe s"You already have an access group called ’$groupName’. Please enter a new access group name."
+      html.select(Css.linkStyledAsButton).text shouldBe "Enter a new access group name"
+      html.select(Css.linkStyledAsButton).attr("href") shouldBe s"${routes.GroupController.showGroupName}"
     }
   }
 

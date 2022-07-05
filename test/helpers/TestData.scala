@@ -20,7 +20,10 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Enrolment, Identifier}
 
 object TestData {
 
-  val clientListData = Seq(Enrolment("HMRC-MTD-VAT","Active", "Rapunzel", List(Identifier("VRN", "123456789"))))
-
+  val clientListData = Seq(
+    Enrolment("HMRC-MTD-VAT",
+              "Active",
+              "Rapunzel",
+              List(Identifier("VRN", "123456789"))))
 
 }

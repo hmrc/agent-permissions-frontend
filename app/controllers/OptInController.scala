@@ -32,17 +32,21 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class OptInController @Inject()(
-   authAction: AuthAction,
-   mcc: MessagesControllerComponents,
-   val agentPermissionsConnector: AgentPermissionsConnector,
-   val sessionCacheRepository: SessionCacheRepository,
-   optInService: OptInService,
-   start_optIn: start,
-   want_to_opt_in: want_to_opt_in,
-   you_have_opted_in: you_have_opted_in,
-   you_have_not_opted_in: you_have_not_opted_in
- )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
-  extends FrontendController(mcc) with I18nSupport with SessionBehaviour {
+    authAction: AuthAction,
+    mcc: MessagesControllerComponents,
+    val agentPermissionsConnector: AgentPermissionsConnector,
+    val sessionCacheRepository: SessionCacheRepository,
+    optInService: OptInService,
+    start_optIn: start,
+    want_to_opt_in: want_to_opt_in,
+    you_have_opted_in: you_have_opted_in,
+    you_have_not_opted_in: you_have_not_opted_in
+)(implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi)
+    extends FrontendController(mcc)
+    with I18nSupport
+    with SessionBehaviour {
 
   import authAction._
 
@@ -54,49 +58,60 @@ class OptInController @Inject()(
     }
   }
 
-  def showDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isEligibleToOptIn(arn) { _ =>
-        Ok(want_to_opt_in(YesNoForm.form())).toFuture
+  def showDoYouWantToOptIn: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isEligibleToOptIn(arn) { _ =>
+          Ok(want_to_opt_in(YesNoForm.form())).toFuture
+        }
       }
-    }
   }
 
-  def submitDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isEligibleToOptIn(arn) { _ =>
-        YesNoForm
-          .form("do-you-want-to-opt-in.yes.error")
-          .bindFromRequest
-          .fold(
-            formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
-            (iWantToOptIn: Boolean) => {
-              if (iWantToOptIn)
-                optInService.optIn(arn).map(_ => Redirect(routes.OptInController.showYouHaveOptedIn.url))
-              else
-                Redirect(routes.OptInController.showYouHaveNotOptedIn.url).toFuture
-            }
-          )
+  def submitDoYouWantToOptIn: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isEligibleToOptIn(arn) { _ =>
+          YesNoForm
+            .form("do-you-want-to-opt-in.yes.error")
+            .bindFromRequest
+            .fold(
+              formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
+              (iWantToOptIn: Boolean) => {
+                if (iWantToOptIn)
+                  optInService
+                    .optIn(arn)
+                    .map(_ =>
+                      Redirect(routes.OptInController.showYouHaveOptedIn.url))
+                else
+                  Redirect(routes.OptInController.showYouHaveNotOptedIn.url).toFuture
+              }
+            )
+        }
       }
-    }
   }
 
   //if there is a clientList available then proceed to Groups otherwise go back to the ASA dashboard (and wait)
-  def showYouHaveOptedIn: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { status => {
-        val continueUrl = if (status == OptedInReady) routes.GroupController.showGroupName.url else appConfig.agentServicesAccountManageAccountUrl
-        Ok(you_have_opted_in(continueUrl)).toFuture
+  def showYouHaveOptedIn: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedIn(arn) { status =>
+          {
+            val continueUrl =
+              if (status == OptedInReady)
+                routes.GroupController.showGroupName.url
+              else appConfig.agentServicesAccountManageAccountUrl
+            Ok(you_have_opted_in(continueUrl)).toFuture
+          }
+        }
       }
-      }
-    }
   }
 
-  def showYouHaveNotOptedIn: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isEligibleToOptIn(arn) { _ =>
-        Future.successful(Ok(you_have_not_opted_in()))
+  def showYouHaveNotOptedIn: Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isEligibleToOptIn(arn) { _ =>
+          Future.successful(Ok(you_have_not_opted_in()))
+        }
       }
-    }
   }
 }

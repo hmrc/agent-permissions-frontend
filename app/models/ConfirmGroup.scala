@@ -16,4 +16,4 @@
 
 package models
 
-case class ConfirmGroup(name: String, answer: Option[Boolean] )
+case class ConfirmGroup(name: String, answer: Option[Boolean])

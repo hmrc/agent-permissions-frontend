@@ -26,30 +26,37 @@ package object controllers {
     def toFuture: Future[T] = Future successful t
   }
 
-  val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
-  val isOptedIn: OptinStatus => Boolean = status => status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser
-  val isOptedOut: OptinStatus => Boolean = status => status == OptedOutEligible || status == OptedOutSingleUser || status == OptedOutWrongClientCount
-  val isOptedInComplete: OptinStatus => Boolean = status => status == OptedInReady
+  val isEligibleToOptIn: OptinStatus => Boolean = status =>
+    status == OptedOutEligible
+  val isOptedIn: OptinStatus => Boolean = status =>
+    status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser
+  val isOptedOut: OptinStatus => Boolean = status =>
+    status == OptedOutEligible || status == OptedOutSingleUser || status == OptedOutWrongClientCount
+  val isOptedInComplete: OptinStatus => Boolean = status =>
+    status == OptedInReady
 
   val OPTIN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
-  val GROUP_CLIENTS_SELECTED: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
+  val GROUP_CLIENTS_SELECTED: DataKey[Seq[DisplayClient]] = DataKey(
+    "groupClientsSelected")
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
 
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
   val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
   val GROUP_DELETED_NAME: DataKey[String] = DataKey("groupDeletedName")
-  val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
-  val HIDDEN_CLIENTS_EXIST: DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
-  
-  val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("filteredTeamMembers")
+  val FILTERED_CLIENTS
+    : DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
+  val HIDDEN_CLIENTS_EXIST
+    : DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
+
+  val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
+    "filteredTeamMembers")
   val HIDDEN_TEAM_MEMBERS_EXIST: DataKey[Boolean] = DataKey("hiddenTeamMembers")
-  val GROUP_TEAM_MEMBERS_SELECTED: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
+  val GROUP_TEAM_MEMBERS_SELECTED: DataKey[Seq[TeamMember]] = DataKey(
+    "groupTeamMembersSelected")
 
-
-  val sessionKeys = List(OPTIN_STATUS, GROUP_NAME, GROUP_NAME_CONFIRMED, GROUP_CLIENTS)
-
+  val sessionKeys =
+    List(OPTIN_STATUS, GROUP_NAME, GROUP_NAME_CONFIRMED, GROUP_CLIENTS)
 
 }
-

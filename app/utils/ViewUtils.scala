@@ -20,21 +20,23 @@ import play.api.i18n.Messages
 
 object ViewUtils {
 
-  def getFiltersByTaxService()(implicit mgs: Messages): Seq[(String, String)] = Seq(
-    ("HMRC-MTD-IT", mgs("tax-service.mdt-it")),
-    ("HMRC-MTD-VAT", mgs("tax-service.vat")),
-    ("HMRC-CGT-PD", mgs("tax-service.cgt")),
-    ("HMRC-PPT-ORG", mgs("tax-service.ppt")),
-    ("TRUST", mgs("tax-service.trusts"))
-  )
+  def getFiltersByTaxService()(implicit mgs: Messages): Seq[(String, String)] =
+    Seq(
+      ("HMRC-MTD-IT", mgs("tax-service.mdt-it")),
+      ("HMRC-MTD-VAT", mgs("tax-service.vat")),
+      ("HMRC-CGT-PD", mgs("tax-service.cgt")),
+      ("HMRC-PPT-ORG", mgs("tax-service.ppt")),
+      ("TRUST", mgs("tax-service.trusts"))
+    )
 
-  def displayTaxServiceFromServiceKey(serviceKey :String)(implicit mgs: Messages):String = {
+  def displayTaxServiceFromServiceKey(serviceKey: String)(
+      implicit mgs: Messages): String = {
     serviceKey match {
-      case "HMRC-MTD-IT" => mgs("tax-service.mdt-it")
-      case "HMRC-MTD-VAT" => mgs("tax-service.vat")
-      case "HMRC-CGT-PD" => mgs("tax-service.cgt")
-      case "HMRC-PPT-ORG" => mgs("tax-service.ppt")
-      case "HMRC-TERS-ORG" => mgs("tax-service.trusts")
+      case "HMRC-MTD-IT"     => mgs("tax-service.mdt-it")
+      case "HMRC-MTD-VAT"    => mgs("tax-service.vat")
+      case "HMRC-CGT-PD"     => mgs("tax-service.cgt")
+      case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
+      case "HMRC-TERS-ORG"   => mgs("tax-service.trusts")
       case "HMRC-TERSNT-ORG" => mgs("tax-service.trusts")
       case s                 => throw new Exception(s"$s is not a service key")
     }

@@ -28,7 +28,12 @@ import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{
+  HeaderCarrier,
+  HttpClient,
+  HttpResponse,
+  UpstreamErrorResponse
+}
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
@@ -40,189 +45,243 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   val http: HttpClient
 
-  def getOptInStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
+  def getOptInStatus(arn: Arn)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Option[OptinStatus]]
 
-  def optIn(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def optIn(arn: Arn)(implicit hc: HeaderCarrier,
+                      ec: ExecutionContext): Future[Done]
 
-  def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def optOut(arn: Arn)(implicit hc: HeaderCarrier,
+                       ec: ExecutionContext): Future[Done]
 
-  def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def createGroup(arn: Arn)(groupRequest: GroupRequest)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Done]
 
-  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]]
+  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier,
+                                ec: ExecutionContext)
+    : Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]]
 
-  def getGroup(id: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
+  def getGroup(id: String)(implicit hc: HeaderCarrier,
+                           ec: ExecutionContext): Future[Option[AccessGroup]]
 
-  def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Done]
 
-  def deleteGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def deleteGroup(id: String)(implicit hc: HeaderCarrier,
+                              ec: ExecutionContext): Future[Done]
 
-  def groupNameCheck(arn: Arn, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
+  def groupNameCheck(arn: Arn, name: String)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Boolean]
 }
 
 @Singleton
-class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
-                                             (implicit metrics: Metrics, appConfig: AppConfig)
-  extends AgentPermissionsConnector {
+class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
+    implicit metrics: Metrics,
+    appConfig: AppConfig)
+    extends AgentPermissionsConnector {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private val baseUrl = appConfig.agentPermissionsBaseUrl
 
-  override def getOptInStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]] = {
+  override def getOptInStatus(arn: Arn)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Option[OptinStatus]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin-status"
     monitor("ConsumedAPI-GetOptinStatus-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
           case OK => response.json.asOpt[OptinStatus]
-          case e => logger.warn(s"getOptInStatus returned status $e ${response.body}"); None
+          case e =>
+            logger.warn(s"getOptInStatus returned status $e ${response.body}");
+            None
         }
       }
     }
   }
 
-  def optIn(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def optIn(arn: Arn)(implicit hc: HeaderCarrier,
+                      ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin"
     monitor("ConsumedAPI-optin-POST") {
       http.POSTEmpty[HttpResponse](url).map { response =>
         response.status match {
           case CREATED => Done
-          case e => throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}", e)
+          case e =>
+            throw UpstreamErrorResponse(
+              s"error sending opt-in request for ${arn.value}",
+              e)
         }
       }
     }
   }
 
-  def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def optOut(arn: Arn)(implicit hc: HeaderCarrier,
+                       ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optout"
     monitor("ConsumedAPI-optout-POST") {
       http.POSTEmpty[HttpResponse](url).map { response =>
         response.status match {
           case CREATED => Done
-          case e => throw UpstreamErrorResponse(s"error sending opt out request", e)
+          case e =>
+            throw UpstreamErrorResponse(s"error sending opt out request", e)
         }
       }
     }
   }
 
-
-  def groupNameCheck(arn: Arn, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
+  def groupNameCheck(arn: Arn, name: String)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Boolean] = {
 
     val encodedName = URLEncoder.encode(name, UTF_8.name)
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/access-group-name-check?name=$encodedName"
+    val url =
+      s"$baseUrl/agent-permissions/arn/${arn.value}/access-group-name-check?name=$encodedName"
 
-    monitor("ConsumedAPI-accessGroupNameCheck-GET"){
-      http.GET[HttpResponse](url).map{ response =>
+    monitor("ConsumedAPI-accessGroupNameCheck-GET") {
+      http.GET[HttpResponse](url).map { response =>
         response.status match {
-          case OK => true
+          case OK       => true
           case CONFLICT => false
-          case e => throw UpstreamErrorResponse("error on groupNameCheck" , e)
+          case e        => throw UpstreamErrorResponse("error on groupNameCheck", e)
         }
       }
     }
   }
 
-
-  def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def createGroup(arn: Arn)(groupRequest: GroupRequest)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
     monitor("ConsumedAPI-createGroup-POST") {
       http.POST[GroupRequest, HttpResponse](url, groupRequest).map { response =>
         response.status match {
-          case CREATED        => Done
-          case anyOtherStatus => throw UpstreamErrorResponse(s"error posting createGroup request to $url", anyOtherStatus)
+          case CREATED => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(
+              s"error posting createGroup request to $url",
+              anyOtherStatus)
         }
       }
     }
   }
 
-  def groupsSummaries(arn: Arn)
-                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]] =  {
+  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier,
+                                ec: ExecutionContext)
+    : Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
     monitor("ConsumedAPI-groupSummaries-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         val eventuallySummaries = response.status match {
           case OK => response.json.asOpt[AccessGroupSummaries]
-          case anyOtherStatus => throw UpstreamErrorResponse(s"error getting group summary for arn $arn, from $url", anyOtherStatus)
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(
+              s"error getting group summary for arn $arn, from $url",
+              anyOtherStatus)
         }
         val maybeTuple = eventuallySummaries.map { summaries =>
-          (summaries.groups, summaries.unassignedClients.map(DisplayClient.fromClient(_)).toSeq)
+          (summaries.groups,
+           summaries.unassignedClients.map(DisplayClient.fromClient(_)).toSeq)
         }
         maybeTuple
       }
     }
   }
 
-  override def getGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
+  override def getGroup(id: String)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Option[AccessGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/${id}"
     monitor("ConsumedAPI-group-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         response.status match {
           case OK => response.json.asOpt[AccessGroup]
           case NOT_FOUND =>
-            logger.warn( s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
             None
-          case anyOtherStatus => throw UpstreamErrorResponse(s"error getting group details for group $id, from $url",
-            anyOtherStatus)
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(
+              s"error getting group details for group $id, from $url",
+              anyOtherStatus)
 
         }
       }
     }
   }
 
-  override def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
-                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  override def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/${id}"
     monitor("ConsumedAPI-update group-PATCH") {
-      http.PATCH[UpdateAccessGroupRequest, HttpResponse](url, groupRequest ).map { response =>
-        response.status match {
-          case OK             => Done
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
+      http
+        .PATCH[UpdateAccessGroupRequest, HttpResponse](url, groupRequest)
+        .map { response =>
+          response.status match {
+            case OK => Done
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(
+                s"error PATCHing update group request to $url",
+                anyOtherStatus)
+          }
         }
-      }
     }
   }
 
-  override def deleteGroup(id: String)
-                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  override def deleteGroup(id: String)(implicit hc: HeaderCarrier,
+                                       ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/${id}"
     monitor("ConsumedAPI-update group-PATCH") {
       http.DELETE[HttpResponse](url).map { response =>
         response.status match {
-          case OK             => Done
+          case OK => Done
           case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error DELETING update group request to $url", anyOtherStatus)
+            throw UpstreamErrorResponse(
+              s"error DELETING update group request to $url",
+              anyOtherStatus)
         }
       }
     }
   }
 }
 
-case class GroupRequest(groupName: String, teamMembers: Option[Seq[AgentUser]], clients: Option[Seq[Enrolment]])
+case class GroupRequest(groupName: String,
+                        teamMembers: Option[Seq[AgentUser]],
+                        clients: Option[Seq[Enrolment]])
 
 case object GroupRequest {
-  implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] = Json.format[GroupRequest]
+  implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] =
+    Json.format[GroupRequest]
 }
 
-case class GroupSummary(groupId: String, groupName: String, clientCount: Int, teamMemberCount: Int)
+case class GroupSummary(groupId: String,
+                        groupName: String,
+                        clientCount: Int,
+                        teamMemberCount: Int)
 
-case object GroupSummary{
-  implicit val formatCreateAccessGroupRequest: OFormat[GroupSummary] = Json.format[GroupSummary]
+case object GroupSummary {
+  implicit val formatCreateAccessGroupRequest: OFormat[GroupSummary] =
+    Json.format[GroupSummary]
 }
 
-case class AccessGroupSummaries(groups: Seq[GroupSummary], unassignedClients: Set[Client])
+case class AccessGroupSummaries(groups: Seq[GroupSummary],
+                                unassignedClients: Set[Client])
 
 object AccessGroupSummaries {
-  implicit val format: OFormat[AccessGroupSummaries] = Json.format[AccessGroupSummaries]
+  implicit val format: OFormat[AccessGroupSummaries] =
+    Json.format[AccessGroupSummaries]
 }
 
 case class UpdateAccessGroupRequest(
-                                     groupName: Option[String] = None,
-                                     teamMembers: Option[Set[AgentUser]] = None,
-                                     clients: Option[Set[Enrolment]] = None
-                                   )
-object UpdateAccessGroupRequest{
-  implicit val format: OFormat[UpdateAccessGroupRequest] = Json.format[UpdateAccessGroupRequest]
+    groupName: Option[String] = None,
+    teamMembers: Option[Set[AgentUser]] = None,
+    clients: Option[Set[Enrolment]] = None
+)
+object UpdateAccessGroupRequest {
+  implicit val format: OFormat[UpdateAccessGroupRequest] =
+    Json.format[UpdateAccessGroupRequest]
 }
-

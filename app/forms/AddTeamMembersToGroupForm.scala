@@ -25,21 +25,28 @@ import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfFalse
 
 import java.util.Base64.{getDecoder, getEncoder}
 
-
 object AddTeamMembersToGroupForm {
 
-  def form(buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] = {
+  def form(
+      buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] = {
     buttonPressed match {
       case Continue =>
         Form(
           mapping(
             "hasAlreadySelected" -> boolean,
             "search" -> optional(text),
-            "members" -> mandatoryIfFalse("hasAlreadySelected", list(text)
-              .transform[List[TeamMember]](
-                _.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember]),
-                _.map(dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes))
-              ).verifying("error.select-members.empty", _.nonEmpty)
+            "members" -> mandatoryIfFalse(
+              "hasAlreadySelected",
+              list(text)
+                .transform[List[TeamMember]](
+                  _.map(str =>
+                    parse(new String(getDecoder.decode(
+                      str.replaceAll("'", "")))).as[TeamMember]),
+                  _.map(dc =>
+                    getEncoder.encodeToString(
+                      toJson[TeamMember](dc).toString().getBytes))
+                )
+                .verifying("error.select-members.empty", _.nonEmpty)
             )
           )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
         )
@@ -47,13 +54,22 @@ object AddTeamMembersToGroupForm {
         Form(
           mapping(
             "hasAlreadySelected" -> boolean,
-            "search" -> optional(text).verifying("error.search-members.empty", _.nonEmpty),
-            "members" -> optional(list(text)).transform[Option[List[TeamMember]]](
-              _.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember])),
-              _.map(TeamMemberList => TeamMemberList.map(
-                dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes)
-              ))
-            )
+            "search" -> optional(text).verifying("error.search-members.empty",
+                                                 _.nonEmpty),
+            "members" -> optional(list(text))
+              .transform[Option[List[TeamMember]]](
+                _.map(strList =>
+                  strList.map(str =>
+                    parse(new String(getDecoder.decode(
+                      str.replaceAll("'", "")))).as[TeamMember])),
+                _.map(
+                  TeamMemberList =>
+                    TeamMemberList.map(
+                      dc =>
+                        getEncoder.encodeToString(
+                          toJson[TeamMember](dc).toString().getBytes)
+                  ))
+              )
           )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
         )
       case Clear =>
@@ -61,12 +77,20 @@ object AddTeamMembersToGroupForm {
           mapping(
             "hasAlreadySelected" -> boolean,
             "search" -> optional(text),
-            "members" -> optional(list(text)).transform[Option[List[TeamMember]]](
-              _.map(strList => strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember])),
-              _.map(TeamMemberList => TeamMemberList.map(
-                dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes)
-              ))
-            )
+            "members" -> optional(list(text))
+              .transform[Option[List[TeamMember]]](
+                _.map(strList =>
+                  strList.map(str =>
+                    parse(new String(getDecoder.decode(
+                      str.replaceAll("'", "")))).as[TeamMember])),
+                _.map(
+                  TeamMemberList =>
+                    TeamMemberList.map(
+                      dc =>
+                        getEncoder.encodeToString(
+                          toJson[TeamMember](dc).toString().getBytes)
+                  ))
+              )
           )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
         )
       case e => throw new RuntimeException(s"invalid button $e")

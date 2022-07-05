@@ -17,10 +17,10 @@
 package views.components.models
 
 case class CheckBoxData(
-                      id: String,
-                      name: String,
-                      label: String,
-                      hint: Option[String] = None,
-                      value: String,
-                      checked: Boolean = false
-                    )
+    id: String,
+    name: String,
+    label: String,
+    hint: Option[String] = None,
+    value: String,
+    checked: Boolean = false
+)

@@ -21,9 +21,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class GroupNameFormSpec extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite {
+class GroupNameFormSpec
+    extends AnyWordSpec
+    with Matchers
+    with GuiceOneAppPerSuite {
 
   val groupNameField = "name"
 
@@ -38,14 +39,20 @@ class GroupNameFormSpec extends AnyWordSpec
       val params = Map(groupNameField -> "   ")
       val validatedForm = GroupNameForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
-      validatedForm.error(groupNameField).get.message shouldBe "group.name.required"
+      validatedForm
+        .error(groupNameField)
+        .get
+        .message shouldBe "group.name.required"
     }
 
     "have errors when length exceeds max allowed characters" in {
       val params = Map(groupNameField -> RandomStringUtils.random(33))
       val validatedForm = GroupNameForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
-      validatedForm.error(groupNameField).get.message shouldBe "group.name.max.length"
+      validatedForm
+        .error(groupNameField)
+        .get
+        .message shouldBe "group.name.max.length"
     }
   }
 

@@ -25,15 +25,15 @@ case class TeamMember(name: String,
                       credentialRole: Option[String] = None,
                       selected: Boolean = false)
 
-case object TeamMember{
+case object TeamMember {
   implicit val format = Json.format[TeamMember]
 
-  def fromUserDetails(user: UserDetails): TeamMember ={
+  def fromUserDetails(user: UserDetails): TeamMember = {
     TeamMember(
       name = user.name.getOrElse(""),
       email = user.email.getOrElse(""),
       userId = user.userId,
-      credentialRole =  user.credentialRole
+      credentialRole = user.credentialRole
     )
   }
 }

@@ -19,11 +19,11 @@ package models
 import helpers.BaseSpec
 import models.ButtonSelect.unapply
 
-class ButtonSelectSpec extends BaseSpec{
+class ButtonSelectSpec extends BaseSpec {
 
   "apply" should {
 
-    "give correct type of button"  in {
+    "give correct type of button" in {
       ButtonSelect.apply("continue") shouldBe ButtonSelect.Continue
       ButtonSelect.apply("submitFilter") shouldBe ButtonSelect.Filter
       ButtonSelect.apply("submitClear") shouldBe ButtonSelect.Clear
@@ -32,7 +32,7 @@ class ButtonSelectSpec extends BaseSpec{
   }
   "unapply" should {
 
-    "give expected string"  in {
+    "give expected string" in {
       unapply(ButtonSelect.Continue) shouldBe "continue"
       unapply(ButtonSelect.Filter) shouldBe "submitFilter"
       unapply(ButtonSelect.Clear) shouldBe "submitClear"

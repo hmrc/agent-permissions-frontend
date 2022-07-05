@@ -38,45 +38,52 @@ import java.time.Instant
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
-abstract class BaseSpec extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite
-  with AuthMocks
-  with ScalaFutures
-  with GroupServiceMocks
-  with AgentPermissionsConnectorMocks
-  with HttpClientMocks
-  with CleanMongoCollectionSupport
-  with AgentUserClientDetailsConnectorMocks {
+abstract class BaseSpec
+    extends AnyWordSpec
+    with Matchers
+    with GuiceOneAppPerSuite
+    with AuthMocks
+    with ScalaFutures
+    with GroupServiceMocks
+    with AgentPermissionsConnectorMocks
+    with HttpClientMocks
+    with CleanMongoCollectionSupport
+    with AgentUserClientDetailsConnectorMocks {
 
-  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val ec: ExecutionContext =
+    scala.concurrent.ExecutionContext.Implicits.global
 
   implicit val request = FakeRequest()
     .withHeaders("Authorization" -> "Bearer XYZ")
     .withSession(SessionKeys.sessionId -> "session-x")
 
-  implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+  implicit val hc: HeaderCarrier =
+    HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
   val agentEnrolment = "HMRC-AS-AGENT"
   val agentReferenceNumberIdentifier = "AgentReferenceNumber"
   val validArn = "TARN0000001"
   val arn = Arn(validArn)
 
-  val agentEnrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
-  val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
+  val agentEnrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(
+    EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
+  val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment,
+                                                    agentEnrolmentIdentifiers,
+                                                    "Activated"))) and Some(
+    User)
 
   lazy val conf: Configuration = GuiceApplicationBuilder().configuration
   lazy val env: Environment = GuiceApplicationBuilder().environment
 
-
   def moduleWithOverrides = new AbstractModule() {}
 
-  def appBuilder = GuiceApplicationBuilder()
-    .disable[com.kenshoo.play.metrics.PlayModule]
-    .configure("auditing.enabled" -> false)
-    .configure("metrics.enabled" -> true)
-    .configure("metrics.jvm" -> false)
-    .overrides(moduleWithOverrides)
+  def appBuilder =
+    GuiceApplicationBuilder()
+      .disable[com.kenshoo.play.metrics.PlayModule]
+      .configure("auditing.enabled" -> false)
+      .configure("metrics.enabled" -> true)
+      .configure("metrics.jvm" -> false)
+      .overrides(moduleWithOverrides)
 
   protected val ttl = 1000.millis
   protected val now = Instant.now()
@@ -85,7 +92,8 @@ abstract class BaseSpec extends AnyWordSpec
     override def timestamp(): Instant = now
   }
 
-  def bodyOf(result: Result): String = Helpers.contentAsString(Future.successful(result))
+  def bodyOf(result: Result): String =
+    Helpers.contentAsString(Future.successful(result))
 
   def status(result: Result): Int = result.header.status
 

@@ -5,17 +5,25 @@ $(document).ready(function () {
     *  2022-05-18 - version 1.4.2
     */
 
-    // MOJ sortable table
+    // MOJ multi-select & sortable table
     var table = document.getElementById('sortable-table');
     if (table !== null) {
+        // activates multi-select
         window.MOJFrontend.initAll()
 
+        // Needed because table has multi-select data module
         new SortableTable(table)
-
-        // removes element only visible without js
-        var span = document.getElementById('no-js');
-        span.remove();
     }
+
+    //---------------------------------------
+    // Agents
+
+    // Removes elements only visible without js - fallback label if no multi-select checkbox
+    var span = document.getElementById('no-js');
+    if (span !== null) {
+    span.remove();
+    }
+
 
 //    // Accessible autocomplete for a select component with the id="client-auto-complete"
 //    var selectEl = document.querySelector('#client-auto-complete')

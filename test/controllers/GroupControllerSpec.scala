@@ -29,7 +29,6 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{
   await,

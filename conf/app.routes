@@ -28,6 +28,8 @@ POST    /group/group-name                   controllers.GroupController.submitGr
 GET     /group/confirm-name                 controllers.GroupController.showConfirmGroupName
 POST    /group/confirm-name                 controllers.GroupController.submitConfirmGroupName
 
+GET     /group/access-group-name-exists     controllers.GroupController.showAccessGroupNameExists
+
 GET     /group/select-clients               controllers.GroupController.showSelectClients
 POST    /group/select-clients               controllers.GroupController.submitSelectedClients
 

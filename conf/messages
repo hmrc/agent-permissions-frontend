@@ -146,3 +146,7 @@ group.delete.select.error=Select ‘yes’ if you would like to delete the group
 group.deleted.h1={0} access group deleted
 group.deleted.p=Clients from this group will now be visible to all team members, unless they are in other groups.
 
+access-group-name-exists.title=Access group name already exists
+access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.
+access-group-name-exists.button=Enter a new access group name
+

@@ -29,7 +29,6 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{
   await,
@@ -148,6 +147,10 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Create an access group - Manage Agent Permissions - GOV.UK"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Back"
       html.select(Css.H1).text() shouldBe "Create an access group"
       html
         .select(Css.form)

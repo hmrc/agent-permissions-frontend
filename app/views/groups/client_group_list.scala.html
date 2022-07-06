@@ -34,6 +34,7 @@
     textbox: textbox,
     input_select: input_select,
     checkBox: checkBox,
+    summaryErrors: SummaryErrors,
     formWithCSRF: FormWithCSRF
 )
 
@@ -57,21 +58,25 @@
                     ).toString
                 ),
                 Html(client.name),
-                Html(client.hmrcRef),
+                Html(displayObfuscatedReference(client.hmrcRef)),
                 Html(displayTaxServiceFromServiceKey(client.taxService)),
             )
         )
         )
     }
 
+@errorHref = {
+@if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { search } else { clients }
+}
 
     @layout(
         title = msgs("group.client.list.h1", groupName),
         backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
-        formErrors = form.errors,
-        customError = Some("search"),
+        formErrors = Seq.empty,
         fullWidth = true,
     ) {
+
+        @summaryErrors(form.errors, Some(errorHref.toString))
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
@@ -126,7 +131,7 @@
 
 
 
-        @if(form.errors.map(error => error.key).contains("clients")) {
+        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
         <div class="govuk-form-group govuk-form-group--error">
             <p id="clients-error" class="govuk-error-message">
                 <span class="govuk-visually-hidden">Error:</span>
@@ -159,7 +164,7 @@
                 rows = tableRows,
             )
             </div>
-            @if(form.errors.map(error => error.key).contains("clients")) {</div>}
+            @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
             @submit_button("save.and.continue.button")
         }

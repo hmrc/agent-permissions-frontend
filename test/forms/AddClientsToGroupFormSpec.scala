@@ -112,7 +112,7 @@ class AddClientsToGroupFormSpec
                        clients -> List.empty)
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
       boundForm.errors shouldBe List(
-        FormError("clients", List("error.select-clients.empty")))
+        FormError("", List("error.select-clients.empty")))
     }
 
     "have errors when button is Filter and search and filter fields are empty" in {

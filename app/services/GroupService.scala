@@ -105,8 +105,9 @@ class GroupService @Inject()(
         _ ::: hiddenSelected
           .map(_.toList)
           .getOrElse(List.empty)) //combine the hidden selected with the new one's in the form
-      _ = newSessionClients.map(clients =>
-        sessionCacheRepository.putSession(GROUP_CLIENTS_SELECTED, clients))
+      _ = newSessionClients.map(clients => {
+        sessionCacheRepository.putSession(GROUP_CLIENTS_SELECTED, clients)
+      })
     } yield ()
 
   def addTeamMembersToGroup(formData: AddTeamMembersToGroup)(

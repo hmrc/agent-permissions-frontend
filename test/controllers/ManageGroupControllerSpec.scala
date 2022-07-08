@@ -24,11 +24,14 @@ import connectors.{
 }
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.DisplayClient
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
+import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
+import play.api.libs.json.Json
+import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{
   await,
@@ -38,15 +41,13 @@ import play.api.test.Helpers.{
 }
 import repository.SessionCacheRepository
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  AccessGroup,
-  AgentUser,
-  OptedInReady
-}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.SessionKeys
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
 import java.time.LocalDate
+import java.util.Base64
+import scala.concurrent.{ExecutionContext, Future}
 
 class ManageGroupControllerSpec extends BaseSpec {
 
@@ -62,7 +63,8 @@ class ManageGroupControllerSpec extends BaseSpec {
   val groupId = "xyz"
   private val agentUser: AgentUser =
     AgentUser(RandomStringUtils.random(5), "Rob the Agent")
-  val accessGroup = AccessGroup(arn,
+  val accessGroup = AccessGroup(new ObjectId(),
+                                arn,
                                 "Bananas",
                                 LocalDate.of(2020, 3, 10).atStartOfDay(),
                                 null,
@@ -87,6 +89,14 @@ class ManageGroupControllerSpec extends BaseSpec {
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
+
+  val fakeClients: Seq[Client] =
+    List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
+
+  val displayClients: Seq[DisplayClient] =
+    fakeClients.map(DisplayClient.fromClient(_))
+  val encodedDisplayClients: Seq[String] = displayClients.map(client =>
+    Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
   val controller = fakeApplication.injector.instanceOf[ManageGroupController]
 
@@ -216,25 +226,6 @@ class ManageGroupControllerSpec extends BaseSpec {
       backlink.size() shouldBe 1
       backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
       backlink.text() shouldBe "Back"
-    }
-  }
-
-  s"GET ${routes.ManageGroupController.showManageGroupClients(groupId)}" should {
-
-    "render correctly the manage group clients page" in {
-
-      //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-
-      val result = controller.showManageGroupClients(groupId)(request)
-
-      //when
-      status(result) shouldBe OK
-
-      //then
-      val html = Jsoup.parse(contentAsString(result))
-      html.body.text shouldBe "showManageGroupClients not yet implemented xyz"
     }
   }
 
@@ -522,26 +513,141 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showManageGroupClients(groupId)}" should {
+  s"GET ${routes.ManageGroupController.showManageGroupClients(accessGroup._id.toString)}" should {
 
     "render correctly the manage group CLIENTS page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      (mockGroupService
+        .getClients(_: Arn)(_: Request[_],
+                            _: HeaderCarrier,
+                            _: ExecutionContext))
+        .expects(accessGroup.arn, *, *, *)
+        .returning(Future successful Some(displayClients))
 
       //when
-      val result = controller.showManageGroupClients(groupId)(request)
+      val result =
+        controller.showManageGroupClients(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html
-        .body()
-        .text() shouldBe "showManageGroupClients not yet implemented xyz"
+      html.title shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Select clients"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 4
+      th.get(1).text() shouldBe "Client name"
+      th.get(2).text() shouldBe "Tax reference"
+      th.get(3).text() shouldBe "Tax service"
+      val trs =
+        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 3
+      //first row
+      trs.get(0).select("td").get(1).text() shouldBe "friendly0"
+      trs.get(0).select("td").get(2).text() shouldBe "123456780"
+      trs.get(0).select("td").get(3).text() shouldBe "VAT"
+
+      //last row
+      trs.get(2).select("td").get(1).text() shouldBe "friendly2"
+      trs.get(2).select("td").get(2).text() shouldBe "123456782"
+      trs.get(2).select("td").get(3).text() shouldBe "VAT"
+    }
+
+    "render with clients held in session when a filter was applied" in {
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(
+        sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      (mockGroupService
+        .getClients(_: Arn)(_: Request[_],
+                            _: HeaderCarrier,
+                            _: ExecutionContext))
+        .expects(accessGroup.arn, *, *, *)
+        .returning(Future successful Some(displayClients))
+
+      val result =
+        controller.showManageGroupClients(accessGroup._id.toString)(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients"
+
+      val trs =
+        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 1
+      trs.get(0).select("td").get(1).text() shouldBe "friendly0"
+      trs.get(0).select("td").get(2).text() shouldBe "123456780"
+      trs.get(0).select("td").get(3).text() shouldBe "VAT"
     }
   }
 
-  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(groupId)}" should {
+  s"POST ${routes.ManageGroupController.submitManageGroupClients(accessGroup._id.toString).url}" should {
+
+    "save selected clients to session" when {
+
+      s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups.url}" in {
+        //given
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+        val encodedDisplayClients = displayClients.map(
+          client =>
+            Base64.getEncoder.encodeToString(
+              Json.toJson(client).toString.getBytes))
+
+        implicit val request =
+          FakeRequest("POST",
+                      routes.ManageGroupController
+                        .submitManageGroupClients(accessGroup._id.toString)
+                        .url)
+            .withFormUrlEncodedBody(
+              "hasSelectedClients" -> "false",
+              "clients[0]" -> encodedDisplayClients.head,
+              "clients[1]" -> encodedDisplayClients.last,
+              "search" -> "",
+              "filter" -> "",
+              "continue" -> "continue"
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        await(
+          sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
+        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+        (mockGroupService
+          .processFormDataForClients(_: ButtonSelect)(_: Arn)(
+            _: AddClientsToGroup)(_: HeaderCarrier,
+                                  _: Request[_],
+                                  _: ExecutionContext))
+          .expects(ButtonSelect.Continue, accessGroup.arn, *, *, *, *)
+          .returning(Future.successful(()))
+
+        val result =
+          controller.submitManageGroupClients(accessGroup._id.toString)(request)
+
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+        await(sessionCacheRepo.getFromSession(FILTERED_CLIENTS)) shouldBe Option.empty
+        await(sessionCacheRepo.getFromSession(HIDDEN_CLIENTS_EXIST)) shouldBe Option.empty
+      }
+    }
+  }
+
+  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(
+    accessGroup._id.toString)}" should {
 
     "render correctly the manage group TEAM MEMBERS page" in {
       //given

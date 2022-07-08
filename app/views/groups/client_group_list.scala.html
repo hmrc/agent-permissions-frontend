@@ -41,7 +41,9 @@
     clients: Option[Seq[DisplayClient]] = None,
     groupName: String,
     hiddenClientsExist: Option[Boolean],
-    form: Form[AddClientsToGroup]
+    form: Form[AddClientsToGroup],
+    formAction: Call = routes.GroupController.submitSelectedClients,
+    backUrl: Option[String] = Some(routes.GroupController.showConfirmGroupName.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -67,7 +69,7 @@
 
     @layout(
         title = msgs("group.client.list.h1", groupName),
-        backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
+        backLinkHref = backUrl,
         formErrors = form.errors,
         customError = Some("search"),
         fullWidth = true,
@@ -79,7 +81,7 @@
             @p("group.client.list.p1")
         </div>
 
-        @formWithCSRF(action = routes.GroupController.submitSelectedClients) {
+        @formWithCSRF(action = formAction) {
 
         <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
 

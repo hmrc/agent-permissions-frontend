@@ -86,7 +86,8 @@
                     field = form("search"),
                     label = "group.members.list.filter.label",
                     labelClasses = "govuk-label--s",
-                    classes = "govuk-input--width-20"
+                    classes = "govuk-input--width-20",
+                    errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {Some(msgs("error.search-members.empty"))} else {None}
                     )
                 </div>
 
@@ -96,7 +97,7 @@
             </div>
 
 
-            @if(form.errors.map(error => error.key).contains("members")) {
+            @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
                 <p id="clients-error" class="govuk-error-message">
                     <span class="govuk-visually-hidden">Error:</span>
@@ -125,7 +126,7 @@
                 rows = tableRows,
             )
             </div>
-                @if(form.errors.map(error => error.key).contains("members")) {</div>}
+                @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
 
             @submit_button("save.and.continue.button")
         }

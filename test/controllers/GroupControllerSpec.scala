@@ -17,7 +17,11 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest}
+import connectors.{
+  AgentPermissionsConnector,
+  AgentUserClientDetailsConnector,
+  GroupRequest
+}
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
@@ -26,10 +30,20 @@ import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.test.{FakeRequest, Helpers}
-import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{
+  await,
+  contentAsString,
+  defaultAwaitTimeout,
+  redirectLocation
+}
 import repository.SessionCacheRepository
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, OptedInReady, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.{
+  AgentUser,
+  Client,
+  OptedInReady,
+  UserDetails
+}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
 
@@ -40,7 +54,8 @@ class GroupControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+  implicit lazy val mockAgentUserClientDetailsConnector
+    : AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   private val groupName = "XYZ"
@@ -58,7 +73,8 @@ class GroupControllerSpec extends BaseSpec {
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[AgentUserClientDetailsConnector])
         .toInstance(mockAgentUserClientDetailsConnector)
-      bind(classOf[GroupService]).toInstance(new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo))
+      bind(classOf[GroupService]).toInstance(
+        new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo))
     }
   }
 
@@ -84,7 +100,8 @@ class GroupControllerSpec extends BaseSpec {
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
   val encodedDisplayClients: Seq[String] =
-    displayClients.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+    displayClients.map(client =>
+      Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
   val users: Seq[UserDetails] = (1 to 10)
     .map { i =>
@@ -98,7 +115,8 @@ class GroupControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
   val encodedTeamMembers: Seq[String] =
-    teamMembers.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+    teamMembers.map(client =>
+      Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
   def optedInWithGroupName(): Unit = {
 
@@ -336,7 +354,8 @@ class GroupControllerSpec extends BaseSpec {
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.GroupController.showSelectClients.url)
+      redirectLocation(result) shouldBe Some(
+        routes.GroupController.showSelectClients.url)
     }
 
     "redirect to /group/group-name when confirm group name 'no' selected" in {
@@ -353,7 +372,8 @@ class GroupControllerSpec extends BaseSpec {
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.GroupController.showGroupName.url)
+      redirectLocation(result) shouldBe Some(
+        routes.GroupController.showGroupName.url)
     }
   }
 
@@ -534,17 +554,20 @@ class GroupControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
 
         val encodedDisplayClients =
-          displayClients.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+          displayClients.map(
+            client =>
+              Base64.getEncoder.encodeToString(
+                Json.toJson(client).toString.getBytes))
 
         implicit val request =
           FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
-              "clients[0]"         -> encodedDisplayClients.head,
-              "clients[1]"         -> encodedDisplayClients.last,
-              "search"             -> "",
-              "filter"             -> "",
-              "continue"           -> "continue"
+              "clients[0]" -> encodedDisplayClients.head,
+              "clients[1]" -> encodedDisplayClients.last,
+              "search" -> "",
+              "filter" -> "",
+              "continue" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -570,17 +593,20 @@ class GroupControllerSpec extends BaseSpec {
         stubGetClientsOk(arn)(fakeClients)
 
         val encodedDisplayClients =
-          displayClients.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+          displayClients.map(
+            client =>
+              Base64.getEncoder.encodeToString(
+                Json.toJson(client).toString.getBytes))
 
         implicit val request =
           FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
-              "clients[0]"         -> encodedDisplayClients.head,
-              "clients[1]"         -> encodedDisplayClients.last,
-              "search"             -> "friendly0",
-              "filter"             -> "",
-              "submitFilter"       -> "submitFilter"
+              "clients[0]" -> encodedDisplayClients.head,
+              "clients[1]" -> encodedDisplayClients.last,
+              "search" -> "friendly0",
+              "filter" -> "",
+              "submitFilter" -> "submitFilter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -600,7 +626,8 @@ class GroupControllerSpec extends BaseSpec {
         )
         val filteredClients =
           await(sessionCacheRepo.getFromSession(FILTERED_CLIENTS))
-        filteredClients.get.toList shouldBe List(displayClients.head.copy(selected = true))
+        filteredClients.get.toList shouldBe List(
+          displayClients.head.copy(selected = true))
       }
 
       s"button is Clear and redirect to ${routes.GroupController.showSelectClients.url}" in {
@@ -608,17 +635,20 @@ class GroupControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
 
         val encodedDisplayClients =
-          displayClients.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+          displayClients.map(
+            client =>
+              Base64.getEncoder.encodeToString(
+                Json.toJson(client).toString.getBytes))
 
         implicit val request =
           FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
-              "clients[0]"         -> encodedDisplayClients.head,
-              "clients[1]"         -> encodedDisplayClients.last,
-              "search"             -> "",
-              "filter"             -> "",
-              "submitClear"        -> "submitClear"
+              "clients[0]" -> encodedDisplayClients.head,
+              "clients[1]" -> encodedDisplayClients.last,
+              "search" -> "",
+              "filter" -> "",
+              "submitClear" -> "submitClear"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -652,12 +682,13 @@ class GroupControllerSpec extends BaseSpec {
         "POST",
         routes.GroupController.submitSelectedClients.url
       ).withFormUrlEncodedBody(
-        "hasSelectedClients" -> "false",
-        "clients"            -> "",
-        "search"             -> "",
-        "filter"             -> "",
-        "continue"           -> "continue"
-      ).withSession(SessionKeys.sessionId -> "session-x")
+          "hasSelectedClients" -> "false",
+          "clients" -> "",
+          "search" -> "",
+          "filter" -> "",
+          "continue" -> "continue"
+        )
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
@@ -689,12 +720,13 @@ class GroupControllerSpec extends BaseSpec {
         "POST",
         routes.GroupController.submitSelectedClients.url
       ).withFormUrlEncodedBody(
-        "hasSelectedClients" -> "false",
-        "clients"            -> "",
-        "search"             -> "",
-        "filter"             -> "",
-        "submitFilter"       -> "submitFilter"
-      ).withSession(SessionKeys.sessionId -> "session-x")
+          "hasSelectedClients" -> "false",
+          "clients" -> "",
+          "search" -> "",
+          "filter" -> "",
+          "submitFilter" -> "submitFilter"
+        )
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
@@ -709,8 +741,11 @@ class GroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
       html
-        .select(Css.errorSummaryForField("search"))
+        .select(Css.ERROR_SUMMARY_LINK)
         .text() shouldBe "You must enter a tax reference, client name or select a tax service to apply filters"
+      html
+        .select(Css.errorForField("filter"))
+        .text() shouldBe "Error: You must enter a tax reference, client name or select a tax service to apply filters"
       // and should have cleared the previously selected clients from the session
       await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
 
@@ -725,10 +760,11 @@ class GroupControllerSpec extends BaseSpec {
         "POST",
         routes.GroupController.submitSelectedClients.url
       ).withFormUrlEncodedBody(
-        "hasSelectedClients" -> "false",
-        "filter"             -> "",
-        "submitFilter"       -> "submitFilter"
-      ).withSession(SessionKeys.sessionId -> "session-x")
+          "hasSelectedClients" -> "false",
+          "filter" -> "",
+          "submitFilter" -> "submitFilter"
+        )
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       // when
@@ -736,7 +772,8 @@ class GroupControllerSpec extends BaseSpec {
 
       // then
       status(result) shouldBe SEE_OTHER
-      Helpers.redirectLocation(result) shouldBe Some(routes.GroupController.showGroupName.url)
+      Helpers.redirectLocation(result) shouldBe Some(
+        routes.GroupController.showGroupName.url)
     }
 
   }
@@ -761,7 +798,8 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
-      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
+      await(
+        sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
 
       val result = controller.showReviewSelectedClients()(request)
 
@@ -963,12 +1001,13 @@ class GroupControllerSpec extends BaseSpec {
         stubGetTeamMembersOk(arn)(users)
 
         implicit val request =
-          FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
+          FakeRequest("POST",
+                      routes.GroupController.submitSelectedTeamMembers.url)
             .withFormUrlEncodedBody(
               "hasAlreadySelected" -> "false",
-              "members[]"          -> encodedTeamMembers.head,
-              "members[]"          -> encodedTeamMembers.last,
-              "continue"           -> "continue"
+              "members[]" -> encodedTeamMembers.head,
+              "members[]" -> encodedTeamMembers.last,
+              "continue" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -995,13 +1034,14 @@ class GroupControllerSpec extends BaseSpec {
         stubGetTeamMembersOk(arn)(users)
 
         implicit val request =
-          FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
+          FakeRequest("POST",
+                      routes.GroupController.submitSelectedTeamMembers.url)
             .withFormUrlEncodedBody(
               "hasAlreadySelected" -> "false",
-              "members[]"          -> encodedTeamMembers.head,
-              "members[]"          -> encodedTeamMembers.last,
-              "search"             -> "10",
-              "submitFilter"       -> "submitFilter"
+              "members[]" -> encodedTeamMembers.head,
+              "members[]" -> encodedTeamMembers.last,
+              "search" -> "10",
+              "submitFilter" -> "submitFilter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1014,8 +1054,8 @@ class GroupControllerSpec extends BaseSpec {
         status(await(result)) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showSelectTeamMembers.url
 
-        val hiddenTeamMembers =
-          await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST))
+//        val hiddenTeamMembers =
+//          await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST))
         val storedTeamMembers =
           await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
 
@@ -1025,7 +1065,7 @@ class GroupControllerSpec extends BaseSpec {
         )
         val filteredTeamMembers =
           await(sessionCacheRepo.getFromSession(FILTERED_TEAM_MEMBERS))
-        filteredTeamMembers.get.toList shouldBe List(teamMembers.last.copy(selected = true))
+        filteredTeamMembers.get.toList shouldBe List(teamMembers.last)
       }
 
       s"button is Clear and redirect to ${routes.GroupController.showSelectTeamMembers.url}" in {
@@ -1034,13 +1074,14 @@ class GroupControllerSpec extends BaseSpec {
         stubGetTeamMembersOk(arn)(users)
 
         implicit val request =
-          FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
+          FakeRequest("POST",
+                      routes.GroupController.submitSelectedTeamMembers.url)
             .withFormUrlEncodedBody(
               "hasAlreadySelected" -> "false",
-              "members[]"          -> encodedTeamMembers.head,
-              "members[]"          -> encodedTeamMembers.last,
-              "search"             -> "1",
-              "submitClear"        -> "submitClear"
+              "members[]" -> encodedTeamMembers.head,
+              "members[]" -> encodedTeamMembers.last,
+              "search" -> "1",
+              "submitClear" -> "submitClear"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1074,11 +1115,12 @@ class GroupControllerSpec extends BaseSpec {
         "POST",
         routes.GroupController.submitSelectedTeamMembers.url
       ).withFormUrlEncodedBody(
-        "hasAlreadySelected" -> "false",
-        "members"            -> "",
-        "search"             -> "",
-        "continue"           -> "continue"
-      ).withSession(SessionKeys.sessionId -> "session-x")
+          "hasAlreadySelected" -> "false",
+          "members" -> "",
+          "search" -> "",
+          "continue" -> "continue"
+        )
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
@@ -1093,9 +1135,13 @@ class GroupControllerSpec extends BaseSpec {
       // then
       html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
-      html
-        .select(Css.errorSummaryForField("members"))
+      val errorLink = html.select(Css.ERROR_SUMMARY_LINK)
+      errorLink
         .text() shouldBe "You must select at least one team member"
+      html
+        .select(Css.errorForField("members"))
+        .text() shouldBe "Error: You must select at least one team member"
+
       // and should have cleared the previously selected clients from the session
       await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
 
@@ -1108,13 +1154,14 @@ class GroupControllerSpec extends BaseSpec {
       stubGetTeamMembersOk(arn)(users)
 
       implicit val request =
-        FakeRequest("POST", routes.GroupController.submitSelectedTeamMembers.url)
+        FakeRequest("POST",
+                    routes.GroupController.submitSelectedTeamMembers.url)
           .withFormUrlEncodedBody(
             "hasAlreadySelected" -> "false",
-            "members[]"          -> encodedTeamMembers.head,
-            "members[]"          -> encodedTeamMembers.last,
-            "search"             -> "",
-            "submitFilter"       -> "submitFilter"
+            "members[]" -> encodedTeamMembers.head,
+            "members[]" -> encodedTeamMembers.last,
+            "search" -> "",
+            "submitFilter" -> "submitFilter"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1131,9 +1178,13 @@ class GroupControllerSpec extends BaseSpec {
       // then
       html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
+//      html
+//        .select(Css.errorSummaryForField("search"))
+//        .text() shouldBe "You must enter a name or email to apply filters"
       html
-        .select(Css.errorSummaryForField("search"))
-        .text() shouldBe "You must enter a name or email to apply filters"
+        .select(Css.errorForField("search"))
+        .text() shouldBe "Error: You must enter a name or email to apply filters"
+
       // and should have cleared the previously selected clients from the session
       await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
 
@@ -1157,7 +1208,8 @@ class GroupControllerSpec extends BaseSpec {
 
       // then
       status(result) shouldBe SEE_OTHER
-      Helpers.redirectLocation(result) shouldBe Some(routes.GroupController.showGroupName.url)
+      Helpers.redirectLocation(result) shouldBe Some(
+        routes.GroupController.showGroupName.url)
     }
   }
 
@@ -1181,7 +1233,9 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
-      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
+      await(
+        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,
+                                    selectedTeamMembers))
 
       val result = controller.showReviewSelectedTeamMembers()(request)
 
@@ -1237,15 +1291,30 @@ class GroupControllerSpec extends BaseSpec {
     "render correctly check you answers page" in {
 
       val selectedClients =
-        (1 to 3).map(i => DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"id-key-$i", true))
+        (1 to 3).map(
+          i =>
+            DisplayClient(s"1234567$i",
+                          s"client name $i",
+                          s"tax service $i",
+                          s"id-key-$i",
+                          true))
       val selectedTeamMembers =
-        (1 to 5).map(i => TeamMember(s"team member $i", s"x$i@xyz.com", Some(s"1234 $i"), None, true))
+        (1 to 5).map(
+          i =>
+            TeamMember(s"team member $i",
+                       s"x$i@xyz.com",
+                       Some(s"1234 $i"),
+                       None,
+                       true))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
-      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
-      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers))
+      await(
+        sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
+      await(
+        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,
+                                    selectedTeamMembers))
 
       val result = controller.showCheckYourAnswers()(request)
 
@@ -1318,8 +1387,14 @@ class GroupControllerSpec extends BaseSpec {
 
     "make expected call to agent-permissions api to create group " in {
       // given
-      val clients = (1 to 4).map(i => DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"idKey$i"))
-      val teamMembers = (1 to 2).map(i => TeamMember(s"member $i", s"x$i@a.com", Some(s"$i"), None))
+      val clients = (1 to 4).map(
+        i =>
+          DisplayClient(s"1234567$i",
+                        s"client name $i",
+                        s"tax service $i",
+                        s"idKey$i"))
+      val teamMembers = (1 to 2).map(i =>
+        TeamMember(s"member $i", s"x$i@a.com", Some(s"$i"), None))
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitCheckYourAnswers.url)
           .withFormUrlEncodedBody()
@@ -1328,7 +1403,8 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients))
-      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+      await(
+        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
 
       // and we expect the following call to the agentPermissionsConnector
       val expectedAgents =
@@ -1350,8 +1426,14 @@ class GroupControllerSpec extends BaseSpec {
 
     "render error page if Create fails" in {
       // given
-      val clients = (1 to 4).map(i => DisplayClient(s"1234567$i", s"client name $i", s"tax service $i", s"idKey$i"))
-      val teamMembers = (1 to 2).map(i => TeamMember(s"member $i", s"x$i@a.com", Some(s"$i"), None))
+      val clients = (1 to 4).map(
+        i =>
+          DisplayClient(s"1234567$i",
+                        s"client name $i",
+                        s"tax service $i",
+                        s"idKey$i"))
+      val teamMembers = (1 to 2).map(i =>
+        TeamMember(s"member $i", s"x$i@a.com", Some(s"$i"), None))
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitCheckYourAnswers.url)
           .withFormUrlEncodedBody()
@@ -1360,7 +1442,8 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients))
-      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+      await(
+        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
 
       // and we expect the following call to the agentPermissionsConnector
       expectCreateGroupFails(arn)

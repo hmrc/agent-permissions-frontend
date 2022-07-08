@@ -18,7 +18,7 @@ package forms
 
 import models.ButtonSelect.{Clear, Continue, Filter}
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
-import play.api.data.Form
+import play.api.data.{Form, FormError}
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.libs.json.Json.{parse, toJson}
@@ -27,18 +27,20 @@ import java.util.Base64.{getDecoder, getEncoder}
 
 object AddClientsToGroupForm {
 
-  def form(buttonPressed: ButtonSelect = Continue): Form[AddClientsToGroup] = {
+  def form(buttonPressed: ButtonSelect = Continue): Form[AddClientsToGroup] =
     buttonPressed match {
       case Continue =>
-        Form(
+        val formWithMaybeGlobalError = Form(
           addClientsToGroupMapping
             .verifying(emptyClientConstraint)
         )
+        if (formWithMaybeGlobalError.hasErrors)
+          formWithMaybeGlobalError.copy(errors = Seq(FormError("clients", "error.select-clients.empty")))
+        else formWithMaybeGlobalError
       case Filter =>
         Form(
           addClientsToGroupMapping
-            .verifying(error = "error.search-filter.empty",
-                       x => x.filter.isDefined || x.search.isDefined)
+            .verifying(error = "error.search-filter.empty", x => x.filter.isDefined || x.search.isDefined)
         )
       case Clear =>
         Form(
@@ -46,7 +48,6 @@ object AddClientsToGroupForm {
         )
       case e => throw new RuntimeException(s"invalid button $e")
     }
-  }
 
   private val emptyClientConstraint: Constraint[AddClientsToGroup] =
     Constraint { formData =>
@@ -57,20 +58,15 @@ object AddClientsToGroupForm {
 
   private val addClientsToGroupMapping = mapping(
     "hasSelectedClients" -> boolean,
-    "search" -> optional(text),
-    "filter" -> optional(text),
+    "search"             -> optional(text),
+    "filter"             -> optional(text),
     "clients" -> optional(list(text))
       .transform[Option[List[DisplayClient]]](
-        _.map(_.map(str => {
+        _.map(_.map { str =>
           parse(new String(getDecoder.decode(str.replaceAll("'", ""))))
             .as[DisplayClient]
-        })),
-        _.map(
-          _.map(
-            dc =>
-              getEncoder.encodeToString(
-                toJson[DisplayClient](dc).toString().getBytes)
-          ))
+        }),
+        _.map(_.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)))
       )
   )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
 }

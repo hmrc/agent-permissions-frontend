@@ -69,8 +69,12 @@
 @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {search} else {clients}
 }
 
+@pageTitle = @{
+val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
+errorPrefix.concat(msgs("group.client.list.h1", groupName))
+}
     @layout(
-        title = msgs("group.client.list.h1", groupName),
+        title = pageTitle,
         backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
         formErrors = Seq.empty,
         fullWidth = true,

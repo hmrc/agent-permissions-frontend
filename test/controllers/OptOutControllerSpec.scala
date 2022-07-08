@@ -24,10 +24,7 @@ import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  OptedInSingleUser,
-  OptedOutEligible
-}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInSingleUser, OptedOutEligible}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.SessionKeys
 
@@ -72,7 +69,7 @@ class OptOutControllerSpec extends BaseSpec {
       html
         .select(Css.insetText)
         .text() shouldBe "If you opt out of using this feature any access groups you have created will be removed."
-      //if adding a para please test it!
+      // if adding a para please test it!
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 2
       paragraphs
@@ -156,8 +153,7 @@ class OptOutControllerSpec extends BaseSpec {
       val result = controller.submitDoYouWantToOptOut()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(
-        "http://localhost:9401/agent-services-account/manage-account")
+      redirectLocation(result) shouldBe Some("http://localhost:9401/agent-services-account/manage-account")
     }
 
     "render correct error messages when form not filled in" in {

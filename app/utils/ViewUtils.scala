@@ -29,8 +29,7 @@ object ViewUtils {
       ("TRUST", mgs("tax-service.trusts"))
     )
 
-  def displayTaxServiceFromServiceKey(serviceKey: String)(
-      implicit mgs: Messages): String = {
+  def displayTaxServiceFromServiceKey(serviceKey: String)(implicit mgs: Messages): String =
     serviceKey match {
       case "HMRC-MTD-IT"     => mgs("tax-service.mdt-it")
       case "HMRC-MTD-VAT"    => mgs("tax-service.vat")
@@ -40,11 +39,9 @@ object ViewUtils {
       case "HMRC-TERSNT-ORG" => mgs("tax-service.trusts")
       case s                 => throw new Exception(s"$s is not a service key")
     }
-  }
 
-  def displayObfuscatedReference(taxId: String): String = {
+  def displayObfuscatedReference(taxId: String): String =
     // TODO - change obfuscation depending on reference?
     "ending in ".concat(taxId.substring(taxId.length - 4))
-  }
 
 }

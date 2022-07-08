@@ -23,12 +23,7 @@ import play.api.Application
 import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation}
-import uk.gov.hmrc.auth.core.{
-  AuthConnector,
-  InsufficientEnrolments,
-  MissingBearerToken,
-  UnsupportedAuthProvider
-}
+import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBearerToken, UnsupportedAuthProvider}
 
 import scala.concurrent.Future
 
@@ -37,9 +32,8 @@ class AuthActionSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
   override def moduleWithOverrides = new AbstractModule() {
-    override def configure(): Unit = {
+    override def configure(): Unit =
       bind(classOf[AuthConnector]).toInstance(mockAuthConnector)
-    }
   }
 
   override implicit lazy val fakeApplication: Application =
@@ -56,7 +50,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(MissingBearerToken())
 
         val result =
-          authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2F&origin=agent-permissions-frontend"
@@ -69,7 +63,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(InsufficientEnrolments())
 
         val result =
-          authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
         status(result) shouldBe FORBIDDEN
       }
 
@@ -79,7 +73,7 @@ class AuthActionSpec extends BaseSpec {
           expectAuthorisationFails(UnsupportedAuthProvider())
 
           val result =
-            authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+            authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
           status(result) shouldBe FORBIDDEN
         }
       }

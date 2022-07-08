@@ -25,32 +25,21 @@ import play.api.http.Status.{CONFLICT, CREATED, INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import play.utils.UriEncoding
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  AccessGroup,
-  AgentUser,
-  Client,
-  Enrolment,
-  Identifier,
-  OptedInReady
-}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
 
-class AgentPermissionsConnectorSpec
-    extends BaseSpec
-    with HttpClientMocks
-    with AgentPermissionsConnectorMocks {
+class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with AgentPermissionsConnectorMocks {
 
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
-    override def configure(): Unit = {
+    override def configure(): Unit =
       bind(classOf[HttpClient]).toInstance(mockHttpClient)
-    }
   }
 
   override implicit lazy val fakeApplication: Application =
@@ -63,8 +52,7 @@ class AgentPermissionsConnectorSpec
   "getOptinStatus" should {
     "return the OptinStatus when valid JSON response received" in {
 
-      mockHttpGet[HttpResponse](
-        HttpResponse.apply(200, s""" "Opted-In_READY" """))
+      mockHttpGet[HttpResponse](HttpResponse.apply(200, s""" "Opted-In_READY" """))
       connector.getOptInStatus(arn).futureValue shouldBe Some(OptedInReady)
     }
     "return None when there was an error status" in {
@@ -134,7 +122,7 @@ class AgentPermissionsConnectorSpec
   "GET GroupSummaries" should {
 
     "return successfully" in {
-      //given
+      // given
       val groupSummaries = Seq(
         GroupSummary("groupId", "groupName", 33, 9)
       )
@@ -149,13 +137,12 @@ class AgentPermissionsConnectorSpec
 
       mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
 
-      //and
+      // and
       val expectedTransformedResponse = Some(
-        (groupSummaries,
-         Seq(DisplayClient("hmrcRef", "name", "taxService", "identKey")))
+        (groupSummaries, Seq(DisplayClient("hmrcRef", "name", "taxService", "identKey")))
       )
 
-      //then
+      // then
       connector
         .groupsSummaries(arn)
         .futureValue shouldBe expectedTransformedResponse
@@ -163,11 +150,11 @@ class AgentPermissionsConnectorSpec
 
     "throw an exception for any other HTTP response code" in {
 
-      //given
+      // given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpGet[HttpResponse](mockResponse)
 
-      //then
+      // then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.groupsSummaries(arn))
       }
@@ -178,37 +165,34 @@ class AgentPermissionsConnectorSpec
   "GET Group" should {
 
     "return successfully" in {
-      //given
+      // given
       val anyDate = LocalDate.of(1970, 1, 1).atStartOfDay()
 
       val groupId = 234234
       val agent = AgentUser("agentId", "Bob Builder")
       val accessGroup =
-        AccessGroup(arn,
-                    "groupName",
-                    anyDate,
-                    anyDate,
-                    agent,
-                    agent,
-                    Some(Set(agent)),
-                    Some(
-                      Set(
-                        Enrolment("service",
-                                  "state",
-                                  "friendly",
-                                  Seq(Identifier("key", "value"))))))
+        AccessGroup(
+          arn,
+          "groupName",
+          anyDate,
+          anyDate,
+          agent,
+          agent,
+          Some(Set(agent)),
+          Some(Set(Enrolment("service", "state", "friendly", Seq(Identifier("key", "value")))))
+        )
 
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/groups/${groupId}"
+        s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockJsonResponseBody = Json.toJson(accessGroup).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
       mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
 
-      //and
+      // and
       val expectedTransformedResponse = Some(accessGroup)
 
-      //then
+      // then
       connector
         .getGroup(groupId.toString)
         .futureValue shouldBe expectedTransformedResponse
@@ -216,12 +200,12 @@ class AgentPermissionsConnectorSpec
 
     "throw an exception for any other HTTP response code" in {
 
-      //given
+      // given
       val groupId = "234234"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpGet[HttpResponse](mockResponse)
 
-      //then
+      // then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.getGroup(groupId))
       }
@@ -235,11 +219,9 @@ class AgentPermissionsConnectorSpec
 
       val groupId = "234234"
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
-      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url,
-                                                            groupRequest,
-                                                            mockResponse)
+      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url, groupRequest, mockResponse)
       connector.updateGroup(groupId, groupRequest).futureValue shouldBe Done
     }
 
@@ -247,13 +229,11 @@ class AgentPermissionsConnectorSpec
 
       val groupId = "234234"
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url,
-                                                            groupRequest,
-                                                            mockResponse)
+      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url, groupRequest, mockResponse)
 
-      //then
+      // then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.updateGroup(groupId, groupRequest))
       }
@@ -267,7 +247,7 @@ class AgentPermissionsConnectorSpec
     "return Done when response code is OK" in {
 
       val groupId = "234234"
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
       mockHttpDELETE[HttpResponse](url, mockResponse)
       connector.deleteGroup(groupId).futureValue shouldBe Done
@@ -276,11 +256,11 @@ class AgentPermissionsConnectorSpec
     "throw exception when it fails" in {
 
       val groupId = "234234"
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
       mockHttpDELETE[HttpResponse](url, mockResponse)
 
-      //then
+      // then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.deleteGroup(groupId))
       }
@@ -326,7 +306,7 @@ class AgentPermissionsConnectorSpec
 
       mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
 
-      //then
+      // then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.groupNameCheck(arn, groupName))
       }

@@ -20,9 +20,9 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.agentmtdidentifiers.model.Client
 
 case class Group(
-    name: String,
-    nameConfirmed: Boolean = false,
-    clients: Option[Set[Client]] = None
+  name: String,
+  nameConfirmed: Boolean = false,
+  clients: Option[Set[Client]] = None
 )
 
 object Group {

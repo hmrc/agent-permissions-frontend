@@ -17,253 +17,221 @@
 package services
 
 import connectors.AgentUserClientDetailsConnector
-import controllers.{
-  FILTERED_CLIENTS,
-  FILTERED_TEAM_MEMBERS,
-  GROUP_CLIENTS_SELECTED,
-  GROUP_TEAM_MEMBERS_SELECTED,
-  HIDDEN_CLIENTS_EXIST,
-  HIDDEN_TEAM_MEMBERS_EXIST
-}
-import models.{
-  AddClientsToGroup,
-  AddTeamMembersToGroup,
-  ButtonSelect,
-  DisplayClient,
-  TeamMember
-}
+import controllers.{FILTERED_CLIENTS, FILTERED_TEAM_MEMBERS, GROUP_CLIENTS_SELECTED, GROUP_TEAM_MEMBERS_SELECTED, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST}
+import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, Selectable, TeamMember}
 import models.ButtonSelect._
+import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.cache.DataKey
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
-class GroupService @Inject()(
-    agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-    sessionCacheRepository: SessionCacheRepository) {
+class GroupService @Inject() (
+  agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+  sessionCacheRepository: SessionCacheRepository
+) {
 
-  def getClients(arn: Arn)(
-      implicit request: Request[_],
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
+  def getClients(
+    arn: Arn
+  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] =
     for {
       es3Clients <- agentUserClientDetailsConnector.getClients(arn)
-      es3AsDisplayClients = es3Clients.map(clientSeq =>
-        clientSeq.map(client => DisplayClient.fromClient(client)))
+      es3AsDisplayClients = es3Clients.map(clientSeq => clientSeq.map(client => DisplayClient.fromClient(client)))
       maybeSelectedClients <- sessionCacheRepository
-        .getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
-      es3WithoutPreSelected = es3AsDisplayClients.map(
-        _.filterNot(dc =>
-          maybeSelectedClients.fold(false)(
-            _.map(_.hmrcRef).contains(dc.hmrcRef))))
-      mergedWithPreselected = es3WithoutPreSelected.map(
-        _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
+                                .getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
+      es3WithoutPreSelected =
+        es3AsDisplayClients.map(
+          _.filterNot(dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef)))
+        )
+      mergedWithPreselected = es3WithoutPreSelected.map(_.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
       sorted = mergedWithPreselected.map(_.sortBy(_.name))
     } yield sorted
-  }
 
   def getTeamMembers(arn: Arn)(
-      maybeSelectedTeamMembers: Option[Seq[TeamMember]] = None)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
+    maybeSelectedTeamMembers: Option[Seq[TeamMember]] = None
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[TeamMember]]] =
     for {
       ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
-      ugsAsTeamMembers = ugsUsers.map(list =>
-        list.map(TeamMember.fromUserDetails))
-      ugsWithoutPreSelected = ugsAsTeamMembers.map(
-        teamMembers =>
-          teamMembers.filterNot(teamMember =>
-            maybeSelectedTeamMembers.fold(false)(
-              _.map(_.userId).contains(teamMember.userId))))
+      ugsAsTeamMembers = ugsUsers.map(list => list.map(TeamMember.fromUserDetails))
+      ugsWithoutPreSelected = ugsAsTeamMembers.map(teamMembers =>
+                                teamMembers.filterNot(teamMember =>
+                                  maybeSelectedTeamMembers.fold(false)(_.map(_.userId).contains(teamMember.userId))
+                                )
+                              )
       mergedWithPreselected = ugsWithoutPreSelected
-        .map(_.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
-        .map(_.sortBy(_.name))
+                                .map(_.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
+                                .map(_.sortBy(_.name))
     } yield mergedWithPreselected
 
-  }
-
-  def addClientsToGroup(formData: AddClientsToGroup)(
-      implicit hc: HeaderCarrier,
-      request: Request[Any],
-      ec: ExecutionContext): Future[Unit] =
+  /*
+   * a) add the group members that are in the form that are not already in the session
+   * b) remove from the session the group members that were de-selected
+   *
+   * */
+  def addMembersToGroup[T <: Selectable](
+    formData: Option[List[T]]
+  )(sessionMembersDataKey: DataKey[Seq[T]], filteredMembersDataKey: DataKey[Seq[T]])(implicit
+    hc: HeaderCarrier,
+    request: Request[Any],
+    ec: ExecutionContext,
+    reads: Reads[Seq[T]],
+    writes: Writes[Seq[T]]
+  ): Future[Unit] =
     for {
-      filteredResult <- sessionCacheRepository.getFromSession(FILTERED_CLIENTS)
-      oldSessionClients <- sessionCacheRepository.getFromSession(
-        GROUP_CLIENTS_SELECTED)
-      formClients = formData.clients.map(_.map(_.copy(selected = true))) //make them selected to store in session
-      selectedFiltered = filteredResult.map(_.filter(_.selected).toList)
-      hiddenSelected = oldSessionClients.map(
-        old =>
-          old diff selectedFiltered
-            .getOrElse(old)) // make this Nil if there was no filter applied
-      formDiffHidden = formClients.map(
-        _ diff hiddenSelected.getOrElse(List.empty))
-      newSessionClients = formDiffHidden.map(
-        _ ::: hiddenSelected
-          .map(_.toList)
-          .getOrElse(List.empty)) //combine the hidden selected with the new one's in the form
-      _ = newSessionClients.map(clients =>
-        sessionCacheRepository.putSession(GROUP_CLIENTS_SELECTED, clients))
+      inSession <- sessionCacheRepository
+                     .getFromSession[Seq[T]](sessionMembersDataKey)
+                     .map(_.map(_.toList))
+
+      filteredSelected <- sessionCacheRepository
+                            .getFromSession[Seq[T]](filteredMembersDataKey)
+                            .map(_.map(_.filter(_.selected == true).toList))
+
+      deSelected = filteredSelected
+                     .orElse(inSession)
+                     .map(_ diff formData.getOrElse(Nil))
+      added = formData.map(_ diff filteredSelected.getOrElse(Nil))
+
+      toSave = added.getOrElse(Nil) ::: inSession.getOrElse(Nil) diff deSelected
+                 .getOrElse(Nil)
+      _ = sessionCacheRepository
+            .putSession[Seq[T]](sessionMembersDataKey, toSave.distinct)
+
     } yield ()
 
-  def addTeamMembersToGroup(formData: AddTeamMembersToGroup)(
-      implicit hc: HeaderCarrier,
-      request: Request[Any],
-      ec: ExecutionContext): Future[Unit] =
-    for {
-      filteredResult <- sessionCacheRepository.getFromSession(
-        FILTERED_TEAM_MEMBERS)
-      oldSessionTeamMembers <- sessionCacheRepository.getFromSession(
-        GROUP_TEAM_MEMBERS_SELECTED)
-      formTeamMembers = formData.members.map(_.map(_.copy(selected = true))) //make them selected to store in session
-      selectedFiltered = filteredResult.map(_.filter(_.selected).toList)
-      hiddenSelected = oldSessionTeamMembers.map(
-        old =>
-          old diff selectedFiltered
-            .getOrElse(old)) // make this Nil if there was no filter applied
-      formDiffHidden = formTeamMembers.map(
-        _ diff hiddenSelected.getOrElse(List.empty))
-      newSessionMembers = formDiffHidden.map(
-        _ ::: hiddenSelected
-          .map(_.toList)
-          .getOrElse(List.empty)) //combine the hidden selected with the new one's in the form
-      _ = newSessionMembers.map(members =>
-        sessionCacheRepository.putSession(GROUP_TEAM_MEMBERS_SELECTED, members))
-    } yield ()
-
-  def filterClients(arn: Arn)(formData: AddClientsToGroup)(
-      implicit hc: HeaderCarrier,
-      request: Request[Any],
-      ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
-
+  def filterClients(arn: Arn)(
+    formData: AddClientsToGroup
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] =
     for {
       clients <- getClients(arn).map(_.map(_.toVector))
       maybeTaxService = formData.filter
-      resultByTaxService = maybeTaxService.fold(clients)(
-        term =>
-          if (term == "TRUST")
-            clients.map(_.filter(_.taxService.contains("HMRC-TERS")))
-          else clients.map(_.filter(_.taxService == term)))
+      resultByTaxService = maybeTaxService.fold(clients)(term =>
+                             if (term == "TRUST")
+                               clients.map(_.filter(_.taxService.contains("HMRC-TERS")))
+                             else clients.map(_.filter(_.taxService == term))
+                           )
       maybeTaxRefOrName = formData.search
-      resultByName = maybeTaxRefOrName.fold(resultByTaxService)(
-        term =>
-          resultByTaxService.map(
-            _.filter(_.name.toLowerCase.contains(term.toLowerCase))))
-      resultByTaxRef = maybeTaxRefOrName.fold(resultByTaxService)(
-        term =>
-          resultByTaxService.map(
-            _.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase))))
+      resultByName = maybeTaxRefOrName.fold(resultByTaxService)(term =>
+                       resultByTaxService.map(_.filter(_.name.toLowerCase.contains(term.toLowerCase)))
+                     )
+      resultByTaxRef = maybeTaxRefOrName.fold(resultByTaxService)(term =>
+                         resultByTaxService.map(_.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase)))
+                       )
       consolidatedResult = resultByName
-        .map(_ ++ resultByTaxRef.getOrElse(Vector.empty))
-        .map(_.distinct)
+                             .map(_ ++ resultByTaxRef.getOrElse(Vector.empty))
+                             .map(_.distinct)
       result = consolidatedResult.map(_.toVector)
-      _ = result.map(filteredResult =>
-        sessionCacheRepository.putSession(FILTERED_CLIENTS, filteredResult))
+      _ = result.map(filteredResult => sessionCacheRepository.putSession(FILTERED_CLIENTS, filteredResult))
       hiddenClients = clients.map(
-        _.filter(_.selected) diff result
-          .getOrElse(Vector.empty)
-          .filter(_.selected))
-      _ = hiddenClients.map(
-        hidden =>
-          if (hidden.nonEmpty)
-            sessionCacheRepository.putSession(HIDDEN_CLIENTS_EXIST, true))
+                        _.filter(_.selected) diff result
+                          .getOrElse(Vector.empty)
+                          .filter(_.selected)
+                      )
+      _ = hiddenClients.map(hidden =>
+            if (hidden.nonEmpty)
+              sessionCacheRepository.putSession(HIDDEN_CLIENTS_EXIST, true)
+          )
     } yield result
-  }
 
-  def filterTeamMembers(arn: Arn)(formData: AddTeamMembersToGroup)(
-      implicit hc: HeaderCarrier,
-      request: Request[Any],
-      ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
+  def filterTeamMembers(arn: Arn)(
+    formData: AddTeamMembersToGroup
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Option[Seq[TeamMember]]] =
     for {
-      selectedTeamMembers <- sessionCacheRepository.getFromSession(
-        GROUP_TEAM_MEMBERS_SELECTED)
+      selectedTeamMembers <- sessionCacheRepository.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)
       teamMembers <- getTeamMembers(arn)(selectedTeamMembers)
-        .map(_.map(_.toVector))
+                       .map(_.map(_.toVector))
       maybeNameOrEmail = formData.search
-      resultByName = maybeNameOrEmail.fold(teamMembers)(
-        term =>
-          teamMembers.map(
-            _.filter(_.name.toLowerCase.contains(term.toLowerCase))))
-      resultByEmail = maybeNameOrEmail.fold(teamMembers)(
-        term =>
-          teamMembers.map(
-            _.filter(_.email.toLowerCase.contains(term.toLowerCase))))
+      resultByName = maybeNameOrEmail.fold(teamMembers)(term =>
+                       teamMembers.map(_.filter(_.name.toLowerCase.contains(term.toLowerCase)))
+                     )
+      resultByEmail = maybeNameOrEmail.fold(teamMembers)(term =>
+                        teamMembers.map(_.filter(_.email.toLowerCase.contains(term.toLowerCase)))
+                      )
       consolidatedResult = resultByName
-        .map(_ ++ resultByEmail.getOrElse(Vector.empty))
-        .map(_.distinct)
+                             .map(_ ++ resultByEmail.getOrElse(Vector.empty))
+                             .map(_.distinct)
       result = consolidatedResult.map(_.toVector)
-      _ = result.map(
-        filteredResult =>
-          sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS,
-                                            filteredResult))
+      _ = result.map(filteredResult => sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS, filteredResult))
       hiddenTeamMembers = teamMembers.map(
-        _.filter(_.selected) diff result
-          .map(_.filter(_.selected))
-          .getOrElse(Vector.empty))
-      _ = hiddenTeamMembers.map(
-        hidden =>
-          if (hidden.nonEmpty)
-            sessionCacheRepository.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true))
+                            _.filter(_.selected) diff result
+                              .map(_.filter(_.selected))
+                              .getOrElse(Vector.empty)
+                          )
+      _ = hiddenTeamMembers.map(hidden =>
+            if (hidden.nonEmpty)
+              sessionCacheRepository.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true)
+          )
     } yield result
-  }
 
   def processFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(
-      formData: AddClientsToGroup)(implicit hc: HeaderCarrier,
-                                   request: Request[Any],
-                                   ec: ExecutionContext): Future[Unit] = {
+    formData: AddClientsToGroup
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
     buttonPress match {
       case Clear =>
         for {
-          _ <- addClientsToGroup(formData)
+          _ <- addMembersToGroup(formData.clients.map(_.map(_.copy(selected = true))))(
+                 GROUP_CLIENTS_SELECTED,
+                 FILTERED_CLIENTS
+               )
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
           _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
         } yield ()
 
       case Continue =>
         for {
-          _ <- addClientsToGroup(formData)
+          _ <- addMembersToGroup(formData.clients.map(_.map(_.copy(selected = true))))(
+                 GROUP_CLIENTS_SELECTED,
+                 FILTERED_CLIENTS
+               )
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
           _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
         } yield ()
 
       case Filter =>
         for {
-          _ <- addClientsToGroup(formData)
+          _ <- addMembersToGroup(formData.clients.map(_.map(_.copy(selected = true))))(
+                 GROUP_CLIENTS_SELECTED,
+                 FILTERED_CLIENTS
+               )
           _ <- filterClients(arn)(formData)
         } yield ()
     }
-  }
 
   def processFormDataForTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(
-      formData: AddTeamMembersToGroup)(implicit hc: HeaderCarrier,
-                                       request: Request[Any],
-                                       ec: ExecutionContext): Future[Unit] = {
+    formData: AddTeamMembersToGroup
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
     buttonPress match {
       case Clear =>
         for {
-          _ <- addTeamMembersToGroup(formData)
+          _ <- addMembersToGroup(formData.members.map(_.map(_.copy(selected = true))))(
+                 GROUP_TEAM_MEMBERS_SELECTED,
+                 FILTERED_TEAM_MEMBERS
+               )
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
-          _ <- sessionCacheRepository.deleteFromSession(
-            HIDDEN_TEAM_MEMBERS_EXIST)
+          _ <- sessionCacheRepository.deleteFromSession(HIDDEN_TEAM_MEMBERS_EXIST)
         } yield ()
 
       case Continue =>
         for {
-          _ <- addTeamMembersToGroup(formData)
+          _ <- addMembersToGroup(formData.members.map(_.map(_.copy(selected = true))))(
+                 GROUP_TEAM_MEMBERS_SELECTED,
+                 FILTERED_TEAM_MEMBERS
+               )
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
-          _ <- sessionCacheRepository.deleteFromSession(
-            HIDDEN_TEAM_MEMBERS_EXIST)
+          _ <- sessionCacheRepository.deleteFromSession(HIDDEN_TEAM_MEMBERS_EXIST)
         } yield ()
 
       case Filter =>
         for {
-          _ <- addTeamMembersToGroup(formData)
+          _ <- addMembersToGroup(formData.members.map(_.map(_.copy(selected = true))))(
+                 GROUP_TEAM_MEMBERS_SELECTED,
+                 FILTERED_TEAM_MEMBERS
+               )
           _ <- filterTeamMembers(arn)(formData)
         } yield ()
     }
-  }
 
 }

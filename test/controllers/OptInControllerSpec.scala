@@ -24,13 +24,7 @@ import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  OptedInNotReady,
-  OptedInReady,
-  OptedOutEligible,
-  OptedOutSingleUser,
-  OptinStatus
-}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptedOutSingleUser, OptinStatus}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
@@ -40,8 +34,8 @@ class OptInControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
@@ -81,7 +75,7 @@ class OptInControllerSpec extends BaseSpec {
       html
         .select(Css.insetText)
         .text() shouldBe "By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login"
-      //if adding a para please test it!
+      // if adding a para please test it!
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 2
       paragraphs
@@ -99,11 +93,8 @@ class OptInControllerSpec extends BaseSpec {
     "return Forbidden when user is not an Agent" in {
 
       val nonAgentEnrolmentKey = "IR-SA"
-      val mockedAuthResponse = Enrolments(
-        Set(
-          Enrolment(nonAgentEnrolmentKey,
-                    agentEnrolmentIdentifiers,
-                    "Activated"))) and Some(User)
+      val mockedAuthResponse =
+        Enrolments(Set(Enrolment(nonAgentEnrolmentKey, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
@@ -113,10 +104,8 @@ class OptInControllerSpec extends BaseSpec {
 
     "return Forbidden when user is not an admin" in {
 
-      val mockedAuthResponse = Enrolments(Set(Enrolment(
-        agentEnrolment,
-        agentEnrolmentIdentifiers,
-        "Activated"))) and Some(Assistant)
+      val mockedAuthResponse =
+        Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(Assistant)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
@@ -202,8 +191,7 @@ class OptInControllerSpec extends BaseSpec {
       val result = controller.submitDoYouWantToOptIn()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(
-        "/agent-permissions/opt-in/you-have-not-opted-in")
+      redirectLocation(result) shouldBe Some("/agent-permissions/opt-in/you-have-not-opted-in")
     }
 
     "render correct error messages when form not filled in" in {
@@ -256,8 +244,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content with continueUrl of ASA dashboard when client list not yet available" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(
-        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
+      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -287,8 +274,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content with continueUrl of /group/group-name when optIn status is OptInReady" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(
-        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -320,9 +306,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(
-        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS,
-                                                 OptedOutEligible))
+      await(sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.showYouHaveNotOptedIn()(request)
 

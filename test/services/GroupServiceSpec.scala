@@ -40,37 +40,32 @@ class GroupServiceSpec extends BaseSpec {
     .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
 
   val users: Seq[UserDetails] = (1 to 3)
-    .map(
-      i =>
-        UserDetails(userId = Option(s"user$i"),
-                    None,
-                    Some(s"Name $i"),
-                    Some(s"bob$i@accounting.com")))
+    .map(i => UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com")))
 
   val fakeTeamMembers: Seq[TeamMember] = (1 to 5)
-    .map(i => {
+    .map { i =>
       TeamMember(
         s"John $i",
         "User",
         Some("John"),
-        Some(s"john$i@abc.com"),
+        Some(s"john$i@abc.com")
       )
-    })
+    }
 
   "getClients" should {
     "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
-      //given
+      // given
       (mockAgentUserClientDetailsConnector
         .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful Some(fakeClients))
 
-      //when
+      // when
       val maybeClients: Option[Seq[DisplayClient]] =
         await(service.getClients(arn))
       val clients: Seq[DisplayClient] = maybeClients.get
 
-      //then
+      // then
       clients.size shouldBe 10
       clients(0).name shouldBe "friendlyName1"
       clients(0).identifierKey shouldBe "enrolmentKey1"
@@ -92,18 +87,18 @@ class GroupServiceSpec extends BaseSpec {
 
   "getTeamMembers" should {
     "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones" in {
-      //given
+      // given
       (mockAgentUserClientDetailsConnector
         .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful Some(users))
 
-      //when
+      // when
       val maybeTeamMembers: Option[Seq[TeamMember]] =
         await(service.getTeamMembers(arn)(None))
       val teamMembers: Seq[TeamMember] = maybeTeamMembers.get
 
-      //then
+      // then
       teamMembers.size shouldBe 3
       teamMembers(0).name shouldBe "Name 1"
       teamMembers(0).userId shouldBe Some("user1")

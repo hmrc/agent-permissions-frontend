@@ -18,83 +18,61 @@ package forms
 
 import models.ButtonSelect.{Clear, Continue, Filter}
 import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
-import play.api.data.Form
+import play.api.data.{Form, FormError}
 import play.api.data.Forms._
+import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.libs.json.Json.{parse, toJson}
-import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfFalse
 
 import java.util.Base64.{getDecoder, getEncoder}
 
 object AddTeamMembersToGroupForm {
 
-  def form(
-      buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] = {
+  def form(buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] =
     buttonPressed match {
       case Continue =>
-        Form(
-          mapping(
-            "hasAlreadySelected" -> boolean,
-            "search" -> optional(text),
-            "members" -> mandatoryIfFalse(
-              "hasAlreadySelected",
-              list(text)
-                .transform[List[TeamMember]](
-                  _.map(str =>
-                    parse(new String(getDecoder.decode(
-                      str.replaceAll("'", "")))).as[TeamMember]),
-                  _.map(dc =>
-                    getEncoder.encodeToString(
-                      toJson[TeamMember](dc).toString().getBytes))
-                )
-                .verifying("error.select-members.empty", _.nonEmpty)
-            )
-          )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
+        val formWithMaybeGlobalError = Form(
+          addTeamMembersToGroupMapping.verifying(emptyTeamMemberConstraint)
         )
+        if (formWithMaybeGlobalError.hasErrors)
+          formWithMaybeGlobalError.copy(errors = Seq(FormError("members", "error.select-members.empty")))
+        else formWithMaybeGlobalError
       case Filter =>
         Form(
-          mapping(
-            "hasAlreadySelected" -> boolean,
-            "search" -> optional(text).verifying("error.search-members.empty",
-                                                 _.nonEmpty),
-            "members" -> optional(list(text))
-              .transform[Option[List[TeamMember]]](
-                _.map(strList =>
-                  strList.map(str =>
-                    parse(new String(getDecoder.decode(
-                      str.replaceAll("'", "")))).as[TeamMember])),
-                _.map(
-                  TeamMemberList =>
-                    TeamMemberList.map(
-                      dc =>
-                        getEncoder.encodeToString(
-                          toJson[TeamMember](dc).toString().getBytes)
-                  ))
-              )
-          )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
+          addTeamMembersToGroupMapping.verifying(emptySearchFieldConstraint)
         )
       case Clear =>
         Form(
-          mapping(
-            "hasAlreadySelected" -> boolean,
-            "search" -> optional(text),
-            "members" -> optional(list(text))
-              .transform[Option[List[TeamMember]]](
-                _.map(strList =>
-                  strList.map(str =>
-                    parse(new String(getDecoder.decode(
-                      str.replaceAll("'", "")))).as[TeamMember])),
-                _.map(
-                  TeamMemberList =>
-                    TeamMemberList.map(
-                      dc =>
-                        getEncoder.encodeToString(
-                          toJson[TeamMember](dc).toString().getBytes)
-                  ))
-              )
-          )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
+          addTeamMembersToGroupMapping
         )
       case e => throw new RuntimeException(s"invalid button $e")
     }
-  }
+
+  private val emptyTeamMemberConstraint: Constraint[AddTeamMembersToGroup] =
+    Constraint { formData =>
+      if (!formData.hasAlreadySelected && formData.members.isEmpty)
+        Invalid(ValidationError("error.select-members.empty"))
+      else Valid
+    }
+
+  private val emptySearchFieldConstraint: Constraint[AddTeamMembersToGroup] =
+    Constraint { formData =>
+      if (formData.search.isEmpty)
+        Invalid(ValidationError("error.search-members.empty"))
+      else Valid
+    }
+
+  private val addTeamMembersToGroupMapping = mapping(
+    "hasAlreadySelected" -> boolean,
+    "search"             -> optional(text),
+    "members" -> optional(list(text))
+      .transform[Option[List[TeamMember]]](
+        _.map(strList =>
+          strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember])
+        ),
+        _.map(TeamMemberList =>
+          TeamMemberList.map(dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes))
+        )
+      )
+  )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
 
 }

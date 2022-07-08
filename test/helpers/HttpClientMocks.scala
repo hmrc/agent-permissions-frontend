@@ -24,66 +24,57 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait HttpClientMocks extends MockFactory {
 
-  def mockHttpGet[A](response: A)(implicit mockHttpClient: HttpClient): Unit = {
+  def mockHttpGet[A](response: A)(implicit mockHttpClient: HttpClient): Unit =
     (mockHttpClient
       .GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(
         _: HttpReads[A],
         _: HeaderCarrier,
-        _: ExecutionContext))
+        _: ExecutionContext
+      ))
       .expects(*, *, *, *, *, *)
       .returns(Future.successful(response))
-  }
 
-  def mockHttpGetWithUrl[A](expectedUrl: String, response: A)(
-      implicit mockHttpClient: HttpClient): Unit = {
+  def mockHttpGetWithUrl[A](expectedUrl: String, response: A)(implicit mockHttpClient: HttpClient): Unit =
     (mockHttpClient
       .GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(
         _: HttpReads[A],
         _: HeaderCarrier,
-        _: ExecutionContext))
+        _: ExecutionContext
+      ))
       .expects(*, *, *, *, *, *)
       .returns(Future.successful(response))
-  }
 
-  def mockHttpPostEmpty[A](response: A)(
-      implicit mockHttpClient: HttpClient): Unit = {
+  def mockHttpPostEmpty[A](response: A)(implicit mockHttpClient: HttpClient): Unit =
     (mockHttpClient
-      .POSTEmpty(_: String, _: Seq[(String, String)])(_: HttpReads[A],
-                                                      _: HeaderCarrier,
-                                                      _: ExecutionContext))
+      .POSTEmpty(_: String, _: Seq[(String, String)])(_: HttpReads[A], _: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *, *)
       .returns(Future.successful(response))
-  }
 
-  def mockHttpPost[I, O](url: String, input: I, output: O)(
-      implicit mockHttpClient: HttpClient): Unit = {
+  def mockHttpPost[I, O](url: String, input: I, output: O)(implicit mockHttpClient: HttpClient): Unit =
     (mockHttpClient
-      .POST(_: String, _: I, _: Seq[(String, String)])(_: Writes[I],
-                                                       _: HttpReads[O],
-                                                       _: HeaderCarrier,
-                                                       _: ExecutionContext))
+      .POST(_: String, _: I, _: Seq[(String, String)])(
+        _: Writes[I],
+        _: HttpReads[O],
+        _: HeaderCarrier,
+        _: ExecutionContext
+      ))
       .expects(url, input, *, *, *, *, *)
       .returns(Future.successful(output))
-  }
 
-  def mockHttpPATCH[I, O](url: String, input: I, output: O)(
-      implicit mockHttpClient: HttpClient): Unit = {
+  def mockHttpPATCH[I, O](url: String, input: I, output: O)(implicit mockHttpClient: HttpClient): Unit =
     (mockHttpClient
-      .PATCH(_: String, _: I, _: Seq[(String, String)])(_: Writes[I],
-                                                        _: HttpReads[O],
-                                                        _: HeaderCarrier,
-                                                        _: ExecutionContext))
+      .PATCH(_: String, _: I, _: Seq[(String, String)])(
+        _: Writes[I],
+        _: HttpReads[O],
+        _: HeaderCarrier,
+        _: ExecutionContext
+      ))
       .expects(url, input, *, *, *, *, *)
       .returns(Future.successful(output))
-  }
 
-  def mockHttpDELETE[O](url: String, output: O)(
-      implicit mockHttpClient: HttpClient): Unit = {
+  def mockHttpDELETE[O](url: String, output: O)(implicit mockHttpClient: HttpClient): Unit =
     (mockHttpClient
-      .DELETE(_: String, _: Seq[(String, String)])(_: HttpReads[O],
-                                                   _: HeaderCarrier,
-                                                   _: ExecutionContext))
+      .DELETE(_: String, _: Seq[(String, String)])(_: HttpReads[O], _: HeaderCarrier, _: ExecutionContext))
       .expects(url, *, *, *, *)
       .returns(Future.successful(output))
-  }
 }

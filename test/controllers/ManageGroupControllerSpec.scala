@@ -17,11 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{
-  AgentPermissionsConnector,
-  AgentUserClientDetailsConnector,
-  GroupSummary
-}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.DisplayClient
@@ -30,19 +26,10 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{
-  await,
-  contentAsString,
-  defaultAwaitTimeout,
-  redirectLocation
-}
+import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  AccessGroup,
-  AgentUser,
-  OptedInReady
-}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -53,8 +40,8 @@ class ManageGroupControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
 
   lazy val sessionCacheRepo: SessionCacheRepository =
@@ -62,14 +49,8 @@ class ManageGroupControllerSpec extends BaseSpec {
   val groupId = "xyz"
   private val agentUser: AgentUser =
     AgentUser(RandomStringUtils.random(5), "Rob the Agent")
-  val accessGroup = AccessGroup(arn,
-                                "Bananas",
-                                LocalDate.of(2020, 3, 10).atStartOfDay(),
-                                null,
-                                agentUser,
-                                agentUser,
-                                None,
-                                None)
+  val accessGroup =
+    AccessGroup(arn, "Bananas", LocalDate.of(2020, 3, 10).atStartOfDay(), null, agentUser, agentUser, None, None)
 
   override def moduleWithOverrides = new AbstractModule() {
 
@@ -94,20 +75,18 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the manage groups page" in {
 
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      val groupSummaries = (1 to 3).map(i =>
-        GroupSummary(s"groupId$i", s"name ${i}", i * 3, i * 4))
-      val unassignedClients = (1 to 8).map(i =>
-        DisplayClient(s"hmrcRef$i", s"name$i", s"taxService$i", ""))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val unassignedClients = (1 to 8).map(i => DisplayClient(s"hmrcRef$i", s"name$i", s"taxService$i", ""))
       val summaries = Some((groupSummaries, unassignedClients))
       expectGetGroupSummarySuccess(arn, summaries)
 
-      //when
+      // when
       val result = controller.showManageGroups()(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
@@ -119,7 +98,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .get(0)
         .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group"
 
-      //verify the tabs/tab headings first
+      // verify the tabs/tab headings first
       val tabs = html.select("li.govuk-tabs__list-item")
       tabs.size() shouldBe 2
       val accessGroupsTab = tabs.get(0)
@@ -132,7 +111,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
       unassignedClientsTab.select("a").attr("href") shouldBe "#clients-panel"
 
-      //verify the tab panel contents
+      // verify the tab panel contents
       val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
       groupsPanel.select("h2").text() shouldBe "Access groups"
       val groups = groupsPanel.select("dl.govuk-summary-list")
@@ -159,17 +138,17 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the manage groups page when nothing returned" in {
 
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val summaries = None
       expectGetGroupSummarySuccess(arn, summaries)
 
-      //when
+      // when
       val result = controller.showManageGroups()(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
@@ -180,7 +159,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .get(0)
         .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group"
 
-      //verify the tabs/tab headings first
+      // verify the tabs/tab headings first
       val tabs = html.select("li.govuk-tabs__list-item")
       tabs.size() shouldBe 2
       val accessGroupsTab = tabs.get(0)
@@ -193,7 +172,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
       unassignedClientsTab.select("a").attr("href") shouldBe "#clients-panel"
 
-      //verify the tab panel contents
+      // verify the tab panel contents
       val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
       groupsPanel.select("h2").text() shouldBe "Access groups"
       groupsPanel.select("h3").text() shouldBe "No groups found"
@@ -223,16 +202,16 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the manage group clients page" in {
 
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showManageGroupClients(groupId)(request)
 
-      //when
+      // when
       status(result) shouldBe OK
 
-      //then
+      // then
       val html = Jsoup.parse(contentAsString(result))
       html.body.text shouldBe "showManageGroupClients not yet implemented xyz"
     }
@@ -241,14 +220,14 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(groupId)}" should {
 
     "render correctly the manage group clients page" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      //when
+      // when
       val result = controller.showManageGroupTeamMembers(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.body.text shouldBe "showManageGroupTeamMembers not yet implemented xyz"
@@ -258,18 +237,18 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${routes.ManageGroupController.showRenameGroup(groupId)}" should {
 
     "render correctly the manage groups page" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
-      //when
+      // when
       val result = controller.showRenameGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Rename group - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Rename group"
@@ -284,12 +263,12 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
 
     "render NOT_FOUND when no group is found for this group id" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(groupId, Option.empty[AccessGroup])
 
-      //when
+      // when
       val result = controller.showRenameGroup(groupId)(request)
 
       status(result) shouldBe NOT_FOUND
@@ -312,25 +291,23 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "redirect to confirmation page with when posting a valid group name" in {
 
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
       implicit val request =
-        FakeRequest("POST",
-                    routes.ManageGroupController.submitRenameGroup(groupId).url)
+        FakeRequest("POST", routes.ManageGroupController.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(
-        sessionCacheRepo.putSession(GROUP_RENAMED_FROM, accessGroup.groupName))
+      await(sessionCacheRepo.putSession(GROUP_RENAMED_FROM, accessGroup.groupName))
 
-      //when
+      // when
       val result = controller.submitRenameGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.ManageGroupController
         .showGroupRenamed(groupId)
@@ -338,18 +315,17 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
 
     "redirect when no group is returned for this group id" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       implicit val request =
-        FakeRequest("POST",
-                    routes.ManageGroupController.submitRenameGroup(groupId).url)
+        FakeRequest("POST", routes.ManageGroupController.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(groupId, Option.empty[AccessGroup])
 
-      //when
+      // when
       val result = controller.submitRenameGroup(groupId)(request)
 
       status(result) shouldBe NOT_FOUND
@@ -371,19 +347,19 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${routes.ManageGroupController.showGroupRenamed(groupId)}" should {
 
     "render correctly the manage groups page" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_RENAMED_FROM, "Previous Name"))
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
-      //when
+      // when
       val result = controller.showGroupRenamed(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Access group renamed - Manage Agent Permissions - GOV.UK"
       html
@@ -404,15 +380,15 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${routes.ManageGroupController.showDeleteGroup(groupId)}" should {
 
     "render correctly the DELETE group page" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
-      //when
+      // when
       val result = controller.showDeleteGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Delete group - Manage Agent Permissions - GOV.UK"
@@ -433,56 +409,58 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"POST ${routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString)}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       implicit val request =
-        FakeRequest("POST",
-                    routes.ManageGroupController
-                      .submitDeleteGroup(accessGroup._id.toString)
-                      .url)
+        FakeRequest(
+          "POST",
+          routes.ManageGroupController
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url
+        )
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
-      //when
+      // when
       val result =
         controller.submitDeleteGroup(accessGroup._id.toString)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
-      //and
-      redirectLocation(result) shouldBe Some(
-        routes.ManageGroupController.showGroupDeleted.url)
+      // and
+      redirectLocation(result) shouldBe Some(routes.ManageGroupController.showGroupDeleted.url)
 
     }
 
     "render correctly the DASHBOARD group page when 'no' selected" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       implicit val request =
-        FakeRequest("POST",
-                    routes.ManageGroupController
-                      .submitDeleteGroup(accessGroup._id.toString)
-                      .url)
+        FakeRequest(
+          "POST",
+          routes.ManageGroupController
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url
+        )
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
-      //when
+      // when
       val result =
         controller.submitDeleteGroup(accessGroup._id.toString)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
-      //and
-      redirectLocation(result) shouldBe Some(
-        routes.ManageGroupController.showManageGroups.url)
+      // and
+      redirectLocation(result) shouldBe Some(routes.ManageGroupController.showManageGroups.url)
 
     }
   }
@@ -490,18 +468,18 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${routes.ManageGroupController.showGroupDeleted}" should {
 
     "render correctly" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_DELETED_NAME, "Rubbish"))
 
-      //when
+      // when
       val result = controller.showGroupDeleted(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Rubbish access group deleted - Manage Agent Permissions - GOV.UK"
       html
@@ -525,14 +503,14 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${routes.ManageGroupController.showManageGroupClients(groupId)}" should {
 
     "render correctly the manage group CLIENTS page" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      //when
+      // when
       val result = controller.showManageGroupClients(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html
@@ -544,14 +522,14 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(groupId)}" should {
 
     "render correctly the manage group TEAM MEMBERS page" in {
-      //given
+      // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      //when
+      // when
       val result = controller.showManageGroupTeamMembers(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html

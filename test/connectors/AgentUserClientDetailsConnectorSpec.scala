@@ -25,17 +25,14 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 class AgentUserClientDetailsConnectorSpec
-    extends BaseSpec
-    with HttpClientMocks
-    with AgentUserClientDetailsConnectorMocks {
+    extends BaseSpec with HttpClientMocks with AgentUserClientDetailsConnectorMocks {
 
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
-    override def configure(): Unit = {
+    override def configure(): Unit =
       bind(classOf[HttpClient]).toInstance(mockHttpClient)
-    }
   }
 
   override implicit lazy val fakeApplication: Application =
@@ -51,16 +48,17 @@ class AgentUserClientDetailsConnectorSpec
         HttpResponse.apply(
           OK,
           """[
-          |{
-          |"enrolmentKey": "HMRC-MTD-IT~MTDITID~XX12345",
-          |"friendlyName": "Rapunzel"
-          |}
-          |]""".stripMargin
-        ))
+            |{
+            |"enrolmentKey": "HMRC-MTD-IT~MTDITID~XX12345",
+            |"friendlyName": "Rapunzel"
+            |}
+            |]""".stripMargin
+        )
+      )
 
       connector.getClients(arn).futureValue shouldBe Some(
-        Seq(Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
-                   friendlyName = "Rapunzel")))
+        Seq(Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Rapunzel"))
+      )
     }
 
     "return None when status response is Accepted" in {
@@ -86,14 +84,15 @@ class AgentUserClientDetailsConnectorSpec
         HttpResponse.apply(
           OK,
           """[
-          |{
-          |"userId": "uid",
-          |"credentialRole": "cred-role",
-          |"name": "name",
-          |"email": "x@y.com"
-          |}
-          |]""".stripMargin
-        ))
+            |{
+            |"userId": "uid",
+            |"credentialRole": "cred-role",
+            |"name": "name",
+            |"email": "x@y.com"
+            |}
+            |]""".stripMargin
+        )
+      )
 
       connector.getTeamMembers(arn).futureValue shouldBe Some(
         Seq(

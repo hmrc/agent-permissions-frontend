@@ -39,15 +39,8 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with AuthMocks
-    with ScalaFutures
-    with GroupServiceMocks
-    with AgentPermissionsConnectorMocks
-    with HttpClientMocks
-    with CleanMongoCollectionSupport
+    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with AuthMocks with ScalaFutures with GroupServiceMocks
+    with AgentPermissionsConnectorMocks with HttpClientMocks with CleanMongoCollectionSupport
     with AgentUserClientDetailsConnectorMocks {
 
   implicit val ec: ExecutionContext =
@@ -66,11 +59,10 @@ abstract class BaseSpec
   val arn = Arn(validArn)
 
   val agentEnrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(
-    EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
-  val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment,
-                                                    agentEnrolmentIdentifiers,
-                                                    "Activated"))) and Some(
-    User)
+    EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn)
+  )
+  val mockedAuthResponse =
+    Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
 
   lazy val conf: Configuration = GuiceApplicationBuilder().configuration
   lazy val env: Environment = GuiceApplicationBuilder().environment

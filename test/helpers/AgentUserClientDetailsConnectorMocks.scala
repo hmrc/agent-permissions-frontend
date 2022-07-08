@@ -25,49 +25,47 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentUserClientDetailsConnectorMocks extends MockFactory {
 
-  def stubGetClientsOk(arn: Arn)(clientList: Seq[Client])(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+  def stubGetClientsOk(
+    arn: Arn
+  )(clientList: Seq[Client])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful (Some(clientList)))
 
-  def stubGetClientsAccepted(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+  def stubGetClientsAccepted(
+    arn: Arn
+  )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful None)
 
-  def stubGetClientsError(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+  def stubGetClientsError(arn: Arn)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def stubGetTeamMembersOk(arn: Arn)(teamMembers: Seq[UserDetails])(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+  def stubGetTeamMembersOk(
+    arn: Arn
+  )(teamMembers: Seq[UserDetails])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Some(teamMembers))
 
-  def stubGetTeamMembersAccepted(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+  def stubGetTeamMembersAccepted(
+    arn: Arn
+  )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful None)
 
-  def stubGetTeamMembersError(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+  def stubGetTeamMembersError(
+    arn: Arn
+  )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)

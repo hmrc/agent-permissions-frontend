@@ -23,10 +23,7 @@ import play.api.{Configuration, Environment, Logging}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{
-  allEnrolments,
-  credentialRole
-}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
@@ -36,66 +33,54 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AuthAction @Inject()(val authConnector: AuthConnector,
-                           val env: Environment,
-                           val config: Configuration)
-    extends AuthRedirects
-    with AuthorisedFunctions
-    with Logging {
+class AuthAction @Inject() (val authConnector: AuthConnector, val env: Environment, val config: Configuration)
+    extends AuthRedirects with AuthorisedFunctions with Logging {
 
   private val agentEnrolment = "HMRC-AS-AGENT"
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
-  def isAuthorisedAgent(body: Arn => Future[Result])(
-      implicit ec: ExecutionContext,
-      request: Request[_],
-      appConfig: AppConfig) = {
+  def isAuthorisedAgent(
+    body: Arn => Future[Result]
+  )(implicit ec: ExecutionContext, request: Request[_], appConfig: AppConfig) = {
 
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
     authorised(AuthProviders(GovernmentGateway) and Enrolment(agentEnrolment))
-      .retrieve(allEnrolments and credentialRole) {
-        case enrols ~ credRole =>
-          getArn(enrols) match {
-            case Some(arn) =>
-              credRole match {
-                case Some(User) | Some(Admin) => body(arn)
-                case _ =>
-                  logger.warn("Invalid credential role")
-                  Future.successful(Forbidden)
-              }
-            case None =>
-              logger.warn(s"No $agentReferenceNumberIdentifier in enrolment")
-              Future.successful(Forbidden)
-          }
+      .retrieve(allEnrolments and credentialRole) { case enrols ~ credRole =>
+        getArn(enrols) match {
+          case Some(arn) =>
+            credRole match {
+              case Some(User) | Some(Admin) => body(arn)
+              case _ =>
+                logger.warn("Invalid credential role")
+                Future.successful(Forbidden)
+            }
+          case None =>
+            logger.warn(s"No $agentReferenceNumberIdentifier in enrolment")
+            Future.successful(Forbidden)
+        }
       }
       .recover(handleFailure)
   }
 
-  def handleFailure(
-      implicit request: Request[_],
-      appConfig: AppConfig): PartialFunction[Throwable, Result] = {
+  def handleFailure(implicit request: Request[_], appConfig: AppConfig): PartialFunction[Throwable, Result] = {
     case _: NoActiveSession =>
       Redirect(
         s"${appConfig.basGatewayUrl}/bas-gateway/sign-in",
-        Map(
-          "continue_url" -> Seq(s"${appConfig.loginContinueUrl}${request.uri}"),
-          "origin" -> Seq(appConfig.appName))
+        Map("continue_url" -> Seq(s"${appConfig.loginContinueUrl}${request.uri}"), "origin" -> Seq(appConfig.appName))
       )
-    case _: InsufficientEnrolments => {
+    case _: InsufficientEnrolments =>
       logger.warn(s"user does not have ASA agent enrolment")
       Forbidden
-    }
     case _: UnsupportedAuthProvider ⇒
       logger.warn(s"user has an unsupported auth provider")
       Forbidden
   }
 
-  private def getArn(enrolments: Enrolments): Option[Arn] = {
+  private def getArn(enrolments: Enrolments): Option[Arn] =
     enrolments
       .getEnrolment(agentEnrolment)
       .flatMap(_.getIdentifier(agentReferenceNumberIdentifier))
       .map(e => Arn(e.value))
-  }
 }

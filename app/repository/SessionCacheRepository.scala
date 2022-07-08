@@ -25,10 +25,9 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
 @Singleton
-class SessionCacheRepository @Inject()(
-    val mongoComponent: MongoComponent,
-    timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
-    extends CacheRepository(
+class SessionCacheRepository @Inject() (val mongoComponent: MongoComponent, timestampSupport: TimestampSupport)(implicit
+  ec: ExecutionContext
+) extends CacheRepository(
       mongoComponent = mongoComponent,
       collectionName = "sessions",
       replaceIndexes = true,

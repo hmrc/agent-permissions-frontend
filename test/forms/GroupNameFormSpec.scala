@@ -21,10 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class GroupNameFormSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite {
+class GroupNameFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   val groupNameField = "name"
 

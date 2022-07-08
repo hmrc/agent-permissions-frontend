@@ -21,19 +21,17 @@ object Css {
   val legend = "legend.govuk-fieldset__legend"
   val ERROR_SUMMARY_TITLE = "#error-summary-title"
   val ERROR_SUMMARY_LINK = ".govuk-list.govuk-error-summary__list li a"
-  val errorSummaryLinkWithHref = (href: String) =>
-    s".govuk-list.govuk-error-summary__list li a[href=$href]"
+  val errorSummaryLinkWithHref = (href: String) => s".govuk-list.govuk-error-summary__list li a[href=$href]"
   val H1 = "main h1"
   val H2 = "main h2"
   val PRE_H1 = "main .govuk-caption-l"
   val paragraphs = "main p"
   val insetText = "div.govuk-inset-text"
   val form: String = s"main form[method=POST]"
-  def errorSummaryForField(id: String): String = {
-    s".govuk-error-summary__body li a[href=#${id}]"
-  }
-  def errorForField(id: String): String = s"p#${id}-error.govuk-error-message"
-  def labelFor(id: String): String = s"label[for=${id}]"
+  def errorSummaryForField(id: String): String =
+    s".govuk-error-summary__body li a[href=#$id]"
+  def errorForField(id: String): String = s"p#$id-error.govuk-error-message"
+  def labelFor(id: String): String = s"label[for=$id]"
   def radioButtonsField(id: String): String = s"form .govuk-radios#$id"
   def tableWithId(id: String) = s"table.govuk-table#$id"
   def tabPanelWithIdOf(id: String) = s".govuk-tabs__panel#$id"

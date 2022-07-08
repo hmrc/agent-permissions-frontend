@@ -21,7 +21,7 @@ import play.api.data.Forms._
 
 object GroupNameForm {
 
-  def form(): Form[String] = {
+  def form(): Form[String] =
     Form(
       single(
         "name" ->
@@ -31,5 +31,4 @@ object GroupNameForm {
       )
     )
 
-  }
 }

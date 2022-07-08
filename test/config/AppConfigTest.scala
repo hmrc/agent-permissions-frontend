@@ -20,10 +20,7 @@ import org.scalatest.matchers.should
 import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class AppConfigTest
-    extends AnyWordSpecLike
-    with should.Matchers
-    with GuiceOneAppPerSuite {
+class AppConfigTest extends AnyWordSpecLike with should.Matchers with GuiceOneAppPerSuite {
 
   private val appConfig = app.injector.instanceOf[AppConfig]
 

@@ -29,6 +29,7 @@
     textbox: textbox,
     submit_button: submit_button,
     checkBox: checkBox,
+    summaryErrors: SummaryErrors,
     formWithCSRF: FormWithCSRF
 )
 
@@ -56,12 +57,23 @@
         }
 
 
+@errorHref = {
+@if(form.errors.map(error => error.message).contains("error.select-members.empty")) {members} else {search}
+}
+
+@pageTitle = @{
+val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
+errorPrefix.concat(msgs("group.members.list.h1", groupName))
+}
+
     @layout(
-        title = msgs("group.members.list.h1", groupName),
+        title = pageTitle,
         backLinkHref = Some(routes.GroupController.showReviewSelectedClients.url),
-        formErrors = form.errors,
+        formErrors = Seq.empty,
         fullWidth = true,
     ) {
+
+        @summaryErrors(form.errors, Some(errorHref.toString))
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
@@ -79,7 +91,8 @@
                     field = form("search"),
                     label = "group.members.list.filter.label",
                     labelClasses = "govuk-label--s",
-                    classes = "govuk-input--width-20"
+                    classes = "govuk-input--width-20",
+                    errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {Some(msgs("error.search-members.empty"))} else {None}
                     )
                 </div>
 
@@ -89,7 +102,7 @@
             </div>
 
 
-            @if(form.errors.map(error => error.key).contains("members")) {
+            @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
                 <p id="clients-error" class="govuk-error-message">
                     <span class="govuk-visually-hidden">Error:</span>
@@ -118,7 +131,7 @@
                 rows = tableRows,
             )
             </div>
-                @if(form.errors.map(error => error.key).contains("members")) {</div>}
+                @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
 
             @submit_button("save.and.continue.button")
         }

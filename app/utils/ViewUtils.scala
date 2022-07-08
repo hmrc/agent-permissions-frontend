@@ -42,4 +42,9 @@ object ViewUtils {
     }
   }
 
+  def displayObfuscatedReference(taxId: String): String = {
+    // TODO - change obfuscation depending on reference?
+    "ending in ".concat(taxId.substring(taxId.length - 4))
+  }
+
 }

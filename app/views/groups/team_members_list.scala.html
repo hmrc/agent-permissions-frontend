@@ -29,6 +29,7 @@
     textbox: textbox,
     submit_button: submit_button,
     checkBox: checkBox,
+    summaryErrors: SummaryErrors,
     formWithCSRF: FormWithCSRF
 )
 
@@ -56,12 +57,18 @@
         }
 
 
+@errorHref = {
+@if(form.errors.map(error => error.message).contains("error.select-members.empty")) {members} else {search}
+}
+
     @layout(
         title = msgs("group.members.list.h1", groupName),
         backLinkHref = Some(routes.GroupController.showReviewSelectedClients.url),
-        formErrors = form.errors,
+        formErrors = Seq.empty,
         fullWidth = true,
     ) {
+
+        @summaryErrors(form.errors, Some(errorHref.toString))
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))

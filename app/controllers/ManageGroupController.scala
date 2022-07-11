@@ -141,20 +141,15 @@ class ManageGroupController @Inject()(
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] =
     Action.async { implicit request =>
-      val buttonSelection: ButtonSelect =
-        buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
+      val encoded = request.body.asFormUrlEncoded
+      val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
 
       withGroupForAuthorisedOptedAgent(
         groupId,
         (group: AccessGroup) => {
           sessionCacheRepository
-            .getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS)
-            .flatMap {
-              maybeFilteredResult =>
-                sessionCacheRepository
-                  .getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
-                  .flatMap {
-                    maybeHiddenClients =>
+            .getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS).flatMap { maybeFilteredResult =>
+                sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST).flatMap { maybeHiddenClients =>
                       AddClientsToGroupForm
                         .form(buttonSelection)
                         .bindFromRequest()
@@ -192,30 +187,21 @@ class ManageGroupController @Inject()(
                             } yield result
                           },
                           formData => {
-                            groupService
-                              .processFormDataForClients(buttonSelection)(
-                                group.arn)(formData)
+                            groupService.processFormDataForClients(buttonSelection)(group.arn)(formData)
                               .map(
                                 _ =>
                                   if (buttonSelection == ButtonSelect.Continue) {
                                     for {
-                                      enrolments <- sessionCacheRepository
-                                        .getFromSession[Seq[DisplayClient]](
-                                          GROUP_CLIENTS_SELECTED)
-                                        .flatMap {
-                                          maybeClients: Option[
-                                            Seq[DisplayClient]] =>
+                                      enrolments <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
+                                        .flatMap { maybeClients: Option[Seq[DisplayClient]] =>
                                             Future(
                                               maybeClients
-                                                .map(dcs =>
-                                                  dcs.map(toEnrolment(_)))
+                                                .map(dcs => dcs.map(toEnrolment(_)))
                                                 .map(_.toSet)
                                             )
                                         }
-                                      groupRequest: UpdateAccessGroupRequest = UpdateAccessGroupRequest(
-                                        clients = enrolments)
-                                      updated <- agentPermissionsConnector
-                                        .updateGroup(groupId, groupRequest)
+                                      groupRequest = UpdateAccessGroupRequest(clients = enrolments)
+                                      updated <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
                                     } yield updated
                                     sessionCacheRepository.deleteFromSession(
                                       FILTERED_CLIENTS)
@@ -264,17 +250,12 @@ class ManageGroupController @Inject()(
             .form()
             .bindFromRequest
             .fold(
-              formWithErrors => {
-                Ok(rename_group(formWithErrors, group, groupId)).toFuture
-              },
+              formWithErrors => Ok(rename_group(formWithErrors, group, groupId)).toFuture,
               (newName: String) => {
                 for {
-                  _ <- sessionCacheRepository
-                    .putSession[String](GROUP_RENAMED_FROM, group.groupName)
-                  patchRequestBody = UpdateAccessGroupRequest(
-                    groupName = Some(newName))
-                  _ <- agentPermissionsConnector.updateGroup(groupId,
-                                                             patchRequestBody)
+                  _ <- sessionCacheRepository.putSession[String](GROUP_RENAMED_FROM, group.groupName)
+                  patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
+                  _ <- agentPermissionsConnector.updateGroup(groupId, patchRequestBody)
                 } yield ()
                 Redirect(routes.ManageGroupController.showGroupRenamed(groupId)).toFuture
               }
@@ -353,9 +334,7 @@ class ManageGroupController @Inject()(
         agentPermissionsConnector
           .getGroup(groupId)
           .flatMap(maybeGroup =>
-            maybeGroup.fold(groupNotFound) { group =>
-              body(group)
-          })
+            maybeGroup.fold(groupNotFound)(group => body(group)))
       }
     }
   }

@@ -17,11 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{
-  AgentPermissionsConnector,
-  AgentUserClientDetailsConnector,
-  GroupSummary
-}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
@@ -33,12 +29,7 @@ import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.mvc.Request
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{
-  await,
-  contentAsString,
-  defaultAwaitTimeout,
-  redirectLocation
-}
+import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
@@ -357,6 +348,24 @@ class ManageGroupControllerSpec extends BaseSpec {
         .select(Css.linkStyledAsButton)
         .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
     }
+
+    "render errors when no group name is specified" in {
+      //given
+      implicit val request = FakeRequest("POST",
+          routes.ManageGroupController.submitRenameGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(groupId, Some(accessGroup))
+
+      //when
+      val result = controller.submitRenameGroup(groupId)(request)
+
+      status(result) shouldBe OK
+    }
   }
 
   s"GET ${routes.ManageGroupController.showGroupRenamed(groupId)}" should {
@@ -476,6 +485,24 @@ class ManageGroupControllerSpec extends BaseSpec {
         routes.ManageGroupController.showManageGroups.url)
 
     }
+
+    "render errors when no answer is specified" in {
+      //given
+      implicit val request = FakeRequest("POST",
+        routes.ManageGroupController.submitDeleteGroup(groupId).url)
+        .withFormUrlEncodedBody("answer" -> "")
+        .withHeaders("Authorization" -> s"Bearer whatever")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(groupId, Some(accessGroup))
+
+      //when
+      val result = controller.submitDeleteGroup(groupId)(request)
+
+      status(result) shouldBe OK
+    }
   }
 
   s"GET ${routes.ManageGroupController.showGroupDeleted}" should {
@@ -550,12 +577,58 @@ class ManageGroupControllerSpec extends BaseSpec {
       trs.size() shouldBe 3
       //first row
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(2).text() shouldBe "123456780"
+      trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(3).text() shouldBe "VAT"
 
       //last row
       trs.get(2).select("td").get(1).text() shouldBe "friendly2"
-      trs.get(2).select("td").get(2).text() shouldBe "123456782"
+      trs.get(2).select("td").get(2).text() shouldBe "ending in 6782"
+      trs.get(2).select("td").get(3).text() shouldBe "VAT"
+    }
+
+    "render correctly the manage group CLIENTS page when there are clients already in the group" in {
+      //given
+      val enrolments = displayClients.map(dc => DisplayClient.toEnrolment(dc)).toSet
+      val groupWithClients = accessGroup.copy(clients = Some(enrolments))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      expectGetGroupSuccess(groupWithClients._id.toString, Some(groupWithClients))
+      (mockGroupService
+        .getClients(_: Arn)(_: Request[_],
+          _: HeaderCarrier,
+          _: ExecutionContext))
+        .expects(groupWithClients.arn, *, *, *)
+        .returning(Future successful Some(displayClients))
+
+      //when
+      val result =
+        controller.showManageGroupClients(groupWithClients._id.toString)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Select clients"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 4
+      th.get(1).text() shouldBe "Client name"
+      th.get(2).text() shouldBe "Tax reference"
+      th.get(3).text() shouldBe "Tax service"
+      val trs =
+        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 3
+      //first row
+      trs.get(0).select("td").get(1).text() shouldBe "friendly0"
+      trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
+      trs.get(0).select("td").get(3).text() shouldBe "VAT"
+
+      //last row
+      trs.get(2).select("td").get(1).text() shouldBe "friendly2"
+      trs.get(2).select("td").get(2).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(3).text() shouldBe "VAT"
     }
 
@@ -589,7 +662,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       trs.size() shouldBe 1
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(2).text() shouldBe "123456780"
+      trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(3).text() shouldBe "VAT"
     }
   }
@@ -599,9 +672,6 @@ class ManageGroupControllerSpec extends BaseSpec {
     "save selected clients to session" when {
 
       s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups.url}" in {
-        //given
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
         val encodedDisplayClients = displayClients.map(
           client =>
@@ -609,10 +679,7 @@ class ManageGroupControllerSpec extends BaseSpec {
               Json.toJson(client).toString.getBytes))
 
         implicit val request =
-          FakeRequest("POST",
-                      routes.ManageGroupController
-                        .submitManageGroupClients(accessGroup._id.toString)
-                        .url)
+          FakeRequest("POST", routes.ManageGroupController.submitManageGroupClients(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
               "clients[0]" -> encodedDisplayClients.head,
@@ -623,10 +690,11 @@ class ManageGroupControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(
-          sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
+        await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         (mockGroupService
           .processFormDataForClients(_: ButtonSelect)(_: Arn)(
             _: AddClientsToGroup)(_: HeaderCarrier,
@@ -642,6 +710,100 @@ class ManageGroupControllerSpec extends BaseSpec {
         redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
         await(sessionCacheRepo.getFromSession(FILTERED_CLIENTS)) shouldBe Option.empty
         await(sessionCacheRepo.getFromSession(HIDDEN_CLIENTS_EXIST)) shouldBe Option.empty
+      }
+
+      "display error when button is Continue, no filtered clients, no hidden clients exist and no clients were selected" in {
+        // given
+
+        implicit val request = FakeRequest(
+          "POST",
+          routes.ManageGroupController.submitManageGroupClients(accessGroup._id.toString)
+            .url
+        ).withFormUrlEncodedBody(
+            "hasSelectedClients" -> "false",
+            "clients" -> "",
+            "search" -> "",
+            "filter" -> "",
+            "continue" -> "continue"
+          ).withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        stubGetClients(arn)(displayClients)
+
+
+        // when
+        val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
+
+        status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+
+        // then
+        html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Select clients"
+        html
+          .select(Css.errorSummaryForField("clients"))
+        await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
+      }
+
+      "display error when filtered clients and form has errors" in {
+        // given
+
+        implicit val request = FakeRequest(
+          "POST",
+          routes.ManageGroupController.submitManageGroupClients(accessGroup._id.toString).url
+        ).withFormUrlEncodedBody(
+          "hasSelectedClients" -> "false",
+          "clients" -> "",
+          "search" -> "",
+          "filter" -> "",
+          "submitFilter" -> "submitFilter"
+        ).withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
+
+        // when
+        val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
+
+        status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+
+        // then
+        html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Select clients"
+        html
+          .select(Css.errorSummaryForField("clients"))
+        await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
+      }
+
+
+      s"when Filter clicked redirect to ${routes.ManageGroupController.showManageGroupClients(accessGroup._id.toString).url}" in {
+
+        implicit val request = FakeRequest(
+          "POST",
+          routes.ManageGroupController.submitManageGroupClients(accessGroup._id.toString).url
+        ).withFormUrlEncodedBody(
+          "hasSelectedClients" -> "false",
+          "clients" -> "",
+          "search" -> "",
+          "filter" -> "Ab",
+          "submitFilter" -> "submitFilter"
+        ).withSession(SessionKeys.sessionId -> "session-x")
+
+        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        expectProcessFormDataForClients(ButtonSelect.Filter)(arn)
+
+
+        // when
+        val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
+
+        status(result) shouldBe SEE_OTHER
       }
     }
   }

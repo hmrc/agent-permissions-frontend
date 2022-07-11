@@ -102,24 +102,28 @@ class AddClientsToGroupFormSpec
         AddClientsToGroup(hasSelectedClients = false,
                           None,
                           Some("abc"),
-                          Some(List(client1, client2))))
+                          Some(List(client1, client2)))
+      )
     }
 
     "have errors when clients is empty and hiddenClients is false" in {
-      val params = Map(hasSelectedClients -> List("false"),
-                       search -> List.empty,
-                       filter -> List.empty,
-                       clients -> List.empty)
+      val params =
+        Map(hasSelectedClients -> List("false"),
+            search -> List.empty,
+            filter -> List.empty,
+            clients -> List.empty)
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
       boundForm.errors shouldBe List(
-        FormError("clients", List("error.select-clients.empty")))
+        FormError("", List("error.select-clients.empty")))
     }
 
     "have errors when button is Filter and search and filter fields are empty" in {
-      val params = Map(hasSelectedClients -> List("false"),
-                       search -> List.empty,
-                       filter -> List.empty,
-                       clients -> List(encode(client1), encode(client2)))
+      val params = Map(
+        hasSelectedClients -> List("false"),
+        search -> List.empty,
+        filter -> List.empty,
+        clients -> List(encode(client1), encode(client2))
+      )
       val boundForm =
         AddClientsToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
       boundForm.errors shouldBe List(
@@ -151,7 +155,7 @@ class AddClientsToGroupFormSpec
         "clients[0]" -> Base64.getEncoder.encodeToString(
           toJson[DisplayClient](client1).toString().getBytes),
         "clients[1]" -> Base64.getEncoder.encodeToString(
-          toJson[DisplayClient](client2).toString().getBytes),
+          toJson[DisplayClient](client2).toString().getBytes)
       )
     }
 
@@ -168,7 +172,7 @@ class AddClientsToGroupFormSpec
         "filter" -> "Bc",
         "search" -> "Ab",
         "clients[0]" -> Base64.getEncoder.encodeToString(
-          toJson[DisplayClient](client1).toString().getBytes),
+          toJson[DisplayClient](client1).toString().getBytes)
       )
     }
 
@@ -179,7 +183,7 @@ class AddClientsToGroupFormSpec
         .form(Filter)
         .mapping
         .unbind(model) shouldBe Map(
-        "hasSelectedClients" -> "false",
+        "hasSelectedClients" -> "false"
       )
     }
   }

@@ -22,15 +22,14 @@
 @this(govukErrorSummary: GovukErrorSummary)
 
 
-@(formErrors: Seq[FormError] = Seq.empty,
-customError: Option[String] = None)(implicit messages: Messages)
+@(formErrors: Seq[FormError] = Seq.empty, customErrorKey: Option[String] = None)(implicit messages: Messages)
 
 @if(formErrors.nonEmpty) {
     @govukErrorSummary(
         ErrorSummary(
             errorList = formErrors.map(error => if(error.key.nonEmpty) {
                 FormError(error.key, error.message, error.args)
-            } else {FormError(customError.getOrElse(""), error.message, error.args)}).asTextErrorLinks,
+            } else {FormError(customErrorKey.getOrElse(""), error.message, error.args)}).asTextErrorLinks,
             title = Text(messages("common.errorSummary.heading")))
     )
 }

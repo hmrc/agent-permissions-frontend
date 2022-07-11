@@ -82,7 +82,7 @@ class AddTeamMembersToGroupFormSpec
         .form(ButtonSelect.Continue)
         .bindFromRequest(params)
       boundForm.errors shouldBe List(
-        FormError("members", List("error.select-members.empty")))
+        FormError("", List("error.select-members.empty")))
     }
 
     "be successful when button is Filter with search value" in {
@@ -109,8 +109,9 @@ class AddTeamMembersToGroupFormSpec
       val boundForm = AddTeamMembersToGroupForm
         .form(ButtonSelect.Filter)
         .bindFromRequest(params)
+
       boundForm.errors shouldBe List(
-        FormError("search", List("error.search-members.empty")))
+        FormError("", List("error.search-members.empty")))
     }
 
     "be successful when button is Clear and form is empty" in {

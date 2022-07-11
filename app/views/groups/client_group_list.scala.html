@@ -67,8 +67,8 @@
         )
     }
 
-@errorHref = {
-    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {search} else {clients}
+@errorHref = @{
+    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
 }
 
 @pageTitle = @{
@@ -140,7 +140,7 @@ errorPrefix.concat(msgs("group.client.list.h1", groupName))
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
         <div class="govuk-form-group govuk-form-group--error">
             <p id="clients-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">Error:</span> @msgs("error.select-clients.empty")
+                <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
             </p>
             }
 

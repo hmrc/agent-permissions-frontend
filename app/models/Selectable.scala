@@ -17,18 +17,23 @@
 package models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.{
+  Client,
+  Enrolment,
+  Identifier,
+  UserDetails
+}
 
 sealed trait Selectable {
   val selected: Boolean
 }
 
 case class TeamMember(
-  name: String,
-  email: String,
-  userId: Option[String] = None,
-  credentialRole: Option[String] = None,
-  selected: Boolean = false
+    name: String,
+    email: String,
+    userId: Option[String] = None,
+    credentialRole: Option[String] = None,
+    selected: Boolean = false
 ) extends Selectable
 
 case object TeamMember {
@@ -44,11 +49,11 @@ case object TeamMember {
 }
 
 case class DisplayClient(
-  hmrcRef: String,
-  name: String,
-  taxService: String,
-  identifierKey: String,
-  selected: Boolean = false
+    hmrcRef: String,
+    name: String,
+    taxService: String,
+    identifierKey: String,
+    selected: Boolean = false
 ) extends Selectable
 
 case object DisplayClient {
@@ -60,9 +65,16 @@ case object DisplayClient {
     val taxService = keyElements.head
     val identifierKey = keyElements(1)
     val hmrcRef = keyElements.last
-    DisplayClient(hmrcRef, client.friendlyName, taxService, identifierKey, selected)
+    DisplayClient(hmrcRef,
+                  client.friendlyName,
+                  taxService,
+                  identifierKey,
+                  selected)
   }
 
   def toEnrolment(dc: DisplayClient): Enrolment =
-    Enrolment(dc.taxService, "Activated", dc.name, Seq(Identifier(dc.identifierKey, dc.hmrcRef)))
+    Enrolment(dc.taxService,
+              "Activated",
+              dc.name,
+              Seq(Identifier(dc.identifierKey, dc.hmrcRef)))
 }

@@ -35,12 +35,14 @@ object AddClientsToGroupForm {
             .verifying(emptyClientConstraint)
         )
         if (formWithMaybeGlobalError.hasErrors)
-          formWithMaybeGlobalError.copy(errors = Seq(FormError("clients", "error.select-clients.empty")))
+          formWithMaybeGlobalError.copy(
+            errors = Seq(FormError("clients", "error.select-clients.empty")))
         else formWithMaybeGlobalError
       case Filter =>
         Form(
           addClientsToGroupMapping
-            .verifying(error = "error.search-filter.empty", x => x.filter.isDefined || x.search.isDefined)
+            .verifying(error = "error.search-filter.empty",
+                       x => x.filter.isDefined || x.search.isDefined)
         )
       case Clear =>
         Form(
@@ -58,15 +60,17 @@ object AddClientsToGroupForm {
 
   private val addClientsToGroupMapping = mapping(
     "hasSelectedClients" -> boolean,
-    "search"             -> optional(text),
-    "filter"             -> optional(text),
+    "search" -> optional(text),
+    "filter" -> optional(text),
     "clients" -> optional(list(text))
       .transform[Option[List[DisplayClient]]](
         _.map(_.map { str =>
           parse(new String(getDecoder.decode(str.replaceAll("'", ""))))
             .as[DisplayClient]
         }),
-        _.map(_.map(dc => getEncoder.encodeToString(toJson[DisplayClient](dc).toString().getBytes)))
+        _.map(_.map(dc =>
+          getEncoder.encodeToString(
+            toJson[DisplayClient](dc).toString().getBytes)))
       )
   )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
 }

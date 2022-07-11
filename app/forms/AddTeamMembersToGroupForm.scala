@@ -27,14 +27,16 @@ import java.util.Base64.{getDecoder, getEncoder}
 
 object AddTeamMembersToGroupForm {
 
-  def form(buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] =
+  def form(
+      buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] =
     buttonPressed match {
       case Continue =>
         val formWithMaybeGlobalError = Form(
           addTeamMembersToGroupMapping.verifying(emptyTeamMemberConstraint)
         )
         if (formWithMaybeGlobalError.hasErrors)
-          formWithMaybeGlobalError.copy(errors = Seq(FormError("members", "error.select-members.empty")))
+          formWithMaybeGlobalError.copy(
+            errors = Seq(FormError("members", "error.select-members.empty")))
         else formWithMaybeGlobalError
       case Filter =>
         Form(
@@ -63,15 +65,17 @@ object AddTeamMembersToGroupForm {
 
   private val addTeamMembersToGroupMapping = mapping(
     "hasAlreadySelected" -> boolean,
-    "search"             -> optional(text),
+    "search" -> optional(text),
     "members" -> optional(list(text))
       .transform[Option[List[TeamMember]]](
         _.map(strList =>
-          strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember])
-        ),
+          strList.map(str =>
+            parse(new String(getDecoder.decode(str.replaceAll("'", ""))))
+              .as[TeamMember])),
         _.map(TeamMemberList =>
-          TeamMemberList.map(dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes))
-        )
+          TeamMemberList.map(dc =>
+            getEncoder.encodeToString(
+              toJson[TeamMember](dc).toString().getBytes)))
       )
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
 

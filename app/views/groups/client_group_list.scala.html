@@ -42,7 +42,9 @@
     clients: Option[Seq[DisplayClient]] = None,
     groupName: String,
     hiddenClientsExist: Option[Boolean],
-    form: Form[AddClientsToGroup]
+    form: Form[AddClientsToGroup],
+    formAction: Call = routes.GroupController.submitSelectedClients,
+    backUrl: Option[String] = Some(routes.GroupController.showConfirmGroupName.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -66,7 +68,7 @@
     }
 
 @errorHref = {
-@if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {search} else {clients}
+    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {search} else {clients}
 }
 
 @pageTitle = @{
@@ -75,7 +77,7 @@ errorPrefix.concat(msgs("group.client.list.h1", groupName))
 }
     @layout(
         title = pageTitle,
-        backLinkHref = Some(routes.GroupController.showConfirmGroupName.url),
+        backLinkHref = backUrl,
         formErrors = Seq.empty,
         fullWidth = true,
     ) {
@@ -88,7 +90,7 @@ errorPrefix.concat(msgs("group.client.list.h1", groupName))
             @p("group.client.list.p1")
         </div>
 
-        @formWithCSRF(action = routes.GroupController.submitSelectedClients) {
+        @formWithCSRF(action = formAction) {
 
         <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
 
@@ -138,8 +140,7 @@ errorPrefix.concat(msgs("group.client.list.h1", groupName))
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
         <div class="govuk-form-group govuk-form-group--error">
             <p id="clients-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">Error:</span>
-                @msgs("error.select-clients.empty")
+                <span class="govuk-visually-hidden">Error:</span> @msgs("error.select-clients.empty")
             </p>
             }
 

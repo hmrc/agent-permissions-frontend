@@ -1021,7 +1021,7 @@ class GroupControllerSpec extends BaseSpec {
         redirectLocation(result).get shouldBe routes.GroupController.showReviewSelectedTeamMembers.url
         val maybeTeamMembers =
           await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
-        maybeTeamMembers.get.toList shouldBe List(
+        maybeTeamMembers.get shouldBe Seq(
           teamMembers.head.copy(selected = true),
           teamMembers.last.copy(selected = true)
         )
@@ -1053,9 +1053,7 @@ class GroupControllerSpec extends BaseSpec {
 
         status(await(result)) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showSelectTeamMembers.url
-
-//        val hiddenTeamMembers =
-//          await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST))
+        await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST))
         val storedTeamMembers =
           await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
 
@@ -1065,7 +1063,8 @@ class GroupControllerSpec extends BaseSpec {
         )
         val filteredTeamMembers =
           await(sessionCacheRepo.getFromSession(FILTERED_TEAM_MEMBERS))
-        filteredTeamMembers.get.toList shouldBe List(teamMembers.last)
+        filteredTeamMembers.get shouldBe Seq(
+          teamMembers.last.copy(selected = true))
       }
 
       s"button is Clear and redirect to ${routes.GroupController.showSelectTeamMembers.url}" in {
@@ -1135,11 +1134,11 @@ class GroupControllerSpec extends BaseSpec {
       // then
       html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
-      val errorLink = html.select(Css.ERROR_SUMMARY_LINK)
-      errorLink
+      html
+        .select(Css.errorSummaryLinkWithHref("#members"))
         .text() shouldBe "You must select at least one team member"
       html
-        .select(Css.errorForField("members"))
+        .select(Css.errorForField("clients"))
         .text() shouldBe "Error: You must select at least one team member"
 
       // and should have cleared the previously selected clients from the session

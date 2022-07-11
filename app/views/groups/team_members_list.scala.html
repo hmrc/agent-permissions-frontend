@@ -57,8 +57,10 @@
         }
 
 
-@errorHref = {
-@if(form.errors.map(error => error.message).contains("error.select-members.empty")) {members} else {search}
+@errorHref = @{
+    if(form.errors.map(error => error.message).contains("error.select-members.empty"))
+        "members"
+    else "search"
 }
 
 @pageTitle = @{

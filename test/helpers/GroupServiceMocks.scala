@@ -16,7 +16,7 @@
 
 package helpers
 
-import models.{DisplayClient, TeamMember}
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
@@ -41,4 +41,11 @@ trait GroupServiceMocks extends MockFactory {
       .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful (Some(clients)))
+
+  def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(implicit groupService: GroupService): Unit =
+    (groupService
+      .processFormDataForClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)
+      (_: HeaderCarrier, _: Request[_], _: ExecutionContext))
+      .expects(buttonPress, arn, *, *, *, *)
+      .returning(Future successful ())
 }

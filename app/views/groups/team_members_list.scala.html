@@ -107,7 +107,7 @@ errorPrefix.concat(msgs("group.members.list.h1", groupName))
             @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
                 <p id="clients-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">Error:</span>
+                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span>
                     @msgs("error.select-members.empty")
                 </p>
                 }

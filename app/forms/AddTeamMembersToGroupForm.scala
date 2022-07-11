@@ -27,17 +27,10 @@ import java.util.Base64.{getDecoder, getEncoder}
 
 object AddTeamMembersToGroupForm {
 
-  def form(
-      buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] =
+  def form(buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] =
     buttonPressed match {
       case Continue =>
-        val formWithMaybeGlobalError = Form(
-          addTeamMembersToGroupMapping.verifying(emptyTeamMemberConstraint)
-        )
-        if (formWithMaybeGlobalError.hasErrors)
-          formWithMaybeGlobalError.copy(
-            errors = Seq(FormError("members", "error.select-members.empty")))
-        else formWithMaybeGlobalError
+        Form(addTeamMembersToGroupMapping.verifying(emptyTeamMemberConstraint))
       case Filter =>
         Form(addTeamMembersToGroupMapping.verifying(emptySearchFieldConstraint))
       case Clear =>

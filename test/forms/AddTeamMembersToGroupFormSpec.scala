@@ -26,6 +26,7 @@ import play.api.libs.json.Json.toJson
 
 import java.util.Base64
 
+
 class AddTeamMembersToGroupFormSpec
     extends AnyWordSpec
     with Matchers
@@ -81,8 +82,18 @@ class AddTeamMembersToGroupFormSpec
       val boundForm = AddTeamMembersToGroupForm
         .form(ButtonSelect.Continue)
         .bindFromRequest(params)
-      boundForm.errors shouldBe List(
-        FormError("", List("error.select-members.empty")))
+
+      boundForm.errors shouldBe List(FormError("", List("error.select-members.empty")))
+    }
+
+
+    "throw exception for invalid Button Select" in {
+
+      val exception = intercept[RuntimeException] {
+        AddTeamMembersToGroupForm.form(ButtonSelect("invalid mate")).bindFromRequest(Map.empty)
+      }
+      exception.getMessage startsWith  "invalid mate"
+
     }
 
     "be successful when button is Filter with search value" in {

@@ -30,23 +30,14 @@ object AddClientsToGroupForm {
   def form(buttonPressed: ButtonSelect = Continue): Form[AddClientsToGroup] =
     buttonPressed match {
       case Continue =>
-        val formWithMaybeGlobalError = Form(
-          addClientsToGroupMapping
-            .verifying(emptyClientConstraint)
-        )
-        if (formWithMaybeGlobalError.hasErrors)
-          formWithMaybeGlobalError.copy(
-            errors = Seq(FormError("clients", "error.select-clients.empty")))
-        else formWithMaybeGlobalError
+         Form(addClientsToGroupMapping.verifying(emptyClientConstraint))
       case Filter =>
         Form(
           addClientsToGroupMapping.verifying(error = "error.search-filter.empty",
                        x => x.filter.isDefined || x.search.isDefined)
         )
       case Clear =>
-        Form(
-          addClientsToGroupMapping
-        )
+        Form(addClientsToGroupMapping)
       case e => throw new RuntimeException(s"invalid button $e")
     }
 

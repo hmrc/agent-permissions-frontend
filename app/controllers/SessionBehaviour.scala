@@ -78,6 +78,12 @@ trait SessionBehaviour {
     }
   }
 
+  def withSessionItem[T](dataKey: DataKey[T])
+                        (body: Option[T] => Future[Result])
+                        (implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+    sessionCacheRepository.getFromSession[T](dataKey).flatMap(data => body(data))
+  }
+
   private def eligibleFor(predicate: OptinStatus => Boolean)(arn: Arn)(
       body: OptinStatus => Future[Result])(
       implicit request: Request[_],

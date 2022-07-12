@@ -159,6 +159,20 @@ class AddClientsToGroupFormSpec
       )
     }
 
+    "have errors  when button is continue and no clients" in {
+      val params = Map(
+        hasSelectedClients -> List("false"),
+        search -> List.empty,
+        filter -> List.empty,
+        clients -> List.empty
+      )
+      val boundForm = AddClientsToGroupForm
+        .form(ButtonSelect.Continue)
+        .bindFromRequest(params)
+      boundForm.hasErrors shouldBe true
+      boundForm.errors.head.messages shouldBe Seq("error.select-clients.empty")
+    }
+
     "give expected Map of data Filter" in {
       val model = AddClientsToGroup(hasSelectedClients = false,
                                     Option("Ab"),

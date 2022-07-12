@@ -29,7 +29,13 @@
     checkBox: checkBox
 )
 
-@(clients: Seq[DisplayClient], groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    clients: Seq[DisplayClient],
+    groupName: String,
+    formAction: Call = routes.GroupController.submitSelectedClients,
+    backUrl: Option[String] = Some(routes.GroupController.showConfirmGroupName.url)
+)(
+        implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         clients.map(client =>

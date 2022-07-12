@@ -203,14 +203,11 @@ class ManageGroupController @Inject()(
                                       groupRequest = UpdateAccessGroupRequest(clients = enrolments)
                                       updated <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
                                     } yield updated
-                                    sessionCacheRepository.deleteFromSession(
-                                      FILTERED_CLIENTS)
-                                    sessionCacheRepository.deleteFromSession(
-                                      HIDDEN_CLIENTS_EXIST)
+                                    sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
+                                    sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
                                     Redirect(routes.ManageGroupController.showManageGroups)
                                   } else {
-                                    Redirect(routes.ManageGroupController
-                                      .showManageGroupClients(groupId))
+                                    Redirect(routes.ManageGroupController.showManageGroupClients(groupId))
                                 }
                               )
                           }
@@ -220,6 +217,24 @@ class ManageGroupController @Inject()(
         }
       )
     }
+
+//  def showReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+//      withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
+//          withSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED){ maybeClients =>
+//            maybeClients.fold(Redirect(routes.ManageGroupController.showManageGroupClients(groupId).toFuture)(
+//                  clients => Ok(review_clients_to_add(clients, groupName)).toFuture))
+//          }
+//      }
+//  }
+//
+//  def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+//      withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
+//          sessionCacheRepository.getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED).flatMap{ maybeClients =>
+//            maybeClients.fold(Redirect(routes.ManageGroupController.showSelectClients(groupId).toFuture)(
+//                  clients => Ok(review_clients_to_add(clients, groupName)).toFuture))
+//          }
+//      }
+//  }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] =
     Action.async { implicit request =>
@@ -323,18 +338,12 @@ class ManageGroupController @Inject()(
     }
   }
 
-  private def withGroupForAuthorisedOptedAgent(
-      groupId: String,
-      body: AccessGroup => Future[Result])(
-      implicit ec: ExecutionContext,
-      request: MessagesRequest[AnyContent],
-      appConfig: AppConfig): Future[Result] = {
+  private def withGroupForAuthorisedOptedAgent(groupId: String, body: AccessGroup => Future[Result])
+                                              (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        agentPermissionsConnector
-          .getGroup(groupId)
-          .flatMap(maybeGroup =>
-            maybeGroup.fold(groupNotFound)(group => body(group)))
+        agentPermissionsConnector.getGroup(groupId).flatMap(
+          maybeGroup => maybeGroup.fold(groupNotFound)(group => body(group)))
       }
     }
   }

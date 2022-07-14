@@ -220,23 +220,6 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(groupId)}" should {
-
-    "render correctly the manage group clients page" in {
-      //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-
-      //when
-      val result = controller.showManageGroupTeamMembers(groupId)(request)
-
-      //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-      html.body.text shouldBe "showManageGroupTeamMembers not yet implemented xyz"
-    }
-  }
-
   s"GET ${routes.ManageGroupController.showRenameGroup(groupId)}" should {
 
     "render correctly the manage groups page" in {
@@ -845,23 +828,23 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(
-    accessGroup._id.toString)}" should {
+  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(accessGroup._id.toString)}" should {
 
     "render correctly the manage group TEAM MEMBERS page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
-      val result = controller.showManageGroupTeamMembers(groupId)(request)
+      val result = controller.showManageGroupTeamMembers(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html
         .body()
-        .text() shouldBe "showManageGroupTeamMembers not yet implemented xyz"
+        .text() shouldBe s"showManageGroupTeamMembers not yet implemented ${accessGroup._id.toString}"
     }
   }
 }

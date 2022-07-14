@@ -220,23 +220,6 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(groupId)}" should {
-
-    "render correctly the manage group clients page" in {
-      //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-
-      //when
-      val result = controller.showManageGroupTeamMembers(groupId)(request)
-
-      //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-      html.body.text shouldBe "showManageGroupTeamMembers not yet implemented xyz"
-    }
-  }
-
   s"GET ${routes.ManageGroupController.showRenameGroup(groupId)}" should {
 
     "render correctly the manage groups page" in {
@@ -707,7 +690,8 @@ class ManageGroupControllerSpec extends BaseSpec {
           controller.submitManageGroupClients(accessGroup._id.toString)(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+        redirectLocation(result).get shouldBe
+          routes.ManageGroupController.showReviewSelectedClients(accessGroup._id.toString).url
         await(sessionCacheRepo.getFromSession(FILTERED_CLIENTS)) shouldBe Option.empty
         await(sessionCacheRepo.getFromSession(HIDDEN_CLIENTS_EXIST)) shouldBe Option.empty
       }
@@ -808,23 +792,59 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(
-    accessGroup._id.toString)}" should {
+  s"GET ${routes.ManageGroupController.showGroupClientsUpdatedConfirmation(accessGroup._id.toString).url}" should {
+
+    "render correctly" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      //and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Bananas access group clients updated - Manage Agent Permissions - GOV.UK"
+      html
+        .select(Css.confirmationPanelH1)
+        .text() shouldBe "Bananas access group clients updated"
+      html.select(Css.H2).text() shouldBe "What happens next?"
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text() shouldBe "You have changed the clients that can be managed by the team members in this access group."
+      html
+        .select("a#returnToDashboard")
+        .text() shouldBe "Return to manage access groups"
+      html
+        .select("a#returnToDashboard")
+        .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+      html.select(Css.backLink).size() shouldBe 0
+    }
+  }
+
+  s"GET ${routes.ManageGroupController.showManageGroupTeamMembers(accessGroup._id.toString)}" should {
 
     "render correctly the manage group TEAM MEMBERS page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
-      val result = controller.showManageGroupTeamMembers(groupId)(request)
+      val result = controller.showManageGroupTeamMembers(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html
         .body()
-        .text() shouldBe "showManageGroupTeamMembers not yet implemented xyz"
+        .text() shouldBe s"showManageGroupTeamMembers not yet implemented ${accessGroup._id.toString}"
     }
   }
 }

@@ -150,3 +150,5 @@ access-group-name-exists.title=Access group name already exists
 access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.
 access-group-name-exists.button=Enter a new access group name
 
+group.manage.confirm.updated.clients.h1={0} access group clients updated
+group.manage.confirm.updated.clients.p=You have changed the clients that can be managed by the team members in this access group.

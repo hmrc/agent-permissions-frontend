@@ -48,6 +48,8 @@ GET     /group/group-created                controllers.GroupController.showGrou
 GET     /manage-access-groups               controllers.ManageGroupController.showManageGroups
 GET     /manage-clients/:groupId            controllers.ManageGroupController.showManageGroupClients(groupId: String)
 POST    /manage-clients/:groupId            controllers.ManageGroupController.submitManageGroupClients(groupId: String)
+GET     /manage-clients/review/:groupId     controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
+GET     /manage-clients/updated/:groupId    controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 GET     /manage-team-members/:groupId       controllers.ManageGroupController.showManageGroupTeamMembers(groupId: String)
 

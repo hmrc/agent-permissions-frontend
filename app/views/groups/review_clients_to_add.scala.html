@@ -32,7 +32,7 @@
 @(
     clients: Seq[DisplayClient],
     groupName: String,
-    formAction: Call = routes.GroupController.submitSelectedClients,
+    continueCall: Call = routes.GroupController.showSelectTeamMembers,
     backUrl: Option[String] = Some(routes.GroupController.showConfirmGroupName.url)
 )(
         implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -49,7 +49,7 @@
 
     @layout(
         title = msgs("group.clients.review.title", groupName),
-        backLinkHref = Some(routes.GroupController.showSelectClients.url),
+        backLinkHref = backUrl,
         fullWidth = true
     ) {
 
@@ -87,7 +87,5 @@
         )
         </p>
 
-        @link_as_button(
-            href = routes.GroupController.showSelectTeamMembers.url,
-            id = "add-team-members")
+        @link_as_button(href = continueCall.url, id = "add-team-members")
     }

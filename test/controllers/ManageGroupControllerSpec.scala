@@ -707,7 +707,8 @@ class ManageGroupControllerSpec extends BaseSpec {
           controller.submitManageGroupClients(accessGroup._id.toString)(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+        redirectLocation(result).get shouldBe
+          routes.ManageGroupController.showReviewSelectedClients(accessGroup._id.toString).url
         await(sessionCacheRepo.getFromSession(FILTERED_CLIENTS)) shouldBe Option.empty
         await(sessionCacheRepo.getFromSession(HIDDEN_CLIENTS_EXIST)) shouldBe Option.empty
       }
@@ -805,6 +806,42 @@ class ManageGroupControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
       }
+    }
+  }
+
+  s"GET ${routes.ManageGroupController.showGroupClientsUpdatedConfirmation(accessGroup._id.toString).url}" should {
+
+    "render correctly" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      //and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Bananas access group clients updated - Manage Agent Permissions - GOV.UK"
+      html
+        .select(Css.confirmationPanelH1)
+        .text() shouldBe "Bananas access group clients updated"
+      html.select(Css.H2).text() shouldBe "What happens next?"
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text() shouldBe "You have changed the clients that can be managed by the team members in this access group."
+      html
+        .select("a#returnToDashboard")
+        .text() shouldBe "Return to manage access groups"
+      html
+        .select("a#returnToDashboard")
+        .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+      html.select(Css.backLink).size() shouldBe 0
     }
   }
 

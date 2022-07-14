@@ -811,7 +811,7 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe s"You have selected 10 clients"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.GroupController.showSelectClients.url
+        .attr("href") shouldBe routes.GroupController.showConfirmGroupName.url
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3

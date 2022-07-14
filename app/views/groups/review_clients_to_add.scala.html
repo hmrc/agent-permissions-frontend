@@ -33,7 +33,7 @@
     clients: Seq[DisplayClient],
     groupName: String,
     continueCall: Call = routes.GroupController.showSelectTeamMembers,
-    backUrl: Option[String] = Some(routes.GroupController.showConfirmGroupName.url)
+    backUrl: Option[String] = Some(routes.GroupController.showSelectClients.url)
 )(
         implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

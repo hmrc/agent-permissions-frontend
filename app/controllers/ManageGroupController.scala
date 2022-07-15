@@ -19,9 +19,9 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import controllers.routes.ManageGroupController
-import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
+import forms.{AddClientsToGroupForm, GroupNameForm, YesNoForm}
 import models.DisplayClient.toEnrolment
-import models.{ButtonSelect, DisplayClient, TeamMember}
+import models.{ButtonSelect, DisplayClient, DisplayGroup}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -37,27 +37,27 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageGroupController @Inject()(
-                                       authAction: AuthAction,
-                                       mcc: MessagesControllerComponents,
-                                       dashboard: dashboard,
-                                       rename_group: rename_group,
-                                       rename_group_complete: rename_group_complete,
-                                       group_not_found: group_not_found,
-                                       confirm_delete_group: confirm_delete_group,
-                                       delete_group_complete: delete_group_complete,
-                                       review_clients_to_add: review_clients_to_add,
-                                       client_group_list: client_group_list,
-                                       confirm_clients_updated: confirm_clients_updated,
-                                       view_team_members: view_team_members,
-                                       team_members_list: team_members_list,
-                                       groupService: GroupService,
-                                       val agentPermissionsConnector: AgentPermissionsConnector,
-                                       val sessionCacheRepository: SessionCacheRepository,
-                                       val sessionCacheService: SessionCacheService)
-                                     (implicit val appConfig: AppConfig,
-                                      ec: ExecutionContext,
-                                      implicit override val messagesApi: MessagesApi,
-                                     ) extends FrontendController(mcc)
+     authAction: AuthAction,
+     mcc: MessagesControllerComponents,
+     dashboard: dashboard,
+     rename_group: rename_group,
+     rename_group_complete: rename_group_complete,
+     group_not_found: group_not_found,
+     confirm_delete_group: confirm_delete_group,
+     delete_group_complete: delete_group_complete,
+     review_clients_to_add: review_clients_to_add,
+     client_group_list: client_group_list,
+     confirm_clients_updated: confirm_clients_updated,
+     existing_clients: existing_clients,
+     groupService: GroupService,
+    view_team_members: view_team_members,
+     team_members_list: team_members_list,
+     val agentPermissionsConnector: AgentPermissionsConnector,
+     val sessionCacheRepository: SessionCacheRepository,
+     val sessionCacheService: SessionCacheService)
+   (implicit val appConfig: AppConfig, ec: ExecutionContext,
+    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+
   with GroupsControllerCommon
   with I18nSupport
   with SessionBehaviour
@@ -81,6 +81,12 @@ class ManageGroupController @Inject()(
     }
   }
 
+  def showExistingGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) =>
+      Ok(existing_clients(DisplayGroup.fromAccessGroup(group))).toFuture
+    )
+  }
+
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
 
     withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
@@ -100,6 +106,7 @@ class ManageGroupController @Inject()(
         result =>
           val filteredClients = result._1
           val maybeHiddenClients = result._2
+          val backUrl = Some(ManageGroupController.showExistingGroupClients(groupId).url)
           if (filteredClients.isDefined)
             Ok(
               client_group_list(
@@ -108,7 +115,7 @@ class ManageGroupController @Inject()(
                 maybeHiddenClients,
                 AddClientsToGroupForm.form(),
                 formAction = ManageGroupController.submitManageGroupClients(groupId),
-                backUrl = Some(ManageGroupController.showManageGroups.url)
+                backUrl = backUrl
               )
             )
           else
@@ -119,7 +126,7 @@ class ManageGroupController @Inject()(
                 maybeHiddenClients,
                 AddClientsToGroupForm.form(),
                 formAction = ManageGroupController.submitManageGroupClients(groupId),
-                backUrl = Some(ManageGroupController.showManageGroups.url)
+                backUrl = backUrl
               ))
       }
     }

@@ -133,6 +133,11 @@ group.manage.delete=Delete group
 group.manage.clients=Manage clients
 group.manage.members=Manage team members
 
+group.existing.clients.h1=Manage clients
+group.existing.clients.title=Manage clients - {0}
+group.existing.clients.total=Showing total of <strong>{0}</strong> clients
+group.existing.clients.button=Update clients
+
 group.rename.h1=Rename group
 
 group.renamed.h1=Access group renamed

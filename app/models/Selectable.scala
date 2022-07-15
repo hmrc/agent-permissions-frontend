@@ -57,6 +57,12 @@ case class DisplayClient(
 ) extends Selectable
 
 case object DisplayClient {
+  def fromEnrolments(clients: Option[Set[Enrolment]]): Seq[DisplayClient] =
+    clients.map { maybeEnrolments: Set[Enrolment] =>
+      maybeEnrolments.toSeq.map(x => Client.fromEnrolment(x))
+        .map(DisplayClient.fromClient(_, true))
+    }.getOrElse(Seq.empty[DisplayClient])
+
 
   implicit val format = Json.format[DisplayClient]
 

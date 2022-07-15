@@ -543,6 +543,56 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET ${routes.ManageGroupController.showExistingGroupClients(accessGroup._id.toString)}" should {
+
+    "render correctly the EXISTING CLIENTS page" in {
+      //given
+      val groupWithClients = accessGroup.copy(clients =
+        Some(displayClients.map(DisplayClient.toEnrolment(_)).toSet))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
+
+
+      //when
+      val result =
+        controller.showExistingGroupClients(groupWithClients._id.toString)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Manage clients - Bananas - Manage Agent Permissions - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
+      html.select(Css.H1).text shouldBe "Manage clients"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 3
+      th.get(0).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Tax reference"
+      th.get(2).text() shouldBe "Tax service"
+
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 3
+      //first row
+      trs.get(0).select("td").get(0).text() shouldBe "friendly0"
+      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
+      trs.get(0).select("td").get(2).text() shouldBe "VAT"
+
+      //last row
+      trs.get(2).select("td").get(0).text() shouldBe "friendly2"
+      trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
+      trs.get(2).select("td").get(2).text() shouldBe "VAT"
+
+      html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
+      html.select("a#update-clients").text() shouldBe "Update clients"
+      html.select("a#update-clients").attr("href") shouldBe
+        routes.ManageGroupController.showManageGroupClients(accessGroup._id.toString).url
+    }
+
+  }
+
   s"GET ${routes.ManageGroupController.showManageGroupClients(accessGroup._id.toString)}" should {
 
     "render correctly the manage group CLIENTS page" in {

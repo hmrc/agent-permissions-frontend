@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
@@ -900,6 +900,18 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   s"GET ${routes.ManageGroupController.showViewGroupTeamMembers(accessGroup._id.toString)}" should {
 
+    val fakeTeamMembers = (1 to 10)
+      .map { i =>
+        UserDetails(
+          Some(s"John $i"),
+          Some("User"),
+          Some("John"),
+          Some(s"john$i@abc.com")
+        )
+      }
+
+    val teamMembers = fakeTeamMembers.map(TeamMember.fromUserDetails)
+
     "render correctly the manage group view team members page" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -907,9 +919,10 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      stubGetTeamMembersOk(arn)(fakeTeamMembers)
 
       //when
-      val result = controller.showViewGroupTeamMembers(accessGroup._id.toString)(request)
+      val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe OK

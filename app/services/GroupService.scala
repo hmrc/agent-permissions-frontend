@@ -89,6 +89,24 @@ class GroupService @Inject()(
         .map(_.sortBy(_.name))
     } yield mergedWithPreselected
 
+  // Compares users in group with users on ARN & fetches missing details (email & cred role)
+  def getTeamMembersFromGroup(arn: Arn)(
+    teamMembersInGroup: Option[Seq[TeamMember]] = None
+  )(implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[Seq[TeamMember]]] =
+    for {
+      ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
+      ugsAsTeamMembers = ugsUsers.map(list =>
+        list.map(TeamMember.fromUserDetails))
+      groupTeamMembers = ugsAsTeamMembers.map(
+        teamMembers =>
+          teamMembers.filter(teamMember =>
+            teamMembersInGroup.fold(true)(
+              _.map(_.userId).contains(teamMember.userId))))
+        .map(_.sortBy(_.name))
+    } yield groupTeamMembers
+
+
   /*
    * a) add the group members that are in the form that are not already in the session
    * b) remove from the session the group members that were de-selected

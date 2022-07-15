@@ -29,6 +29,7 @@
 
 @groupSummaries = {
     @h2("group.manage.tabs.1.label")
+    <div class="govuk-!-width-one-third"></div>
     @if(!summaries._1.isEmpty){
         @summaries._1.map { summary =>
 
@@ -38,12 +39,16 @@
                     SummaryListData(
                         "common.clients",
                         summary.clientCount.toString,
-                        routes.ManageGroupController.showManageGroupClients(summary.groupId)
+                        routes.ManageGroupController.showManageGroupClients(summary.groupId),
+                        linkMsgKey = "group.manage.clients",
+                        linkClasses = Some("govuk-!-width-one-half")
                     ),
                     SummaryListData(
                         "common.teamMembers",
                         summary.teamMemberCount.toString,
-                        routes.ManageGroupController.showManageGroupTeamMembers(summary.groupId)
+                        routes.ManageGroupController.showManageGroupTeamMembers(summary.groupId),
+                        linkMsgKey = "group.manage.members",
+                        linkClasses = Some("govuk-!-width-one-half")
                     ),
                 )
             )

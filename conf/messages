@@ -130,6 +130,8 @@ group.manage.no.groups.button=Create new access group
 group.manage.no.unassigned.clients.h3=No unassigned clients found
 group.manage.rename=Rename group
 group.manage.delete=Delete group
+group.manage.clients=Manage clients
+group.manage.members=Manage team members
 
 group.rename.h1=Rename group
 

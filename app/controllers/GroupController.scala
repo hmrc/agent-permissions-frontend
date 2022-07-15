@@ -248,10 +248,10 @@ class GroupController @Inject()(
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
-      isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeSelectedTeamMembers =>
-        isOptedInWithSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)(arn) { maybeFilteredResult =>
+      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeSelectedTeamMembers =>
+        withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
           groupService.getTeamMembers(arn)(maybeSelectedTeamMembers).flatMap { maybeTeamMembers =>
-            isOptedInWithSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)(arn) { maybeHiddenTeamMembers =>
+            withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
               AddTeamMembersToGroupForm
                 .form(buttonSelection)
                 .bindFromRequest()
@@ -298,7 +298,7 @@ class GroupController @Inject()(
 
   def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
+      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeTeamMembers =>
         maybeTeamMembers.fold(
           Redirect(routes.GroupController.showSelectTeamMembers).toFuture
         )(members =>
@@ -310,8 +310,8 @@ class GroupController @Inject()(
 
   def showCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      isOptedInWithSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)(arn) { maybeTeamMembers =>
-        isOptedInWithSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)(arn) { maybeClients =>
+      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeTeamMembers =>
+        withSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED) { maybeClients =>
           Ok(
             check_your_answers(groupName,
               maybeTeamMembers.map(_.length),

@@ -17,14 +17,14 @@
 package models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentmtdidentifiers.model.Client
 
-case class Group(
+case class DisplayGroup(
+    _id: String,
     name: String,
-    nameConfirmed: Boolean = false,
-    clients: Option[Set[Client]] = None
+    clients: Seq[DisplayClient] = Seq.empty,
+    teamMembers: Seq[TeamMember] = Seq.empty
 )
 
-object Group {
-  implicit val format = Json.format[Group]
+object DisplayGroup {
+  implicit val format = Json.format[DisplayGroup]
 }

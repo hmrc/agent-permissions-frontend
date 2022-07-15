@@ -41,14 +41,14 @@
     }
 
     @layout(
-        title = msgs("group.manage.members.h1", groupName),
+        title = msgs("group.manage.members", groupName),
         backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
         fullWidth = true
     ) {
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs("group.manage.members.h1"))
+            @h1(msgs("group.manage.members"))
         </div>
 @*
         <div class="govuk-grid-row">

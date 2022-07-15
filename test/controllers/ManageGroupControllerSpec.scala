@@ -157,7 +157,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
 
       val unassignedClientsPanel =
         html.select(tabPanelWithIdOf("clients-panel"))
@@ -895,6 +895,33 @@ class ManageGroupControllerSpec extends BaseSpec {
         .select("a#returnToDashboard")
         .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
       html.select(Css.backLink).size() shouldBe 0
+    }
+  }
+
+  s"GET ${routes.ManageGroupController.showViewGroupTeamMembers(accessGroup._id.toString)}" should {
+
+    "render correctly the manage group view team members page" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.showViewGroupTeamMembers(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Manage team members"
+
+      val trs =
+        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 0
+
     }
   }
 

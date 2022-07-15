@@ -136,8 +136,28 @@ class ManageGroupControllerSpec extends BaseSpec {
       //verify the tab panel contents
       val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
       groupsPanel.select("h2").text() shouldBe "Access groups"
+
       val groups = groupsPanel.select("dl.govuk-summary-list")
       groups.size() shouldBe 3
+      val firstGroup = groups.get(0)
+      val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
+      clientsRow.select("dt").text() shouldBe "Clients"
+      clientsRow.select(".govuk-summary-list__value")
+        .text() shouldBe "3"
+      clientsRow.select(".govuk-summary-list__actions")
+        .text() shouldBe "Manage clients"
+      clientsRow.select(".govuk-summary-list__actions a")
+        .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
+
+      val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
+
+      membersRow.select("dt").text() shouldBe "Team members"
+      membersRow.select(".govuk-summary-list__value")
+        .text() shouldBe "4"
+      membersRow.select(".govuk-summary-list__actions")
+        .text() shouldBe "Manage team members"
+      membersRow.select(".govuk-summary-list__actions a")
+        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
 
       val unassignedClientsPanel =
         html.select(tabPanelWithIdOf("clients-panel"))

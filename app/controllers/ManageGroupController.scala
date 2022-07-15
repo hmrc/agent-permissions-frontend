@@ -19,9 +19,9 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import controllers.routes.ManageGroupController
-import forms.{AddClientsToGroupForm, GroupNameForm, YesNoForm}
+import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
 import models.DisplayClient.toEnrolment
-import models.{ButtonSelect, DisplayClient}
+import models.{ButtonSelect, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._

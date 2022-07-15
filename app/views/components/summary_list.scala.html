@@ -29,8 +29,12 @@
                     Value(Text(summaryListRow.value)),
                     actions = Some(
                         Actions(
+                            classes = summaryListRow.linkClasses.getOrElse(""),
                             items = Seq(
-                                ActionItem(href = summaryListRow.link.url, Text(msgs("common.change")))
+                                ActionItem(
+                                    href = summaryListRow.link.url,
+                                    content = Text(msgs(summaryListRow.linkMsgKey))
+                                )
                             )
                         )
                     )

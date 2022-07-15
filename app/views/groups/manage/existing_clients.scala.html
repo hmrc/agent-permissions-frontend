@@ -1,0 +1,75 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
+@import config.AppConfig
+@import controllers.routes
+@import views.html.main_layout
+@import utils.ViewUtils._
+
+@this(
+        layout: main_layout,
+        p: p, h1: h1, a: a,
+        caption: caption,
+        link_as_button: link_as_button,
+        table: table,
+        submit_button: submit_button,
+        checkBox: checkBox
+)
+
+@(group: DisplayGroup)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@tableRows = @{
+    group.clients.map(client =>
+        Seq(
+            Html(client.name),
+            Html(displayObfuscatedReference(client.hmrcRef)),
+            Html(displayTaxServiceFromServiceKey(client.taxService))
+        )
+    )
+}
+
+@layout(
+    title = msgs("group.existing.clients.title",  group.name),
+    backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
+    fullWidth = true
+) {
+
+    <div class="govuk-!-width-two-thirds">
+        @caption(group.name)
+        @h1("group.existing.clients.h1")
+    </div>
+
+    <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
+        @table(
+            id = Some("sortable-table"),
+            headings = Seq(
+                (Html(msgs("group.client.list.table.th1")), Map("aria-sort" -> "ascending")),
+                (Html(msgs("group.client.list.table.th2")), Map("aria-sort" -> "none")),
+                (Html(msgs("group.client.list.table.th3")), Map("aria-sort" -> "none")),
+            ),
+            rows = tableRows,
+        )
+    </div>
+
+    @p(msgs("group.existing.clients.total", group.clients.length), id=Some("clients-in-group"))
+
+    @link_as_button(
+        href = routes.ManageGroupController.showManageGroupClients(group._id).url,
+        key = "group.existing.clients.button",
+        id = "update-clients")
+
+}

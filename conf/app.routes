@@ -46,10 +46,11 @@ POST    /group/check-your-answers           controllers.GroupController.submitCh
 GET     /group/group-created                controllers.GroupController.showGroupCreated
 
 GET     /manage-access-groups               controllers.ManageGroupController.showManageGroups
-GET     /manage-clients/:groupId            controllers.ManageGroupController.showManageGroupClients(groupId: String)
-POST    /manage-clients/:groupId            controllers.ManageGroupController.submitManageGroupClients(groupId: String)
-GET     /manage-clients/review/:groupId     controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
-GET     /manage-clients/updated/:groupId    controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
+GET     /manage-clients/:groupId            controllers.ManageGroupController.showExistingGroupClients(groupId: String)
+GET     /update-clients/:groupId            controllers.ManageGroupController.showManageGroupClients(groupId: String)
+POST    /update-clients/:groupId            controllers.ManageGroupController.submitManageGroupClients(groupId: String)
+GET     /update-clients/review/:groupId     controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
+GET     /clients-updated/:groupId           controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 GET     /manage-team-members/:groupId       controllers.ManageGroupController.showManageGroupTeamMembers(groupId: String)
 

@@ -17,6 +17,7 @@
 package models
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Client, Enrolment}
 
 case class DisplayGroup(
     _id: String,
@@ -27,4 +28,12 @@ case class DisplayGroup(
 
 object DisplayGroup {
   implicit val format = Json.format[DisplayGroup]
+
+  def fromAccessGroup(accessGroup: AccessGroup) : DisplayGroup = {
+     DisplayGroup(
+       _id = accessGroup._id.toString,
+       name = accessGroup.groupName,
+      clients =  DisplayClient.fromEnrolments(accessGroup.clients)
+     )
+  }
 }

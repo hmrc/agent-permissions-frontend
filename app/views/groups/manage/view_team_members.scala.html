@@ -1,0 +1,95 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.html.main_layout
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1, a: a,
+    caption: caption,
+    link_as_button: link_as_button,
+    table: table,
+    submit_button: submit_button,
+    textbox: textbox,
+    checkBox: checkBox
+)
+
+@(teamMembers: Seq[TeamMember], groupName: String, continueUrl: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+    @tableRows = @{
+        teamMembers.map(teamMember =>
+            Seq(
+                Html(teamMember.name),
+                Html(teamMember.email),
+            )
+        )
+    }
+
+    @layout(
+        title = msgs("group.manage.members.h1", groupName),
+        backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
+        fullWidth = true
+    ) {
+
+        <div class="govuk-!-width-two-thirds">
+            @caption(msgs("common.caption.group.name", groupName))
+            @h1(msgs("group.manage.members.h1"))
+        </div>
+@*
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-third">
+                @textbox(
+                field = form("search"),
+                label = "group.members.list.filter.label",
+                labelClasses = "govuk-label--s",
+                classes = "govuk-input--width-20",
+                errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {Some(msgs("error.search-members.empty"))} else {None}
+                )
+            </div>
+
+            <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
+                @submit_button_group()
+            </div>
+        </div>
+*@
+
+        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
+
+        @table(
+            id = Some("sortable-table"),
+            headings = Seq(
+                (
+                    Html(msgs("group.members.list.table.th1")),
+                    Map("aria-sort" -> "ascending")
+                ),
+                (
+                    Html(msgs("group.members.list.table.th2")),
+                    Map("aria-sort" -> "none")
+                ),
+            ),
+            rows = tableRows,
+        )
+        </div>
+
+        @link_as_button(
+            key = "group.selected.teamMembers.change",
+            href = continueUrl,
+            id = "check-your-answers")
+
+   
+    }

@@ -38,6 +38,8 @@
     groupName: String,
     hiddenTeamMembersExist: Option[Boolean],
     form: Form[AddTeamMembersToGroup],
+    formAction: Call = routes.GroupController.submitSelectedTeamMembers,
+    backUrl: Option[String] = Some(routes.GroupController.showReviewSelectedClients.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -70,7 +72,7 @@ errorPrefix.concat(msgs("group.members.list.h1", groupName))
 
     @layout(
         title = pageTitle,
-        backLinkHref = Some(routes.GroupController.showReviewSelectedClients.url),
+        backLinkHref = backUrl,
         formErrors = Seq.empty,
         fullWidth = true,
     ) {
@@ -83,7 +85,7 @@ errorPrefix.concat(msgs("group.members.list.h1", groupName))
             @p("group.members.list.p1")
         </div>
 
-        @formWithCSRF(action = routes.GroupController.submitSelectedTeamMembers) {
+        @formWithCSRF(action = formAction) {
 
         <input type="hidden" name="hasAlreadySelected" value=@hiddenTeamMembersExist.getOrElse(false)>
 

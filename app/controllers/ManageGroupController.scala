@@ -19,18 +19,18 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import controllers.routes.ManageGroupController
-import forms.{AddClientsToGroupForm, GroupNameForm, YesNoForm}
+import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
 import models.DisplayClient.toEnrolment
-import models.{ButtonSelect, DisplayClient}
+import models.{ButtonSelect, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Client, Enrolment}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, UserDetails}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import views.html.groups._
 import views.html.groups.manage._
-import views.html.groups.{client_group_list, review_clients_to_add}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,6 +48,8 @@ class ManageGroupController @Inject()(
                                        review_clients_to_add: review_clients_to_add,
                                        client_group_list: client_group_list,
                                        confirm_clients_updated: confirm_clients_updated,
+                                       view_team_members: view_team_members,
+                                       team_members_list: team_members_list,
                                        groupService: GroupService,
                                        val agentPermissionsConnector: AgentPermissionsConnector,
                                        val sessionCacheRepository: SessionCacheRepository,
@@ -225,6 +227,47 @@ class ManageGroupController @Inject()(
       }
     }
     )
+  }
+
+  def showViewGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    // TODO get the groups team members
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
+    //      val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
+    //        maybeUsers.toSeq
+    //          .map(x => UserDetails(None, None, Some(x.id), Some(x.name))
+    //          .map(x => TeamMember.fromUserDetails(x)))
+    //      }.getOrElse(Seq.empty[TeamMember])
+
+      Ok(
+        view_team_members(
+          Seq.empty,
+          group.groupName,
+          routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
+      )).toFuture
+    })
+
+    // Gets all the team members :3
+    //    isAuthorisedAgent { arn =>
+    //      isOptedIn(arn) { _ =>
+    //        agentPermissionsConnector.getGroup(groupId).flatMap(
+    //          maybeGroup => maybeGroup.fold(groupNotFound)(group => {
+    //            withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeSelectedTeamMembers =>
+    //              groupService
+    //                .getTeamMembers(arn)(maybeSelectedTeamMembers)
+    //                .flatMap { teamMembers =>
+    //                  Ok(
+    //                    view_team_members(
+    //                      teamMembers.getOrElse(Seq.empty),
+    //                      group.groupName,
+    //                      routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
+    //                    )).toFuture
+    //                }
+    //            }
+    //          })
+    //        )
+    //      }
+    //    }
+
   }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>

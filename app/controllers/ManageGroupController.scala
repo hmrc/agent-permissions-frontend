@@ -253,9 +253,9 @@ class ManageGroupController @Inject()(
                   group.groupName,
                   routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
                 )).toFuture
-
             )
-            }))
+          })
+        )
       }
     }
 

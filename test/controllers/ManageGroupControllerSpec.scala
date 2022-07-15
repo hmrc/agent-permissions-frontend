@@ -898,7 +898,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showViewGroupTeamMembers(accessGroup._id.toString)}" should {
+  s"GET ${routes.ManageGroupController.showExistingGroupTeamMembers(accessGroup._id.toString)}" should {
 
     val fakeTeamMembers = (1 to 10)
       .map { i =>
@@ -910,6 +910,15 @@ class ManageGroupControllerSpec extends BaseSpec {
         )
       }
 
+    val fakeGroupMembers = (1 to 5)
+      .map { i =>
+        UserDetails(
+          Some(s"John $i"),
+          Some("John")
+        )
+      }
+
+    val partialTeamMembers = fakeGroupMembers.map(TeamMember.fromUserDetails)
     val teamMembers = fakeTeamMembers.map(TeamMember.fromUserDetails)
 
     "render correctly the manage group view team members page" in {
@@ -919,7 +928,12 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-      stubGetTeamMembersOk(arn)(fakeTeamMembers)
+      (mockGroupService
+        .getTeamMembersFromGroup(_: Arn)(_: Option[Seq[TeamMember]])
+        (_: HeaderCarrier,
+         _: ExecutionContext))
+        .expects(accessGroup.arn, Some(partialTeamMembers), *, *)
+        .returning(Future successful Some(teamMembers))
 
       //when
       val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(request)
@@ -933,7 +947,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
-      trs.size() shouldBe 0
+      trs.size() shouldBe 5
 
     }
   }

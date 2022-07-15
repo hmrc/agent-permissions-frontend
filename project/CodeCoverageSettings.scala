@@ -22,6 +22,7 @@ object CodeCoverageSettings {
     ".*rename_group_complete.template",
     ".*delete_group_complete.template",
     ".*confirm_clients_updated.template",
+    ".*view_team_members.template",
     ".*group_not_found.template",
     ".*ViewUtils.*"
   )

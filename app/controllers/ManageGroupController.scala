@@ -27,7 +27,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
@@ -90,11 +90,8 @@ class ManageGroupController @Inject()(
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
 
     withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
-      val displayClients = group.clients.map { maybeEnrolments: Set[Enrolment] =>
-        maybeEnrolments.toSeq
-          .map(x => Client.fromEnrolment(x))
-          .map(DisplayClient.fromClient(_, true))
-      }.getOrElse(Seq.empty[DisplayClient])
+
+      val displayClients = DisplayClient.fromEnrolments(group.clients)
 
       val result = for {
         _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED, displayClients)

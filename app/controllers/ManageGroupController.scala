@@ -21,7 +21,7 @@ import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupReq
 import controllers.routes.ManageGroupController
 import forms.{AddClientsToGroupForm, GroupNameForm, YesNoForm}
 import models.DisplayClient.toEnrolment
-import models.{ButtonSelect, DisplayClient, DisplayGroup}
+import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -49,8 +49,8 @@ class ManageGroupController @Inject()(
      client_group_list: client_group_list,
      confirm_clients_updated: confirm_clients_updated,
      existing_clients: existing_clients,
+     existing_team_members: existing_team_members,
      groupService: GroupService,
-    view_team_members: view_team_members,
      team_members_list: team_members_list,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
@@ -233,45 +233,22 @@ class ManageGroupController @Inject()(
     )
   }
 
-  def showViewGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    // TODO get the groups team members
+  def showExistingGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
-    //      val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
-    //        maybeUsers.toSeq
-    //          .map(x => UserDetails(None, None, Some(x.id), Some(x.name))
-    //          .map(x => TeamMember.fromUserDetails(x)))
-    //      }.getOrElse(Seq.empty[TeamMember])
-
-      Ok(
-        view_team_members(
-          Seq.empty,
-          group.groupName,
-          routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
-      )).toFuture
+      val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
+        maybeUsers.toSeq
+          .map(UserDetails.fromAgentUser)
+          .map(TeamMember.fromUserDetails)
+      }.getOrElse(Seq.empty[TeamMember])
+      groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers)).flatMap(groupMembers =>
+        Ok(
+          existing_team_members(
+            groupMembers.getOrElse(Seq.empty[TeamMember]),
+            group.groupName,
+            routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
+          )).toFuture
+      )
     })
-
-    // Gets all the team members :3
-    //    isAuthorisedAgent { arn =>
-    //      isOptedIn(arn) { _ =>
-    //        agentPermissionsConnector.getGroup(groupId).flatMap(
-    //          maybeGroup => maybeGroup.fold(groupNotFound)(group => {
-    //            withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeSelectedTeamMembers =>
-    //              groupService
-    //                .getTeamMembers(arn)(maybeSelectedTeamMembers)
-    //                .flatMap { teamMembers =>
-    //                  Ok(
-    //                    view_team_members(
-    //                      teamMembers.getOrElse(Seq.empty),
-    //                      group.groupName,
-    //                      routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
-    //                    )).toFuture
-    //                }
-    //            }
-    //          })
-    //        )
-    //      }
-    //    }
-
   }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>

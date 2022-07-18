@@ -36,6 +36,7 @@
             Seq(
                 Html(teamMember.name),
                 Html(teamMember.email),
+                Html(teamMember.credentialRole)
             )
         )
     }
@@ -79,6 +80,10 @@
                 ),
                 (
                     Html(msgs("group.members.list.table.th2")),
+                    Map("aria-sort" -> "none")
+                ),
+                (
+                    Html(msgs("group.members.list.table.th3")),
                     Map("aria-sort" -> "none")
                 ),
             ),

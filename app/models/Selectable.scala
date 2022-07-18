@@ -17,24 +17,19 @@
 package models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  Client,
-  Enrolment,
-  Identifier,
-  UserDetails
-}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, UserDetails}
 
 sealed trait Selectable {
   val selected: Boolean
 }
 
 case class TeamMember(
-    name: String,
-    email: String,
-    userId: Option[String] = None,
-    credentialRole: Option[String] = None,
-    selected: Boolean = false
-) extends Selectable
+                       name: String,
+                       email: String,
+                       userId: Option[String] = None,
+                       credentialRole: Option[String] = None,
+                       selected: Boolean = false
+                     ) extends Selectable
 
 case object TeamMember {
   implicit val format = Json.format[TeamMember]
@@ -49,38 +44,41 @@ case object TeamMember {
 }
 
 case class DisplayClient(
-    hmrcRef: String,
-    name: String,
-    taxService: String,
-    identifierKey: String,
-    selected: Boolean = false
-) extends Selectable
+                          hmrcRef: String,
+                          name: String,
+                          taxService: String,
+                          identifierKey: String,
+                          selected: Boolean = false
+                        ) extends Selectable
 
 case object DisplayClient {
+
+  implicit val format = Json.format[DisplayClient]
+
   def fromEnrolments(clients: Option[Set[Enrolment]]): Seq[DisplayClient] =
     clients.map { maybeEnrolments: Set[Enrolment] =>
-      maybeEnrolments.toSeq.map(x => Client.fromEnrolment(x))
+      maybeEnrolments.toSeq
+        .map(Client.fromEnrolment(_))
         .map(DisplayClient.fromClient(_, true))
     }.getOrElse(Seq.empty[DisplayClient])
 
-
-  implicit val format = Json.format[DisplayClient]
 
   def fromClient(client: Client, selected: Boolean = false): DisplayClient = {
     val keyElements = client.enrolmentKey.split('~')
     val taxService = keyElements.head
     val identifierKey = keyElements(1)
     val hmrcRef = keyElements.last
+
     DisplayClient(hmrcRef,
-                  client.friendlyName,
-                  taxService,
-                  identifierKey,
-                  selected)
+      client.friendlyName,
+      taxService,
+      identifierKey,
+      selected)
   }
 
   def toEnrolment(dc: DisplayClient): Enrolment =
     Enrolment(dc.taxService,
-              "Activated",
-              dc.name,
-              Seq(Identifier(dc.identifierKey, dc.hmrcRef)))
+      "Activated",
+      dc.name,
+      Seq(Identifier(dc.identifierKey, dc.hmrcRef)))
 }

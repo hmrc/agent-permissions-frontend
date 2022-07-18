@@ -243,8 +243,8 @@ class ManageGroupController @Inject()(
           maybeGroup => maybeGroup.fold(groupNotFound)(group => {
             val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
               maybeUsers.toSeq
-                .map(x => UserDetails.fromAgentUser(x))
-                .map(x => TeamMember.fromUserDetails(x))
+                .map(UserDetails.fromAgentUser)
+                .map(TeamMember.fromUserDetails)
             }.getOrElse(Seq.empty[TeamMember])
             groupService.getTeamMembersFromGroup(arn)(Some(teamMembers)).flatMap(groupMembers =>
               Ok(

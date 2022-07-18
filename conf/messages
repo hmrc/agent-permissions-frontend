@@ -104,6 +104,7 @@ group.members.list.p1=Select team members for this access group by ticking the b
 group.members.list.filter.label=Filter by name or email
 group.members.list.table.th1=Name
 group.members.list.table.th2=Email
+group.members.list.table.th3=Role
 error.members.list.empty=You must select at least one team member 
 
 group.teamMembers.review.h1=You have selected {0} team members

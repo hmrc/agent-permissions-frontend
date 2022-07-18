@@ -900,25 +900,16 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   s"GET ${routes.ManageGroupController.showExistingGroupTeamMembers(accessGroup._id.toString)}" should {
 
-    val fakeTeamMembers = (1 to 10)
+    val fakeTeamMembers = (1 to 5)
       .map { i =>
         UserDetails(
           Some(s"John $i"),
           Some("User"),
-          Some("John"),
+          Some(s"John $i name"),
           Some(s"john$i@abc.com")
         )
       }
 
-    val fakeGroupMembers = (1 to 5)
-      .map { i =>
-        UserDetails(
-          Some(s"John $i"),
-          Some("John")
-        )
-      }
-
-    val partialTeamMembers = fakeGroupMembers.map(TeamMember.fromUserDetails)
     val teamMembers = fakeTeamMembers.map(TeamMember.fromUserDetails)
 
     "render correctly the manage group view team members page" in {
@@ -932,7 +923,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .getTeamMembersFromGroup(_: Arn)(_: Option[Seq[TeamMember]])
         (_: HeaderCarrier,
          _: ExecutionContext))
-        .expects(accessGroup.arn, Some(partialTeamMembers), *, *)
+        .expects(accessGroup.arn, Some(List()), *, *)
         .returning(Future successful Some(teamMembers))
 
       //when
@@ -948,6 +939,14 @@ class ManageGroupControllerSpec extends BaseSpec {
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
       trs.size() shouldBe 5
+
+      trs.get(0).select("td").get(0).text() shouldBe "John 1 name"
+      trs.get(0).select("td").get(1).text() shouldBe "john1@abc.com"
+      trs.get(0).select("td").get(2).text() shouldBe "User"
+
+      trs.get(4).select("td").get(0).text() shouldBe "John 5 name"
+      trs.get(4).select("td").get(1).text() shouldBe "john5@abc.com"
+      trs.get(4).select("td").get(2).text() shouldBe "User"
 
     }
   }

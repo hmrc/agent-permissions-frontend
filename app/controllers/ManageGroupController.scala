@@ -237,28 +237,21 @@ class ManageGroupController @Inject()(
   }
 
   def showExistingGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).flatMap(
-          maybeGroup => maybeGroup.fold(groupNotFound)(group => {
-            val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
-              maybeUsers.toSeq
-                .map(UserDetails.fromAgentUser)
-                .map(TeamMember.fromUserDetails)
-            }.getOrElse(Seq.empty[TeamMember])
-            groupService.getTeamMembersFromGroup(arn)(Some(teamMembers)).flatMap(groupMembers =>
-              Ok(
-                existing_team_members(
-                  groupMembers.getOrElse(Seq.empty[TeamMember]),
-                  group.groupName,
-                  routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
-                )).toFuture
-            )
-          })
-        )
-      }
-    }
-
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
+      val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
+        maybeUsers.toSeq
+          .map(UserDetails.fromAgentUser)
+          .map(TeamMember.fromUserDetails)
+      }.getOrElse(Seq.empty[TeamMember])
+      groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers)).flatMap(groupMembers =>
+        Ok(
+          existing_team_members(
+            groupMembers.getOrElse(Seq.empty[TeamMember]),
+            group.groupName,
+            routes.ManageGroupController.showManageGroupTeamMembers(groupId).url
+          )).toFuture
+      )
+    })
   }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>

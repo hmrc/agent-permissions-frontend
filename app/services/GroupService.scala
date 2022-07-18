@@ -120,7 +120,7 @@ class GroupService @Inject()(
 
       toSave = added.getOrElse(Nil) ::: inSession.getOrElse(Nil) diff deSelected
         .getOrElse(Nil)
-      _ = sessionCacheRepository
+      _ <- sessionCacheRepository
         .putSession[Seq[T]](sessionMembersDataKey, toSave.distinct)
 
     } yield ()
@@ -151,17 +151,19 @@ class GroupService @Inject()(
         .map(_ ++ resultByTaxRef.getOrElse(Vector.empty))
         .map(_.distinct)
       result = consolidatedResult.map(_.toVector)
-      _ = result.map(filteredResult =>
-        sessionCacheRepository.putSession(FILTERED_CLIENTS, filteredResult))
+      _ <- result match {
+        case Some(filteredResult) => sessionCacheRepository.putSession(FILTERED_CLIENTS, filteredResult)
+        case _ => Future.successful(())
+      }
       hiddenClients = clients.map(
         _.filter(_.selected) diff result
           .getOrElse(Vector.empty)
           .filter(_.selected)
       )
-      _ = hiddenClients.map(
-        hidden =>
-          if (hidden.nonEmpty)
-            sessionCacheRepository.putSession(HIDDEN_CLIENTS_EXIST, true))
+      _ <- hiddenClients match {
+        case Some(hidden) if hidden.nonEmpty => sessionCacheRepository.putSession(HIDDEN_CLIENTS_EXIST, true)
+        case _ => Future.successful(())
+      }
     } yield result
 
   def filterTeamMembers(arn: Arn)(
@@ -187,19 +189,19 @@ class GroupService @Inject()(
         .map(_ ++ resultByEmail.getOrElse(Vector.empty))
         .map(_.distinct)
       result = consolidatedResult.map(_.toVector)
-      _ = result.map(
-        filteredResult =>
-          sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS,
-                                            filteredResult))
+      _ <- result match {
+        case Some(filteredResult) => sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS, filteredResult)
+        case _ => Future.successful(())
+      }
       hiddenTeamMembers = teamMembers.map(
         _.filter(_.selected) diff result
           .map(_.filter(_.selected))
           .getOrElse(Vector.empty)
       )
-      _ = hiddenTeamMembers.map(
-        hidden =>
-          if (hidden.nonEmpty)
-            sessionCacheRepository.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true))
+      _ <- hiddenTeamMembers match {
+        case Some(hidden) if hidden.nonEmpty => sessionCacheRepository.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true)
+        case _ => Future.successful(())
+      }
     } yield result
 
   def processFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(

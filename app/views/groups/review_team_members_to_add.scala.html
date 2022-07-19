@@ -28,20 +28,26 @@
     checkBox: checkBox
 )
 
-@(teamMembers: Seq[TeamMember], groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    teamMembers: Seq[TeamMember],
+    groupName: String,
+    continueCall: Call = routes.GroupController.showCheckYourAnswers,
+    backUrl: Option[String] = Some(routes.GroupController.showSelectTeamMembers.url)
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         teamMembers.map(teamMember =>
             Seq(
                 Html(teamMember.name),
                 Html(teamMember.email),
+                Html(teamMember.credentialRole)
             )
         )
     }
 
     @layout(
         title = msgs("group.teamMembers.review.title", groupName),
-        backLinkHref = Some(routes.GroupController.showSelectTeamMembers.url),
+        backLinkHref = backUrl,
         fullWidth = true
     ) {
 
@@ -63,6 +69,10 @@
                     Html(msgs("group.members.list.table.th2")),
                     Map("aria-sort" -> "none")
                 ),
+                (
+                Html(msgs("group.members.list.table.th3")),
+                Map("aria-sort" -> "none")
+                )
             ),
             rows = tableRows,
         )
@@ -70,13 +80,13 @@
 
         <p class="govuk-!-margin-bottom-9">
             @a("group.selected.teamMembers.change",
-                href = routes.GroupController.showSelectTeamMembers.url,
+                href = backUrl.get,
                 id = Some("change-selected-team-members")
             )
         </p>
 
         @link_as_button(
-            href = routes.GroupController.showCheckYourAnswers.url,
+            href = continueCall.url,
             id = "check-your-answers")
 
    

@@ -53,6 +53,7 @@
                     checked = member.selected).toString),
                 Html(member.name),
                 Html(member.email),
+                Html(member.credentialRole)
             )
         )
         )
@@ -131,7 +132,12 @@ errorPrefix.concat(msgs("group.members.list.h1", groupName))
                 (
                     Html(msgs("group.members.list.table.th2")),
                     Map("aria-sort" -> "none")
-                )),
+                ),
+                (
+                    Html(msgs("group.members.list.table.th3")),
+                    Map("aria-sort" -> "none")
+                )
+                ),
                 rows = tableRows,
             )
             </div>

@@ -160,3 +160,7 @@ access-group-name-exists.button=Enter a new access group name
 
 group.manage.confirm.updated.clients.h1={0} access group clients updated
 group.manage.confirm.updated.clients.p=You have changed the clients that can be managed by the team members in this access group.
+
+group.manage.confirm.updated.team-members.h1={0} access group team members updated
+group.manage.confirm.updated.team-members.p=The team members you selected can view and manage the tax affairs of all the clients in this access group.
+

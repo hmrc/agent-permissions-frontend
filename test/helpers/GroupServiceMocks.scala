@@ -16,7 +16,7 @@
 
 package helpers
 
-import models.{AddClientsToGroup, ButtonSelect, DisplayClient, TeamMember}
+import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
@@ -40,7 +40,17 @@ trait GroupServiceMocks extends MockFactory {
     (groupService
       .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful (Some(clients)))
+      .returning(Future successful Some(clients))
+
+  def stubGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(
+    implicit groupService: GroupService): Unit =
+    (groupService
+    .getTeamMembersFromGroup(_: Arn)(_: Option[Seq[TeamMember]])
+      (_: HeaderCarrier,
+        _: ExecutionContext)
+    )
+    .expects(arn, Some(List()), *, *)
+    .returning(Future successful Some(teamMembers))
 
   def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(implicit groupService: GroupService): Unit =
     (groupService
@@ -48,4 +58,12 @@ trait GroupServiceMocks extends MockFactory {
       (_: HeaderCarrier, _: Request[_], _: ExecutionContext))
       .expects(buttonPress, arn, *, *, *, *)
       .returning(Future successful ())
+
+  def expectProcessFormDataForTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(implicit groupService: GroupService): Unit =
+    (groupService
+      .processFormDataForTeamMembers(_: ButtonSelect)(_: Arn)(_: AddTeamMembersToGroup)
+      (_: HeaderCarrier, _: Request[_], _: ExecutionContext))
+      .expects(buttonPress, arn, *, *, *, *)
+      .returning(Future successful ())
+
 }

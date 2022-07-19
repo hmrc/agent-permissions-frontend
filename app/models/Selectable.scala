@@ -16,8 +16,8 @@
 
 package models
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, UserDetails}
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, Enrolment, Identifier, UserDetails}
 
 sealed trait Selectable {
   val selected: Boolean
@@ -41,6 +41,9 @@ case object TeamMember {
       userId = user.userId,
       credentialRole = user.credentialRole
     )
+
+  def toAgentUser(tm: TeamMember): AgentUser =
+    AgentUser(tm.userId.get, tm.name)
 }
 
 case class DisplayClient(
@@ -58,8 +61,8 @@ case object DisplayClient {
   def fromEnrolments(clients: Option[Set[Enrolment]]): Seq[DisplayClient] =
     clients.map { maybeEnrolments: Set[Enrolment] =>
       maybeEnrolments.toSeq
-        .map(Client.fromEnrolment(_))
-        .map(DisplayClient.fromClient(_, true))
+        .map(Client.fromEnrolment)
+        .map(DisplayClient.fromClient(_, selected = true))
     }.getOrElse(Seq.empty[DisplayClient])
 
 

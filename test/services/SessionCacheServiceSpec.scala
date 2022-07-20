@@ -101,11 +101,11 @@ class SessionCacheServiceSpec extends BaseSpec {
       val clients = Seq(DisplayClient("whatever", "", "", ""))
 
       val (membersInSessionCache, maybeMembers) = (for {
-        _ <- sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients)
+        _ <- sessionCacheRepo.putSession(SELECTED_CLIENTS, clients)
         membersInSessionCache <- sessionCacheRepo.getFromSession(
-          GROUP_CLIENTS_SELECTED)
+          SELECTED_CLIENTS)
         _ <- service.clearSelectedClients()
-        maybeMembers <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+        maybeMembers <- sessionCacheRepo.getFromSession(SELECTED_CLIENTS)
       } yield (membersInSessionCache, maybeMembers)).futureValue
 
       membersInSessionCache.get.length shouldBe 1
@@ -121,9 +121,9 @@ class SessionCacheServiceSpec extends BaseSpec {
       val clients = Seq(DisplayClient("whatever", "", "", ""))
 
       val (initialEmptySession, savedClients) = (for {
-        emptySession <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+        emptySession <- sessionCacheRepo.getFromSession(SELECTED_CLIENTS)
         _ <- service.saveSelectedClients(clients)
-        savedClients <- sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)
+        savedClients <- sessionCacheRepo.getFromSession(SELECTED_CLIENTS)
       } yield (emptySession, savedClients)).futureValue
 
       //then
@@ -145,7 +145,7 @@ class SessionCacheServiceSpec extends BaseSpec {
       //then
       val maybeMembers = await(
         sessionCacheRepo.getFromSession[Seq[TeamMember]](
-          GROUP_TEAM_MEMBERS_SELECTED))
+          SELECTED_TEAM_MEMBERS))
 
       maybeMembers.isDefined shouldBe true
       maybeMembers.get(0) shouldBe TeamMember("name1",
@@ -173,13 +173,13 @@ class SessionCacheServiceSpec extends BaseSpec {
         (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
 
       val (membersInSessionCache, clearedSessionCacheValue) = (for {
-        _ <- sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,
+        _ <- sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS,
                                          teamMembers)
         membersInSessionCache <- sessionCacheRepo.getFromSession(
-          GROUP_TEAM_MEMBERS_SELECTED)
+          SELECTED_TEAM_MEMBERS)
         _ <- service.clearSelectedTeamMembers()
         clearedSessionCache <- sessionCacheRepo.getFromSession(
-          GROUP_TEAM_MEMBERS_SELECTED)
+          SELECTED_TEAM_MEMBERS)
       } yield (membersInSessionCache, clearedSessionCache)).futureValue
 
       membersInSessionCache.get.length shouldBe 3

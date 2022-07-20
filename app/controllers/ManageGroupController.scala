@@ -28,7 +28,8 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, UserDetails}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
@@ -71,16 +72,21 @@ class ManageGroupController @Inject()(
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val eventuallySummaries = for {
-          response <- agentPermissionsConnector.groupsSummaries(arn)
-        } yield response
-
-        eventuallySummaries.map {
-          summaries: Option[(Seq[GroupSummary], Seq[DisplayClient])] =>
-            val data = summaries.getOrElse((Seq.empty[GroupSummary], Seq.empty[DisplayClient]))
-            Ok(dashboard(data))
-        }
+        getGroupSummaries(arn).map(data =>
+          Ok(dashboard(data, AddClientsToGroupForm.form()))
+        )
       }
+    }
+  }
+
+  private def getGroupSummaries(arn: Arn)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[(Seq[GroupSummary], Seq[DisplayClient])] = {
+
+    val eventuallySummaries = for {
+      response <- agentPermissionsConnector.groupsSummaries(arn)
+    } yield response
+
+    eventuallySummaries.map { maybeSummaries =>
+      maybeSummaries.getOrElse((Seq.empty[GroupSummary], Seq.empty[DisplayClient]))
     }
   }
 
@@ -97,7 +103,7 @@ class ManageGroupController @Inject()(
       val displayClients = DisplayClient.fromEnrolments(group.clients)
 
       val result = for {
-        _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED, displayClients)
+        _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS, displayClients)
         filteredClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS)
         maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
         clientsForArn <- groupService.getClients(group.arn)
@@ -160,8 +166,7 @@ class ManageGroupController @Inject()(
                       backUrl = Some(ManageGroupController.showManageGroups.url)
                     )).toFuture
                   else
-                    groupService.getClients(group.arn).flatMap {
-                      maybeClients =>
+                    groupService.getClients(group.arn).flatMap { maybeClients =>
                         Ok(client_group_list(
                           maybeClients,
                           group.groupName,
@@ -174,11 +179,11 @@ class ManageGroupController @Inject()(
                 } yield result
               },
               formData => {
-                groupService.processFormDataForClients(buttonSelection)(group.arn)(formData).map(_ =>
+                groupService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData).map(_ =>
                   if (buttonSelection == ButtonSelect.Continue) {
                     for {
                       enrolments <- sessionCacheRepository
-                        .getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
+                        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
                         .flatMap { maybeClients: Option[Seq[DisplayClient]] =>
                           maybeClients
                             .map(dcs => dcs.map(toEnrolment(_)))
@@ -204,7 +209,7 @@ class ManageGroupController @Inject()(
 
   def showReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
-      withSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED) { selectedClients =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
             Redirect(ManageGroupController.showManageGroupClients(groupId))
@@ -226,7 +231,7 @@ class ManageGroupController @Inject()(
 
   def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
-      withSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED) { selectedClients =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients.fold {
           Redirect(ManageGroupController.showManageGroupClients(groupId))
         } { _ => Ok(clients_update_complete(group.groupName)) }
@@ -264,7 +269,7 @@ class ManageGroupController @Inject()(
 
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers))
-        _ <- sessionCacheRepository.putSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers.get)
+        _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers.get)
         filteredTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
         maybeHiddenTeamMembers <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)
         teamMembersForArn <- groupService.getTeamMembers(group.arn)(selectedTeamMembers)
@@ -341,11 +346,11 @@ class ManageGroupController @Inject()(
                 } yield result
               },
               formData => {
-                groupService.processFormDataForTeamMembers(buttonSelection)(group.arn)(formData).map(_ =>
+                groupService.saveSelectedOrFilteredTeamMembers(buttonSelection)(group.arn)(formData).map(_ =>
                   if (buttonSelection == ButtonSelect.Continue) {
                     for {
                       members <- sessionCacheRepository
-                        .getFromSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)
+                        .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
                         .flatMap { maybeTeamMembers: Option[Seq[TeamMember]] =>
                           maybeTeamMembers
                             .map(tm => tm.map(toAgentUser))
@@ -371,7 +376,7 @@ class ManageGroupController @Inject()(
 
   def showReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
-      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { selectedMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold {
             Redirect(ManageGroupController.showManageGroupTeamMembers(groupId))
@@ -393,7 +398,7 @@ class ManageGroupController @Inject()(
 
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) =>
-      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { selectedTeamMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         selectedTeamMembers.fold {
           Redirect(ManageGroupController.showManageGroupTeamMembers(groupId))
         } { _ => Ok(team_members_update_complete(group.groupName)) }

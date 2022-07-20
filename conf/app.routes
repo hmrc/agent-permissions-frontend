@@ -52,6 +52,7 @@ POST    /update-clients/:groupId                controllers.ManageGroupControlle
 GET     /update-clients/review/:groupId         controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
 GET     /clients-updated/:groupId               controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
 
+
 GET     /manage-group-team-members/:groupId         controllers.ManageGroupController.showExistingGroupTeamMembers(groupId: String)
 GET     /update-group-team-members/:groupId         controllers.ManageGroupController.showManageGroupTeamMembers(groupId: String)
 POST    /update-group-team-members/:groupId         controllers.ManageGroupController.submitManageGroupTeamMembers(groupId: String)

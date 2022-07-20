@@ -804,7 +804,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         html.select(Css.H1).text() shouldBe "Select clients"
         html
           .select(Css.errorSummaryForField("clients"))
-        await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
+        await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
       }
 
       "display error when filtered clients and form has errors" in {
@@ -837,7 +837,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         html.select(Css.H1).text() shouldBe "Select clients"
         html
           .select(Css.errorSummaryForField("clients"))
-        await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
+        await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
       }
 
 
@@ -871,7 +871,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, displayClients))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -1040,7 +1040,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         html.select(Css.H1).text() shouldBe "Select team members"
         html
           .select(Css.errorSummaryForField("members"))
-        await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
+        await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
 
       "button is Filter with no search value display error" in {
@@ -1072,7 +1072,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         html
           .select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a name or email to apply filters"
 
-        await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
+        await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
 
 
@@ -1123,7 +1123,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the manage group REVIEW SELECTED page" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -1161,7 +1161,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the manage TEAM MEMBERS UPDATED page" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 

@@ -20,8 +20,8 @@ import connectors.AgentUserClientDetailsConnector
 import controllers.{
   FILTERED_CLIENTS,
   FILTERED_TEAM_MEMBERS,
-  GROUP_CLIENTS_SELECTED,
-  GROUP_TEAM_MEMBERS_SELECTED,
+  SELECTED_CLIENTS,
+  SELECTED_TEAM_MEMBERS,
   HIDDEN_CLIENTS_EXIST,
   HIDDEN_TEAM_MEMBERS_EXIST
 }
@@ -59,7 +59,7 @@ class GroupService @Inject()(
       es3AsDisplayClients = es3Clients.map(clientSeq =>
         clientSeq.map(client => DisplayClient.fromClient(client)))
       maybeSelectedClients <- sessionCacheRepository
-        .getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
+        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
       es3WithoutPreSelected = es3AsDisplayClients.map(
         _.filterNot(
           dc =>
@@ -113,42 +113,29 @@ class GroupService @Inject()(
    * b) remove from the session the group members that were de-selected
    *
    * */
-  def addMembersToGroup[T <: Selectable](
-      formData: Option[List[T]]
-  )(sessionMembersDataKey: DataKey[Seq[T]],
-    filteredMembersDataKey: DataKey[Seq[T]])(
-      implicit
-      hc: HeaderCarrier,
-      request: Request[Any],
-      ec: ExecutionContext,
-      reads: Reads[Seq[T]],
-      writes: Writes[Seq[T]]): Future[Unit] =
+  def addSelectablesToSession[T <: Selectable](formData: Option[List[T]])
+                                              (sessionMembersDataKey: DataKey[Seq[T]],
+                                         filteredMembersDataKey: DataKey[Seq[T]])
+                                              (implicit hc: HeaderCarrier, request: Request[Any],
+                                         ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] =
     for {
-      inSession <- sessionCacheRepository
-        .getFromSession[Seq[T]](sessionMembersDataKey)
-        .map(_.map(_.toList))
+      inSession <- sessionCacheRepository.getFromSession[Seq[T]](sessionMembersDataKey).map(_.map(_.toList))
 
       filteredSelected <- sessionCacheRepository
         .getFromSession[Seq[T]](filteredMembersDataKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
-      deSelected = filteredSelected
-        .orElse(inSession)
-        .map(_ diff formData.getOrElse(Nil))
+      deSelected = filteredSelected.orElse(inSession).map(_ diff formData.getOrElse(Nil))
       added = formData.map(_ diff filteredSelected.getOrElse(Nil))
 
-      toSave = added.getOrElse(Nil) ::: inSession.getOrElse(Nil) diff deSelected
-        .getOrElse(Nil)
-      _ <- sessionCacheRepository
-        .putSession[Seq[T]](sessionMembersDataKey, toSave.distinct)
+      toSave = added.getOrElse(Nil) ::: inSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
+      _ <- sessionCacheRepository.putSession[Seq[T]](sessionMembersDataKey, toSave.distinct)
 
     } yield ()
 
-  def filterClients(arn: Arn)(
-      formData: AddClientsToGroup
-  )(implicit hc: HeaderCarrier,
-    request: Request[Any],
-    ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] =
+  def filterClients(arn: Arn)(formData: AddClientsToGroup)
+                   (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext)
+  : Future[Option[Seq[DisplayClient]]] =
     for {
       clients <- getClients(arn).map(_.map(_.toVector))
       maybeTaxService = formData.filter
@@ -175,8 +162,7 @@ class GroupService @Inject()(
         case _ => Future.successful(())
       }
       hiddenClients = clients.map(
-        _.filter(_.selected) diff result
-          .getOrElse(Vector.empty)
+        _.filter(_.selected) diff result.getOrElse(Vector.empty)
           .filter(_.selected)
       )
       _ <- hiddenClients match {
@@ -192,7 +178,7 @@ class GroupService @Inject()(
     ec: ExecutionContext): Future[Option[Seq[TeamMember]]] =
     for {
       selectedTeamMembers <- sessionCacheRepository.getFromSession(
-        GROUP_TEAM_MEMBERS_SELECTED)
+        SELECTED_TEAM_MEMBERS)
       teamMembers <- getTeamMembers(arn)(selectedTeamMembers)
         .map(_.map(_.toVector))
       maybeNameOrEmail = formData.search
@@ -223,28 +209,25 @@ class GroupService @Inject()(
       }
     } yield result
 
-  def processFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(
-      formData: AddClientsToGroup
-  )(implicit hc: HeaderCarrier,
-    request: Request[Any],
-    ec: ExecutionContext): Future[Unit] =
+  def saveSelectedOrFilteredClients[T <: Selectable](buttonPress: ButtonSelect)
+                                   (arn: Arn)(formData: AddClientsToGroup)
+                                  (implicit hc: HeaderCarrier, request: Request[Any],
+                                   ec: ExecutionContext): Future[Unit] = {
     buttonPress match {
       case Clear =>
         for {
-          _ <- addMembersToGroup(
-            formData.clients.map(_.map(_.copy(selected = true))))(
-            GROUP_CLIENTS_SELECTED,
-            FILTERED_CLIENTS
-          )
+          _ <- addSelectablesToSession(
+            formData.clients.map(_.map(_.copy(selected = true)))
+          )(SELECTED_CLIENTS, FILTERED_CLIENTS)
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
           _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
         } yield ()
 
       case Continue =>
         for {
-          _ <- addMembersToGroup(
+          _ <- addSelectablesToSession(
             formData.clients.map(_.map(_.copy(selected = true))))(
-            GROUP_CLIENTS_SELECTED,
+            SELECTED_CLIENTS,
             FILTERED_CLIENTS
           )
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
@@ -253,16 +236,15 @@ class GroupService @Inject()(
 
       case Filter =>
         for {
-          _ <- addMembersToGroup(
-            formData.clients.map(_.map(_.copy(selected = true))))(
-            GROUP_CLIENTS_SELECTED,
-            FILTERED_CLIENTS
-          )
+          _ <- addSelectablesToSession(
+            formData.clients.map(_.map(_.copy(selected = true)))
+          )(SELECTED_CLIENTS, FILTERED_CLIENTS)
           _ <- filterClients(arn)(formData)
         } yield ()
     }
+  }
 
-  def processFormDataForTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(
+  def saveSelectedOrFilteredTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(
       formData: AddTeamMembersToGroup
   )(implicit hc: HeaderCarrier,
     request: Request[Any],
@@ -270,9 +252,9 @@ class GroupService @Inject()(
     buttonPress match {
       case Clear =>
         for {
-          _ <- addMembersToGroup(
+          _ <- addSelectablesToSession(
             formData.members.map(_.map(_.copy(selected = true))))(
-            GROUP_TEAM_MEMBERS_SELECTED,
+            SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
@@ -282,9 +264,9 @@ class GroupService @Inject()(
 
       case Continue =>
         for {
-          _ <- addMembersToGroup(
+          _ <- addSelectablesToSession(
             formData.members.map(_.map(_.copy(selected = true))))(
-            GROUP_TEAM_MEMBERS_SELECTED,
+            SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
@@ -294,9 +276,9 @@ class GroupService @Inject()(
 
       case Filter =>
         for {
-          _ <- addMembersToGroup(
+          _ <- addSelectablesToSession(
             formData.members.map(_.map(_.copy(selected = true))))(
-            GROUP_TEAM_MEMBERS_SELECTED,
+            SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
           _ <- filterTeamMembers(arn)(formData)

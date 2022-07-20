@@ -104,7 +104,8 @@ class GroupService @Inject()(
             teamMembersInGroup.fold(true)(
               _.map(_.userId).contains(teamMember.userId))))
         .map(_.sortBy(_.name))
-    } yield groupTeamMembers
+      groupTeamMembersSelected = groupTeamMembers.map(_.map(_.copy(selected = true))) // makes them selected
+    } yield groupTeamMembersSelected
 
 
   /*

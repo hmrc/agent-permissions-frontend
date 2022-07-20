@@ -859,10 +859,8 @@ class ManageGroupControllerSpec extends BaseSpec {
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         expectProcessFormDataForClients(ButtonSelect.Filter)(arn)
 
-
         // when
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
-
         status(result) shouldBe SEE_OTHER
       }
     }
@@ -959,7 +957,18 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 
-      // TODO add more checks?
+      val trs =
+        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 5
+
+      trs.get(0).select("td").get(1).text() shouldBe "John 1 name"
+      trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
+      trs.get(0).select("td").get(3).text() shouldBe "User"
+
+      trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
+      trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
+      trs.get(4).select("td").get(3).text() shouldBe "User"
     }
   }
 
@@ -1086,12 +1095,9 @@ class ManageGroupControllerSpec extends BaseSpec {
 
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
-
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           routes.ManageGroupController.showManageGroupTeamMembers(accessGroup._id.toString).url
-        val html = Jsoup.parse(contentAsString(result))
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 1
       }
     }
   }

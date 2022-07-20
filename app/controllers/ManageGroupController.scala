@@ -19,8 +19,9 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import controllers.routes.ManageGroupController
-import forms.{AddClientsToGroupForm, GroupNameForm, YesNoForm}
+import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
 import models.DisplayClient.toEnrolment
+import models.TeamMember.toAgentUser
 import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -47,11 +48,13 @@ class ManageGroupController @Inject()(
      delete_group_complete: delete_group_complete,
      review_clients_to_add: review_clients_to_add,
      client_group_list: client_group_list,
-     confirm_clients_updated: confirm_clients_updated,
+     clients_update_complete: clients_update_complete,
      existing_clients: existing_clients,
      existing_team_members: existing_team_members,
      groupService: GroupService,
      team_members_list: team_members_list,
+     review_team_members_to_add: review_team_members_to_add,
+     team_members_update_complete: team_members_update_complete,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService)
@@ -226,7 +229,7 @@ class ManageGroupController @Inject()(
       withSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED) { selectedClients =>
         selectedClients.fold {
           Redirect(ManageGroupController.showManageGroupClients(groupId))
-        } { _ => Ok(confirm_clients_updated(group.groupName)) }
+        } { _ => Ok(clients_update_complete(group.groupName)) }
           .toFuture
       }
     }
@@ -252,14 +255,155 @@ class ManageGroupController @Inject()(
   }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) =>
-      Ok(s"showManageGroupTeamMembers not yet implemented ${groupId}").toFuture
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
+      val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
+        maybeUsers.toSeq
+          .map(UserDetails.fromAgentUser)
+          .map(TeamMember.fromUserDetails)
+      }.getOrElse(Seq.empty[TeamMember])
+
+      val result = for {
+        selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers))
+        _ <- sessionCacheRepository.putSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED, selectedTeamMembers.get)
+        filteredTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
+        maybeHiddenTeamMembers <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)
+        teamMembersForArn <- groupService.getTeamMembers(group.arn)(selectedTeamMembers)
+      } yield (filteredTeamMembers, maybeHiddenTeamMembers, teamMembersForArn)
+      result.map {
+        result =>
+          val filteredTeamMembers = result._1
+          val maybeHiddenTeamMembers = result._2
+          val backUrl = Some(ManageGroupController.showExistingGroupClients(groupId).url)
+          if (filteredTeamMembers.isDefined)
+            Ok(
+              team_members_list(
+                filteredTeamMembers,
+                group.groupName,
+                maybeHiddenTeamMembers,
+                AddTeamMembersToGroupForm.form(),
+                formAction = ManageGroupController.submitManageGroupTeamMembers(groupId),
+                backUrl = backUrl
+              )
+            )
+          else
+            Ok(
+              team_members_list(
+                result._3,
+                group.groupName,
+                maybeHiddenTeamMembers,
+                AddTeamMembersToGroupForm.form(),
+                formAction = ManageGroupController.submitManageGroupTeamMembers(groupId),
+                backUrl = backUrl
+              ))
+      }
+    }
     )
+  }
+
+  def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    val encoded = request.body.asFormUrlEncoded
+    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
+
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
+      withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
+        withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
+          AddTeamMembersToGroupForm
+            .form(buttonSelection)
+            .bindFromRequest()
+            .fold(
+              formWithErrors => {
+                for {
+                  _ <- if (buttonSelection == ButtonSelect.Continue)
+                    sessionCacheService.clearSelectedTeamMembers()
+                  else ().toFuture
+                  result <- if (maybeFilteredResult.isDefined)
+                    Ok(team_members_list(
+                      maybeFilteredResult,
+                      group.groupName,
+                      maybeHiddenTeamMembers,
+                      formWithErrors,
+                      formAction = ManageGroupController.submitManageGroupTeamMembers(groupId),
+                      backUrl = Some(ManageGroupController.showExistingGroupTeamMembers(groupId).url)
+                    )).toFuture
+                  else
+                    groupService.getTeamMembers(group.arn)().flatMap {
+                      maybeTeamMembers =>
+                        Ok(team_members_list(
+                          maybeTeamMembers,
+                          group.groupName,
+                          maybeHiddenTeamMembers,
+                          formWithErrors,
+                          formAction = ManageGroupController.submitManageGroupTeamMembers(groupId),
+                          backUrl = Some(ManageGroupController.showExistingGroupTeamMembers(groupId).url)
+                        )).toFuture
+                    }
+                } yield result
+              },
+              formData => {
+                groupService.processFormDataForTeamMembers(buttonSelection)(group.arn)(formData).map(_ =>
+                  if (buttonSelection == ButtonSelect.Continue) {
+                    for {
+                      members <- sessionCacheRepository
+                        .getFromSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)
+                        .flatMap { maybeTeamMembers: Option[Seq[TeamMember]] =>
+                          maybeTeamMembers
+                            .map(tm => tm.map(toAgentUser))
+                            .map(_.toSet)
+                            .toFuture
+                        }
+                      groupRequest = UpdateAccessGroupRequest(teamMembers = members)
+                      updated <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
+                    } yield updated
+                    sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
+                    sessionCacheRepository.deleteFromSession(HIDDEN_TEAM_MEMBERS_EXIST)
+                    Redirect(ManageGroupController.showReviewSelectedTeamMembers(groupId))
+                  }
+                  else Redirect(ManageGroupController.showManageGroupTeamMembers(groupId))
+                )
+              }
+            )
+        }
+      }
+    }
+    )
+  }
+
+  def showReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) => {
+      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { selectedMembers =>
+        selectedMembers
+          .fold {
+            Redirect(ManageGroupController.showManageGroupTeamMembers(groupId))
+          } { members =>
+            Ok(
+              review_team_members_to_add(
+                teamMembers = members,
+                groupName = group.groupName,
+                continueCall = ManageGroupController.showGroupTeamMembersUpdatedConfirmation(groupId),
+                backUrl = Some(ManageGroupController.showManageGroupTeamMembers(groupId).url)
+              )
+            )
+          }
+          .toFuture
+      }
+    }
+    )
+  }
+
+  def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent(groupId, (group: AccessGroup) =>
+      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { selectedTeamMembers =>
+        selectedTeamMembers.fold {
+          Redirect(ManageGroupController.showManageGroupTeamMembers(groupId))
+        } { _ => Ok(team_members_update_complete(group.groupName)) }
+          .toFuture
+      })
   }
 
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId, group =>
-      Ok(rename_group(GroupNameForm.form.fill(group.groupName), group, groupId)).toFuture)
+      Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId)).toFuture)
   }
 
   def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>

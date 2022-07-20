@@ -52,8 +52,11 @@ POST    /update-clients/:groupId                controllers.ManageGroupControlle
 GET     /update-clients/review/:groupId         controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
 GET     /clients-updated/:groupId               controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
 
-GET     /manage-group-team-members/:groupId     controllers.ManageGroupController.showExistingGroupTeamMembers(groupId: String)
-GET     /update-group-team-members/:groupId     controllers.ManageGroupController.showManageGroupTeamMembers(groupId: String)
+GET     /manage-group-team-members/:groupId         controllers.ManageGroupController.showExistingGroupTeamMembers(groupId: String)
+GET     /update-group-team-members/:groupId         controllers.ManageGroupController.showManageGroupTeamMembers(groupId: String)
+POST    /update-group-team-members/:groupId         controllers.ManageGroupController.submitManageGroupTeamMembers(groupId: String)
+GET     /update-group-team-members/review/:groupId  controllers.ManageGroupController.showReviewSelectedTeamMembers(groupId: String)
+GET     /team-members-updated/:groupId              controllers.ManageGroupController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
 
 GET     /rename-group/:groupId                  controllers.ManageGroupController.showRenameGroup(groupId: String)
 POST    /rename-group/:groupId                  controllers.ManageGroupController.submitRenameGroup(groupId: String)

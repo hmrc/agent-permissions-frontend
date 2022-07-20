@@ -322,7 +322,7 @@ class GroupControllerSpec extends BaseSpec {
 
     s"redirect to ${routes.GroupController.showAccessGroupNameExists.url} when the access group name already exists" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      getGroupNameCheckReturns(false)(arn, groupName)
+      getGroupNameCheckReturns(ok = false)(arn, groupName)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
@@ -341,7 +341,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "redirect to add-clients page when confirm group name 'yes' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      getGroupNameCheckReturns(true)(arn, groupName)
+      getGroupNameCheckReturns(ok = true)(arn, groupName)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitGroupName.url)
@@ -902,19 +902,22 @@ class GroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe routes.GroupController.showReviewSelectedClients.url
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       th.get(1).text() shouldBe "Name"
       th.get(2).text() shouldBe "Email"
+      th.get(3).text() shouldBe "Role"
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       trs.size() shouldBe 10
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "John"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
+      trs.get(0).select("td").get(3).text() shouldBe "User"
 
       // last row
       trs.get(9).select("td").get(1).text() shouldBe "John"
       trs.get(9).select("td").get(2).text() shouldBe "john10@abc.com"
+      trs.get(9).select("td").get(3).text() shouldBe "User"
     }
 
     "render with filtered team members held in session when a filter was applied" in {
@@ -936,9 +939,11 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Select team members"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       th.get(1).text() shouldBe "Name"
       th.get(2).text() shouldBe "Email"
+      th.get(3).text() shouldBe "Role"
+
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
@@ -946,10 +951,11 @@ class GroupControllerSpec extends BaseSpec {
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "John"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
-
+      trs.get(0).select("td").get(3).text() shouldBe "User"
       // last row
       trs.get(4).select("td").get(1).text() shouldBe "John"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
+      trs.get(4).select("td").get(3).text() shouldBe "User"
     }
 
     "render with NO Team Members" in {
@@ -970,9 +976,11 @@ class GroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       th.get(1).text() shouldBe "Name"
       th.get(2).text() shouldBe "Email"
+      th.get(3).text() shouldBe "Role"
+
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       trs.size() shouldBe 0
@@ -1222,8 +1230,8 @@ class GroupControllerSpec extends BaseSpec {
             s"team member $i",
             s"x$i@xyz.com",
             Some(s"1234 $i"),
-            None,
-            true
+            Some("User"),
+            selected = true
           )
         }
 
@@ -1249,19 +1257,22 @@ class GroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe routes.GroupController.showSelectTeamMembers.url
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 2
+      th.size() shouldBe 3
       th.get(0).text() shouldBe "Name"
       th.get(1).text() shouldBe "Email"
+      th.get(2).text() shouldBe "Role"
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       trs.size() shouldBe 5
       // first row
       trs.get(0).select("td").get(0).text() shouldBe "team member 1"
       trs.get(0).select("td").get(1).text() shouldBe "x1@xyz.com"
+      trs.get(0).select("td").get(2).text() shouldBe "User"
 
       // last row
       trs.get(4).select("td").get(0).text() shouldBe "team member 5"
       trs.get(4).select("td").get(1).text() shouldBe "x5@xyz.com"
+      trs.get(4).select("td").get(2).text() shouldBe "User"
 
       html
         .select("a#change-selected-team-members")
@@ -1296,7 +1307,7 @@ class GroupControllerSpec extends BaseSpec {
                           s"client name $i",
                           s"tax service $i",
                           s"id-key-$i",
-                          true))
+                          selected = true))
       val selectedTeamMembers =
         (1 to 5).map(
           i =>
@@ -1304,7 +1315,7 @@ class GroupControllerSpec extends BaseSpec {
                        s"x$i@xyz.com",
                        Some(s"1234 $i"),
                        None,
-                       true))
+                       selected = true))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

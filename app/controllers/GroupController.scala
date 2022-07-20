@@ -179,8 +179,7 @@ class GroupController @Inject()(
                         maybeHiddenClients,
                         formWithErrors)).toFuture
                   else
-                    groupService.getClients(arn).flatMap {
-                      maybeClients =>
+                    groupService.getClients(arn).flatMap { maybeClients =>
                         Ok(
                           client_group_list(
                             maybeClients,
@@ -191,9 +190,7 @@ class GroupController @Inject()(
                 } yield result
               },
               formData => {
-                groupService
-                  .processFormDataForClients(buttonSelection)(arn)(
-                    formData)
+                groupService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)
                   .map(_ =>
                     if (buttonSelection == ButtonSelect.Continue)
                       Redirect(routes.GroupController.showReviewSelectedClients)
@@ -209,7 +206,7 @@ class GroupController @Inject()(
 
   def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
-      withSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED) { maybeClients =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(Redirect(routes.GroupController.showSelectClients).toFuture)(
           clients => Ok(review_clients_to_add(clients, groupName)).toFuture)
       }
@@ -218,7 +215,7 @@ class GroupController @Inject()(
 
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeSelectedTeamMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
           withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
             if (maybeFilteredResult.isDefined)
@@ -248,7 +245,7 @@ class GroupController @Inject()(
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
-      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeSelectedTeamMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
           groupService.getTeamMembers(arn)(maybeSelectedTeamMembers).flatMap { maybeTeamMembers =>
             withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
@@ -281,7 +278,7 @@ class GroupController @Inject()(
                   },
                   formData => {
                     groupService
-                      .processFormDataForTeamMembers(
+                      .saveSelectedOrFilteredTeamMembers(
                         buttonSelection)(arn)(formData)
                       .map(_ =>
                         if (buttonSelection == ButtonSelect.Continue)
@@ -298,7 +295,7 @@ class GroupController @Inject()(
 
   def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeTeamMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers.fold(
           Redirect(routes.GroupController.showSelectTeamMembers).toFuture
         )(members =>
@@ -310,8 +307,8 @@ class GroupController @Inject()(
 
   def showCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED) { maybeTeamMembers =>
-        withSessionItem[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED) { maybeClients =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
           Ok(
             check_your_answers(groupName,
               maybeTeamMembers.map(_.length),
@@ -325,7 +322,7 @@ class GroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       val createGroupResponse = for {
         enrolments: Option[Seq[Enrolment]]
-          <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](GROUP_CLIENTS_SELECTED)
+          <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
           .flatMap { maybeClients: Option[Seq[DisplayClient]] =>
             Future(
               maybeClients.map(dcs => dcs.map(toEnrolment(_)))
@@ -333,7 +330,7 @@ class GroupController @Inject()(
           }
 
         members: Option[Seq[AgentUser]] <- sessionCacheRepository
-          .getFromSession[Seq[TeamMember]](GROUP_TEAM_MEMBERS_SELECTED)
+          .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
           .flatMap { maybeTeamMembers: Option[Seq[TeamMember]] =>
             Future(maybeTeamMembers.map(tms =>
               tms.map(tm => AgentUser(tm.userId.get, tm.name))))

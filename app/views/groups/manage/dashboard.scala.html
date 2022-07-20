@@ -25,7 +25,11 @@
     a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs
 )
 
-@(summaries: (Seq[GroupSummary], Seq[DisplayClient]))(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    summaries: (Seq[GroupSummary], Seq[DisplayClient]),
+    form: Form[AddClientsToGroup],
+)(implicit request: Request[_], msgs: Messages, appConfig:
+AppConfig)
 
 @groupSummaries = {
     @h2("group.manage.tabs.1.label")

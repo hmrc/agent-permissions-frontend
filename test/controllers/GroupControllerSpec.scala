@@ -580,7 +580,7 @@ class GroupControllerSpec extends BaseSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showReviewSelectedClients.url
         val storedClients =
-          await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+          await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS))
         storedClients.get.toList shouldBe List(
           displayClients.head.copy(selected = true),
           displayClients.last.copy(selected = true)
@@ -619,7 +619,7 @@ class GroupControllerSpec extends BaseSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showSelectClients.url
         val storedClients =
-          await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+          await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS))
         storedClients.get.toList shouldBe List(
           displayClients.head.copy(selected = true),
           displayClients.last.copy(selected = true)
@@ -661,7 +661,7 @@ class GroupControllerSpec extends BaseSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showSelectClients.url
         val storedClients =
-          await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED))
+          await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS))
         storedClients.get.toList shouldBe List(
           displayClients.head.copy(selected = true),
           displayClients.last.copy(selected = true)
@@ -706,7 +706,7 @@ class GroupControllerSpec extends BaseSpec {
         .select(Css.errorSummaryForField("clients"))
       // .text() shouldBe "You must select at least one client"
       // and should have cleared the previously selected clients from the session
-      await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
+      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
 
     }
 
@@ -747,7 +747,7 @@ class GroupControllerSpec extends BaseSpec {
         .select(Css.errorForField("filter"))
         .text() shouldBe "Error: You must enter a tax reference, client name or select a tax service to apply filters"
       // and should have cleared the previously selected clients from the session
-      await(sessionCacheRepo.getFromSession(GROUP_CLIENTS_SELECTED)).isDefined shouldBe false
+      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
 
     }
 
@@ -799,7 +799,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(
-        sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
+        sessionCacheRepo.putSession(SELECTED_CLIENTS, selectedClients))
 
       val result = controller.showReviewSelectedClients()(request)
 
@@ -1028,7 +1028,7 @@ class GroupControllerSpec extends BaseSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showReviewSelectedTeamMembers.url
         val maybeTeamMembers =
-          await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
+          await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS))
         maybeTeamMembers.get shouldBe Seq(
           teamMembers.head.copy(selected = true),
           teamMembers.last.copy(selected = true)
@@ -1063,7 +1063,7 @@ class GroupControllerSpec extends BaseSpec {
         redirectLocation(result).get shouldBe routes.GroupController.showSelectTeamMembers.url
         await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST))
         val storedTeamMembers =
-          await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
+          await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS))
 
         storedTeamMembers.get.toList shouldBe List(
           teamMembers.head.copy(selected = true),
@@ -1101,7 +1101,7 @@ class GroupControllerSpec extends BaseSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe routes.GroupController.showSelectTeamMembers.url
         val storedTeamMembers =
-          await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED))
+          await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS))
         storedTeamMembers.get.toList shouldBe List(
           teamMembers.head.copy(selected = true),
           teamMembers.last.copy(selected = true)
@@ -1150,7 +1150,7 @@ class GroupControllerSpec extends BaseSpec {
         .text() shouldBe "Error: You must select at least one team member"
 
       // and should have cleared the previously selected clients from the session
-      await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
+      await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
 
     }
 
@@ -1193,7 +1193,7 @@ class GroupControllerSpec extends BaseSpec {
         .text() shouldBe "Error: You must enter a name or email to apply filters"
 
       // and should have cleared the previously selected clients from the session
-      await(sessionCacheRepo.getFromSession(GROUP_TEAM_MEMBERS_SELECTED)).isDefined shouldBe false
+      await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
 
     }
 
@@ -1241,7 +1241,7 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(
-        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,
+        sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS,
                                     selectedTeamMembers))
 
       val result = controller.showReviewSelectedTeamMembers()(request)
@@ -1321,9 +1321,9 @@ class GroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(
-        sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, selectedClients))
+        sessionCacheRepo.putSession(SELECTED_CLIENTS, selectedClients))
       await(
-        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED,
+        sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS,
                                     selectedTeamMembers))
 
       val result = controller.showCheckYourAnswers()(request)
@@ -1412,9 +1412,9 @@ class GroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
-      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, clients))
       await(
-        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+        sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
 
       // and we expect the following call to the agentPermissionsConnector
       val expectedAgents =
@@ -1451,9 +1451,9 @@ class GroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
-      await(sessionCacheRepo.putSession(GROUP_CLIENTS_SELECTED, clients))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, clients))
       await(
-        sessionCacheRepo.putSession(GROUP_TEAM_MEMBERS_SELECTED, teamMembers))
+        sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
 
       // and we expect the following call to the agentPermissionsConnector
       expectCreateGroupFails(arn)

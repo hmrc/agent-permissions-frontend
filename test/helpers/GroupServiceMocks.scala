@@ -54,14 +54,14 @@ trait GroupServiceMocks extends MockFactory {
 
   def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(implicit groupService: GroupService): Unit =
     (groupService
-      .processFormDataForClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)
+      .saveSelectedOrFilteredClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)
       (_: HeaderCarrier, _: Request[_], _: ExecutionContext))
       .expects(buttonPress, arn, *, *, *, *)
       .returning(Future successful ())
 
   def expectProcessFormDataForTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(implicit groupService: GroupService): Unit =
     (groupService
-      .processFormDataForTeamMembers(_: ButtonSelect)(_: Arn)(_: AddTeamMembersToGroup)
+      .saveSelectedOrFilteredTeamMembers(_: ButtonSelect)(_: Arn)(_: AddTeamMembersToGroup)
       (_: HeaderCarrier, _: Request[_], _: ExecutionContext))
       .expects(buttonPress, arn, *, *, *, *)
       .returning(Future successful ())

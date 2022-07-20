@@ -33,8 +33,9 @@ object AddClientsToGroupForm {
          Form(addClientsToGroupMapping.verifying(emptyClientConstraint))
       case Filter =>
         Form(
-          addClientsToGroupMapping.verifying(error = "error.search-filter.empty",
-                       x => x.filter.isDefined || x.search.isDefined)
+          addClientsToGroupMapping
+            .verifying(error = "error.search-filter.empty",
+              form => form.filter.isDefined || form.search.isDefined)
         )
       case Clear =>
         Form(addClientsToGroupMapping)

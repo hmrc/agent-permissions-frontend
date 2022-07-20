@@ -18,10 +18,10 @@ package services
 
 import controllers.{
   GROUP_CLIENTS,
-  GROUP_CLIENTS_SELECTED,
+  SELECTED_CLIENTS,
   GROUP_NAME,
   GROUP_NAME_CONFIRMED,
-  GROUP_TEAM_MEMBERS_SELECTED
+  SELECTED_TEAM_MEMBERS
 }
 import models.{DisplayClient, TeamMember}
 import play.api.mvc.Results.Redirect
@@ -61,7 +61,7 @@ class SessionCacheService @Inject()(
       hc: HeaderCarrier,
       ec: ExecutionContext) = {
     sessionCacheRepository.putSession[Seq[DisplayClient]](
-      GROUP_CLIENTS_SELECTED,
+      SELECTED_CLIENTS,
       clients.map(dc => dc.copy(selected = true))
     )
   }
@@ -69,7 +69,7 @@ class SessionCacheService @Inject()(
   def clearSelectedClients()(implicit request: Request[_],
                              hc: HeaderCarrier,
                              ec: ExecutionContext) = {
-    sessionCacheRepository.deleteFromSession(GROUP_CLIENTS_SELECTED)
+    sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS)
 
   }
 
@@ -79,7 +79,7 @@ class SessionCacheService @Inject()(
       ec: ExecutionContext) = {
 
     sessionCacheRepository.putSession[Seq[TeamMember]](
-      GROUP_TEAM_MEMBERS_SELECTED,
+      SELECTED_TEAM_MEMBERS,
       teamMembers.map(member => member.copy(selected = true))
     )
   }
@@ -90,13 +90,13 @@ class SessionCacheService @Inject()(
     sessionCacheRepository.deleteFromSession(GROUP_NAME)
     sessionCacheRepository.deleteFromSession(GROUP_NAME_CONFIRMED)
     sessionCacheRepository.deleteFromSession(GROUP_CLIENTS)
-    sessionCacheRepository.deleteFromSession(GROUP_CLIENTS_SELECTED)
-    sessionCacheRepository.deleteFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+    sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS)
+    sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
   }
 
   def clearSelectedTeamMembers()(implicit request: Request[_],
                                  hc: HeaderCarrier,
                                  ec: ExecutionContext) = {
-    sessionCacheRepository.deleteFromSession(GROUP_TEAM_MEMBERS_SELECTED)
+    sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
   }
 }

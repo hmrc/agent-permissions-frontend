@@ -38,8 +38,7 @@ package object controllers {
   val OPTIN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
-  val GROUP_CLIENTS_SELECTED: DataKey[Seq[DisplayClient]] = DataKey(
-    "groupClientsSelected")
+  val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
 
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
@@ -53,7 +52,7 @@ package object controllers {
   val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
     "filteredTeamMembers")
   val HIDDEN_TEAM_MEMBERS_EXIST: DataKey[Boolean] = DataKey("hiddenTeamMembers")
-  val GROUP_TEAM_MEMBERS_SELECTED: DataKey[Seq[TeamMember]] = DataKey(
+  val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
     "groupTeamMembersSelected")
 
   val sessionKeys =

@@ -18,16 +18,19 @@
 @import connectors.GroupSummary
 @import views.components.models.SummaryListData
 @import views.html.main_layout
+@import views.html.groups.partials.selectable_clients_table_form
 
 @this(
     layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a,
     table: table, textbox: textbox, input_select: input_select,
-    a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs
+    a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs,
+    selectable_clients_table_form: selectable_clients_table_form
 )
 
 @(
     summaries: (Seq[GroupSummary], Seq[DisplayClient]),
     form: Form[AddClientsToGroup],
+    hiddenClientsExist: Option[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig:
 AppConfig)
 
@@ -77,38 +80,17 @@ AppConfig)
 
 }
 
-@unassignedClientTableRows = @{
-    summaries._2.map(client =>
-        Seq(
-            Html(client.name),
-            Html(client.hmrcRef),
-            Html(client.taxService)
-        )
-    )
-}
-
 @unassignedClients = {
     @h2("group.manage.tabs.2.label")
 
     @if(!summaries._2.isEmpty) {
-        @table(
-            id = Some("sortable-table"),
-            headings = Seq(
-                (
-                    Html(msgs("group.client.list.table.th1")),
-                    Map("aria-sort" -> "ascending")
-                ),
-                (
-                    Html(msgs("group.client.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.client.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                ),
-            ),
-            rows = unassignedClientTableRows
+        @selectable_clients_table_form(
+            Some(summaries._2),
+            hiddenClientsExist,
+            form,
+            routes.ManageGroupController.submitAddUnassignedClients
         )
+
     }
     @if(summaries._2.isEmpty) {
         @h3("group.manage.no.unassigned.clients.h3")
@@ -117,7 +99,8 @@ AppConfig)
 }
 
 @layout(title = msgs("group.manage.h1"),
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)) {
+    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
+    fullWidth = true) {
 
 
     @h1("group.manage.h1")
@@ -132,7 +115,7 @@ AppConfig)
                 panel = TabPanel(content = HtmlContent(groupSummaries))
             ),
             TabItem(
-                id = Some("clients-panel"),
+                id = Some("unassigned-clients"),
                 label = msgs("group.manage.tabs.2.label"),
                 panel = TabPanel(content = HtmlContent(unassignedClients))
             )

@@ -73,7 +73,7 @@ class ManageGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         getGroupSummaries(arn).map(data =>
-          Ok(dashboard(data, AddClientsToGroupForm.form()))
+          Ok(dashboard(data, AddClientsToGroupForm.form(),Some(false)))
         )
       }
     }
@@ -227,6 +227,63 @@ class ManageGroupController @Inject()(
       }
     }
     )
+  }
+
+  def showAssignSelectedClients: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+          selectedClients
+            .fold {
+              Redirect(ManageGroupController.showManageGroups)
+            } { clients => Ok(
+                review_clients_to_add(
+                  clients = clients,
+                  groupName = "",
+                  backUrl = Some(ManageGroupController.showManageGroups.url),
+                  continueCall = ManageGroupController.showManageGroups //TODO: update this continue url
+                )
+              )
+            }
+            .toFuture
+        }
+      }
+    }
+  }
+
+  def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+
+    val encoded = request.body.asFormUrlEncoded
+    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
+
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredClients =>
+          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+            AddClientsToGroupForm
+              .form(buttonSelection)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  for {
+                    groupSummaries <- getGroupSummaries(arn)
+                    _ <- (if (buttonSelection == ButtonSelect.Continue)
+                      sessionCacheService.clearSelectedClients()
+                    else ()).toFuture
+                    result <- if (maybeFilteredClients.isDefined)
+                      Ok(dashboard(groupSummaries, formWithErrors, maybeHiddenClients)).toFuture
+                    else
+                      Ok(dashboard(groupSummaries, formWithErrors, maybeHiddenClients)).toFuture
+                  } yield result
+                },
+                formData => {
+                  Redirect(ManageGroupController.showAssignSelectedClients).toFuture
+                }
+              )
+          }
+        }
+      }
+    }
   }
 
   def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>

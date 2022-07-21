@@ -44,8 +44,7 @@ package object controllers {
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
   val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
   val GROUP_DELETED_NAME: DataKey[String] = DataKey("groupDeletedName")
-  val FILTERED_CLIENTS
-    : DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
+  val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val HIDDEN_CLIENTS_EXIST
     : DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
 

@@ -113,7 +113,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
       val unassignedClients = (1 to 8).map(i =>
-        DisplayClient(s"hmrcRef$i", s"name$i", s"taxService$i", ""))
+        DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
       val summaries = Some((groupSummaries, unassignedClients))
       expectGetGroupSummarySuccess(arn, summaries)
 
@@ -143,7 +143,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val unassignedClientsTab = tabs.get(1)
       unassignedClientsTab.hasClass("govuk-tabs__list-item--selected") shouldBe false
       unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
-      unassignedClientsTab.select("a").attr("href") shouldBe "#clients-panel"
+      unassignedClientsTab.select("a").attr("href") shouldBe "#unassigned-clients"
 
       //verify the tab panel contents
       val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
@@ -172,13 +172,13 @@ class ManageGroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
 
       val unassignedClientsPanel =
-        html.select(tabPanelWithIdOf("clients-panel"))
+        html.select(tabPanelWithIdOf("unassigned-clients"))
       unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
       val clientsTh = unassignedClientsPanel.select("table th")
-      clientsTh.size() shouldBe 3
-      clientsTh.get(0).text() shouldBe "Client name"
-      clientsTh.get(1).text() shouldBe "Tax reference"
-      clientsTh.get(2).text() shouldBe "Tax service"
+      clientsTh.size() shouldBe 4
+      clientsTh.get(1).text() shouldBe "Client name"
+      clientsTh.get(2).text() shouldBe "Tax reference"
+      clientsTh.get(3).text() shouldBe "Tax service"
 
       val clientsTrs = unassignedClientsPanel.select("table tbody tr")
       clientsTrs.size() shouldBe 8
@@ -224,7 +224,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val unassignedClientsTab = tabs.get(1)
       unassignedClientsTab.hasClass("govuk-tabs__list-item--selected") shouldBe false
       unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
-      unassignedClientsTab.select("a").attr("href") shouldBe "#clients-panel"
+      unassignedClientsTab.select("a").attr("href") shouldBe "#unassigned-clients"
 
       //verify the tab panel contents
       val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
@@ -237,7 +237,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groupsPanel.select("a").hasClass("govuk-button") shouldBe true
 
       val unassignedClientsPanel =
-        html.select(tabPanelWithIdOf("clients-panel"))
+        html.select(tabPanelWithIdOf("unassigned-clients"))
       unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
       unassignedClientsPanel
         .select("h3")
@@ -866,6 +866,43 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET ${routes.ManageGroupController.showReviewSelectedClients(accessGroup._id.toString)}" should {
+
+
+    "redirect if no clients selected are in session" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.showReviewSelectedClients(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroupClients(accessGroup._id.toString).url
+    }
+
+    "render correctly the manage group REVIEW SELECTED page" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.showReviewSelectedClients(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Review selected clients - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 3 clients"
+      html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
+
+    }
+  }
+
   s"GET ${routes.ManageGroupController.showGroupClientsUpdatedConfirmation(accessGroup._id.toString).url}" should {
 
     "render correctly" in {
@@ -1140,7 +1177,6 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-
   s"GET ${routes.ManageGroupController.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)}" should {
 
     "redirect if no team members selected in session" in {
@@ -1185,4 +1221,39 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
 
   }
+
+  s"GET ${routes.ManageGroupController.showAssignSelectedClients}" should {
+
+    "redirect if no clients selected are in session" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      //when
+      val result = controller.showAssignSelectedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+    }
+
+    "render correctly the selected unassigned clients page" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      //when
+      val result = controller.showAssignSelectedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Review selected clients - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 3 clients"
+      html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
+
+    }
+  }
+
 }

@@ -54,7 +54,9 @@
     ) {
 
         <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName))
+            @if(groupName != ""){
+                @caption(msgs("common.caption.group.name", groupName))
+            }
             @h1(msgs("group.clients.review.h1", clients.size))
         </div>
 

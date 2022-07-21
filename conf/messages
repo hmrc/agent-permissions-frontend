@@ -164,3 +164,5 @@ group.manage.confirm.updated.clients.p=You have changed the clients that can be 
 group.manage.confirm.updated.team-members.h1={0} access group team members updated
 group.manage.confirm.updated.team-members.p=The team members you selected can view and manage the tax affairs of all the clients in this access group.
 
+unassigned.client.assign.hint=Select all that apply
+unassigned.client.assign.h1=Which access groups would you like to add the selected clients to?

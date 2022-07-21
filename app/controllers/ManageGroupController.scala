@@ -33,6 +33,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
+import views.html.groups.unassigned_clients.select_groups_for_clients
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -56,6 +57,7 @@ class ManageGroupController @Inject()(
      team_members_list: team_members_list,
      review_team_members_to_add: review_team_members_to_add,
      team_members_update_complete: team_members_update_complete,
+     select_groups_for_clients: select_groups_for_clients,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService)
@@ -252,6 +254,10 @@ class ManageGroupController @Inject()(
   }
 
   def showSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+    Ok(select_groups_for_clients(YesNoForm.form())).toFuture
+  }
+
+  def submitSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     Ok("whatever").toFuture
   }
 
@@ -275,9 +281,9 @@ class ManageGroupController @Inject()(
                       sessionCacheService.clearSelectedClients()
                     else ()).toFuture
                     result <- if (maybeFilteredClients.isDefined)
-                      Ok(dashboard(groupSummaries, formWithErrors, maybeHiddenClients)).toFuture
+                      Ok(dashboard(groupSummaries, formWithErrors, maybeHiddenClients, true)).toFuture
                     else
-                      Ok(dashboard(groupSummaries, formWithErrors, maybeHiddenClients)).toFuture
+                      Ok(dashboard(groupSummaries, formWithErrors, maybeHiddenClients, true)).toFuture
                   } yield result
                 },
                 formData => {

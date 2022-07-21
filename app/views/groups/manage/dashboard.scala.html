@@ -19,6 +19,7 @@
 @import views.components.models.SummaryListData
 @import views.html.main_layout
 @import views.html.groups.partials.selectable_clients_table_form
+@import views.html.helper.CSPNonce
 
 @this(
     layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a,
@@ -30,7 +31,8 @@
 @(
     summaries: (Seq[GroupSummary], Seq[DisplayClient]),
     form: Form[AddClientsToGroup],
-    hiddenClientsExist: Option[Boolean]
+    hiddenClientsExist: Option[Boolean],
+    showUnassignedClients: Boolean = false
 )(implicit request: Request[_], msgs: Messages, appConfig:
 AppConfig)
 
@@ -112,7 +114,9 @@ AppConfig)
             TabItem(
                 id = Some("groups-panel"),
                 label = msgs("group.manage.tabs.1.label"),
-                panel = TabPanel(content = HtmlContent(groupSummaries))
+                panel = TabPanel(
+                    content = HtmlContent(groupSummaries)
+                )
             ),
             TabItem(
                 id = Some("unassigned-clients"),
@@ -123,4 +127,12 @@ AppConfig)
     ))
 
 
+}
+@if(showUnassignedClients){
+    <script @{CSPNonce.attr}>
+        $(document).ready(function(){
+            $(".govuk-tabs__list-item").toggleClass("govuk-tabs__list-item--selected");
+            $(".govuk-tabs__panel").toggleClass("govuk-tabs__panel--hidden");
+        });
+    </script>
 }

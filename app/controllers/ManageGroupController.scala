@@ -241,7 +241,7 @@ class ManageGroupController @Inject()(
                   clients = clients,
                   groupName = "",
                   backUrl = Some(ManageGroupController.showManageGroups.url + "#unassigned-clients"),
-                  continueCall = ManageGroupController.showManageGroups //TODO: update this continue url
+                  continueCall = ManageGroupController.showSelectGroupsForSelectedUnassignedClients
                 )
               )
             }
@@ -249,6 +249,10 @@ class ManageGroupController @Inject()(
         }
       }
     }
+  }
+
+  def showSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+    Ok("whatever").toFuture
   }
 
   def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>

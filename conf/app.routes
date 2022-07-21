@@ -68,8 +68,9 @@ POST    /rename-group/:groupId                      controllers.ManageGroupContr
 GET     /access-group-renamed/:groupId              controllers.ManageGroupController.showGroupRenamed(groupId: String)
 
 #UNASSIGNED CLIENTS
-POST    /unassigned-clients                                 controllers.ManageGroupController.submitAddUnassignedClients
-GET     /manage-access-group/unassigned-clients-selected    controllers.ManageGroupController.showSelectedUnassignedClients
+POST    /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.submitAddUnassignedClients
+GET     /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.showSelectedUnassignedClients
+GET     /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
 
 
 GET     /delete-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)

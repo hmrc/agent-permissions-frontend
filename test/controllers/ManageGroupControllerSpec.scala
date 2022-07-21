@@ -1222,7 +1222,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.ManageGroupController.showAssignSelectedClients}" should {
+  s"GET ${routes.ManageGroupController.showSelectedUnassignedClients}" should {
 
     "redirect if no clients selected are in session" in {
       //given
@@ -1230,7 +1230,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       //when
-      val result = controller.showAssignSelectedClients(request)
+      val result = controller.showSelectedUnassignedClients(request)
 
       //then
       status(result) shouldBe SEE_OTHER
@@ -1244,7 +1244,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       //when
-      val result = controller.showAssignSelectedClients(request)
+      val result = controller.showSelectedUnassignedClients(request)
 
       //then
       status(result) shouldBe OK
@@ -1252,6 +1252,8 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Review selected clients - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
+      //and the back link should go to the unassigned clients tab
+      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups#unassigned-clients"
 
     }
   }

@@ -229,7 +229,7 @@ class ManageGroupController @Inject()(
     )
   }
 
-  def showAssignSelectedClients: Action[AnyContent] = Action.async { implicit request =>
+  def showSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
@@ -240,7 +240,7 @@ class ManageGroupController @Inject()(
                 review_clients_to_add(
                   clients = clients,
                   groupName = "",
-                  backUrl = Some(ManageGroupController.showManageGroups.url),
+                  backUrl = Some(ManageGroupController.showManageGroups.url + "#unassigned-clients"),
                   continueCall = ManageGroupController.showManageGroups //TODO: update this continue url
                 )
               )
@@ -277,7 +277,7 @@ class ManageGroupController @Inject()(
                   } yield result
                 },
                 formData => {
-                  Redirect(ManageGroupController.showAssignSelectedClients).toFuture
+                  Redirect(ManageGroupController.showSelectedUnassignedClients).toFuture
                 }
               )
           }

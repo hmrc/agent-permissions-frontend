@@ -21,7 +21,7 @@ import models.ButtonSelect
 trait GroupsControllerCommon {
 
   def buttonClickedByUserOnFilterFormPage(
-      formData: Option[Map[String, Seq[String]]]) = {
+      formData: Option[Map[String, Seq[String]]]): ButtonSelect = {
     formData.fold(ButtonSelect.Continue: ButtonSelect)(
       someMap =>
         ButtonSelect(

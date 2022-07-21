@@ -1,56 +1,60 @@
 # microservice specific routes
 
-->      /hmrc-frontend                          hmrcfrontend.Routes
+->      /hmrc-frontend                              hmrcfrontend.Routes
 
-GET     /assets/*file                           controllers.Assets.versioned(path = "/public", file: Asset)
+GET     /assets/*file                               controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET     /                                       controllers.RootController.start
+GET     /                                           controllers.RootController.start
 
-GET     /opt-in/start                           controllers.OptInController.start
-GET     /opt-in/do-you-want-to-opt-in           controllers.OptInController.showDoYouWantToOptIn
-POST    /opt-in/do-you-want-to-opt-in           controllers.OptInController.submitDoYouWantToOptIn
+# opt-in/out
+GET     /opt-in/start                               controllers.OptInController.start
+GET     /opt-in/do-you-want-to-opt-in               controllers.OptInController.showDoYouWantToOptIn
+POST    /opt-in/do-you-want-to-opt-in               controllers.OptInController.submitDoYouWantToOptIn
 
-GET     /opt-in/you-have-opted-in               controllers.OptInController.showYouHaveOptedIn
-GET     /opt-in/you-have-not-opted-in           controllers.OptInController.showYouHaveNotOptedIn
+GET     /opt-in/you-have-opted-in                   controllers.OptInController.showYouHaveOptedIn
+GET     /opt-in/you-have-not-opted-in               controllers.OptInController.showYouHaveNotOptedIn
 
-GET     /opt-out/start                          controllers.OptOutController.start
+GET     /opt-out/start                              controllers.OptOutController.start
 
-GET     /opt-out/do-you-want-to-opt-out         controllers.OptOutController.showDoYouWantToOptOut
-POST    /opt-out/do-you-want-to-opt-out         controllers.OptOutController.submitDoYouWantToOptOut
+GET     /opt-out/do-you-want-to-opt-out             controllers.OptOutController.showDoYouWantToOptOut
+POST    /opt-out/do-you-want-to-opt-out             controllers.OptOutController.submitDoYouWantToOptOut
 
-GET     /opt-out/you-have-opted-out             controllers.OptOutController.showYouHaveOptedOut
+GET     /opt-out/you-have-opted-out                 controllers.OptOutController.showYouHaveOptedOut
 
-GET     /group/create-access-group              controllers.GroupController.start
+# create group
+GET     /group/create-access-group                  controllers.GroupController.start
 
-GET     /group/group-name                       controllers.GroupController.showGroupName
-POST    /group/group-name                       controllers.GroupController.submitGroupName
+GET     /group/group-name                           controllers.GroupController.showGroupName
+POST    /group/group-name                           controllers.GroupController.submitGroupName
 
-GET     /group/confirm-name                     controllers.GroupController.showConfirmGroupName
-POST    /group/confirm-name                     controllers.GroupController.submitConfirmGroupName
+GET     /group/confirm-name                         controllers.GroupController.showConfirmGroupName
+POST    /group/confirm-name                         controllers.GroupController.submitConfirmGroupName
 
-GET     /group/access-group-name-exists         controllers.GroupController.showAccessGroupNameExists
+GET     /group/access-group-name-exists             controllers.GroupController.showAccessGroupNameExists
 
-GET     /group/select-clients                   controllers.GroupController.showSelectClients
-POST    /group/select-clients                   controllers.GroupController.submitSelectedClients
+GET     /group/select-clients                       controllers.GroupController.showSelectClients
+POST    /group/select-clients                       controllers.GroupController.submitSelectedClients
 
-GET     /group/select-clients/review            controllers.GroupController.showReviewSelectedClients
+GET     /group/select-clients/review                controllers.GroupController.showReviewSelectedClients
 
-GET     /group/select-team-members              controllers.GroupController.showSelectTeamMembers
-POST    /group/select-team-members              controllers.GroupController.submitSelectedTeamMembers
+GET     /group/select-team-members                  controllers.GroupController.showSelectTeamMembers
+POST    /group/select-team-members                  controllers.GroupController.submitSelectedTeamMembers
 
-GET     /group/select-team-members/review       controllers.GroupController.showReviewSelectedTeamMembers
+GET     /group/select-team-members/review           controllers.GroupController.showReviewSelectedTeamMembers
 
-GET     /group/check-your-answers               controllers.GroupController.showCheckYourAnswers
-POST    /group/check-your-answers               controllers.GroupController.submitCheckYourAnswers
+GET     /group/check-your-answers                   controllers.GroupController.showCheckYourAnswers
+POST    /group/check-your-answers                   controllers.GroupController.submitCheckYourAnswers
 
-GET     /group/group-created                    controllers.GroupController.showGroupCreated
+GET     /group/group-created                        controllers.GroupController.showGroupCreated
 
-GET     /manage-access-groups                   controllers.ManageGroupController.showManageGroups
-GET     /manage-clients/:groupId                controllers.ManageGroupController.showExistingGroupClients(groupId: String)
-GET     /update-clients/:groupId                controllers.ManageGroupController.showManageGroupClients(groupId: String)
-POST    /update-clients/:groupId                controllers.ManageGroupController.submitManageGroupClients(groupId: String)
-GET     /update-clients/review/:groupId         controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
-GET     /clients-updated/:groupId               controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
+# manage groups
+GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups
+
+GET     /manage-group-clients/:groupId              controllers.ManageGroupController.showExistingGroupClients(groupId: String)
+GET     /update-group-clients/:groupId              controllers.ManageGroupController.showManageGroupClients(groupId: String)
+POST    /update-group-clients/:groupId              controllers.ManageGroupController.submitManageGroupClients(groupId: String)
+GET     /update-group-clients/review/:groupId       controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
+GET     /clients-updated/:groupId                   controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 
 GET     /manage-group-team-members/:groupId         controllers.ManageGroupController.showExistingGroupTeamMembers(groupId: String)
@@ -59,11 +63,14 @@ POST    /update-group-team-members/:groupId         controllers.ManageGroupContr
 GET     /update-group-team-members/review/:groupId  controllers.ManageGroupController.showReviewSelectedTeamMembers(groupId: String)
 GET     /team-members-updated/:groupId              controllers.ManageGroupController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
 
-GET     /rename-group/:groupId                  controllers.ManageGroupController.showRenameGroup(groupId: String)
-POST    /rename-group/:groupId                  controllers.ManageGroupController.submitRenameGroup(groupId: String)
-GET     /access-group-renamed/:groupId          controllers.ManageGroupController.showGroupRenamed(groupId: String)
+GET     /rename-group/:groupId                      controllers.ManageGroupController.showRenameGroup(groupId: String)
+POST    /rename-group/:groupId                      controllers.ManageGroupController.submitRenameGroup(groupId: String)
+GET     /access-group-renamed/:groupId              controllers.ManageGroupController.showGroupRenamed(groupId: String)
 
-GET     /delete-group/:groupId                  controllers.ManageGroupController.showDeleteGroup(groupId: String)
-POST    /delete-group/:groupId                  controllers.ManageGroupController.submitDeleteGroup(groupId: String)
+GET     /delete-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)
+POST    /delete-group/:groupId                      controllers.ManageGroupController.submitDeleteGroup(groupId: String)
+GET     /access-group-deleted                       controllers.ManageGroupController.showGroupDeleted
 
-GET     /access-group-deleted                   controllers.ManageGroupController.showGroupDeleted
+# manage clients
+GET     /manage-clients                             controllers.ManageClientController.showAllClients
+GET     /manage-clients/client-details              controllers.ManageClientController.showClientDetails

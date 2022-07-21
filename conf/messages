@@ -11,6 +11,7 @@ common.caption.group.name={0} access group
 continue=Continue
 common.what.happens.next=What happens next?
 common.change=Change
+common.action=Action
 
 common.clients=Clients
 common.teamMembers=Team members
@@ -163,4 +164,8 @@ group.manage.confirm.updated.clients.p=You have changed the clients that can be 
 
 group.manage.confirm.updated.team-members.h1={0} access group team members updated
 group.manage.confirm.updated.team-members.p=The team members you selected can view and manage the tax affairs of all the clients in this access group.
+
+all-clients.p1=View client details, update client reference and see what groups a client is in.
+all-clients.link=Client details
+all-clients.link-hidden= for {0}
 

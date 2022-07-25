@@ -71,6 +71,19 @@ class GroupService @Inject()(
       sorted = mergedWithPreselected.map(_.sortBy(_.name))
     } yield sorted
 
+
+  def getClientsForManageGroups(displayClients: Future[Seq[DisplayClient]])(implicit request: Request[_],
+                                          hc: HeaderCarrier,
+                                          ec: ExecutionContext) =
+    for {
+      maybeSelectedClients <- sessionCacheRepository
+        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
+      dcWithoutPreselected <- displayClients.map(_.filterNot(clients =>
+      maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(clients.hmrcRef))))
+      mergeWithPreselected = dcWithoutPreselected.toList  ::: maybeSelectedClients.getOrElse(List.empty).toList
+      sorted = mergeWithPreselected.sortBy(_.name)
+    } yield sorted
+
   def getTeamMembers(arn: Arn)(
       maybeSelectedTeamMembers: Option[Seq[TeamMember]] = None
   )(implicit hc: HeaderCarrier,
@@ -109,8 +122,8 @@ class GroupService @Inject()(
 
 
   /*
-   * a) add the group members that are in the form that are not already in the session
-   * b) remove from the session the group members that were de-selected
+   * Add the new group members (group members that are in the form that are not already in the session)
+   * Remove group members that were de-selected
    *
    * */
   def addSelectablesToSession[T <: Selectable](formData: Option[List[T]])

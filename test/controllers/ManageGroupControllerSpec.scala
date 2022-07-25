@@ -17,9 +17,10 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary, UpdateAccessGroupRequest}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
+import models.DisplayClient.toEnrolment
 import models.{ButtonSelect, DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
@@ -47,7 +48,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
     : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val mockGroupService: GroupService = mock[GroupService]
+  implicit val groupService: GroupService = new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -72,7 +73,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-      bind(classOf[GroupService]).toInstance(mockGroupService)
+      bind(classOf[GroupService]).toInstance(groupService)
     }
   }
 
@@ -88,6 +89,8 @@ class ManageGroupControllerSpec extends BaseSpec {
     fakeClients.map(DisplayClient.fromClient(_))
   val encodedDisplayClients: Seq[String] = displayClients.map(client =>
     Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+
+  val agentUsers: Set[AgentUser] = (1 to 5).map(i => AgentUser(id = i.toString, name = s"John $i")).toSet
 
   val userDetails: Seq[UserDetails] = (1 to 5)
     .map { i =>
@@ -612,13 +615,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-
-      (mockGroupService
-        .getClients(_: Arn)(_: Request[_],
-                            _: HeaderCarrier,
-                            _: ExecutionContext))
-        .expects(accessGroup.arn, *, *, *)
-        .returning(Future successful Some(displayClients))
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result =
@@ -659,12 +656,8 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       expectGetGroupSuccess(groupWithClients._id.toString, Some(groupWithClients))
-      (mockGroupService
-        .getClients(_: Arn)(_: Request[_],
-          _: HeaderCarrier,
-          _: ExecutionContext))
-        .expects(groupWithClients.arn, *, *, *)
-        .returning(Future successful Some(displayClients))
+
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result =
@@ -705,12 +698,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
-      (mockGroupService
-        .getClients(_: Arn)(_: Request[_],
-                            _: HeaderCarrier,
-                            _: ExecutionContext))
-        .expects(accessGroup.arn, *, *, *)
-        .returning(Future successful Some(displayClients))
+      stubGetClientsOk(arn)(fakeClients)
 
       val result =
         controller.showManageGroupClients(accessGroup._id.toString)(request)
@@ -760,7 +748,9 @@ class ManageGroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        expectProcessFormDataForClients(ButtonSelect.Continue)(accessGroup.arn)
+
+        expectUpdateGroupSuccess(accessGroup._id.toString,
+          UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(toEnrolment(_)))))
 
         val result =
           controller.submitManageGroupClients(accessGroup._id.toString)(request)
@@ -790,7 +780,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        stubGetClients(arn)(displayClients)
+        stubGetClientsOk(arn)(fakeClients)
 
 
         // when
@@ -857,7 +847,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        expectProcessFormDataForClients(ButtonSelect.Filter)(arn)
+        stubGetClientsOk(arn)(fakeClients)
 
         // when
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
@@ -947,8 +937,8 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-      stubGetTeamMembersFromGroup(accessGroup.arn)(teamMembers)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
+      stubGetTeamMembersOk(arn)(userDetails)
 
       //when
       val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(request)

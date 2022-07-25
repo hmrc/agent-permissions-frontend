@@ -17,7 +17,7 @@
 package helpers
 
 import akka.Done
-import connectors.{AgentPermissionsConnector, GroupRequest, GroupSummary}
+import connectors.{AgentPermissionsConnector, GroupRequest, GroupSummary, UpdateAccessGroupRequest}
 import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.{BAD_REQUEST, OK}
@@ -108,5 +108,11 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, name, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
+
+  def expectUpdateGroupSuccess(id: String, updateGroupRequest: UpdateAccessGroupRequest)(
+    implicit agentPermissionsConnector: AgentPermissionsConnector) =
+    (agentPermissionsConnector.updateGroup(_: String, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, updateGroupRequest, *, *)
+      .returning(Future successful Done)
 
 }

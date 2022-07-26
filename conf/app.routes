@@ -72,6 +72,7 @@ POST    /manage-access-group/unassigned-clients-selected        controllers.Mana
 GET     /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.showSelectedUnassignedClients
 GET     /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
 POST    /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients
+POST    /manage-access-group/done    controllers.ManageGroupController.showConfirmClientsAddedToGroups
 
 
 GET     /delete-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)

@@ -19,6 +19,8 @@
 @import views.components.models.CheckBoxData
 @import views.components.models.LegendData
 @import views.html.main_layout
+@import connectors.GroupSummary
+@import forms.SelectGroups
 
 @this(
     layout: main_layout,
@@ -28,10 +30,8 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[_],
-    groups: Seq[DisplayGroup] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
-
-@groups = @{Seq("one", "two", "three")}
+@( form: Form[SelectGroups],
+    groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("unassigned.client.assign.h1"),
@@ -44,12 +44,34 @@
         @checkBoxes(
             field = form("groups[]"),
             name = "groups[]",
-            items = groups.map(name =>{
-                val id = name.replaceAll(" ", "_").toLowerCase
-                CheckBoxData(id=id, name="groups[]", label=id, value=id)
+            items = groups.zipWithIndex.map { case (groupSummary, idx) => {
+                val id = groupSummary.groupId
+                CheckBoxData(
+                    id = id,
+                    name = "groups[]", label = groupSummary.groupName,
+                    value = id,
+                    checked = form.data.get(s"groups[${idx}]").isDefined
+                )
             }
-            ),
+            },
             hint = Some("select all that apply")
+        )
+
+        @checkBoxes(
+            field = form("createNew"),
+            name = "createNew",
+            items = Seq(
+                CheckBoxData(
+                    id = "create_new",
+                    name = "createNew",
+                    label = "Add to a new access group",
+                    value = "true",
+                    checked = form.data.get("createNew").isDefined
+
+
+            )
+            ),
+            hint = Some("or")
         )
 
         @submit_button()

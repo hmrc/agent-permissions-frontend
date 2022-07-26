@@ -54,6 +54,9 @@ package object controllers {
   val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
     "groupTeamMembersSelected")
 
+  val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]]
+    = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
+
   val sessionKeys =
     List(OPTIN_STATUS, GROUP_NAME, GROUP_NAME_CONFIRMED, GROUP_CLIENTS)
 

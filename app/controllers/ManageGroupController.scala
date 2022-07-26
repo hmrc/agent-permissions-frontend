@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import controllers.routes.ManageGroupController
-import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
+import forms.{SelectGroupsForm, _}
 import models.DisplayClient.toEnrolment
 import models.TeamMember.toAgentUser
 import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
@@ -58,6 +58,7 @@ class ManageGroupController @Inject()(
      review_team_members_to_add: review_team_members_to_add,
      team_members_update_complete: team_members_update_complete,
      select_groups_for_clients: select_groups_for_clients,
+     clients_added_to_groups_complete: clients_added_to_groups_complete,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService)
@@ -254,11 +255,48 @@ class ManageGroupController @Inject()(
   }
 
   def showSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
-    Ok(select_groups_for_clients(YesNoForm.form())).toFuture
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+        getGroupSummaries(arn).map(tuple =>
+        Ok(select_groups_for_clients(SelectGroupsForm
+          .form()
+          .fill(SelectGroups(None, None)), tuple._1)))
+      }
+    }
   }
 
   def submitSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
-    Ok("whatever").toFuture
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+        SelectGroupsForm.form().bindFromRequest().fold(
+          formWithErrors => {
+            getGroupSummaries(arn).map(tuple => {
+              Ok(select_groups_for_clients(formWithErrors, tuple._1))
+            }
+            )
+          }, validForm => {
+            if(validForm.createNew.isDefined) Redirect(routes.GroupController.showGroupName)
+            else {
+              sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, validForm.groups.get)
+              Redirect(routes.ManageGroupController.showConfirmClientsAddedToGroups)
+            }
+          }.toFuture
+        )
+      }
+    }
+  }
+
+  def showConfirmClientsAddedToGroups: Action[AnyContent] = Action.async {implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+        sessionCacheRepository.getFromSession(GROUPS_FOR_UNASSIGNED_CLIENTS).map(maybeGroupNames =>
+          maybeGroupNames.fold(
+            Redirect(routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients.url )
+          )(groups => Ok(clients_added_to_groups_complete(groups)))
+
+        )
+      }
+    }
   }
 
   def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>

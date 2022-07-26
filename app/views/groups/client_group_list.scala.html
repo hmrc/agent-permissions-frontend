@@ -16,13 +16,9 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import play.api.libs.json.Json
-@import utils.ViewUtils._
-@import views.html.main_layout
 @import models.AddClientsToGroup
-@import models.ButtonSelect.{Clear, Continue, Filter}
-
-@import java.util.Base64
+@import views.html.groups.partials.selectable_clients_table_form
+@import views.html.main_layout
 
 @this(
     layout: main_layout,
@@ -35,7 +31,8 @@
     input_select: input_select,
     checkBox: checkBox,
     summaryErrors: SummaryErrors,
-    formWithCSRF: FormWithCSRF
+    formWithCSRF: FormWithCSRF,
+    selectable_clients_table_form: selectable_clients_table_form
 )
 
 @(
@@ -47,132 +44,28 @@
     backUrl: Option[String] = Some(routes.GroupController.showConfirmGroupName.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @tableRows = @{
-        clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
-            Seq(
-                Html(
-                    checkBox(
-                        name = Some("clients[]"),
-                        id = Some(s"add-client-${Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)}"),
-                        label = client.name,
-                        value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)),
-                        checked = client.selected
-                    ).toString
-                ),
-                Html(client.name),
-                Html(displayObfuscatedReference(client.hmrcRef)),
-                Html(displayTaxServiceFromServiceKey(client.taxService)),
-            )
-        )
-        )
-    }
 
 @errorHref = @{
     if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
 }
 
 @pageTitle = @{
-val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
-errorPrefix.concat(msgs("group.client.list.h1", groupName))
+    val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
+    errorPrefix.concat(msgs("group.client.list.h1", groupName))
 }
-    @layout(
-        title = pageTitle,
-        backLinkHref = backUrl,
-        formErrors = Seq.empty,
-        fullWidth = true,
-    ) {
 
-        @summaryErrors(form.errors, Some(errorHref.toString))
+@layout(title = pageTitle, backLinkHref = backUrl, formErrors = Seq.empty, fullWidth = true) {
 
-        <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs("group.client.list.h1", groupName))
-            @p("group.client.list.p1")
-        </div>
+    @summaryErrors(form.errors, Some(errorHref))
 
-        @formWithCSRF(action = formAction) {
+    <div class="govuk-!-width-two-thirds">
+        @caption(msgs("common.caption.group.name", groupName))
+        @h1(msgs("group.client.list.h1", groupName))
+        @p("group.client.list.p1")
+    </div>
 
-        <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
+    @selectable_clients_table_form(clients, hiddenClientsExist, form, formAction)
 
-            <div class="govuk-grid-row">
-                @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
-                <div class="govuk-form-group govuk-form-group--error">
-                }
-
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                        @msgs("filter.legend")
-                    </legend>
-
-                @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
-                    <p id="filter-error" class="govuk-error-message">
-                        <span class="govuk-visually-hidden">Error:</span>
-                        @msgs("error.search-filter.empty")
-                    </p>
-                    }
-
-                <div class="govuk-grid-column-one-quarter">
-                    @textbox(
-                    field = form("search"),
-                    label = "client-filter.text.label",
-                    labelClasses = "govuk-label--s",
-                    classes = "govuk-input--width-20"
-                    )
-                </div>
-
-                <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
-                @input_select(
-                    field = form("filter"),
-                    label = msgs("client-filter.select.label"),
-                    options = getFiltersByTaxService()
-                )
-                </div>
-
-                <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-                @submit_button_group()
-                </div>
-                </fieldset>
-                    @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
-            </div>
-
-
-
-        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
-        <div class="govuk-form-group govuk-form-group--error">
-            <p id="clients-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
-            </p>
-            }
-
-            <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
-
-            @table(
-                id = Some("sortable-table"),
-                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-                headings = Seq(
-                    (
-                        Html(span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox").toString),
-                        Map("id" -> "select-all")
-                    ),
-                    (
-                        Html(msgs("group.client.list.table.th1")),
-                        Map("aria-sort" -> "none")
-                    ),
-                    (
-                        Html(msgs("group.client.list.table.th2")),
-                        Map("aria-sort" -> "none")
-                    ),
-                    (
-                        Html(msgs("group.client.list.table.th3")),
-                        Map("aria-sort" -> "none")
-                    )),
-                rows = tableRows,
-            )
-            </div>
-            @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
-
-            @submit_button("save.and.continue.button")
-        }
-    }
+}
 
 

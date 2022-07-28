@@ -19,6 +19,8 @@
 @import views.components.models.CheckBoxData
 @import views.components.models.LegendData
 @import views.html.main_layout
+@import connectors.GroupSummary
+@import forms.SelectGroups
 
 @this(
     layout: main_layout,
@@ -28,10 +30,8 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[_],
-    groups: Seq[DisplayGroup] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
-
-@groups = @{Seq("one", "two", "three")}
+@( form: Form[SelectGroups],
+    groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("unassigned.client.assign.h1"),
@@ -41,16 +41,47 @@
     @h1("unassigned.client.assign.h1")
     @formWithCSRF(action = routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients) {
 
-        @checkBoxes(
-            field = form("groups[]"),
-            name = "groups[]",
-            items = groups.map(name =>{
-                val id = name.replaceAll(" ", "_").toLowerCase
-                CheckBoxData(id=id, name="groups[]", label=id, value=id)
+        <div id="field-wrapper" class="govuk-form-group  @{if(form.errors)"govuk-form-group--error" else ""}">
+            @if(form.errors){
+                @p( key = form.errors(0).message,
+                    id = Some("field-wrapper-error"),
+                    classes = Some("govuk-error-message")
+                )
             }
-            ),
-            hint = Some(msgs("unassigned.client.assign.hint"))
-        )
+            @checkBoxes(
+                field = form("groups[]"),
+                name = "groups[]",
+                items = groups.zipWithIndex.map { case (groupSummary, idx) => {
+                    val id = groupSummary.groupId
+                    CheckBoxData(
+                        id = id,
+                        name = "groups[]",
+                        label = groupSummary.groupName,
+                        value = id,
+                        checked = form.data.get(s"groups[${idx}]").isDefined
+                    )
+                }
+                },
+                hint = Some(msgs("unassigned.client.assign.hint"))
+            )
+
+            @checkBoxes(
+                field = form("createNew"),
+                name = "createNew",
+                items = Seq(
+                    CheckBoxData(
+                        id = "create_new",
+                        name = "createNew",
+                        label = "Add to a new access group",
+                        value = "true",
+                        checked = form.data.get("createNew").isDefined
+
+
+                )
+                ),
+                hint = Some("or")
+            )
+        </div>
 
         @submit_button()
     }

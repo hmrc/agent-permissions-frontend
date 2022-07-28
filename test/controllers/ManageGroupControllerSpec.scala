@@ -21,25 +21,24 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, G
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.DisplayClient.toEnrolment
-import models.{ButtonSelect, DisplayClient, TeamMember}
+import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContentAsFormUrlEncoded, Request}
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
 import java.util.Base64
-import scala.concurrent.{ExecutionContext, Future}
 
 class ManageGroupControllerSpec extends BaseSpec {
 
@@ -1006,29 +1005,6 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients}" should {
-    "display content" in {
-      val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
-
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title shouldBe "Which access groups would you like to add the selected clients to? - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add the selected clients to?"
-
-
-    }
-  }
-
-  s"GET ${routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients}" should {
-    "display correct content" in {
-      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
-
-      status(result) shouldBe OK
-
-    }
-  }
 
   s"POST ${routes.ManageGroupController.submitAddUnassignedClients}" should {
     s"save selected unassigned clients and redirect to ${routes.ManageGroupController.showSelectedUnassignedClients} " +
@@ -1557,6 +1533,177 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
       //and the back link should go to the unassigned clients tab
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups#unassigned-clients"
+
+    }
+  }
+
+  s"GET ${routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients}" should {
+
+    "render correctly the select groups for unassigned clients page" in {
+      //given
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+
+      //when
+      val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Which access groups would you like to add the selected clients to? - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Which access groups would you like to add the selected clients to?"
+      //and the back link should go to the unassigned clients tab
+      html.select(Css.backLink).attr("href") shouldBe routes.ManageGroupController.showSelectedUnassignedClients.url
+
+    }
+  }
+
+  s"POST ${routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients}" should{
+
+    "redirect to create group if CREATE NEW is selected" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody("createNew" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      //when
+      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+
+    }
+
+    "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
+      //given
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody("groups[0]" -> "12412312")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+
+      //when
+      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupController.showConfirmClientsAddedToGroups.url
+
+    }
+
+    "show errors when nothing selected" in {
+      //given
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody()
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+
+      //when
+      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      //and should show errors
+      val html = Jsoup.parse(contentAsString(result))
+      html.select(Css.errorSummaryForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
+      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
+
+
+    }
+
+    "show errors when both createNew and existing groups are selected" in {
+      //given
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody("createNew" -> "true","groups[0]" -> "12412312")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+
+      //when
+      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      //and should show errors
+      val html = Jsoup.parse(contentAsString(result))
+      html.select(Css.errorSummaryForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
+      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
+
+
+    }
+  }
+
+  s"GET ${routes.ManageGroupController.showConfirmClientsAddedToGroups}" should {
+
+    "render correctly the select groups for unassigned clients page" in {
+      //given
+      val groups = Seq("South West", "London")
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groups))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      //when
+      val result = controller.showConfirmClientsAddedToGroups(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Clients added to access groups - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Clients added to access groups"
+      val paragraphs = html.select(Css.paragraphs)
+      paragraphs.get(0).text() shouldBe "You have added these clients to the following groups:"
+      val listItems = html.select("ul.govuk-list li.govuk-list--item")
+      listItems.size() shouldBe groups.size
+      listItems.get(0).text shouldBe groups(0)
+      listItems.get(1).text shouldBe groups(1)
+      //and the back link should go to the unassigned clients tab
+      html.select(Css.backLink).size() shouldBe 0
+
+    }
+
+    "redirect when no group names in session" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      //when
+      val result = controller.showConfirmClientsAddedToGroups(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients.url
 
     }
   }

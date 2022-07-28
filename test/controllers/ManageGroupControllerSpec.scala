@@ -21,25 +21,24 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, G
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.DisplayClient.toEnrolment
-import models.{ButtonSelect, DisplayClient, TeamMember}
+import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContentAsFormUrlEncoded, Request}
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
 import java.util.Base64
-import scala.concurrent.{ExecutionContext, Future}
 
 class ManageGroupControllerSpec extends BaseSpec {
 
@@ -1006,29 +1005,6 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients}" should {
-    "display content" in {
-      val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
-
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title shouldBe "Which access groups would you like to add the selected clients to? - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add the selected clients to?"
-
-
-    }
-  }
-
-  s"GET ${routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients}" should {
-    "display correct content" in {
-      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
-
-      status(result) shouldBe OK
-
-    }
-  }
 
   s"POST ${routes.ManageGroupController.submitAddUnassignedClients}" should {
     s"save selected unassigned clients and redirect to ${routes.ManageGroupController.showSelectedUnassignedClients} " +
@@ -1611,6 +1587,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
       //given
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients.url)
           .withFormUrlEncodedBody("groups[0]" -> "12412312")
@@ -1619,6 +1597,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
@@ -1651,7 +1630,9 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
-      println(html)
+      html.select(Css.errorSummaryForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
+      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
+
 
     }
 
@@ -1677,7 +1658,9 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
-      println(html)
+      html.select(Css.errorSummaryForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
+      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
+
 
     }
   }

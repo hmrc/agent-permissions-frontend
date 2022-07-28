@@ -18,17 +18,17 @@ package controllers
 
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
-import controllers.routes.ManageGroupController
-import forms.{SelectGroupsForm, _}
+import forms._
 import models.DisplayClient.toEnrolment
 import models.TeamMember.toAgentUser
 import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
 import play.api.Logging
+import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -236,14 +236,41 @@ class ManageGroupController @Inject()(
       isOptedInComplete(arn) { _ =>
         SelectGroupsForm.form().bindFromRequest().fold(
           formWithErrors => {
-            getGroupSummaries(arn).map(tuple => {
-              Ok(select_groups_for_clients(formWithErrors, tuple._1))
+            getGroupSummaries(arn).map( tuple => {
+              val clonedForm = formWithErrors.copy(
+                errors = Seq(FormError("field-wrapper", formWithErrors.errors(0).message))
+              )
+              Ok(select_groups_for_clients(clonedForm, tuple._1))
             }
             )
           }, validForm => {
             if(validForm.createNew.isDefined) Redirect(routes.GroupController.showGroupName)
             else {
-              sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, validForm.groups.get)
+              val selectedGroups = for {
+                summaries <- getGroupSummaries(arn)
+                groupsToAddTo = summaries._1
+                  .filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId))
+                _ <- sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
+              } yield groupsToAddTo
+
+              sessionCacheRepository.getFromSession(SELECTED_CLIENTS).foreach(maybeDisplayClients =>
+                //SAVE DISPLAY CLIENTS TO EACH GROUP
+                if (maybeDisplayClients.isDefined) {
+                  val enrolments: Set[Enrolment] = maybeDisplayClients.get.map(DisplayClient.toEnrolment(_)).toSet
+                  selectedGroups.foreach(x => x.foreach(grp => {
+                    for {
+                      group <- agentPermissionsConnector.getGroup(grp.groupId)
+                      existingEnrolments: Set[Enrolment] = group.map(_.clients.getOrElse(Set.empty[Enrolment])).get
+                      updatedEnrolments = existingEnrolments ++ enrolments
+                      _ <- agentPermissionsConnector.updateGroup (
+                        grp.groupId, UpdateAccessGroupRequest(clients = Some(updatedEnrolments))
+                      )
+                    } yield ()
+                  }
+                  )
+                  )
+                }
+              )
               Redirect(routes.ManageGroupController.showConfirmClientsAddedToGroups)
             }
           }.toFuture
@@ -258,8 +285,11 @@ class ManageGroupController @Inject()(
         sessionCacheRepository.getFromSession(GROUPS_FOR_UNASSIGNED_CLIENTS).map(maybeGroupNames =>
           maybeGroupNames.fold(
             Redirect(routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients.url )
-          )(groups => Ok(clients_added_to_groups_complete(groups)))
-
+          )(groups => {
+              sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS)
+              Ok(clients_added_to_groups_complete(groups))
+            }
+          )
         )
       }
     }
@@ -563,4 +593,9 @@ class ManageGroupController @Inject()(
     NotFound(group_not_found()).toFuture
   }
 
+  private def getGroupSummaries(arn: Arn)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[(Seq[GroupSummary], Seq[DisplayClient])] = {
+    agentPermissionsConnector.groupsSummaries(arn).map { maybeSummaries =>
+      maybeSummaries.getOrElse((Seq.empty[GroupSummary], Seq.empty[DisplayClient]))
+    }
+  }
 }

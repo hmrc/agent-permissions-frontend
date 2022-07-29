@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import forms._
 import models.DisplayClient.toEnrolment
 import models.TeamMember.toAgentUser
@@ -244,36 +244,32 @@ class ManageGroupController @Inject()(
             }
             )
           }, validForm => {
-            if(validForm.createNew.isDefined) Redirect(routes.GroupController.showGroupName)
+            if(validForm.createNew.isDefined) Redirect(routes.GroupController.showGroupName).toFuture
             else {
-              val selectedGroups = for {
+              for {
                 summaries <- getGroupSummaries(arn)
                 groupsToAddTo = summaries._1
                   .filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId))
                 _ <- sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
-              } yield groupsToAddTo
-
-              sessionCacheRepository.getFromSession(SELECTED_CLIENTS).foreach(maybeDisplayClients =>
-                //SAVE DISPLAY CLIENTS TO EACH GROUP
-                if (maybeDisplayClients.isDefined) {
-                  val enrolments: Set[Enrolment] = maybeDisplayClients.get.map(DisplayClient.toEnrolment(_)).toSet
-                  selectedGroups.foreach(x => x.foreach(grp => {
-                    for {
-                      group <- agentPermissionsConnector.getGroup(grp.groupId)
-                      existingEnrolments: Set[Enrolment] = group.map(_.clients.getOrElse(Set.empty[Enrolment])).get
-                      updatedEnrolments = existingEnrolments ++ enrolments
-                      _ <- agentPermissionsConnector.updateGroup (
-                        grp.groupId, UpdateAccessGroupRequest(clients = Some(updatedEnrolments))
-                      )
-                    } yield ()
+                selectedClients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS)
+                result <- selectedClients.fold(
+                  Redirect(routes.ManageGroupController.showManageGroups).toFuture
+                )
+                { displayClients =>
+                  val enrolments: Set[Enrolment] = displayClients.map(DisplayClient.toEnrolment(_)).toSet
+                  Future.sequence( groupsToAddTo.map{ grp =>
+                    //TODO: what do we do if 3 out of 4 fail to save?
+                    agentPermissionsConnector.addUnassignedMembers (
+                      grp.groupId, AddMembersToAccessGroupRequest(clients = Some(enrolments))
+                    )
+                  }).map{ _ =>
+                    Redirect(routes.ManageGroupController.showConfirmClientsAddedToGroups)
                   }
-                  )
-                  )
                 }
-              )
-              Redirect(routes.ManageGroupController.showConfirmClientsAddedToGroups)
+              } yield result
+
             }
-          }.toFuture
+          }
         )
       }
     }

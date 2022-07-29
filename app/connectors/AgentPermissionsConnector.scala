@@ -28,12 +28,7 @@ import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
-import uk.gov.hmrc.http.{
-  HeaderCarrier,
-  HttpClient,
-  HttpResponse,
-  UpstreamErrorResponse
-}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
@@ -67,6 +62,10 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                            ec: ExecutionContext): Future[Option[AccessGroup]]
 
   def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Done]
+
+  def addUnassignedMembers(id: String, groupRequest: AddMembersToAccessGroupRequest)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Done]
 
@@ -213,9 +212,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  override def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Done] = {
+  override def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
+                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/${id}"
     monitor("ConsumedAPI-update group-PATCH") {
       http
@@ -226,6 +224,24 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
             case anyOtherStatus =>
               throw UpstreamErrorResponse(
                 s"error PATCHing update group request to $url",
+                anyOtherStatus)
+          }
+        }
+    }
+  }
+
+  override def addUnassignedMembers(id: String, groupRequest: AddMembersToAccessGroupRequest)
+                                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/groups/${id}/add-unassigned"
+    monitor("ConsumedAPI- add members to group -PUT") {
+      http
+        .PUT[AddMembersToAccessGroupRequest, HttpResponse](url, groupRequest)
+        .map { response =>
+          response.status match {
+            case OK => Done
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(
+                s"error PUTing members to group request to $url",
                 anyOtherStatus)
           }
         }
@@ -284,4 +300,13 @@ case class UpdateAccessGroupRequest(
 object UpdateAccessGroupRequest {
   implicit val format: OFormat[UpdateAccessGroupRequest] =
     Json.format[UpdateAccessGroupRequest]
+}
+
+case class AddMembersToAccessGroupRequest(
+                                           teamMembers: Option[Set[AgentUser]] = None,
+                                          clients: Option[Set[Enrolment]] = None
+                                         )
+
+object AddMembersToAccessGroupRequest {
+  implicit val format: OFormat[AddMembersToAccessGroupRequest] = Json.format[AddMembersToAccessGroupRequest]
 }

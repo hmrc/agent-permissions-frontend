@@ -14,37 +14,40 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
-@import uk.gov.hmrc.govukfrontend.views.html.components.{Text, Button}
+@import uk.gov.hmrc.govukfrontend.views.html.components.{Button, GovukButton, Text}
 
 @this(button: GovukButton)
 
 @(
- submitId: String = "filter-button",
- submitValue: String = "submitFilter",
- submitMsgKey: String = "filter.apply",
- name: String = "submitFilter",
- secondId: String = "clear-button",
- secondValue: String = "submitClear",
- secondMsgKey: String = "filter.clear",
- secondName: String = "submitClear"
+    submitId: String = "filter-button",
+    submitValue: String = "submitFilter",
+    submitMsgKey: String = "filter.apply",
+    name: String = "submitFilter",
+    secondId: String = "clear-button",
+    secondValue: String = "submitClear",
+    secondMsgKey: String = "filter.clear",
+    secondName: String = "submitClear",
+    id: Option[String] = None,
+    additionalClasses: String = ""
 )(implicit msgs: Messages)
 
-<div class="govuk-button-group govuk-!-margin-bottom-7">
-@button(Button(
-    attributes = Map("id" -> s"${submitId}"),
-    classes = "govuk-button--secondary",
-    content = Text(msgs(submitMsgKey)),
-    inputType = Some("submit"),
-    name = Some(name),
-    value = Some(submitValue)
-))
-@button(Button(
-    attributes = Map("id" -> s"${secondId}"),
-    classes = "govuk-button--secondary",
-    content = Text(msgs(secondMsgKey)),
-    inputType = Some("submit"),
-    name = Some(secondName),
-    value = Some(secondValue)
-))
+<div
+    @id.map(i => {s"id =${i}"})
+    class="govuk-button-group @additionalClasses">
+    @button(Button(
+        attributes = Map("id" -> s"${submitId}"),
+        classes = "govuk-button--secondary",
+        content = Text(msgs(submitMsgKey)),
+        inputType = Some("submit"),
+        name = Some(name),
+        value = Some(submitValue)
+    ))
+    @button(Button(
+        attributes = Map("id" -> s"${secondId}"),
+        classes = "govuk-button--secondary",
+        content = Text(msgs(secondMsgKey)),
+        inputType = Some("submit"),
+        name = Some(secondName),
+        value = Some(secondValue)
+    ))
 </div>

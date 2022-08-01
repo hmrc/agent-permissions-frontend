@@ -19,6 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import forms._
+import models.ButtonSelect.{Clear, Filter}
 import models.DisplayClient.toEnrolment
 import models.TeamMember.toAgentUser
 import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
@@ -75,23 +76,71 @@ class ManageGroupController @Inject()(
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
-          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-            agentPermissionsConnector
-              .groupsSummaries(arn).flatMap{
-              case Some(groupSummaries) => {
-               if(maybeFilteredResult.isDefined) Ok(dashboard((groupSummaries._1, maybeFilteredResult.get), AddClientsToGroupForm.form(), maybeHiddenClients)).toFuture
-               else groupService.getClientsForManageGroups(groupSummaries._2.toFuture).map(dc =>
-                  Ok(dashboard((groupSummaries._1,dc),AddClientsToGroupForm.form(), maybeHiddenClients)))
+        withSessionItem[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES) { maybeFilteredGroups =>
+          withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredClients =>
+            withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+
+              (maybeFilteredGroups, maybeFilteredClients, maybeHiddenClients) match {
+                case (Some(filteredGroups), Some(filteredClients), hiddenClients) =>
+                  Ok(dashboard((filteredGroups, filteredClients), AddClientsToGroupForm.form(), FilterByGroupNameForm.form, hiddenClients)).toFuture
+                case (Some(filteredGroups), None, hiddenClients) =>
+                  agentPermissionsConnector.groupsSummaries(arn).flatMap{
+                    case Some(groupSummaries) => groupService.getClientsForManageGroups(groupSummaries._2.toFuture).map(dc =>
+                      Ok(dashboard((filteredGroups, dc), AddClientsToGroupForm.form(), FilterByGroupNameForm.form, maybeHiddenClients))
+                    )
+                  }
+                case (None, filteredClients, hiddenClients) =>
+                  agentPermissionsConnector.groupsSummaries(arn).flatMap {
+                    case Some(groupSummaries) =>
+                      if (filteredClients.isDefined)
+                        Ok(dashboard((groupSummaries._1, filteredClients.get), AddClientsToGroupForm.form(), FilterByGroupNameForm.form, hiddenClients)).toFuture
+                      else {
+                        groupService.getClientsForManageGroups(groupSummaries._2.toFuture).map(dc =>
+                          Ok(dashboard((groupSummaries._1, dc), AddClientsToGroupForm.form(), FilterByGroupNameForm.form, maybeHiddenClients))
+                        )
+                      }
+                    case None =>
+                      Ok(dashboard((List.empty[GroupSummary], List.empty[DisplayClient]), AddClientsToGroupForm.form(), FilterByGroupNameForm.form, maybeHiddenClients)).toFuture
+                  }
               }
-              case None =>
-                Ok(dashboard((List.empty[GroupSummary],List.empty[DisplayClient]),AddClientsToGroupForm.form(), maybeHiddenClients)).toFuture
-                // not Redirect(routes.GroupController.start).toFuture ??
             }
           }
         }
       }
     }
+  }
+
+  def submitFilterByGroupName: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        val encoded = request.body.asFormUrlEncoded
+        val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
+
+        buttonSelection match {
+          case Clear => sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES).map(_ =>
+            Redirect(routes.ManageGroupController.showManageGroups))
+          case Filter =>
+            FilterByGroupNameForm.form
+              .bindFromRequest()
+              .fold(
+                hasErrors => ???,
+                formData =>
+
+                  for {
+                    maybeGroupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
+                    _ = maybeGroupSummaries.map { gs =>
+                      val toSave = gs._1.filter(_.groupName.startsWith(formData))
+                      sessionCacheRepository.putSession[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES, toSave)
+                    }
+
+                  } yield Redirect(routes.ManageGroupController.showManageGroups)
+              )
+
+        }
+      }
+
+
+        }
   }
 
   def showExistingGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -311,9 +360,9 @@ class ManageGroupController @Inject()(
                       sessionCacheService.clearSelectedClients()
                     else ()).toFuture
                     result = if (maybeFilteredClients.isDefined)
-                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, maybeHiddenClients, true))
+                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form,maybeHiddenClients, true))
                     else
-                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, maybeHiddenClients, true))
+                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form, maybeHiddenClients, true))
                   } yield result
                 },
                 formData => {

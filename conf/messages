@@ -173,5 +173,9 @@ clients.assigned.complete.h1=Clients added to access groups
 clients.assigned.complete.p=You have added these clients to the following groups:
 common.return.to.unassigned.clients=Return to unassigned clients
 
+group.filter.max.length=Search term must be 38 characters or fewer
+group.filter.required=You must enter a search term
+group-name-filter.text.label=Filter by group name
+
 
 

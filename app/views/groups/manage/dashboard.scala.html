@@ -24,7 +24,7 @@
 @this(
     layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a,
     table: table, textbox: textbox, input_select: input_select,
-    a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs,
+    a_button: link_as_button, summary_list: summary_list, govukTabs: GovukTabs,
     selectable_clients_table_form: selectable_clients_table_form
 )
 
@@ -78,7 +78,7 @@ AppConfig)
         @h3("group.manage.no.groups.h3")
     }
 
-    @a_button("group.manage.no.groups.button", href=routes.GroupController.showGroupName.url)
+    @a_button(key="group.manage.no.groups.button", href=routes.GroupController.showGroupName.url)
 
 }
 

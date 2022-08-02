@@ -23,8 +23,9 @@
    submitClass: Option[String] = None
 )(implicit msgs: Messages)
 
+@cls = @{submitClass.getOrElse("").concat(" govuk-button")}
 
 <a id="@id"
    href="@href"
-   class="govuk-button @submitClass"
+   class="@cls"
    draggable="false" role="button">@msgs(key)</a>

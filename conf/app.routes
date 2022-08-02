@@ -82,4 +82,5 @@ GET     /access-group-deleted                       controllers.ManageGroupContr
 
 # manage clients
 GET     /manage-clients                             controllers.ManageClientController.showAllClients
-GET     /manage-clients/client-details              controllers.ManageClientController.showClientDetails
+POST    /manage-clients                             controllers.ManageClientController.submitFilterAllClients
+GET     /manage-clients/client-details/:clientId    controllers.ManageClientController.showClientDetails(clientId: String)

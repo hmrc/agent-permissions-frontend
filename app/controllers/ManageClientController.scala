@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.AgentPermissionsConnector
+import forms.AddClientsToGroupForm
 import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -27,6 +28,7 @@ import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
+import views.html.groups.group_member_details.manage_clients_list
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,6 +37,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class ManageClientController @Inject()(
      authAction: AuthAction,
      mcc: MessagesControllerComponents,
+     groupService: GroupService,
+     manage_clients_list: manage_clients_list,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService)
@@ -51,13 +55,64 @@ class ManageClientController @Inject()(
   // All clients does not include IRV
   def showAllClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      Ok(s"showAllClients not yet implemented $arn").toFuture
+      withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
+        if (maybeFilteredResult.isDefined)
+          Ok(
+            manage_clients_list(
+              maybeFilteredResult,
+              AddClientsToGroupForm.form()
+            )
+          ).toFuture
+        else
+          groupService.getClients(arn).flatMap { maybeClients =>
+            Ok(
+              manage_clients_list(
+                maybeClients,
+                AddClientsToGroupForm.form()
+              )
+            ).toFuture
+          }
+      }
     }
   }
 
-  def showClientDetails: Action[AnyContent] = Action.async { implicit request =>
+  // button is never continue
+  def submitFilterAllClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      Ok(s"showClientDetails not yet implemented $arn").toFuture
+      withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
+        val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
+
+        AddClientsToGroupForm
+          .form(buttonSelection)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              for {
+                result <- if (maybeFilteredResult.isDefined)
+                  Ok(
+                    manage_clients_list(maybeFilteredResult,
+                      formWithErrors)).toFuture
+                else
+                  groupService.getClients(arn).flatMap { maybeClients =>
+                    Ok(
+                      manage_clients_list(
+                        maybeClients,
+                        formWithErrors)).toFuture
+                  }
+              } yield result
+            },
+            formData => {
+              groupService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)
+                .map(_ => Redirect(routes.ManageClientController.showAllClients))
+            }
+          )
+      }
+    }
+  }
+
+  def showClientDetails(clientId :String): Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      Ok(s"showClientDetails for $clientId not yet implemented $arn").toFuture
     }
   }
 

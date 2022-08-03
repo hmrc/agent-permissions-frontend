@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import views.html.main_layout
 
-@this(layout: main_layout, h1: h1, p: p, a_button: a_button)
+@this(layout: main_layout, h1: h1, p: p, a_button: link_as_button)
 
 @()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -25,6 +25,6 @@
 
   @h1("group.not.found.error.h1")
   @p("group.not.found.error.p")
-  @a_button("group.not.found.error.a", href = routes.ManageGroupController.showManageGroups.url)
+  @a_button(key = "group.not.found.error.a", href = routes.ManageGroupController.showManageGroups.url)
 }
 

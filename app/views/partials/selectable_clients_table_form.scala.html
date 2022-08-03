@@ -119,31 +119,36 @@
             </p>
             }
 
-    <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
+    <fieldset class="govuk-fieldset">
+        <legend class="govuk-fieldset__legend govuk-visually-hidden">
+            @msgs("group.client.list.h1")
+        </legend>
+        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
 
-    @table(
-        id = Some("sortable-table"),
-        attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-        headings = Seq(
-            (
-                    Html(span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox").toString),
-                    Map("id" -> "select-all")
-            ),
-            (
-                    Html(msgs("group.client.list.table.th1")),
-                    Map("aria-sort" -> "none")
-            ),
-            (
-                    Html(msgs("group.client.list.table.th2")),
-                    Map("aria-sort" -> "none")
-            ),
-            (
-                    Html(msgs("group.client.list.table.th3")),
-                    Map("aria-sort" -> "none")
-            )),
-        rows = tableRows,
-    )
-    </div>
+        @table(
+            id = Some("sortable-table"),
+            attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
+            headings = Seq(
+                (
+                        span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
+                        Map("id" -> "select-all")
+                ),
+                (
+                        Html(msgs("group.client.list.table.th1")),
+                        Map("aria-sort" -> "none")
+                ),
+                (
+                        Html(msgs("group.client.list.table.th2")),
+                        Map("aria-sort" -> "none")
+                ),
+                (
+                        Html(msgs("group.client.list.table.th3")),
+                        Map("aria-sort" -> "none")
+                )),
+            rows = tableRows,
+        )
+        </div>
+    </fieldset>
     @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
     @submit_button("save.and.continue.button")

@@ -14,22 +14,23 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukSelect
-@import uk.gov.hmrc.govukfrontend.views.html.components.{Select, SelectItem, Label, Text, Hint, ErrorMessage}
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
+@import uk.gov.hmrc.govukfrontend.views.html.components.{GovukSelect, Hint, Label, Select, SelectItem, Text}
 
 @this(govukSelect: GovukSelect)
 
-@(field: Field,
-label: String,
-labelAsHeading: Boolean = false,
-hint: Option[String] = None,
-placeholder: Option[String] = None,
-options: Seq[(String, String)],
-formGroupClasses: Set[String] = Set.empty,
-inputClass: Option[String] = None,
-labelClasses: Set[String] = Set("govuk-label--s"),
-selectAttribute: Map[String, String] = Map.empty
+@(
+    field: Field,
+    label: String,
+    labelAsHeading: Boolean = false,
+    hint: Option[String] = None,
+    placeholder: Option[String] = None,
+    options: Seq[(String, String)],
+    formGroupClasses: Set[String] = Set.empty,
+    inputClass: Option[String] = None,
+    labelClasses: Set[String] = Set("govuk-label--s"),
+    selectAttribute: Map[String, String] = Map.empty,
+    firstItem: Seq[SelectItem] =  Seq(SelectItem(value = Some(""), text = ""))
 )(implicit msgs: Messages)
 
 @govukSelect(Select(
@@ -41,7 +42,7 @@ selectAttribute: Map[String, String] = Map.empty
         content = Text(label)
         ),
     hint = if(hint.isDefined) Some(Hint(content = Text(hint.get))) else None,
-    items = Seq(SelectItem(value = Some(""), text = "")) ++
+    items = firstItem ++
             options.map(option =>
             SelectItem(
                 value = Some(option._1),

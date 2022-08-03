@@ -27,7 +27,8 @@
     a_button: a_button,summary_list: summary_list, govukTabs: GovukTabs,
     selectable_clients_table_form: selectable_clients_table_form,
         formWithCSRF: FormWithCSRF,
-        submit_button_group: submit_button_group
+        submit_button_group: submit_button_group,
+        summaryErrors: SummaryErrors
 )
 
 @(
@@ -39,9 +40,12 @@
 )(implicit request: Request[_], msgs: Messages, appConfig:
 AppConfig)
 
+
 @groupSummaries = {
     @h2("group.manage.tabs.1.label")
     <div class="govuk-!-width-one-third"></div>
+
+
 
 @formWithCSRF(routes.ManageGroupController.submitFilterByGroupName){
 
@@ -130,7 +134,6 @@ AppConfig)
     @if(summaries._2.isEmpty) {
         @h3("group.manage.no.unassigned.clients.h3")
     }
-
 }
 
 @layout(title = msgs("group.manage.h1"),
@@ -140,6 +143,8 @@ AppConfig)
 
     @h1("group.manage.h1")
     @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id= Some("info"))
+
+    @summaryErrors(filterGroupSummaryForm.errors, Some("search"))
 
     @govukTabs(Tabs(
         id = Some("manage-groups-tabs"),

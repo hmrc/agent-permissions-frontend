@@ -16,7 +16,7 @@
 
 package services
 
-import connectors.AgentUserClientDetailsConnector
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.BaseSpec
 import models.{DisplayClient, TeamMember}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -33,8 +33,11 @@ class GroupServiceSpec extends BaseSpec {
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
+  val mockAgentPermissionsConnector: AgentPermissionsConnector =
+    mock[AgentPermissionsConnector]
+
   val service =
-    new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
+    new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
 
   val fakeClients: Seq[Client] = (1 to 10)
     .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))

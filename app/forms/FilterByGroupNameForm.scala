@@ -26,8 +26,8 @@ object FilterByGroupNameForm {
       single(
         "search" ->
           text
-            .verifying("group.filter.required", _.trim.nonEmpty)
-            .verifying("group.filter.max.length", _.trim.length < 32)
+            .verifying("error.group.filter.required", _.trim.nonEmpty)
+            .verifying("error.group.filter.max.length", _.trim.length < 32)
       )
     )
 

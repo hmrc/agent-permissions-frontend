@@ -50,6 +50,7 @@ GET     /group/group-created                        controllers.GroupController.
 # manage groups
 GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups
 POST    /manage-access-groups                       controllers.ManageGroupController.submitAddUnassignedClients
+POST    /manage-access-groups/search                controllers.ManageGroupController.submitFilterByGroupName
 
 GET     /manage-group-clients/:groupId              controllers.ManageGroupController.showExistingGroupClients(groupId: String)
 GET     /update-group-clients/:groupId              controllers.ManageGroupController.showManageGroupClients(groupId: String)

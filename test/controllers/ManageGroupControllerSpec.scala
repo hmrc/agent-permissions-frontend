@@ -47,7 +47,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
     : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val groupService: GroupService = new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
+  implicit val groupService: GroupService = new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -118,6 +118,8 @@ class ManageGroupControllerSpec extends BaseSpec {
         DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
       val summaries = Some((groupSummaries, unassignedClients))
       expectGetGroupSummarySuccess(arn, summaries)
+      expectGetGroupSummarySuccess(arn, summaries)
+
 
       //when
       val result = controller.showManageGroups()(request)
@@ -199,6 +201,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val summaries = None
+      expectGetGroupSummarySuccess(arn, summaries)
       expectGetGroupSummarySuccess(arn, summaries)
 
       //when
@@ -336,6 +339,92 @@ class ManageGroupControllerSpec extends BaseSpec {
       backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
       backlink.text() shouldBe "Back"
     }
+
+    "render content when filtered access groups and filtered clients in session" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
+
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val unassignedClients = (1 to 8).map(i =>
+        DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
+      val summaries = Some((groupSummaries, unassignedClients))
+      await(sessionCacheRepo.putSession(FILTERED_GROUP_SUMMARIES, groupSummaries))
+
+
+      //when
+      val result = controller.showManageGroups()(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Manage access groups"
+      html
+        .select("p#info")
+        .get(0)
+        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group"
+
+      //verify the tabs/tab headings first
+      val tabs = html.select("li.govuk-tabs__list-item")
+      tabs.size() shouldBe 2
+      val accessGroupsTab = tabs.get(0)
+      accessGroupsTab.hasClass("govuk-tabs__list-item--selected") shouldBe true
+      accessGroupsTab.select("a").text() shouldBe "Access groups"
+      accessGroupsTab.select("a").attr("href") shouldBe "#groups-panel"
+
+      val unassignedClientsTab = tabs.get(1)
+      unassignedClientsTab.hasClass("govuk-tabs__list-item--selected") shouldBe false
+      unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
+      unassignedClientsTab.select("a").attr("href") shouldBe "#unassigned-clients"
+
+      //verify the tab panel contents
+      val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
+      groupsPanel.select("h2").text() shouldBe "Access groups"
+
+      val groups = groupsPanel.select("dl.govuk-summary-list")
+      groups.size() shouldBe 3
+      val firstGroup = groups.get(0)
+      val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
+      clientsRow.select("dt").text() shouldBe "Clients"
+      clientsRow.select(".govuk-summary-list__value")
+        .text() shouldBe "3"
+      clientsRow.select(".govuk-summary-list__actions")
+        .text() shouldBe "Manage clients"
+      clientsRow.select(".govuk-summary-list__actions a")
+        .attr("href") shouldBe "/agent-permissions/manage-group-clients/groupId1"
+
+      val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
+
+      membersRow.select("dt").text() shouldBe "Team members"
+      membersRow.select(".govuk-summary-list__value")
+        .text() shouldBe "4"
+      membersRow.select(".govuk-summary-list__actions")
+        .text() shouldBe "Manage team members"
+      membersRow.select(".govuk-summary-list__actions a")
+        .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
+
+      val unassignedClientsPanel =
+        html.select(tabPanelWithIdOf("unassigned-clients"))
+      unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
+      val clientsTh = unassignedClientsPanel.select("table th")
+      clientsTh.size() shouldBe 4
+      clientsTh.get(1).text() shouldBe "Client name"
+      clientsTh.get(2).text() shouldBe "Tax reference"
+      clientsTh.get(3).text() shouldBe "Tax service"
+
+      val clientsTrs = unassignedClientsPanel.select("table tbody tr")
+      clientsTrs.size() shouldBe 3
+
+      val backlink = html.select(backLink)
+      backlink.size() shouldBe 1
+      backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      backlink.text() shouldBe "Back"
+    }
   }
 
   s"GET ${routes.ManageGroupController.showRenameGroup(groupId)}" should {
@@ -388,6 +477,117 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.linkStyledAsButton)
         .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+    }
+  }
+
+  s"POST ${routes.ManageGroupController.submitFilterByGroupName}" should {
+
+    s"redirect to ${routes.ManageGroupController.showManageGroups} when search term submitted" in {
+
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val unassignedClients = (1 to 8).map(i =>
+        DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
+      val summaries = Some((groupSummaries, unassignedClients))
+
+      expectGetGroupSummarySuccess(arn, summaries)
+
+      implicit val request =
+        FakeRequest("POST",
+          routes.ManageGroupController.submitFilterByGroupName.url)
+          .withFormUrlEncodedBody(
+            "search" -> "name",
+          "submitFilter" -> "submitFilter"
+          )
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      val result = controller.submitFilterByGroupName()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+
+      await(sessionCacheRepo.getFromSession(FILTERED_GROUP_SUMMARIES)).get.size shouldBe 3
+
+
+    }
+
+    s"redirect to ${routes.ManageGroupController.showManageGroups} when clear button submitted" in {
+
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val unassignedClients = (1 to 8).map(i =>
+        DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
+
+      implicit val request =
+        FakeRequest("POST",
+          routes.ManageGroupController.submitFilterByGroupName.url)
+          .withFormUrlEncodedBody(
+            "submitClear" -> "submitClear"
+          )
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(FILTERED_GROUP_SUMMARIES, groupSummaries))
+
+      val result = controller.submitFilterByGroupName()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+
+      await(sessionCacheRepo.getFromSession(FILTERED_GROUP_SUMMARIES)) shouldBe None
+    }
+
+    s"show errors when invalid submission " in {
+
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val unassignedClients = (1 to 8).map(i =>
+        DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
+      val summaries = Some((groupSummaries, unassignedClients))
+
+      implicit val request =
+        FakeRequest("POST",
+          routes.ManageGroupController.submitFilterByGroupName.url)
+          .withFormUrlEncodedBody(
+            "search" -> "",
+            "submitFilter" -> "submitFilter"
+          )
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      expectGetGroupSummarySuccess(arn, summaries)
+      expectGetGroupSummarySuccess(arn, summaries)
+
+      val result = controller.submitFilterByGroupName()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
+
+      html
+        .select(Css.errorSummaryForField("search"))
+        .text() shouldBe "You must enter a group name or part of it"
+      html
+        .select(Css.errorForField("search"))
+        .text() shouldBe "Error: You must enter a group name or part of it"
     }
   }
 

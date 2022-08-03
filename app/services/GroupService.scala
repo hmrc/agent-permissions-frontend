@@ -16,24 +16,11 @@
 
 package services
 
-import connectors.AgentUserClientDetailsConnector
-import controllers.{
-  FILTERED_CLIENTS,
-  FILTERED_TEAM_MEMBERS,
-  SELECTED_CLIENTS,
-  SELECTED_TEAM_MEMBERS,
-  HIDDEN_CLIENTS_EXIST,
-  HIDDEN_TEAM_MEMBERS_EXIST
-}
-import models.{
-  AddClientsToGroup,
-  AddTeamMembersToGroup,
-  ButtonSelect,
-  DisplayClient,
-  Selectable,
-  TeamMember
-}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
+import controllers.{FILTERED_CLIENTS, FILTERED_GROUP_SUMMARIES, FILTERED_TEAM_MEMBERS, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, ToFuture}
+import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, Selectable, TeamMember}
 import models.ButtonSelect._
+import play.api.Logging
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
@@ -46,8 +33,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class GroupService @Inject()(
     agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-    sessionCacheRepository: SessionCacheRepository
-) {
+    sessionCacheRepository: SessionCacheRepository,
+    agentPermissionsConnector: AgentPermissionsConnector
+) extends Logging {
 
   def getClients(
       arn: Arn
@@ -298,4 +286,44 @@ class GroupService @Inject()(
         } yield ()
     }
 
+  def groupSummaries(arn: Arn)
+                    (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[(Seq[GroupSummary], Seq[DisplayClient])] = {
+
+   val groupSummaries = sessionCacheRepository.getFromSession[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES).flatMap {
+     case Some(gs) => gs.toFuture
+     case None =>
+       agentPermissionsConnector.groupsSummaries(arn).map {
+         case Some(gs) => gs._1
+         case None => {
+           logger.warn(s"no group summaries returned")
+           Seq.empty
+         }
+       }
+   }
+
+   val clients = sessionCacheRepository.getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS).flatMap {
+     case Some(fc) => fc.toFuture
+     case None =>
+       agentPermissionsConnector.groupsSummaries(arn).flatMap {
+         case Some(gs) => getClientsForManageGroups(gs._2.toFuture)
+         case None => {
+           logger.warn("no group summaries returned for unassigned clients result")
+           Seq.empty.toFuture
+         }
+       }
+   }
+    for {
+      g <- groupSummaries
+      c <- clients
+    } yield (g,c)
+  }
+
+  def filterByGroupName(filterBy: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext) =
+    for {
+      maybeGroupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
+      _ = maybeGroupSummaries.map { gs =>
+        val toSave = gs._1.filter(_.groupName.toLowerCase.startsWith(filterBy.toLowerCase))
+        sessionCacheRepository.putSession[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES, toSave)
+      }
+    } yield ()
 }

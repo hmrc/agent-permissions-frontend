@@ -74,7 +74,7 @@ class GroupControllerSpec extends BaseSpec {
       bind(classOf[AgentUserClientDetailsConnector])
         .toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(
-        new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo))
+        new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
     }
   }
 

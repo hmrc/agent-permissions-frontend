@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import connectors.GroupSummary
 import models.{DisplayClient, TeamMember}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.mongo.cache.DataKey
@@ -56,6 +57,9 @@ package object controllers {
 
   val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]]
     = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
+
+  val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]]
+  = DataKey("filteredGroupSummaries")
 
   val sessionKeys =
     List(OPTIN_STATUS, GROUP_NAME, GROUP_NAME_CONFIRMED, GROUP_CLIENTS)

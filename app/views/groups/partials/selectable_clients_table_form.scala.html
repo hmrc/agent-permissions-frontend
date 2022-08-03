@@ -104,7 +104,7 @@
             </div>
 
             <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-            @submit_button_group()
+                @submit_button_group(additionalClasses = "govuk-!-margin-bottom-7")
             </div>
         </fieldset>
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }

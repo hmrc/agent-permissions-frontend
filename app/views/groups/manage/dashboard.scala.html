@@ -24,22 +24,58 @@
 @this(
     layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a,
     table: table, textbox: textbox, input_select: input_select,
-    a_button: link_as_button, summary_list: summary_list, govukTabs: GovukTabs,
-    selectable_clients_table_form: selectable_clients_table_form
+    a_button: link_as_button,summary_list: summary_list, govukTabs: GovukTabs,
+    selectable_clients_table_form: selectable_clients_table_form,
+        formWithCSRF: FormWithCSRF,
+        submit_button_group: submit_button_group,
+        summaryErrors: SummaryErrors
 )
 
 @(
     summaries: (Seq[GroupSummary], Seq[DisplayClient]),
-    form: Form[AddClientsToGroup],
+    addClientsToGroupForm: Form[AddClientsToGroup],
+        filterGroupSummaryForm: Form[String],
     hiddenClientsExist: Option[Boolean],
     showUnassignedClients: Boolean = false
 )(implicit request: Request[_], msgs: Messages, appConfig:
 AppConfig)
 
+
 @groupSummaries = {
     @h2("group.manage.tabs.1.label")
     <div class="govuk-!-width-one-third"></div>
-    @if(!summaries._1.isEmpty){
+
+
+
+@formWithCSRF(routes.ManageGroupController.submitFilterByGroupName){
+
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-one-third">
+        @textbox(
+            field = filterGroupSummaryForm("search"),
+            label = "group-name-filter.text.label",
+            labelClasses = "govuk-label--s",
+            classes = "govuk-input--width-20"
+        )
+        </div>
+        <div class="govuk-grid-column-one-third" id="filter-buttons-wrapper">
+            @submit_button_group()
+        </div>
+        <div class="govuk-grid-column-one-third">
+            @input_select(
+                field = filterGroupSummaryForm("sort"),
+                label = msgs("Sort by"),
+                options = Seq(("default" ,"Default (A-Z)"), ("reverse", "Z-A"))
+            )
+        </div>
+    </div>
+
+}
+    <hr>
+    @if(summaries._1.nonEmpty){
+
+
         @summaries._1.map { summary =>
 
             @h3(summary.groupName)
@@ -89,7 +125,7 @@ AppConfig)
         @selectable_clients_table_form(
             Some(summaries._2),
             hiddenClientsExist,
-            form,
+            addClientsToGroupForm,
             routes.ManageGroupController.submitAddUnassignedClients
         )
 
@@ -97,7 +133,6 @@ AppConfig)
     @if(summaries._2.isEmpty) {
         @h3("group.manage.no.unassigned.clients.h3")
     }
-
 }
 
 @layout(title = msgs("group.manage.h1"),
@@ -107,6 +142,8 @@ AppConfig)
 
     @h1("group.manage.h1")
     @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id= Some("info"))
+
+    @summaryErrors(filterGroupSummaryForm.errors, Some("search"))
 
     @govukTabs(Tabs(
         id = Some("manage-groups-tabs"),

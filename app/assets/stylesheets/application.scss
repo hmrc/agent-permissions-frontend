@@ -29,3 +29,11 @@ div.scrollable-table-container {
 
   }
 }
+
+
+#filter-buttons-wrapper{
+  button, .govuk-form-group {
+    float: left;
+  }
+  padding-top: 29px;
+}

@@ -69,8 +69,10 @@ class GroupController @Inject()(
 
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      withSessionItem[String](GROUP_NAME){ maybeName =>
-        Ok(create(GroupNameForm.form.fill(maybeName.getOrElse("")))).toFuture
+      isOptedInComplete(arn) { _ =>
+        withSessionItem[String](GROUP_NAME) { maybeName =>
+          Ok(create(GroupNameForm.form.fill(maybeName.getOrElse("")))).toFuture
+        }
       }
     }
   }
@@ -180,12 +182,12 @@ class GroupController @Inject()(
                         formWithErrors)).toFuture
                   else
                     groupService.getClients(arn).flatMap { maybeClients =>
-                        Ok(
-                          client_group_list(
-                            maybeClients,
-                            groupName,
-                            maybeHiddenClients,
-                            formWithErrors)).toFuture
+                      Ok(
+                        client_group_list(
+                          maybeClients,
+                          groupName,
+                          maybeHiddenClients,
+                          formWithErrors)).toFuture
                     }
                 } yield result
               },

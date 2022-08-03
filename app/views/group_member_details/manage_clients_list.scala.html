@@ -24,13 +24,8 @@
 @this(
         layout: main_layout,
         p: p, h1: h1, a: a, span: span,
-        caption: caption,
-        link_as_button: link_as_button,
         table: table,
-        submit_button_group: submit_button_group,
-        textbox: textbox,
-        input_select: input_select,
-        formWithCSRF: FormWithCSRF,
+        summaryErrors: SummaryErrors,
         filter_clients_table_form: filter_clients_table_form
 )
 
@@ -41,11 +36,18 @@
     backUrl: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@pageTitle = @{
+    val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
+    errorPrefix.concat(msgs("group.manage.clients"))
+}
+
 @layout(
-    title = msgs("group.manage.clients"),
+    title = pageTitle,
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
     fullWidth = true
 ) {
+
+    @summaryErrors(form.errors, Some("search"))
 
     <div class="govuk-!-width-two-thirds">
         @h1("group.manage.clients")

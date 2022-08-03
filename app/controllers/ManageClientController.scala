@@ -26,9 +26,7 @@ import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups._
-import views.html.groups.manage._
-import views.html.groups.group_member_details.manage_clients_list
+import views.html.group_member_details.manage_clients_list
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

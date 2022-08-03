@@ -18,22 +18,17 @@
 @import controllers.routes
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
-@import views.html.main_layout
 @import models.AddClientsToGroup
-@import models.ButtonSelect.{Clear, Continue, Filter}
 
 @import java.util.Base64
 
 @this(
-        layout: main_layout,
         p: p, h1: h1, span: span, a: a,
         caption: caption,
         table: table,
-        submit_button: submit_button,
         submit_button_group: submit_button_group,
         textbox: textbox,
         input_select: input_select,
-        summaryErrors: SummaryErrors,
         formWithCSRF: FormWithCSRF
 )
 
@@ -60,7 +55,7 @@
     <div class="govuk-grid-row">
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
-            }
+         }
 
         <fieldset class="govuk-fieldset">
             <legend class="govuk-fieldset__legend govuk-visually-hidden">

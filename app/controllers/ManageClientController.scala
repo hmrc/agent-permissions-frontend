@@ -26,7 +26,7 @@ import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.group_member_details.manage_clients_list
+import views.html.group_member_details._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,6 +37,7 @@ class ManageClientController @Inject()(
      mcc: MessagesControllerComponents,
      groupService: GroupService,
      manage_clients_list: manage_clients_list,
+     client_details: client_details,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService)
@@ -110,7 +111,7 @@ class ManageClientController @Inject()(
 
   def showClientDetails(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      Ok(s"showClientDetails for $clientId not yet implemented $arn").toFuture
+      Ok(client_details()).toFuture
     }
   }
 

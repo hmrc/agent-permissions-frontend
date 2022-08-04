@@ -1,0 +1,76 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.html.main_layout
+@import utils.ViewUtils._
+@import models.AddClientsToGroup
+@import views.html.partials.filter_clients_table_form
+
+@this(
+        layout: main_layout,
+        h1: h1, h2: h2, h3: h3,
+        p:p, a: a, span: span
+)
+
+@(
+    client: Option[DisplayClient] = None
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@clientReference = @{
+Html(msgs("details.clients.no-data")+ "  " + a("common.update", href = "#"))
+}
+
+@displayTaxReference = @{
+Html("BLAH567890")
+}
+
+@layout(
+    title = msgs("details.clients"),
+    backLinkHref = Some(routes.ManageClientController.showAllClients.url),
+    fullWidth = true
+) {
+
+<div class="govuk-grid-row">
+    @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
+
+    <div class="govuk-grid-column-two-thirds">
+        @h3("group.client.list.table.th1")
+        @p(html = Some(clientReference))
+
+        @h3("group.client.list.table.th2")
+        @p(html = Some(displayTaxReference))
+
+        @h3("group.client.list.table.th3")
+        @p("VAT")
+
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+        @a("common.return.manage-clients", href = routes.ManageClientController.showAllClients.url)
+
+    </div>
+
+    <div class="govuk-grid-column-one-third">
+       @h2("common.details.groups.header")
+
+        @p("common.details.not-assigned")
+
+        @a("common.details.assign-to-group", href="#")
+    </div>
+</div>
+
+}

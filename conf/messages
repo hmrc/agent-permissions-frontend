@@ -177,10 +177,12 @@ clients.assigned.complete.p=You have added these clients to the following groups
 
 
 details.clients=Client details
+details.clients.no-data=We could not retrieve this
 details.team-members=Team member details
 details.link-hidden= for {0}
 
 common.details.assign-to-group=Assign to an access group
+common.details.not-assigned=Not assigned to an access group
 common.details.groups.header=Member of these groups
 
 error.group.filter.max.length=You can only enter 32 characters or fewer

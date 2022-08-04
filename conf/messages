@@ -12,16 +12,22 @@ continue=Continue
 common.what.happens.next=What happens next?
 common.change=Change
 common.actions=Actions
-
+common.update=Update
 common.clients=Clients
 common.teamMembers=Team members
 
 continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
+
 filter.legend=Filters
 filter.apply=Apply filters
 filter.clear=Clear filters
+
+common.return.to.dashboard=Return to manage access groups
+common.return.to.unassigned.clients=Return to unassigned clients
+common.return.manage-account=Return to manage account
+common.return.manage-clients=Return to manage clients
 
 error.select-clients.empty=You must select at least one client
 error.search-filter.empty=You must enter a tax reference, client name or select a tax service to apply filters
@@ -73,7 +79,6 @@ you-have-opted-out.h1=You have opted out of using access groups
 you-have-opted-out.h2=What happens next
 you-have-opted-out.p1=You will need to log out and log back in to see this change, after which all users will be able to view all clients.
 you-have-opted-out.p2=Your account will show that you have chosen to opt out of using access groups. If you wish to opt in to use this feature again you can do so from your agent services manage account page.
-you-have-opted-out.button=Return to manage account
 
 group.create.h1=Create an access group
 group.create.name.label=What do you want to call this access group?
@@ -119,7 +124,6 @@ cya.inset=The team members you have selected will have permission to view and ma
 group.created.h1=Access group created
 group.created.panelContent={0} access group is now active
 group.created.p=The team members you selected can now view and manage the tax affairs of all the clients in this access group
-group.created.a=Return to manage account
 
 group.manage.h1=Manage access groups
 group.manage.p=The team members in the group will be able to manage the tax affairs of clients in the group
@@ -146,8 +150,6 @@ group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
 group.renamed.p=You can rename groups any time from the ‘manage access groups’ section
 
-common.return.to.dashboard=Return to manage access groups
-
 group.delete.h1=Delete group
 group.delete.name.label=Are you sure you want to delete {0} access group?
 group.delete.select.error=Select ‘yes’ if you would like to delete the group.
@@ -172,13 +174,14 @@ unassigned.client.assign.nothing.selected.error=You must select an access group 
 
 clients.assigned.complete.h1=Clients added to access groups
 clients.assigned.complete.p=You have added these clients to the following groups:
-common.return.to.unassigned.clients=Return to unassigned clients
 
 
 details.clients=Client details
-common.details.assign-to-group=Assign to an access group
 details.team-members=Team member details
 details.link-hidden= for {0}
+
+common.details.assign-to-group=Assign to an access group
+common.details.groups.header=Member of these groups
 
 error.group.filter.max.length=You can only enter 32 characters or fewer
 error.group.filter.required=You must enter a group name or part of it

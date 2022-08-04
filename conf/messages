@@ -11,6 +11,7 @@ common.caption.group.name={0} access group
 continue=Continue
 common.what.happens.next=What happens next?
 common.change=Change
+common.actions=Actions
 
 common.clients=Clients
 common.teamMembers=Team members
@@ -173,9 +174,16 @@ clients.assigned.complete.h1=Clients added to access groups
 clients.assigned.complete.p=You have added these clients to the following groups:
 common.return.to.unassigned.clients=Return to unassigned clients
 
+
+details.clients=Client details
+common.details.assign-to-group=Assign to an access group
+details.team-members=Team member details
+details.link-hidden= for {0}
+
 error.group.filter.max.length=You can only enter 32 characters or fewer
 error.group.filter.required=You must enter a group name or part of it
 group-name-filter.text.label=Filter by group name
+
 
 
 

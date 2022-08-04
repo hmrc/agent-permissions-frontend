@@ -18,48 +18,33 @@
 @import controllers.routes
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
-@import views.html.main_layout
 @import models.AddClientsToGroup
-@import models.ButtonSelect.{Clear, Continue, Filter}
 
 @import java.util.Base64
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1, span: span,
+        p: p, h1: h1, span: span, a: a,
         caption: caption,
         table: table,
-        submit_button: submit_button,
         submit_button_group: submit_button_group,
         textbox: textbox,
         input_select: input_select,
-        checkBox: checkBox,
-        summaryErrors: SummaryErrors,
         formWithCSRF: FormWithCSRF
 )
 
 @(
         clients: Option[Seq[DisplayClient]] = None,
-        hiddenClientsExist: Option[Boolean],
         form: Form[AddClientsToGroup],
-        formAction: Call = routes.GroupController.submitSelectedClients,
+        formAction: Call = routes.ManageClientController.submitFilterAllClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
         Seq(
-            Html(
-                checkBox(
-                    name = Some("clients[]"),
-                    id = Some(s"add-client-${Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)}"),
-                    label = client.name,
-                    value = Some(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)),
-                    checked = client.selected
-                ).toString
-            ),
             Html(client.name),
             Html(displayObfuscatedReference(client.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client.taxService)),
+            a(key="details.clients", href= routes.ManageClientController.showClientDetails("test").url)
         )
     )
     )
@@ -67,12 +52,10 @@
 
 @formWithCSRF(action = formAction) {
 
-    <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
-
     <div class="govuk-grid-row">
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
-            }
+         }
 
         <fieldset class="govuk-fieldset">
             <legend class="govuk-fieldset__legend govuk-visually-hidden">
@@ -104,47 +87,37 @@
             </div>
 
             <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-                @submit_button_group(additionalClasses = "govuk-!-margin-bottom-7")
+            @submit_button_group()
             </div>
         </fieldset>
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
     </div>
 
+        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
 
-
-    @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
-        <div class="govuk-form-group govuk-form-group--error">
-            <p id="clients-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
-            </p>
-            }
-
-    <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
-
-    @table(
-        id = Some("sortable-table"),
-        attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-        headings = Seq(
-            (
-                    Html(span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox").toString),
-                    Map("id" -> "select-all")
-            ),
-            (
+        @table(
+            id = Some("sortable-table"),
+            attrs = Map.empty,
+            headings = Seq(
+                (
                     Html(msgs("group.client.list.table.th1")),
                     Map("aria-sort" -> "none")
-            ),
-            (
+                ),
+                (
                     Html(msgs("group.client.list.table.th2")),
                     Map("aria-sort" -> "none")
-            ),
-            (
+                ),
+                (
                     Html(msgs("group.client.list.table.th3")),
                     Map("aria-sort" -> "none")
-            )),
-        rows = tableRows,
-    )
-    </div>
-    @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
+                ),
+                (
+                    Html(msgs("common.actions")),
+                    Map.empty
+                )
+            ),
+            rows = tableRows,
+        )
+        </div>
 
-    @submit_button("save.and.continue.button")
 }

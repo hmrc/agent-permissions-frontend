@@ -19,6 +19,7 @@
 @import views.html.main_layout
 @import utils.ViewUtils._
 @import models.AddClientsToGroup
+@import connectors.GroupSummary
 @import views.html.partials.filter_clients_table_form
 
 @this(
@@ -28,15 +29,38 @@
 )
 
 @(
-    client: Option[DisplayClient] = None
+    client: DisplayClient,
+    clientGroups: Option[Seq[GroupSummary]]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @clientReference = @{
-Html(msgs("details.clients.no-data")+ "  " + a("common.update", href = "#"))
+    if(client.name.isEmpty) {
+        Html(msgs("details.clients.no-data")+ "  " + a("common.update", href = "#"))
+    } else {
+        Html(client.name + "  " + a("common.update", href = "#"))
+    }
 }
 
 @displayTaxReference = @{
-Html("BLAH567890")
+    if(client.name.isEmpty) {
+        Html(client.hmrcRef)
+    } else {
+        Html(displayObfuscatedReference(client.hmrcRef))
+    }
+
+}
+
+@maybeGroups = @{
+    if(clientGroups.isEmpty) {
+
+        p("common.details.not-assigned")
+
+        a("common.details.assign-to-group", href="#")
+
+    } else {
+        "Groups here"
+        a("group.name.here", href=routes.ManageGroupController.showExistingGroupClients("groupId").url)
+    }
 }
 
 @layout(
@@ -48,6 +72,8 @@ Html("BLAH567890")
 <div class="govuk-grid-row">
     @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
 
+    @clientGroups.getOrElse("")
+
     <div class="govuk-grid-column-two-thirds">
         @h3("group.client.list.table.th1")
         @p(html = Some(clientReference))
@@ -56,7 +82,7 @@ Html("BLAH567890")
         @p(html = Some(displayTaxReference))
 
         @h3("group.client.list.table.th3")
-        @p("VAT")
+        @p(displayTaxServiceFromServiceKey(client.taxService))
 
         <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
@@ -65,11 +91,19 @@ Html("BLAH567890")
     </div>
 
     <div class="govuk-grid-column-one-third">
-       @h2("common.details.groups.header")
+        @h2("common.details.groups.header")
 
-        @p("common.details.not-assigned")
+        @if(clientGroups.isEmpty) {
 
-        @a("common.details.assign-to-group", href="#")
+            p("common.details.not-assigned")
+
+            a("common.details.assign-to-group", href="#")
+
+        } else {
+        "Groups here"
+        a("group.name.here", href=routes.ManageGroupController.showExistingGroupClients("groupId").url)
+        }
+
     </div>
 </div>
 

@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, EnrolmentKey}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -321,8 +321,8 @@ class GroupService @Inject()(
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
                     (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[GroupSummary]] = {
-    val enrolmentKey = toEnrolment(client)
-    val groupSummaries = agentPermissionsConnector.getGroupsForClient(arn, enrolmentKey.toString).map {
+    val enrolment = toEnrolment(client)
+    val groupSummaries = agentPermissionsConnector.getGroupsForClient(arn, enrolment).map {
           case Some(gs) => gs
           case None => Seq.empty
         }

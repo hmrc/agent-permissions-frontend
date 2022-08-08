@@ -19,21 +19,19 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.AddClientsToGroupForm
-import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
+import models.{ButtonSelect, DisplayClient}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.libs.json.Json.{parse, toJson}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.EnrolmentKey.enrolmentKey
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
 import java.util.Base64.{getDecoder, getEncoder}
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageClientController @Inject()(
@@ -125,7 +123,7 @@ class ManageClientController @Inject()(
           groupService.groupSummariesForClient(arn, clientJson.get).flatMap { maybeGroups =>
             Ok(client_details(
               client = clientJson.get,
-              clientGroups = Some(maybeGroups)
+              clientGroups = maybeGroups
             )).toFuture
         }
       }

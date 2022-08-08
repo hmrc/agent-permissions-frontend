@@ -30,7 +30,7 @@
 
 @(
     client: DisplayClient,
-    clientGroups: Option[Seq[GroupSummary]]
+    clientGroups: Seq[GroupSummary]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @clientReference = @{
@@ -50,19 +50,6 @@
 
 }
 
-@maybeGroups = @{
-    if(clientGroups.isEmpty) {
-
-        p("common.details.not-assigned")
-
-        a("common.details.assign-to-group", href="#")
-
-    } else {
-        "Groups here"
-        a("group.name.here", href=routes.ManageGroupController.showExistingGroupClients("groupId").url)
-    }
-}
-
 @layout(
     title = msgs("details.clients"),
     backLinkHref = Some(routes.ManageClientController.showAllClients.url),
@@ -71,8 +58,6 @@
 
 <div class="govuk-grid-row">
     @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
-
-    @clientGroups.getOrElse("")
 
     <div class="govuk-grid-column-two-thirds">
         @h3("group.client.list.table.th1")
@@ -95,13 +80,19 @@
 
         @if(clientGroups.isEmpty) {
 
-            p("common.details.not-assigned")
+            @p("common.details.not-assigned")
 
-            a("common.details.assign-to-group", href="#")
+            @a("common.details.assign-to-group", href="#")
 
         } else {
-        "Groups here"
-        a("group.name.here", href=routes.ManageGroupController.showExistingGroupClients("groupId").url)
+
+        <ul class="govuk-list">
+            @for(group <- clientGroups) {
+            <li class="govuk-list--item">@a(group.groupName, href=routes.ManageGroupController.showExistingGroupClients(group.groupId).url)</li>
+            }
+        </ul>
+
+
         }
 
     </div>

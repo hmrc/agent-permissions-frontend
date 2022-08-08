@@ -95,13 +95,7 @@ class OptInController @Inject()(
     implicit request =>
       isAuthorisedAgent { arn =>
         isOptedIn(arn) { status =>
-          {
-            val continueUrl =
-              if (status == OptedInReady)
-                routes.GroupController.showGroupName.url
-              else appConfig.agentServicesAccountManageAccountUrl
-            Ok(you_have_opted_in(continueUrl)).toFuture
-          }
+            Ok(you_have_opted_in(status)).toFuture
         }
       }
   }

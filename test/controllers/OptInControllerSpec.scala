@@ -253,7 +253,7 @@ class OptInControllerSpec extends BaseSpec {
   }
 
   "GET /opt-in/you-have-opted-in" should {
-    "display expected content with continueUrl of ASA dashboard when client list not yet available" in {
+    "display expected content when client list not available yet" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(
@@ -264,27 +264,32 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have opted in to use access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "You have turned on access groups but we need some time to gather the client data - Manage Agent Permissions - GOV.UK"
       html
         .select(Css.H1)
-        .text() shouldBe "You have opted in to use access groups"
+        .text() shouldBe "You have turned on access groups but we need some time to gather the client data"
 
       html.select(Css.H2).text() shouldBe "What happens next"
 
       html
         .select(Css.paragraphs)
         .get(0)
-        .text() shouldBe "You now need to create access groups and assign clients and team members to them."
+        .text() shouldBe "Your client data is currently being processed."
+
+      html
+        .select(Css.paragraphs)
+        .get(1)
+        .text() shouldBe "You will receive a confirmation email to let you know when this is done and what to do next."
 
       html
         .select(Css.linkStyledAsButton)
-        .text() shouldBe "Create an access group"
+        .text() shouldBe "Return to manage account"
       html
         .select(Css.linkStyledAsButton)
         .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
 
-    "display expected content with continueUrl of /group/group-name when optIn status is OptInReady" in {
+    "display expected content when client list is ready" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       await(
@@ -312,7 +317,7 @@ class OptInControllerSpec extends BaseSpec {
         .text() shouldBe "Create an access group"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe routes.GroupController.showGroupName.url
+        .attr("href") shouldBe routes.GroupController.start.url
     }
   }
 

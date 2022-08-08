@@ -130,6 +130,8 @@ class GroupControllerSpec extends BaseSpec {
 
     s"redirect to ${routes.GroupController.showGroupName}" in {
 
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
       val result = controller.start()(request)
 
       status(result) shouldBe SEE_OTHER

@@ -63,8 +63,10 @@ class GroupController @Inject()(
 
   import authAction._
 
-  def start: Action[AnyContent] = Action {
-    Redirect(routes.GroupController.showGroupName)
+  def start: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { _ =>
+      clearSession().map(_ => Redirect(routes.GroupController.showGroupName))
+    }
   }
 
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>

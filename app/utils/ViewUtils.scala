@@ -52,4 +52,12 @@ object ViewUtils {
     }
   }
 
+  def displayNameOrFullReference(name: String, taxId: String): String = {
+    if(name.isEmpty) {
+      taxId
+    } else {
+      name
+    }
+  }
+
 }

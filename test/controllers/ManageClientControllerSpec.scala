@@ -153,7 +153,7 @@ class ManageClientControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(0).text() shouldBe "friendly0"
       trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
-      trs.get(0).select("td").get(3).text() shouldBe "Client details"
+      trs.get(0).select("td").get(3).text() shouldBe "Client details for friendly0"
     }
 
   }

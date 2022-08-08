@@ -17,19 +17,20 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.Css.H1
 import helpers.{BaseSpec, Css}
 import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
-import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
+import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.FakeRequest
 import repository.SessionCacheRepository
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -44,7 +45,6 @@ class ManageClientControllerSpec extends BaseSpec {
     : AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
-  private val clientId = "ClientXYZ"
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -75,14 +75,30 @@ class ManageClientControllerSpec extends BaseSpec {
   val fakeClients: Seq[Client] =
     List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
 
+  val fakeClientWithNoFriendlyName: Client = Client(s"HMRC-MTD-VAT~VRN~123456789", "")
+
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
+
+  val encodedDisplayClients: Seq[String] =
+    displayClients.map(client =>
+      Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+
+  val clientId: String = encodedDisplayClients.take(1).head
+
+  val groupSummaries = Seq(
+    GroupSummary("groupId", "groupName", 33, 9),
+    GroupSummary("groupId-1", "groupName-1", 3, 0)
+  )
+
+  val enrolment: Enrolment = Enrolment("HMRC-MTD-VAT","Activated","friendly0",Seq(Identifier("VRN","123456780")))
 
   s"GET ${routes.ManageClientController.showAllClients.url}" should {
 
     "render the manage clients list" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
 
       //when
@@ -110,6 +126,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render a filtered list when filtered clients in session" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
 
       //when
@@ -156,6 +173,7 @@ class ManageClientControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
       stubGetClientsOk(arn)(fakeClients)
 
@@ -180,6 +198,7 @@ class ManageClientControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
 
       //when
@@ -215,6 +234,7 @@ class ManageClientControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
 
       //when
@@ -241,9 +261,11 @@ class ManageClientControllerSpec extends BaseSpec {
 
   s"GET ${routes.ManageClientController.showClientDetails(clientId).url}" should {
 
-    "render correctly the confirmation page" in {
+    "render the clients details page with NO GROUPS" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForClientSuccess(arn, enrolment, None)
 
       //when
       val result = controller.showClientDetails(clientId)(request)
@@ -251,8 +273,33 @@ class ManageClientControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.body.text shouldBe s"showClientDetails for $clientId not yet implemented ${arn.toString}"
+
+      html.title() shouldBe "Client details - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Client details"
+
+      html.body.text().contains("Not assigned to an access group")
     }
+
+    "render the clients details page with list of groups" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForClientSuccess(arn, enrolment, Some(groupSummaries))
+
+      //when
+      val result = controller.showClientDetails(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Client details - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Client details"
+
+      html.body.text().contains("Not assigned to an access group")
+
+    }
+
   }
 
 }

@@ -21,18 +21,11 @@ import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.DisplayClient
 import play.api.Application
-import play.api.http.Status.{CONFLICT, CREATED, INTERNAL_SERVER_ERROR, OK}
+import play.api.http.Status.{CONFLICT, CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import play.utils.UriEncoding
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  AccessGroup,
-  AgentUser,
-  Client,
-  Enrolment,
-  Identifier,
-  OptedInReady
-}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, EnrolmentKey, Identifier, OptedInReady}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
@@ -170,6 +163,60 @@ class AgentPermissionsConnectorSpec
       //then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.groupsSummaries(arn))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "GET GroupSummariesForClient" should {
+
+    val enrolment = Enrolment("HMRC-MTD-VAT","Activated","friendly0",Seq(Identifier("VRN","123456780")))
+
+    "return groups successfully" in {
+      //given
+      val groupSummaries = Seq(
+        GroupSummary("groupId", "groupName", 33, 9)
+      )
+
+      val enrolmentKey = EnrolmentKey.enrolmentKeys(enrolment).head
+
+      val expectedUrl =
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/$enrolmentKey/groups"
+      val mockJsonResponseBody = Json.toJson(groupSummaries).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //and
+      val expectedTransformedResponse = Some(
+        groupSummaries
+      )
+
+      //then
+      connector
+        .getGroupsForClient(arn, enrolment)
+        .futureValue shouldBe expectedTransformedResponse
+    }
+
+    "return None 404 if no groups found" in {
+      //given
+      val mockResponse = HttpResponse.apply(NOT_FOUND, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      connector
+        .getGroupsForClient(arn, enrolment)
+        .futureValue shouldBe None
+    }
+
+    "throw an exception for any other HTTP response code" in {
+      //given
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.getGroupsForClient(arn, enrolment))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }

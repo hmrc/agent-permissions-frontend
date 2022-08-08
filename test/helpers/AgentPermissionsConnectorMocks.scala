@@ -19,9 +19,10 @@ package helpers
 import akka.Done
 import connectors.{AgentPermissionsConnector, GroupRequest, GroupSummary, UpdateAccessGroupRequest}
 import models.DisplayClient
+import org.scalamock.handlers.CallHandler4
 import org.scalamock.scalatest.MockFactory
-import play.api.http.Status.{BAD_REQUEST, OK}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, OptinStatus}
+import play.api.http.Status.BAD_REQUEST
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Enrolment, OptinStatus}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +34,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector
       .getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful (Some(optinStatus)))
+      .returning(Future successful Some(optinStatus))
 
   def stubOptInStatusError(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
@@ -87,6 +88,16 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .groupsSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful summaries)
+
+  def expectGetGroupsForClientSuccess(
+                                    arn: Arn,
+                                    enrolment: Enrolment,
+                                    groups: Option[Seq[GroupSummary]])(
+                                    implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .getGroupsForClient(_: Arn, _: Enrolment)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, enrolment, *, *)
+      .returning(Future successful groups)
 
   def expectGetGroupSuccess(id: String, group: Option[AccessGroup])(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =

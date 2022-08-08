@@ -124,7 +124,7 @@ trait SessionBehaviour {
                      hc: HeaderCarrier,
                      ec: ExecutionContext) = {
     Future.sequence(
-      sessionKeys.map(sessionCacheRepository.deleteFromSession(_)))
+      sessionKeys.map(sessionCacheRepository.deleteFromSession(_))).map(_ => ())
   }
 
 }

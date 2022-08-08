@@ -16,15 +16,25 @@
 
 @import config.AppConfig
 @import views.html.main_layout
+@import uk.gov.hmrc.agentmtdidentifiers.model.OptinStatus
+@import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, link_as_button: link_as_button)
 
-@(continueUrl: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@(optinStatus: OptinStatus)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@ready = @{optinStatus == OptedInReady}
+
+@optionalP = @{if(ready){} else {p("you-have-opted-in.optional-p")}}
+
+@continueUrl = @{if(ready) {routes.GroupController.start.url} else {appConfig.agentServicesAccountManageAccountUrl}}
 
 @layout(
-    title = msgs("you-have-opted-in.h1")) {
-    @h1("you-have-opted-in.h1")
-    @h2("you-have-opted-in.h2")
-    @p("you-have-opted-in.p")
-    @link_as_button(key = "you-have-opted-in.button", href = continueUrl)
+    title = msgs(s"you-have-opted-in.h1.ready.$ready")) {
+    @h1(s"you-have-opted-in.h1.ready.$ready")
+    @h2(s"you-have-opted-in.h2")
+    @optionalP
+    @p(s"you-have-opted-in.p1.ready.$ready")
+    @link_as_button(key = s"you-have-opted-in.button.ready.$ready", href = continueUrl)
 }

@@ -48,10 +48,14 @@ do-you-want-to-opt-in.yes.label=Yes, I want to opt-in
 do-you-want-to-opt-in.yes.error=Please select an option.
 do-you-want-to-opt-in.no.label=No, I want to remain opted-out
 
-you-have-opted-in.h1=You have opted in to use access groups
+you-have-opted-in.h1.ready.true=You have opted in to use access groups
+you-have-opted-in.h1.ready.false=You have turned on access groups but we need some time to gather the client data
 you-have-opted-in.h2=What happens next
-you-have-opted-in.p=You now need to create <b>access groups</b> and assign clients and team members to them.
-you-have-opted-in.button=Create an access group
+you-have-opted-in.optional-p=Your client data is currently being processed.
+you-have-opted-in.p1.ready.true=You now need to create <b>access groups</b> and assign clients and team members to them.
+you-have-opted-in.p1.ready.false=You will receive a confirmation email to let you know when this is done and what to do next.
+you-have-opted-in.button.ready.true=Create an access group
+you-have-opted-in.button.ready.false=Return to manage account
 
 you-have-not-opted-in.h1=You have not opted-in to use access groups
 you-have-not-opted-in.h2=What happens next
@@ -173,7 +177,6 @@ unassigned.client.assign.nothing.selected.error=You must select an access group 
 clients.assigned.complete.h1=Clients added to access groups
 clients.assigned.complete.p=You have added these clients to the following groups:
 common.return.to.unassigned.clients=Return to unassigned clients
-
 
 details.clients=Client details
 common.details.assign-to-group=Assign to an access group

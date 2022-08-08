@@ -58,8 +58,8 @@ package object controllers {
   val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]]
     = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
 
-  val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]]
-  = DataKey("filteredGroupSummaries")
+  val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]] = DataKey("filteredGroupSummaries")
+  val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
 
   val sessionKeys =
     List(

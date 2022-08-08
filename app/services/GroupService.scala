@@ -17,7 +17,7 @@
 package services
 
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
-import controllers.{FILTERED_CLIENTS, FILTERED_GROUP_SUMMARIES, FILTERED_TEAM_MEMBERS, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, ToFuture}
+import controllers.{FILTERED_CLIENTS, FILTERED_GROUPS_INPUT, FILTERED_GROUP_SUMMARIES, FILTERED_TEAM_MEMBERS, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, ToFuture}
 import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, Selectable, TeamMember}
 import models.ButtonSelect._
 import play.api.Logging
@@ -320,6 +320,7 @@ class GroupService @Inject()(
 
   def filterByGroupName(filterBy: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext) =
     for {
+      _ <- sessionCacheRepository.putSession[String](FILTERED_GROUPS_INPUT, filterBy)
       maybeGroupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
       _ = maybeGroupSummaries.map { gs =>
         val toSave = gs._1.filter(_.groupName.toLowerCase.startsWith(filterBy.toLowerCase))

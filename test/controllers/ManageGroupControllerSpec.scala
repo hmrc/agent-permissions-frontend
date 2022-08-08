@@ -351,6 +351,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val unassignedClients = (1 to 8).map(i =>
         DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
       val summaries = Some((groupSummaries, unassignedClients))
+      await(sessionCacheRepo.putSession(FILTERED_GROUPS_INPUT, "Potato"))
       await(sessionCacheRepo.putSession(FILTERED_GROUP_SUMMARIES, groupSummaries))
 
 
@@ -384,8 +385,9 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //verify the tab panel contents
       val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
-      groupsPanel.select("h2").text() shouldBe "Access groups"
 
+      groupsPanel.select("h2").text() shouldBe "Access groups"
+      groupsPanel.select("input#search").attr("value") shouldBe "Potato"
       val groups = groupsPanel.select("dl.govuk-summary-list")
       groups.size() shouldBe 3
       val firstGroup = groups.get(0)
@@ -1204,7 +1206,6 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     }
   }
-
 
   s"POST ${routes.ManageGroupController.submitAddUnassignedClients}" should {
     s"save selected unassigned clients and redirect to ${routes.ManageGroupController.showSelectedUnassignedClients} " +

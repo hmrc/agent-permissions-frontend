@@ -77,9 +77,17 @@ class ManageGroupController @Inject()(
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-          groupService.groupSummaries(arn).map(gs =>
-          Ok(dashboard(gs, AddClientsToGroupForm.form(), FilterByGroupNameForm.form, maybeHiddenClients)))
+        withSessionItem[String](FILTERED_GROUPS_INPUT) { filterInput =>
+          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+            groupService.groupSummaries(arn).map(gs =>
+              Ok(
+                dashboard(
+                  gs,
+                  AddClientsToGroupForm.form(),
+                  FilterByGroupNameForm.form.fill(filterInput.getOrElse("")),
+                  maybeHiddenClients))
+            )
+          }
         }
       }
     }
@@ -92,9 +100,13 @@ class ManageGroupController @Inject()(
           val encoded = request.body.asFormUrlEncoded
           val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
 
+          for {
+            _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES)
+            _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUPS_INPUT)
+          } yield ()
+
           buttonSelection match {
-            case Clear => sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES).map(_ =>
-              Redirect(routes.ManageGroupController.showManageGroups))
+            case Clear => Redirect(routes.ManageGroupController.showManageGroups).toFuture
             case Filter =>
               FilterByGroupNameForm.form
                 .bindFromRequest()
@@ -103,9 +115,10 @@ class ManageGroupController @Inject()(
                     groupService.groupSummaries(arn).map(
                       gs => Ok(dashboard(gs, AddClientsToGroupForm.form(), hasErrors, maybeHiddenClients)))
                   ,
-                  formData =>
+                  formData =>{
                     groupService.filterByGroupName(formData)(arn)
-                      .map(_ => Redirect(routes.ManageGroupController.showManageGroups))
+                      .flatMap(_ => Redirect(routes.ManageGroupController.showManageGroups).toFuture)
+                  }
                 )
           }
         }

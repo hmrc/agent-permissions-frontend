@@ -20,11 +20,12 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, G
 import controllers.{FILTERED_CLIENTS, FILTERED_GROUPS_INPUT, FILTERED_GROUP_SUMMARIES, FILTERED_TEAM_MEMBERS, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, ToFuture}
 import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, Selectable, TeamMember}
 import models.ButtonSelect._
+import models.DisplayClient.toEnrolment
 import play.api.Logging
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, EnrolmentKey}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -316,6 +317,18 @@ class GroupService @Inject()(
       g <- groupSummaries
       c <- clients
     } yield (g,c)
+  }
+
+  def groupSummariesForClient(arn: Arn, client: DisplayClient)
+                    (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[GroupSummary]] = {
+    val enrolment = toEnrolment(client)
+    val groupSummaries = agentPermissionsConnector.getGroupsForClient(arn, enrolment).map {
+          case Some(gs) => gs
+          case None => Seq.empty
+        }
+    for {
+      g <- groupSummaries
+    } yield g
   }
 
   def filterByGroupName(filterBy: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext) =

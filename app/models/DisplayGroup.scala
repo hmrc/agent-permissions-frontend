@@ -17,7 +17,7 @@
 package models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Client, Enrolment}
+import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 
 case class DisplayGroup(
     _id: String,

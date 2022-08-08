@@ -42,9 +42,14 @@ object ViewUtils {
     }
   }
 
-  def displayObfuscatedReference(taxId: String): String = {
-    // TODO - change obfuscation depending on reference?
-    "ending in ".concat(taxId.substring(taxId.length - 4))
+  // can only display full taxId if no name
+  def displayObfuscatedReference(name: String, taxId: String): String = {
+    if(name.isEmpty) {
+      taxId
+    } else {
+      // TODO - change obfuscation depending on reference?
+      "ending in ".concat(taxId.substring(taxId.length - 4))
+    }
   }
 
 }

@@ -41,7 +41,7 @@
         clients.map(client =>
             Seq(
                 Html(client.name),
-                Html(displayObfuscatedReference(client.hmrcRef)),
+                Html(displayObfuscatedReference(client.name, client.hmrcRef)),
                 Html(displayTaxServiceFromServiceKey(client.taxService))
             )
         )

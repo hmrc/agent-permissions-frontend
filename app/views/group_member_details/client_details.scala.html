@@ -42,12 +42,7 @@
 }
 
 @displayTaxReference = @{
-    if(client.name.isEmpty) {
-        Html(client.hmrcRef)
-    } else {
-        Html(displayObfuscatedReference(client.hmrcRef))
-    }
-
+    Html(displayObfuscatedReference(client.name, client.hmrcRef))
 }
 
 @layout(
@@ -92,6 +87,7 @@
             }
         </ul>
 
+            @a("common.details.assign-to-group", href="#")
 
         }
 

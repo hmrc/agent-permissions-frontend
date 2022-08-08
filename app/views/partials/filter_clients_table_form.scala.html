@@ -42,7 +42,7 @@
     clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
         Seq(
             Html(client.name),
-            Html(displayObfuscatedReference(client.hmrcRef)),
+            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client.taxService)),
             a(key="details.clients", href= routes.ManageClientController.showClientDetails(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url)
         )

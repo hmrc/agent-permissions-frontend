@@ -55,13 +55,13 @@
     @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
 
     <div class="govuk-grid-column-two-thirds">
-        @h3("group.client.list.table.th1")
+        @h2("group.client.list.table.th1", size = "s")
         @p(html = Some(clientReference))
 
-        @h3("group.client.list.table.th2")
+        @h2("group.client.list.table.th2", size = "s")
         @p(html = Some(displayTaxReference))
 
-        @h3("group.client.list.table.th3")
+        @h2("group.client.list.table.th3", size = "s")
         @p(displayTaxServiceFromServiceKey(client.taxService))
 
         <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">

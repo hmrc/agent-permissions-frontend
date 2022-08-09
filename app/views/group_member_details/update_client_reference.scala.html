@@ -1,0 +1,75 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.html.main_layout
+@import utils.ViewUtils._
+@import models.AddClientsToGroup
+@import java.util.Base64
+@import play.api.libs.json.Json
+
+@this(
+        layout: main_layout,
+        h1: h1, caption: caption,
+        p:p, a: a, span: span,
+        insetText: inset_text,
+        formWithCSRF: FormWithCSRF,
+        textbox: textbox,
+        link_as_button: link_as_button,
+        submit: submit_button
+)
+
+@(
+    client: DisplayClient,
+    form: Form[String],
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@displayTaxReference = @{
+    Html(displayObfuscatedReference(client.name, client.hmrcRef))
+}
+
+@layout(
+    title = msgs("update-client-reference"),
+    backLinkHref = Some(routes.ManageClientController.showClientDetails(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url),
+    formErrors = form.errors
+) {
+
+    @caption(msgs("update-client-reference.caption", displayTaxReference))
+    @h1("update-client-reference")
+
+    @formWithCSRF(action = routes.ManageClientController.submitUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes))) {
+
+    @textbox(
+        field = form("clientRef"),
+        label = "update-client-reference.label",
+        labelClasses = "govuk-label--s",
+        classes = "govuk-input--width-20"
+    )
+
+    @insetText(key = "update-client-reference.text")
+
+
+    <div class="govuk-button-group">
+        @link_as_button(
+            href= routes.ManageClientController.showClientDetails(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url,
+            key = "common.cancel",
+            submitClass = Some("govuk-button--secondary")
+        )
+        @submit(messageKey = "save.and.continue.button")
+    </div>
+    }
+}

@@ -49,7 +49,7 @@ class ManageClientControllerSpec extends BaseSpec {
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
@@ -298,6 +298,112 @@ class ManageClientControllerSpec extends BaseSpec {
 
       html.body.text().contains("Not assigned to an access group")
 
+    }
+
+  }
+
+  s"GET ${routes.ManageClientController.showUpdateClientReference(clientId).url}" should {
+
+    "render update_client_details with existing client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForClientSuccess(arn, enrolment, None)
+
+      //when
+      val result = controller.showUpdateClientReference(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Update client reference"
+
+      html.body.text().contains("Not assigned to an access group")
+    }
+
+    "render update_client_details without a client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForClientSuccess(arn, enrolment, Some(groupSummaries))
+
+      //when
+      val result = controller.showUpdateClientReference(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Update client reference"
+
+      html.body.text().contains("Not assigned to an access group")
+
+    }
+
+  }
+
+  s"POST ${routes.ManageClientController.submitUpdateClientReference(clientId).url}" should {
+
+    "save client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForClientSuccess(arn, enrolment, None)
+
+      //when
+      val result = controller.showUpdateClientReference(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+    }
+
+    "redirect to update_client_details and display errors" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForClientSuccess(arn, enrolment, Some(groupSummaries))
+
+      //when
+      val result = controller.showUpdateClientReference(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Update client reference"
+
+      html.body.text().contains("Not assigned to an access group")
+
+    }
+
+  }
+
+
+  s"GET ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId).url}" should {
+
+    "render client_details_complete with existing client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForClientSuccess(arn, enrolment, None)
+
+      //when
+      val result = controller.showClientReferenceUpdatedComplete(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Update client reference"
+
+      html.body.text().contains("Not assigned to an access group")
     }
 
   }

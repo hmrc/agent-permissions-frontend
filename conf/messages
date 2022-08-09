@@ -184,17 +184,19 @@ details.clients.no-data=We could not retrieve this
 details.team-members=Team member details
 details.link-hidden= for {0}
 
-update-client-reference=Update client reference
-update-client-reference.caption=Tax reference: {0}
-update-client-reference.label=Client reference
-update-client-reference.inset=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
-
-client-reference.updated.panel=Client reference updated to {0}
-client-reference.updated.p=You have updated this client reference in your access groups. This will not change the client reference in other Government Gateway services.
-
 common.details.assign-to-group=Assign to an access group
 common.details.not-assigned=Not assigned to an access group
 common.details.groups.header=Member of these groups
+
+update-client-reference=Update client reference
+update-client-reference.caption=Tax reference: {0}
+update-client-reference.label=Client reference
+update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
+error.client-reference.required=Enter client reference
+error.client-reference.max-length=Client reference must be 80 characters or fewer
+
+client-reference.updated.panel=Client reference updated to {0}
+client-reference.updated.p=You have updated this client reference in your access groups. This will not change the client reference in other Government Gateway services.
 
 error.group.filter.max.length=You can only enter 32 characters or fewer
 error.group.filter.required=You must enter a group name or part of it

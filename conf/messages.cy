@@ -10,7 +10,7 @@ common.yes.label=Yes
 common.no.label=No
 common.caption.group.name={0} access group
 continue=Continue
-common.what.happens.next=What happens next?
+common.what.happens.next=What happens next
 common.change=Change
 
 continue.button=Continue

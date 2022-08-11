@@ -195,6 +195,7 @@ update-client-reference.text=Please note that adding a client reference here doe
 error.client-reference.required=Enter client reference
 error.client-reference.max-length=Client reference must be 80 characters or fewer
 
+client-reference.updated.title=Client reference updated
 client-reference.updated.panel=Client reference updated to {0}
 client-reference.updated.p=You have updated this client reference in your access groups. This will not change the client reference in other Government Gateway services.
 

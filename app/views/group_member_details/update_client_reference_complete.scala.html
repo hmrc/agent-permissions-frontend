@@ -36,7 +36,7 @@ clientRef: String)(implicit request: Request[_], msgs: Messages, appConfig: AppC
     @msgs("client-reference.updated.panel", clientRef)
 }
 
-@layout(title = msgs("client-reference.updated.panel", clientRef)) {
+@layout(title = msgs("client-reference.updated.title")) {
 
     @govukPanel(
         Panel(title = HtmlContent(panelContent))

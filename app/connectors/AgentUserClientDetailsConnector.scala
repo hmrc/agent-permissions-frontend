@@ -16,20 +16,16 @@
 
 package connectors
 
+import akka.Done
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import play.api.Logging
-import play.api.http.Status.{ACCEPTED, OK}
+import play.api.http.Status.{ACCEPTED, NO_CONTENT, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
-import uk.gov.hmrc.http.{
-  HeaderCarrier,
-  HttpClient,
-  HttpResponse,
-  UpstreamErrorResponse
-}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,6 +40,10 @@ trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   def getTeamMembers(arn: Arn)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Option[Seq[UserDetails]]]
+
+  def updateClientReference(arn: Arn, client: Client)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Done]
 
 }
 
@@ -94,4 +94,26 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
     }
 
   }
+
+  override def updateClientReference(arn: Arn, client: Client)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Done] = {
+    val url =
+      s"$baseUrl/agent-user-client-details/arn/${arn.value}/update-friendly-name"
+
+    monitor("ConsumedAPI-update-friendly-name-PUT") {
+      http
+        .PUT[Client, HttpResponse](url, client).map { response =>
+        response.status match {
+          case NO_CONTENT => Done
+          case e =>
+            throw UpstreamErrorResponse(s"error PUTing friendlyName for $client with agent ${arn.value}",
+              e)
+        }
+      }
+    }
+
+  }
+
+
 }

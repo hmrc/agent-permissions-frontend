@@ -17,17 +17,29 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import utils.ViewUtils._
 
-
-@this(layout: main_layout, p: p, h1: h1, h2: h2, a: a, govukPanel: GovukPanel)
+@this(
+layout: main_layout,
+p: p, h1: h1, h2: h2, a: a,
+caption: caption,
+govukPanel: GovukPanel)
 
 @(client: DisplayClient,
 clientRef: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@panelContent = {
+    @caption(
+        key=msgs("update-client-reference.caption", displayObfuscatedReference(clientRef, client.hmrcRef)),
+        classes=Some("govuk-panel--confirmation")
+    )
+    @msgs("client-reference.updated.panel", clientRef)
+}
+
 @layout(title = msgs("client-reference.updated.panel", clientRef)) {
 
     @govukPanel(
-        Panel(title = Text(msgs("client-reference.updated.panel", clientRef)))
+        Panel(title = HtmlContent(panelContent))
     )
 
     @h2("common.what.happens.next")

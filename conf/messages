@@ -135,7 +135,7 @@ group.manage.tabs.1.label=Access groups
 group.manage.tabs.2.label=Unassigned clients
 
 group.manage.no.groups.h3=No groups found
-group.manage.no.groups.p=You can create an access group to control which team members can manage the tax affairs of clients in the group
+group.manage.no.groups.p=Update your filters and try again or clear your filters to see all your groups
 group.manage.no.groups.button=Create new access group
 group.manage.no.unassigned.clients.h3=No unassigned clients found
 group.manage.rename=Rename group

@@ -76,7 +76,7 @@
                     SummaryListData(
                         "common.clients",
                         summary.clientCount.toString,
-                        routes.ManageGroupController.showExistingGroupClients(summary.groupId),
+                        routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
                         linkMsgKey = "group.manage.clients",
                         linkClasses = Some("govuk-!-width-one-half")
                     ),
@@ -103,7 +103,8 @@
 
     }
     @if(summaries._1.isEmpty){
-        @h3("group.manage.no.groups.h3")
+        @h3("group.manage.no.groups.h3", classes = Some("govuk-!-margin-top-5"))
+        @p("group.manage.no.groups.p", classes = Some("govuk-!-margin-bottom-8"))
     }
 
     @a_button(key="group.manage.no.groups.button", href=routes.GroupController.showGroupName.url)

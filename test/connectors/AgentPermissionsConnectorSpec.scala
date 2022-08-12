@@ -24,7 +24,6 @@ import play.api.Application
 import play.api.http.Status.{CONFLICT, CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import play.utils.UriEncoding
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, EnrolmentKey, Identifier, OptedInReady}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -246,7 +245,7 @@ class AgentPermissionsConnectorSpec
                                   Seq(Identifier("key", "value"))))))
 
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/groups/${groupId}"
+        s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockJsonResponseBody = Json.toJson(accessGroup).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
@@ -282,7 +281,7 @@ class AgentPermissionsConnectorSpec
 
       val groupId = "234234"
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
       mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url,
                                                             groupRequest,
@@ -294,7 +293,7 @@ class AgentPermissionsConnectorSpec
 
       val groupId = "234234"
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url,
                                                             groupRequest,
@@ -314,7 +313,7 @@ class AgentPermissionsConnectorSpec
     "return Done when response code is OK" in {
 
       val groupId = "234234"
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
       mockHttpDELETE[HttpResponse](url, mockResponse)
       connector.deleteGroup(groupId).futureValue shouldBe Done
@@ -323,7 +322,7 @@ class AgentPermissionsConnectorSpec
     "throw exception when it fails" in {
 
       val groupId = "234234"
-      val url = s"http://localhost:9447/agent-permissions/groups/${groupId}"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
       mockHttpDELETE[HttpResponse](url, mockResponse)
 

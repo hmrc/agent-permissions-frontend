@@ -18,7 +18,7 @@ package forms
 
 import models.ButtonSelect.{Clear, Continue, Filter}
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
-import play.api.data.{Form, FormError}
+import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.libs.json.Json.{parse, toJson}

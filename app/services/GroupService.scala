@@ -25,11 +25,9 @@ import play.api.Logging
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, EnrolmentKey}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
-
-import java.lang.Thread.sleep
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
@@ -64,7 +62,7 @@ class GroupService @Inject()(
 
   def getClientsForManageGroups(displayClients: Future[Seq[DisplayClient]])(implicit request: Request[_],
                                           hc: HeaderCarrier,
-                                          ec: ExecutionContext) =
+                                          ec: ExecutionContext): Future[List[DisplayClient]] =
     for {
       maybeSelectedClients <- sessionCacheRepository
         .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
@@ -332,7 +330,7 @@ class GroupService @Inject()(
     } yield g
   }
 
-  def filterByGroupName(searchTerm: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext) = {
+  def filterByGroupName(searchTerm: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext): Future[Unit] = {
     for {
       (x,y) <- sessionCacheRepository.putSession[String](FILTERED_GROUPS_INPUT, searchTerm)
       maybeGroupSummaries <- agentPermissionsConnector.groupsSummaries(arn)

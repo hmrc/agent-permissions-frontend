@@ -64,7 +64,7 @@ class ManageGroupControllerSpec extends BaseSpec {
                                 None,
                                 None)
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
@@ -103,7 +103,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
-  val controller = fakeApplication.injector.instanceOf[ManageGroupController]
+  val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
 
   s"GET ${routes.ManageGroupController.showManageGroups}" should {
 
@@ -348,9 +348,6 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
-      val unassignedClients = (1 to 8).map(i =>
-        DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
-      val summaries = Some((groupSummaries, unassignedClients))
       await(sessionCacheRepo.putSession(FILTERED_GROUPS_INPUT, "Potato"))
       await(sessionCacheRepo.putSession(FILTERED_GROUP_SUMMARIES, groupSummaries))
 
@@ -527,8 +524,6 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
-      val unassignedClients = (1 to 8).map(i =>
-        DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
 
       implicit val request =
         FakeRequest("POST",
@@ -1064,7 +1059,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
         expectUpdateGroupSuccess(accessGroup._id.toString,
-          UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(toEnrolment(_)))))
+          UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(toEnrolment))))
 
         val result =
           controller.submitManageGroupClients(accessGroup._id.toString)(request)

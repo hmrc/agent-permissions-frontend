@@ -25,8 +25,6 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
-import scala.concurrent.Future
-
 class AgentUserClientDetailsConnectorSpec
     extends BaseSpec
     with HttpClientMocks

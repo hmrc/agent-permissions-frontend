@@ -32,12 +32,12 @@ class ClientReferenceFormSpec
 
     "be successful when non-empty" in {
       val params = Map(clientReference -> "XYZ")
-      GroupNameForm.form().bind(params).value shouldBe Some("XYZ")
+      ClientReferenceForm.form().bind(params).value shouldBe Some("XYZ")
     }
 
     "have errors when empty" in {
       val params = Map(clientReference -> "   ")
-      val validatedForm = GroupNameForm.form().bind(params)
+      val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm
         .error(clientReference)
@@ -47,7 +47,7 @@ class ClientReferenceFormSpec
 
     "have errors when length exceeds max allowed characters" in {
       val params = Map(clientReference -> RandomStringUtils.random(81))
-      val validatedForm = GroupNameForm.form().bind(params)
+      val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm
         .error(clientReference)

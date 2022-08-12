@@ -27,7 +27,7 @@ object ClientReferenceForm {
         "clientRef" ->
           text
             .verifying("error.client-reference.required", _.trim.nonEmpty)
-            .verifying("error.client-reference.max-length", _.trim.length < 32)
+            .verifying("error.client-reference.max-length", _.trim.length < 80)
       )
     )
 

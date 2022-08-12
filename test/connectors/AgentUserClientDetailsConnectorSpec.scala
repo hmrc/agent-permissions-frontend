@@ -25,6 +25,8 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
+import scala.concurrent.Future
+
 class AgentUserClientDetailsConnectorSpec
     extends BaseSpec
     with HttpClientMocks
@@ -128,7 +130,7 @@ class AgentUserClientDetailsConnectorSpec
 
   "updateClientReference" should {
 
-    "return Done when response code is OK" in {
+    "return Future[Done] when response code is NO_CONTENT" in {
 
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
@@ -136,7 +138,7 @@ class AgentUserClientDetailsConnectorSpec
       mockHttpPUT[Client, HttpResponse](url,
         clientRequest,
         mockResponse)
-      connector.updateClientReference(arn, clientRequest) shouldBe Done
+      connector.updateClientReference(arn, clientRequest).futureValue shouldBe Done
     }
 
     "throw exception when it fails" in {

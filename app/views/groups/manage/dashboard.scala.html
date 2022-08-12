@@ -37,8 +37,7 @@
     filterGroupSummaryForm: Form[String],
     hiddenClientsExist: Option[Boolean],
     showUnassignedClients: Boolean = false
-)(implicit request: Request[_], msgs: Messages, appConfig:
-AppConfig)
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
 @groupSummaries = {
@@ -61,13 +60,6 @@ AppConfig)
         </div>
         <div class="govuk-grid-column-one-third" id="filter-buttons-wrapper">
             @submit_button_group()
-        </div>
-        <div class="govuk-grid-column-one-third">
-            @input_select(
-                field = filterGroupSummaryForm("sort"),
-                label = msgs("Sort by"),
-                options = Seq(("default" ,"Default (A-Z)"), ("reverse", "Z-A"))
-            )
         </div>
     </div>
 

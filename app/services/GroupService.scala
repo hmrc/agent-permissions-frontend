@@ -29,6 +29,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, EnrolmentKey}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
 
+import java.lang.Thread.sleep
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
@@ -331,13 +332,14 @@ class GroupService @Inject()(
     } yield g
   }
 
-  def filterByGroupName(filterBy: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext) =
+  def filterByGroupName(searchTerm: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext) = {
     for {
-      _ <- sessionCacheRepository.putSession[String](FILTERED_GROUPS_INPUT, filterBy)
+      (x,y) <- sessionCacheRepository.putSession[String](FILTERED_GROUPS_INPUT, searchTerm)
       maybeGroupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
-      _ = maybeGroupSummaries.map { gs =>
-        val toSave = gs._1.filter(_.groupName.toLowerCase.startsWith(filterBy.toLowerCase))
-        sessionCacheRepository.putSession[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES, toSave)
+      filtered = maybeGroupSummaries.map { summaries =>
+        summaries._1.filter(_.groupName.toLowerCase.contains(searchTerm.toLowerCase))
       }
+      _ <- sessionCacheRepository.putSession[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES, filtered.getOrElse(Seq.empty))
     } yield ()
+  }
 }

@@ -695,7 +695,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelBody)
         .text() shouldBe "Previous Name access group renamed to Bananas"
-      html.select(Css.H2).text() shouldBe "What happens next?"
+      html.select(Css.H2).text() shouldBe "What happens next"
       html
         .select(Css.paragraphs)
         .get(0)
@@ -828,7 +828,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Rubbish access group deleted"
-      html.select(Css.H2).text() shouldBe "What happens next?"
+      html.select(Css.H2).text() shouldBe "What happens next"
       html
         .select(Css.paragraphs)
         .get(0)
@@ -1340,7 +1340,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Bananas access group clients updated"
-      html.select(Css.H2).text() shouldBe "What happens next?"
+      html.select(Css.H2).text() shouldBe "What happens next"
       html
         .select(Css.paragraphs)
         .get(0)

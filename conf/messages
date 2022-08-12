@@ -8,15 +8,15 @@ common.errorSummary.heading=There is a problem
 common.yes.label=Yes
 common.no.label=No
 common.caption.group.name={0} access group
-continue=Continue
-common.what.happens.next=What happens next?
+common.continue=Continue
+common.what.happens.next=What happens next
 common.change=Change
 common.actions=Actions
 common.update=Update
 common.clients=Clients
 common.teamMembers=Team members
+common.cancel=Cancel
 
-continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
 
@@ -187,6 +187,17 @@ details.link-hidden= for {0}
 common.details.assign-to-group=Assign to an access group
 common.details.not-assigned=Not assigned to an access group
 common.details.groups.header=Member of these groups
+
+update-client-reference=Update client reference
+update-client-reference.caption=Tax reference: {0}
+update-client-reference.label=Client reference
+update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
+error.client-reference.required=Enter client reference
+error.client-reference.max-length=Client reference must be 80 characters or fewer
+
+client-reference.updated.title=Client reference updated
+client-reference.updated.panel=Client reference updated to {0}
+client-reference.updated.p=You have updated this client reference in your access groups. This will not change the client reference in other Government Gateway services.
 
 error.group.filter.max.length=You can only enter 32 characters or fewer
 error.group.filter.required=You must enter a group name or part of it

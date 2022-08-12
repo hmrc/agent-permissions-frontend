@@ -47,7 +47,7 @@ POST    /group/check-your-answers                   controllers.GroupController.
 
 GET     /group/group-created                        controllers.GroupController.showGroupCreated
 
-# manage groups
+# Manage groups
 GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups
 POST    /manage-access-groups                       controllers.ManageGroupController.submitAddUnassignedClients
 POST    /manage-access-groups/search                controllers.ManageGroupController.submitFilterByGroupName
@@ -57,7 +57,6 @@ GET     /update-group-clients/:groupId              controllers.ManageGroupContr
 POST    /update-group-clients/:groupId              controllers.ManageGroupController.submitManageGroupClients(groupId: String)
 GET     /update-group-clients/review/:groupId       controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
 GET     /clients-updated/:groupId                   controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
-
 
 GET     /manage-group-team-members/:groupId         controllers.ManageGroupController.showExistingGroupTeamMembers(groupId: String)
 GET     /update-group-team-members/:groupId         controllers.ManageGroupController.showManageGroupTeamMembers(groupId: String)
@@ -69,19 +68,21 @@ GET     /rename-group/:groupId                      controllers.ManageGroupContr
 POST    /rename-group/:groupId                      controllers.ManageGroupController.submitRenameGroup(groupId: String)
 GET     /access-group-renamed/:groupId              controllers.ManageGroupController.showGroupRenamed(groupId: String)
 
-#UNASSIGNED CLIENTS
-
-GET     /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.showSelectedUnassignedClients
-GET     /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
-POST    /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients
-GET    /manage-access-group/clients-assigned                    controllers.ManageGroupController.showConfirmClientsAddedToGroups
-
-
 GET     /delete-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)
 POST    /delete-group/:groupId                      controllers.ManageGroupController.submitDeleteGroup(groupId: String)
 GET     /access-group-deleted                       controllers.ManageGroupController.showGroupDeleted
 
-# manage clients
-GET     /manage-clients                             controllers.ManageClientController.showAllClients
-POST    /manage-clients                             controllers.ManageClientController.submitFilterAllClients
-GET     /manage-clients/client-details/:clientId    controllers.ManageClientController.showClientDetails(clientId: String)
+# UNASSIGNED CLIENTS
+GET     /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.showSelectedUnassignedClients
+GET     /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
+POST    /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients
+GET     /manage-access-group/clients-assigned                   controllers.ManageGroupController.showConfirmClientsAddedToGroups
+
+# Manage clients
+GET     /manage-clients                                                     controllers.ManageClientController.showAllClients
+POST    /manage-clients                                                     controllers.ManageClientController.submitFilterAllClients
+GET     /manage-clients/client-details/:clientId                            controllers.ManageClientController.showClientDetails(clientId: String)
+
+GET     /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.showUpdateClientReference(clientId: String)
+POST    /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.submitUpdateClientReference(clientId: String)
+GET     /manage-clients/client-details/client-reference-updated/:clientId   controllers.ManageClientController.showClientReferenceUpdatedComplete(clientId: String)

@@ -21,6 +21,8 @@
 @import models.AddClientsToGroup
 @import connectors.GroupSummary
 @import views.html.partials.filter_clients_table_form
+@import java.util.Base64
+@import play.api.libs.json.Json
 
 @this(
         layout: main_layout,
@@ -35,9 +37,9 @@
 
 @clientReference = @{
     if(client.name.isEmpty) {
-        Html(msgs("details.clients.no-data")+ "  " + a("common.update", href = "#"))
+        Html(msgs("details.clients.no-data")+ "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
     } else {
-        Html(client.name + "  " + a("common.update", href = "#"))
+        Html(client.name + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
     }
 }
 

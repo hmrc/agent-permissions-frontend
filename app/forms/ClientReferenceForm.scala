@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +12,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
-@import uk.gov.hmrc.govukfrontend.views.html.components.{Text, Button}
+package forms
 
-@this(button: GovukButton)
+import play.api.data.Form
+import play.api.data.Forms._
 
-@(
-    messageKey: String = "common.continue",
-    id: String = "continue",
-    name: String = "continue",
-    value: String = "continue",
-    submitClass: Option[String] = None
-)(implicit msgs: Messages)
+object ClientReferenceForm {
 
+  def form(): Form[String] = {
+    Form(
+      single(
+        "clientRef" ->
+          text
+            .verifying("error.client-reference.required", _.trim.nonEmpty)
+            .verifying("error.client-reference.max-length", _.trim.length < 80)
+      )
+    )
 
-@button(Button(
-    attributes = Map("id" -> s"$id", "name" -> s"$name", "value" -> s"$value"),
-    classes = s"${submitClass.getOrElse("")}",
-    inputType = Some("submit"),
-    content = Text(msgs(messageKey))
-))
+  }
+}

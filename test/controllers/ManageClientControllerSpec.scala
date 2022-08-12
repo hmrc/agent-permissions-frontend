@@ -29,7 +29,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.FakeRequest
 import repository.SessionCacheRepository
-import services.GroupService
+import services.{GroupService, ManageClientService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -45,11 +45,12 @@ class ManageClientControllerSpec extends BaseSpec {
     : AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
+  implicit val mockManageClientService: ManageClientService = mock[ManageClientService]
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
@@ -77,6 +78,10 @@ class ManageClientControllerSpec extends BaseSpec {
 
   val fakeClientWithNoFriendlyName: Client = Client(s"HMRC-MTD-VAT~VRN~123456789", "")
 
+  val displayClientWithNoFrieldyName: DisplayClient = DisplayClient.fromClient(fakeClientWithNoFriendlyName)
+
+  val encodedClientWithNoName: String = Base64.getEncoder.encodeToString(Json.toJson(displayClientWithNoFrieldyName).toString.getBytes)
+
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
 
@@ -84,7 +89,7 @@ class ManageClientControllerSpec extends BaseSpec {
     displayClients.map(client =>
       Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
-  val clientId: String = encodedDisplayClients.take(1).head
+  val clientId: String = encodedDisplayClients.head
 
   val groupSummaries = Seq(
     GroupSummary("groupId", "groupName", 33, 9),
@@ -277,7 +282,7 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Client details - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "Client details"
 
-      html.body.text().contains("Not assigned to an access group")
+      html.body.text().contains("Not assigned to an access group") shouldBe true
     }
 
     "render the clients details page with list of groups" in {
@@ -296,8 +301,108 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Client details - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "Client details"
 
-      html.body.text().contains("Not assigned to an access group")
+      html.body.text().contains("Not assigned to an access group") shouldBe false
 
+    }
+
+  }
+
+  s"GET ${routes.ManageClientController.showUpdateClientReference(clientId).url}" should {
+
+    "render update_client_reference with existing client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      //when
+      val result = controller.showUpdateClientReference(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Update client reference"
+
+      html.body.select("input#clientRef").attr("value") shouldBe "friendly0"
+    }
+
+    "render update_client_reference without a client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.showUpdateClientReference(encodedClientWithNoName)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Update client reference"
+
+      html.body.select("input#clientRef").attr("value") shouldBe ""
+
+    }
+
+  }
+
+  s"POST ${routes.ManageClientController.submitUpdateClientReference(clientId).url}" should {
+
+    s"redirect to ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      //await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
+
+      //when
+      val result = controller.submitUpdateClientReference(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+    }
+
+    "display errors for update_client_details" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitUpdateClientReference(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Error: Update client reference - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Update client reference"
+
+    }
+
+  }
+
+
+  s"GET ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId).url}" should {
+
+    "render client_details_complete with new client reference" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
+
+      //when
+      val result = controller.showClientReferenceUpdatedComplete(clientId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Client reference updated - Manage Agent Permissions - GOV.UK"
+      html
+        .select(Css.confirmationPanelH1)
+        .text() shouldBe "Tax reference: ending in 6780 Client reference updated to The New Name"
     }
 
   }

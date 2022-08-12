@@ -1490,7 +1490,7 @@ class GroupControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelBody)
         .text() shouldBe "XYZ access group is now active"
-      html.select(Css.H2).text() shouldBe "What happens next?"
+      html.select(Css.H2).text() shouldBe "What happens next"
       html.select(Css.backLink).size() shouldBe 0
 
       html

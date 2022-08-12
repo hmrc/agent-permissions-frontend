@@ -61,6 +61,8 @@ package object controllers {
   val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]] = DataKey("filteredGroupSummaries")
   val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
 
+  val CLIENT_REFERENCE: DataKey[String] = DataKey("clientRef")
+
   val sessionKeys =
     List(
       OPTIN_STATUS,
@@ -77,7 +79,8 @@ package object controllers {
       HIDDEN_TEAM_MEMBERS_EXIST,
       SELECTED_TEAM_MEMBERS,
       GROUPS_FOR_UNASSIGNED_CLIENTS,
-      FILTERED_GROUP_SUMMARIES
+      FILTERED_GROUP_SUMMARIES,
+      CLIENT_REFERENCE
     )
 
 }

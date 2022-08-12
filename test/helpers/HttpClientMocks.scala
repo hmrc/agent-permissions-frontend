@@ -66,6 +66,17 @@ trait HttpClientMocks extends MockFactory {
       .returns(Future.successful(output))
   }
 
+  def mockHttpPUT[I, O](url: String, input: I, output: O)(
+    implicit mockHttpClient: HttpClient): Unit = {
+    (mockHttpClient
+      .PUT(_: String, _: I, _: Seq[(String, String)])(_: Writes[I],
+        _: HttpReads[O],
+        _: HeaderCarrier,
+        _: ExecutionContext))
+      .expects(url, input, *, *, *, *, *)
+      .returns(Future.successful(output))
+  }
+
   def mockHttpPATCH[I, O](url: String, input: I, output: O)(
       implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient

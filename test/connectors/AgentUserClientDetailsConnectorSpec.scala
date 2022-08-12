@@ -16,10 +16,11 @@
 
 package connectors
 
+import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
-import play.api.http.Status.{ACCEPTED, OK}
+import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
@@ -124,4 +125,36 @@ class AgentUserClientDetailsConnectorSpec
     }
   }
 
+
+  "updateClientReference" should {
+
+    "return Done when response code is OK" in {
+
+      val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
+      val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
+      val mockResponse = HttpResponse.apply(NO_CONTENT, "")
+      mockHttpPUT[Client, HttpResponse](url,
+        clientRequest,
+        mockResponse)
+      connector.updateClientReference(arn, clientRequest) shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
+      val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpPUT[Client, HttpResponse](url,
+        clientRequest,
+        mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.updateClientReference(arn, clientRequest))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+
+  }
 }

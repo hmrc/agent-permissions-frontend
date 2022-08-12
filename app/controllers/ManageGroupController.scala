@@ -77,14 +77,14 @@ class ManageGroupController @Inject()(
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[String](FILTERED_GROUPS_INPUT) { filterInput =>
+        withSessionItem[String](FILTERED_GROUPS_INPUT) { searchTerm =>
           withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
             groupService.groupSummaries(arn).map(gs =>
               Ok(
                 dashboard(
                   gs,
                   AddClientsToGroupForm.form(),
-                  FilterByGroupNameForm.form.fill(filterInput.getOrElse("")),
+                  FilterByGroupNameForm.form.fill(searchTerm.getOrElse("")),
                   maybeHiddenClients))
             )
           }
@@ -100,13 +100,14 @@ class ManageGroupController @Inject()(
           val encoded = request.body.asFormUrlEncoded
           val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
 
-          for {
-            _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES)
-            _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUPS_INPUT)
-          } yield ()
 
           buttonSelection match {
-            case Clear => Redirect(routes.ManageGroupController.showManageGroups).toFuture
+            case Clear =>
+              for {
+                _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES)
+                _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUPS_INPUT)
+              } yield ()
+              Redirect(routes.ManageGroupController.showManageGroups).toFuture
             case Filter =>
               FilterByGroupNameForm.form
                 .bindFromRequest()

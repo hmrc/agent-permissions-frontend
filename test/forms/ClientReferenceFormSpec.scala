@@ -26,9 +26,9 @@ class ClientReferenceFormSpec
     with Matchers
     with GuiceOneAppPerSuite {
 
-  val clientReference = "name"
+  val clientReference = "clientRef"
 
-  "CreateGroupFrom binding" should {
+  "ClientReferenceForm binding" should {
 
     "be successful when non-empty" in {
       val params = Map(clientReference -> "XYZ")

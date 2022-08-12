@@ -80,7 +80,7 @@ trait SessionBehaviour {
 
   def withSessionItem[T](dataKey: DataKey[T])
                         (body: Option[T] => Future[Result])
-                        (implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+                        (implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Result] = {
     sessionCacheRepository.getFromSession[T](dataKey).flatMap(data => body(data))
   }
 
@@ -121,8 +121,7 @@ trait SessionBehaviour {
     }
 
   def clearSession()(implicit request: Request[_],
-                     hc: HeaderCarrier,
-                     ec: ExecutionContext) = {
+                     ec: ExecutionContext): Future[Unit] = {
     Future.sequence(
       sessionKeys.map(sessionCacheRepository.deleteFromSession(_))).map(_ => ())
   }

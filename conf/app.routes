@@ -52,11 +52,11 @@ GET     /manage-access-groups                       controllers.ManageGroupContr
 POST    /manage-access-groups                       controllers.ManageGroupController.submitAddUnassignedClients
 POST    /manage-access-groups/search                controllers.ManageGroupController.submitFilterByGroupName
 
-GET     /manage-group-clients/:groupId              controllers.ManageGroupController.showExistingGroupClients(groupId: String)
-GET     /update-group-clients/:groupId              controllers.ManageGroupController.showManageGroupClients(groupId: String)
-POST    /update-group-clients/:groupId              controllers.ManageGroupController.submitManageGroupClients(groupId: String)
-GET     /update-group-clients/review/:groupId       controllers.ManageGroupController.showReviewSelectedClients(groupId: String)
-GET     /clients-updated/:groupId                   controllers.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId: String)
+GET     /manage-group-clients/:groupId              controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String)
+GET     /update-group-clients/:groupId              controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
+POST    /update-group-clients/:groupId              controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
+GET     /update-group-clients/review/:groupId       controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)
+GET     /clients-updated/:groupId                   controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 GET     /manage-group-team-members/:groupId         controllers.ManageGroupController.showExistingGroupTeamMembers(groupId: String)
 GET     /update-group-team-members/:groupId         controllers.ManageGroupController.showManageGroupTeamMembers(groupId: String)

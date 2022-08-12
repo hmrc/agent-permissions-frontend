@@ -54,9 +54,7 @@ class ManageGroupController @Inject()(
      confirm_delete_group: confirm_delete_group,
      delete_group_complete: delete_group_complete,
      review_clients_to_add: review_clients_to_add,
-     client_group_list: client_group_list,
      clients_update_complete: clients_update_complete,
-     existing_clients: existing_clients,
      existing_team_members: existing_team_members,
      team_members_list: team_members_list,
      review_team_members_to_add: review_team_members_to_add,
@@ -100,14 +98,13 @@ class ManageGroupController @Inject()(
           val encoded = request.body.asFormUrlEncoded
           val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
 
-
           buttonSelection match {
             case Clear =>
-              for {
+              val u = for {
                 _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES)
                 _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUPS_INPUT)
               } yield ()
-              Redirect(routes.ManageGroupController.showManageGroups).toFuture
+              u.flatMap(_ => Redirect(routes.ManageGroupController.showManageGroups).toFuture)
             case Filter =>
               FilterByGroupNameForm.form
                 .bindFromRequest()
@@ -116,117 +113,13 @@ class ManageGroupController @Inject()(
                     groupService.groupSummaries(arn).map(
                       gs => Ok(dashboard(gs, AddClientsToGroupForm.form(), hasErrors, maybeHiddenClients)))
                   ,
-                  formData =>{
+                  formData => {
                     groupService.filterByGroupName(formData)(arn)
                       .flatMap(_ => Redirect(routes.ManageGroupController.showManageGroups).toFuture)
                   }
                 )
           }
         }
-      }
-    }
-  }
-
-  def showExistingGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
-      Ok(existing_clients(DisplayGroup.fromAccessGroup(group))).toFuture
-  }
-  }
-
-  def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId){ group =>
-      for {
-        _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS, DisplayClient.fromEnrolments(group.clients))
-        filteredClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS)
-        maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
-        clientsForArn <- groupService.getClients(group.arn)
-
-      } yield Ok(
-        client_group_list(
-          filteredClients.orElse(clientsForArn),
-          group.groupName,
-          maybeHiddenClients,
-          AddClientsToGroupForm.form(),
-          formAction = routes.ManageGroupController.submitManageGroupClients(groupId),
-          backUrl = Some(routes.ManageGroupController.showExistingGroupClients(groupId).url)
-        )
-      )
-      }
-    }
-
-  def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-
-    val encoded = request.body.asFormUrlEncoded
-    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
-
-    withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
-        withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-          AddClientsToGroupForm
-            .form(buttonSelection)
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-                for {
-                  _ <- if (buttonSelection == ButtonSelect.Continue)
-                    sessionCacheService.clearSelectedClients()
-                  else ().toFuture
-                  clients <- maybeFilteredResult.fold(groupService.getClients(group.arn))(Some(_).toFuture)
-                 result <-
-                    Ok(client_group_list(
-                      clients,
-                      group.groupName,
-                      maybeHiddenClients,
-                      formWithErrors,
-                      formAction = routes.ManageGroupController.showManageGroupClients(groupId),
-                      backUrl = Some(routes.ManageGroupController.showManageGroups.url)
-                    )).toFuture
-                } yield result
-              },
-              formData => {
-                groupService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData).flatMap(_ =>
-                  if (buttonSelection == ButtonSelect.Continue) {
-                    for {
-                      enrolments <- sessionCacheRepository
-                        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
-                        .map { maybeClients: Option[Seq[DisplayClient]] =>
-                          maybeClients
-                            .map(_.map(toEnrolment(_)))
-                            .map(_.toSet)
-                        }
-                      groupRequest = UpdateAccessGroupRequest(clients = enrolments)
-                      _ <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
-                      _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
-                      _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
-                    } yield
-                      Redirect(routes.ManageGroupController.showReviewSelectedClients(groupId))
-                  }
-                  else Redirect(routes.ManageGroupController.showManageGroupClients(groupId)).toFuture
-                )
-              }
-            )
-        }
-      }
-    }
-  }
-
-  def showReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
-        selectedClients
-          .fold {
-            Redirect(routes.ManageGroupController.showManageGroupClients(groupId))
-          } { clients =>
-            Ok(
-              review_clients_to_add(
-                clients = clients,
-                groupName = group.groupName,
-                backUrl = Some(routes.ManageGroupController.showManageGroupClients(groupId).url),
-                continueCall = routes.ManageGroupController.showGroupClientsUpdatedConfirmation(groupId)
-              )
-            )
-          }
-          .toFuture
       }
     }
   }
@@ -367,7 +260,7 @@ class ManageGroupController @Inject()(
     withGroupForAuthorisedOptedAgent(groupId) {group: AccessGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         if(selectedClients.isDefined) Ok(clients_update_complete(group.groupName)).toFuture
-        else Redirect(routes.ManageGroupController.showManageGroupClients(groupId)).toFuture
+        else Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId)).toFuture
       }
     }
   }
@@ -409,7 +302,7 @@ class ManageGroupController @Inject()(
         result =>
           val filteredTeamMembers = result._1
           val maybeHiddenTeamMembers = result._2
-          val backUrl = Some(routes.ManageGroupController.showExistingGroupClients(groupId).url)
+          val backUrl = Some(routes.ManageGroupClientsController.showExistingGroupClients(groupId).url)
           if (filteredTeamMembers.isDefined)
             Ok(
               team_members_list(

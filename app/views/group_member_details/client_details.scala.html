@@ -85,7 +85,8 @@
 
         <ul class="govuk-list">
             @for(group <- clientGroups) {
-            <li class="govuk-list--item">@a(group.groupName, href=routes.ManageGroupController.showExistingGroupClients(group.groupId).url)</li>
+            <li class="govuk-list--item">@a(group.groupName, href=routes.ManageGroupClientsController.showExistingGroupClients(group.groupId)
+                    .url)</li>
             }
         </ul>
 

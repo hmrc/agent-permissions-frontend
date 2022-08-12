@@ -27,7 +27,11 @@
         link_as_button: link_as_button,
         table: table,
         submit_button: submit_button,
-        checkBox: checkBox
+        textbox: textbox,
+        submit_button_group: submit_button_group,
+        input_select: input_select,
+        checkBox: checkBox,
+        formWithCSRF: FormWithCSRF
 )
 
 @(group: DisplayGroup)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -65,10 +69,11 @@
         )
     </div>
 
-    @p(msgs("group.existing.clients.total", group.clients.length), id=Some("clients-in-group"))
+    @p(msgs("group.existing.clients.total", group.clients.length),
+        id = Some("clients-in-group"))
 
     @link_as_button(
-        href = routes.ManageGroupController.showManageGroupClients(group._id).url,
+        href = routes.ManageGroupClientsController.showManageGroupClients(group._id).url,
         key = "group.existing.clients.button",
         id = "update-clients")
 

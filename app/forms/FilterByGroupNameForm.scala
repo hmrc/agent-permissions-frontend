@@ -24,7 +24,7 @@ object FilterByGroupNameForm {
   val form: Form[String] = {
     Form(
       single(
-        "search" ->
+        "searchGroupByName" ->
           text
             .verifying("error.group.filter.required", _.trim.nonEmpty)
             .verifying("error.group.filter.max.length", _.trim.length < 32)

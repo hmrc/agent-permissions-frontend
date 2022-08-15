@@ -387,7 +387,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
 
       groupsPanel.select("h2").text() shouldBe "Access groups"
-      groupsPanel.select("input#search").attr("value") shouldBe "Potato"
+      groupsPanel.select("input#searchGroupByName").attr("value") shouldBe "Potato"
       val groups = groupsPanel.select("dl.govuk-summary-list")
       groups.size() shouldBe 3
       val firstGroup = groups.get(0)
@@ -502,7 +502,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         FakeRequest("POST",
           routes.ManageGroupController.submitFilterByGroupName.url)
           .withFormUrlEncodedBody(
-            "search" -> "name",
+            "searchGroupByName" -> "name",
           "submitFilter" -> "submitFilter"
           )
           .withHeaders("Authorization" -> s"Bearer whatever")
@@ -565,7 +565,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         FakeRequest("POST",
           routes.ManageGroupController.submitFilterByGroupName.url)
           .withFormUrlEncodedBody(
-            "search" -> "",
+            "searchGroupByName" -> "",
             "submitFilter" -> "submitFilter"
           )
           .withHeaders("Authorization" -> s"Bearer whatever")
@@ -585,10 +585,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
 
       html
-        .select(Css.errorSummaryForField("search"))
+        .select(Css.errorSummaryForField("searchGroupByName"))
         .text() shouldBe "You must enter a group name or part of it"
       html
-        .select(Css.errorForField("search"))
+        .select(Css.errorForField("searchGroupByName"))
         .text() shouldBe "Error: You must enter a group name or part of it"
     }
   }

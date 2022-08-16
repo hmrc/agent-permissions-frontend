@@ -14,23 +14,6 @@
  * limitations under the License.
  */
 
-package forms
+package models
 
-import play.api.data.Form
-import play.api.data.Forms.{single, text}
-
-object FilterByGroupNameForm {
-
-  val form: Form[String] = {
-    Form(
-      single(
-        "searchGroupByName" ->
-          text
-            .verifying("error.group.filter.required", _.trim.nonEmpty)
-            .verifying("error.group.filter.max.length", _.trim.length < 32)
-      )
-    )
-
-  }
-
-}
+case class SearchFilter(search: Option[String], filter: Option[String], submit: Option[String])

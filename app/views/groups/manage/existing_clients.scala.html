@@ -34,7 +34,7 @@
         formWithCSRF: FormWithCSRF
 )
 
-@(group: DisplayGroup)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(group: DisplayGroup, form: Form[SearchFilter])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     group.clients.map(client =>
@@ -56,7 +56,39 @@
         @caption(group.name)
         @h1("group.manage.clients")
     </div>
+    @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group._id)) {
 
+    <div class="govuk-grid-row">
+
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-visually-hidden">
+            @msgs("filter.legend")
+            </legend>
+
+            <div class="govuk-grid-column-one-quarter">
+            @textbox(
+                field = form("search"),
+                label = "client-filter.text.label",
+                labelClasses = "govuk-label--s",
+                classes = "govuk-input--width-20"
+            )
+            </div>
+
+            <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
+            @input_select(
+                field = form("filter"),
+                label = msgs("client-filter.select.label"),
+                options = getFiltersByTaxService()
+            )
+            </div>
+
+            <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
+            @submit_button_group(name = "submit", secondName="submit", secondValue="clear", submitValue="filter",
+                additionalClasses = "govuk-!-margin-bottom-7")
+            </div>
+        </fieldset>
+    </div>
+    }
     <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
         @table(
             id = Some("sortable-table"),

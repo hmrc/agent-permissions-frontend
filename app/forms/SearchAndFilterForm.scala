@@ -16,21 +16,17 @@
 
 package forms
 
+import models.SearchFilter
 import play.api.data.Form
-import play.api.data.Forms.{single, text}
+import play.api.data.Forms.{boolean, list, mapping, optional, single, text}
 
-object FilterByGroupNameForm {
+object SearchAndFilterForm {
 
-  val form: Form[String] = {
-    Form(
-      single(
-        "searchGroupByName" ->
-          text
-            .verifying("error.group.filter.required", _.trim.nonEmpty)
-            .verifying("error.group.filter.max.length", _.trim.length < 32)
-      )
-    )
-
-  }
-
+  def form(): Form[SearchFilter] = Form(
+    mapping(
+      "search" -> optional(text),
+      "filter" -> optional(text),
+      "submit" -> optional(text),
+    )(SearchFilter.apply)(SearchFilter.unapply)
+  )
 }

@@ -30,13 +30,14 @@ import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
+import java.lang.ProcessBuilder.Redirect
 import java.time.LocalDate
 import java.util.Base64
 
@@ -86,6 +87,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
+
   val encodedDisplayClients: Seq[String] = displayClients.map(client =>
     Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
@@ -107,7 +109,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"GET ${routes.ManageGroupClientsController.showExistingGroupClients(accessGroup._id.toString)}" should {
 
-    "render correctly the EXISTING CLIENTS page" in {
+    "render correctly the EXISTING CLIENTS page with no query params" in {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(DisplayClient.toEnrolment).toSet))
@@ -151,6 +153,99 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select("a#update-clients").text() shouldBe "Update clients"
       html.select("a#update-clients").attr("href") shouldBe
         routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url
+    }
+
+    "render with filter & searchTerm set" in {
+      //given
+      val groupWithClients = accessGroup.copy(clients =
+        Some(displayClients.map(DisplayClient.toEnrolment).toSet))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
+
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url +
+          "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result =
+        controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Manage clients - Bananas - Manage Agent Permissions - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
+      html.select(Css.H1).text shouldBe "Manage clients"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 3
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      trs.size() shouldBe 1
+    }
+
+    "render with filter that matches nothing" in {
+      //given
+      val groupWithClients = accessGroup.copy(clients =
+        Some(displayClients.map(DisplayClient.toEnrolment).toSet))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
+
+      //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
+      val NON_MATCHING_FILTER = "HMRC-CGT-PD"
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url +
+          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Manage clients - Bananas - Manage Agent Permissions - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
+      html.select(Css.H1).text shouldBe "Manage clients"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 3
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      trs.size() shouldBe 0
+    }
+
+    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+      //given
+      val groupWithClients = accessGroup.copy(clients =
+        Some(displayClients.map(DisplayClient.toEnrolment).toSet))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+
+      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
+
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url +
+          s"?submit=clear"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result =
+        controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+
+      //then
+      redirectLocation(result).get
+        .shouldBe(routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url)
     }
 
   }

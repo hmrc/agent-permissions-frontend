@@ -86,3 +86,8 @@ GET     /manage-clients/client-details/:clientId                            cont
 GET     /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.showUpdateClientReference(clientId: String)
 POST    /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.submitUpdateClientReference(clientId: String)
 GET     /manage-clients/client-details/client-reference-updated/:clientId   controllers.ManageClientController.showClientReferenceUpdatedComplete(clientId: String)
+
+# Manage team members
+GET     /manage-team-members                                                     controllers.ManageTeamMemberController.showAllTeamMembers
+GET     /manage-team-members/team-member-details/:memberId                       controllers.ManageTeamMemberController.showTeamMemberDetails(memberId: String)
+

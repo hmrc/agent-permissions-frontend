@@ -179,7 +179,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
       val clientsTh = unassignedClientsPanel.select("table th")
       clientsTh.size() shouldBe 4
-      clientsTh.get(1).text() shouldBe "Client name"
+      clientsTh.get(1).text() shouldBe "Client reference"
       clientsTh.get(2).text() shouldBe "Tax reference"
       clientsTh.get(3).text() shouldBe "Tax service"
 
@@ -326,7 +326,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
       val clientsTh = unassignedClientsPanel.select("table th")
       clientsTh.size() shouldBe 4
-      clientsTh.get(1).text() shouldBe "Client name"
+      clientsTh.get(1).text() shouldBe "Client reference"
       clientsTh.get(2).text() shouldBe "Tax reference"
       clientsTh.get(3).text() shouldBe "Tax service"
 
@@ -411,7 +411,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
       val clientsTh = unassignedClientsPanel.select("table th")
       clientsTh.size() shouldBe 4
-      clientsTh.get(1).text() shouldBe "Client name"
+      clientsTh.get(1).text() shouldBe "Client reference"
       clientsTh.get(2).text() shouldBe "Tax reference"
       clientsTh.get(3).text() shouldBe "Tax service"
 

@@ -118,7 +118,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
+      th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
       th.get(3).text() shouldBe "Actions"
@@ -146,7 +146,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
+      th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
       th.get(3).text() shouldBe "Actions"
@@ -216,11 +216,11 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Manage clients - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
 
-      html.select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a tax reference, client name or select a tax service to apply filters"
+      html.select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a tax reference, client reference or select a tax service to apply filters"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
+      th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
       th.get(3).text() shouldBe "Actions"
@@ -252,11 +252,11 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Manage clients - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
 
-      html.select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a tax reference, client name or select a tax service to apply filters"
+      html.select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a tax reference, client reference or select a tax service to apply filters"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
+      th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
       th.get(3).text() shouldBe "Actions"

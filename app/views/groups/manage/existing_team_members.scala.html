@@ -17,19 +17,22 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, a: a,
-    caption: caption,
+    layout: main_layout,table: table,
+    p: p, h1: h1, a: a, caption: caption,
     link_as_button: link_as_button,
-    table: table,
     submit_button: submit_button,
-    textbox: textbox,
-    checkBox: checkBox
+    textbox: textbox, checkBox: checkBox,
+    submit_button_group: submit_button_group
 )
 
-@(teamMembers: Seq[TeamMember], groupName: String, continueUrl: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    teamMembers: Seq[TeamMember],
+    form: Form[SearchFilter],
+    group: AccessGroup,
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         teamMembers.map(teamMember =>
@@ -42,16 +45,44 @@
     }
 
     @layout(
-        title = msgs("group.manage.members", groupName),
+        title = msgs("group.manage.members", group.groupName),
         backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
         fullWidth = true
     ) {
 
         <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName))
+            @caption(msgs("common.caption.group.name", group.groupName))
             @h1(msgs("group.manage.members"))
         </div>
 
+        @views.html.helper.form(
+            action = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString)) {
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+                @textbox(
+                    field = form("search"),
+                    label = "group.members.list.filter.label",
+                    labelClasses = "govuk-label--s",
+                    classes = "govuk-input--width-20",
+                    errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {
+                        Some(msgs("error.search-members.empty"))
+                    } else {
+                        None
+                    }
+                )
+                </div>
+
+                <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
+                @submit_button_group(
+                    name = "submit",
+                    secondName="submit",
+                    secondValue="clear",
+                    submitValue="filter",
+                    additionalClasses = "govuk-!-margin-bottom-7")
+                </div>
+            </div>
+        }
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
 
         @table(
@@ -76,7 +107,7 @@
 
         @link_as_button(
             key = "group.selected.teamMembers.change",
-            href = continueUrl,
+            href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group._id.toString).url,
             id = "check-your-answers")
 
    

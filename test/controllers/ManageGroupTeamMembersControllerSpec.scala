@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.{DisplayClient, TeamMember}
+import models.TeamMember
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
@@ -29,7 +29,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
@@ -80,14 +80,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val fakeClients: Seq[Client] =
-    List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
-
-  val displayClients: Seq[DisplayClient] =
-    fakeClients.map(DisplayClient.fromClient(_))
-  val encodedDisplayClients: Seq[String] = displayClients.map(client =>
-    Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
-
   val agentUsers: Set[AgentUser] = (1 to 5).map(i => AgentUser(id = s"John $i", name = s"John $i name")).toSet
 
   val userDetails: Seq[UserDetails] = (1 to 5)
@@ -106,7 +98,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   s"GET ${routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString)}" should {
 
-    "render correctly the manage EXISTING TEAM MEMBERS page" in {
+    "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
@@ -137,6 +129,73 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(1).text() shouldBe "john5@abc.com"
       trs.get(4).select("td").get(2).text() shouldBe "User"
 
+    }
+
+    "render with name/email searchTerm set" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+          "?submit=filter&search=John+1"
+      ).withHeaders("Authorization" -> "Bearer XYZ")
+      .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
+      stubGetTeamMembersOk(arn)(userDetails)
+
+      //when
+      val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Manage team members"
+
+      val trs =
+        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 1
+
+      trs.get(0).select("td").get(0).text() shouldBe "John 1 name"
+      trs.get(0).select("td").get(1).text() shouldBe "john1@abc.com"
+      trs.get(0).select("td").get(2).text() shouldBe "User"
+
+    }
+
+    "render with email searchTerm set" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+          "?submit=filter&search=hn2@ab"
+      ).withHeaders("Authorization" -> "Bearer XYZ")
+      .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
+      stubGetTeamMembersOk(arn)(userDetails)
+
+      //when
+      val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Manage team members"
+
+      val trs =
+        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      trs.size() shouldBe 1
+
+      trs.get(0).select("td").get(0).text() shouldBe "John 2 name"
+      trs.get(0).select("td").get(1).text() shouldBe "john2@abc.com"
+      trs.get(0).select("td").get(2).text() shouldBe "User"
     }
   }
 

@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
 import models.TeamMember.toAgentUser
-import models.{ButtonSelect, TeamMember}
+import models.{ButtonSelect, SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -57,32 +57,48 @@ class ManageGroupTeamMembersController @Inject()(
 
   import groupAction._
 
+  private val controller: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
+
   def showExistingGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
-        maybeUsers.toSeq
-          .map(UserDetails.fromAgentUser)
-          .map(TeamMember.fromUserDetails)
-      }.getOrElse(Seq.empty[TeamMember])
-      groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers)).flatMap(groupMembers =>
-        Ok(
-          existing_team_members(
-            groupMembers.getOrElse(Seq.empty[TeamMember]),
-            group.groupName,
-            routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId).url
-          )).toFuture
-      )
+      val teamMembers = teamMembersInGroup(group)
+      groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers)).map { members =>
+        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+        searchFilter.submit.fold(
+          //no filter/clear was applied
+          Ok(
+            existing_team_members(
+              teamMembers = members.getOrElse(Seq.empty[TeamMember]),
+              form = SearchAndFilterForm.form(),
+              group = group,
+            )
+          )
+        )(button => button match {
+            case "clear" =>
+              Redirect(controller.showExistingGroupTeamMembers(groupId))
+            case "filter" =>
+              val lowerCaseSearchTerm = searchFilter.search.getOrElse("").toLowerCase
+              val filteredMembers = members.getOrElse(Seq.empty)
+                .filter(tm =>
+                  tm.name.toLowerCase.contains(lowerCaseSearchTerm) ||
+                  tm.email.toLowerCase.contains(lowerCaseSearchTerm)
+                )
+              Ok(
+                existing_team_members(
+                  teamMembers = filteredMembers,
+                  form = SearchAndFilterForm.form().fill(searchFilter),
+                  group = group
+                )
+              )
+          }
+        )
+      }
     }
   }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      val teamMembers = group.teamMembers.map { maybeUsers: Set[AgentUser] =>
-        maybeUsers.toSeq
-          .map(UserDetails.fromAgentUser)
-          .map(TeamMember.fromUserDetails)
-      }.getOrElse(Seq.empty[TeamMember])
-
+      val teamMembers = teamMembersInGroup(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers))
         _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers.get)
@@ -102,7 +118,7 @@ class ManageGroupTeamMembersController @Inject()(
                 group.groupName,
                 maybeHiddenTeamMembers,
                 AddTeamMembersToGroupForm.form(),
-                formAction = routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId),
+                formAction = controller.submitManageGroupTeamMembers(groupId),
                 backUrl = backUrl
               )
             )
@@ -113,7 +129,7 @@ class ManageGroupTeamMembersController @Inject()(
                 group.groupName,
                 maybeHiddenTeamMembers,
                 AddTeamMembersToGroupForm.form(),
-                formAction = routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId),
+                formAction = controller.submitManageGroupTeamMembers(groupId),
                 backUrl = backUrl
               ))
       }
@@ -143,8 +159,8 @@ class ManageGroupTeamMembersController @Inject()(
                       group.groupName,
                       maybeHiddenTeamMembers,
                       formWithErrors,
-                      formAction = routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId),
-                      backUrl = Some(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId).url)
+                      formAction = controller.submitManageGroupTeamMembers(groupId),
+                      backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
                     )).toFuture
                   else
                     groupService.getTeamMembers(group.arn)().flatMap {
@@ -154,8 +170,8 @@ class ManageGroupTeamMembersController @Inject()(
                           group.groupName,
                           maybeHiddenTeamMembers,
                           formWithErrors,
-                          formAction = routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId),
-                          backUrl = Some(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId).url)
+                          formAction = controller.submitManageGroupTeamMembers(groupId),
+                          backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
                         )).toFuture
                     }
                 } yield result
@@ -177,9 +193,9 @@ class ManageGroupTeamMembersController @Inject()(
                     } yield updated
                     sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
                     sessionCacheRepository.deleteFromSession(HIDDEN_TEAM_MEMBERS_EXIST)
-                    Redirect(routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId))
+                    Redirect(controller.showReviewSelectedTeamMembers(groupId))
                   }
-                  else Redirect(routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId))
+                  else Redirect(controller.showManageGroupTeamMembers(groupId))
                 )
               }
             )
@@ -193,14 +209,14 @@ class ManageGroupTeamMembersController @Inject()(
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
-            Redirect(routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId)).toFuture
+            Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
           ){ members =>
             Ok(
               review_team_members_to_add(
                 teamMembers = members,
                 groupName = group.groupName,
-                continueCall = routes.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId),
-                backUrl = Some(routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId).url)
+                continueCall = controller.showGroupTeamMembersUpdatedConfirmation(groupId),
+                backUrl = Some(controller.showManageGroupTeamMembers(groupId).url)
               )
             ).toFuture
           }
@@ -212,9 +228,17 @@ class ManageGroupTeamMembersController @Inject()(
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName)).toFuture
-        else Redirect(routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId)).toFuture
+        else Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
       }
     }
+  }
+
+  private def teamMembersInGroup(group: AccessGroup) = {
+    group.teamMembers.map { maybeUsers: Set[AgentUser] =>
+      maybeUsers.toSeq
+        .map(UserDetails.fromAgentUser)
+        .map(TeamMember.fromUserDetails)
+    }.getOrElse(Seq.empty[TeamMember])
   }
 
 }

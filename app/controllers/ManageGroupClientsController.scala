@@ -17,37 +17,31 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
-import models.ButtonSelect.{Clear, Filter}
-import models.DisplayClient.toEnrolment
-import models.TeamMember.toAgentUser
-import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
+import models.DisplayClient.{format, toEnrolment}
+import models.{ButtonSelect, DisplayClient, DisplayGroup, SearchFilter}
 import play.api.Logging
-import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
-import views.html.groups.unassigned_clients.select_groups_for_clients
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageGroupClientsController @Inject()(
-     authAction: AuthAction,
+     groupAction: GroupAction,
      mcc: MessagesControllerComponents,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
      groupService: GroupService,
-     group_not_found: group_not_found,
      review_clients_to_add: review_clients_to_add,
      client_group_list: client_group_list,
      existing_clients: existing_clients,
@@ -60,12 +54,37 @@ class ManageGroupClientsController @Inject()(
   with SessionBehaviour
   with Logging {
 
-  import authAction._
+  import groupAction._
 
   def showExistingGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      Ok(existing_clients(DisplayGroup.fromAccessGroup(group))).toFuture
-
+      val displayGroup = DisplayGroup.fromAccessGroup(group)
+      val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+      searchFilter.submit.fold(
+        //no filter/clear was applied
+        Ok(existing_clients(group = displayGroup, form = SearchAndFilterForm.form()))
+      )(submitButton =>
+        //either the 'filter' button or the 'clear' filter button was clicked
+        submitButton match {
+          case "clear" =>
+            Redirect(routes.ManageGroupClientsController.showExistingGroupClients(groupId))
+          case "filter" =>
+            val filteredClients = displayGroup.clients
+              .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+              .filter(dc =>
+                if (!searchFilter.filter.isDefined) true
+                else {
+                  val filter = searchFilter.filter.get
+                  dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
+                })
+            Ok(
+              existing_clients(
+                group = displayGroup.copy(clients = filteredClients),
+                form = SearchAndFilterForm.form().fill(searchFilter)
+              )
+            )
+        }
+      ).toFuture
     }
   }
 
@@ -76,7 +95,6 @@ class ManageGroupClientsController @Inject()(
         filteredClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS)
         maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
         clientsForArn <- groupService.getClients(group.arn)
-
       } yield Ok(
         client_group_list(
           filteredClients.orElse(clientsForArn),
@@ -174,20 +192,6 @@ class ManageGroupClientsController @Inject()(
         else Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId)).toFuture
       }
     }
-  }
-
-  private def withGroupForAuthorisedOptedAgent(groupId: String)(body: AccessGroup => Future[Result])
-                                              (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).flatMap(
-          _.fold(groupNotFound)(body(_)))
-      }
-    }
-  }
-
-  private def groupNotFound(implicit request: MessagesRequest[AnyContent]): Future[Result] = {
-    NotFound(group_not_found()).toFuture
   }
 
 }

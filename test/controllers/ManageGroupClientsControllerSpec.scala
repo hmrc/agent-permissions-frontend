@@ -130,7 +130,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
-      th.get(0).text() shouldBe "Client name"
+      th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
 
@@ -270,7 +270,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs =
@@ -308,7 +308,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs =
@@ -341,7 +341,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs =

@@ -30,7 +30,7 @@ common.return.manage-account=Return to manage account
 common.return.manage-clients=Return to manage clients
 
 error.select-clients.empty=You must select at least one client
-error.search-filter.empty=You must enter a tax reference, client name or select a tax service to apply filters
+error.search-filter.empty=You must enter a tax reference, client reference or select a tax service to apply filters
 error.select-members.empty=You must select at least one team member
 error.search-members.empty=You must enter a name or email to apply filters
 
@@ -96,11 +96,11 @@ group.name.confirm.required.error=Select yes if the access group name is correct
 
 group.client.list.h1=Select clients
 group.client.list.p1=Select clients for this access group by ticking the boxes. You can also use the select all box or search. Then select the "Add clients" button.
-client-filter.text.label=Filter by tax reference or client name
+client-filter.text.label=Filter by tax reference or client reference
 client-filter.select.label=Filter by tax service
 
 group.client.list.table.checkbox=Checkboxes
-group.client.list.table.th1=Client name
+group.client.list.table.th1=Client reference
 group.client.list.table.th2=Tax reference
 group.client.list.table.th3=Tax service
 error.client.list.empty=You must select at least one client 
@@ -190,7 +190,6 @@ common.details.groups.header=Member of these groups
 
 update-client-reference=Update client reference
 update-client-reference.caption=Tax reference: {0}
-update-client-reference.label=Client reference
 update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
 error.client-reference.required=Enter client reference
 error.client-reference.max-length=Client reference must be 80 characters or fewer

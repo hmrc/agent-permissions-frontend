@@ -17,26 +17,22 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
-import models.ButtonSelect.{Clear, Filter}
 import models.TeamMember.toAgentUser
-import models.{ButtonSelect, DisplayClient, TeamMember}
+import models.{ButtonSelect, TeamMember}
 import play.api.Logging
-import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
-import views.html.groups.unassigned_clients.select_groups_for_clients
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupTeamMembersController @Inject()(

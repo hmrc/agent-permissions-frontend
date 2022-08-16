@@ -17,10 +17,9 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.DisplayClient.toEnrolment
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup

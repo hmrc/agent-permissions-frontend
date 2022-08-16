@@ -16,21 +16,14 @@
 
 package services
 
-import controllers.{
-  GROUP_CLIENTS,
-  SELECTED_CLIENTS,
-  GROUP_NAME,
-  GROUP_NAME_CONFIRMED,
-  SELECTED_TEAM_MEMBERS
-}
+import controllers.{GROUP_CLIENTS, GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS}
 import models.{DisplayClient, TeamMember}
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{Call, Request}
+import play.api.mvc.{Call, Request, Result}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SessionCacheService @Inject()(
@@ -38,8 +31,7 @@ class SessionCacheService @Inject()(
 
   def writeGroupNameAndRedirect(name: String)(call: Call)(
       implicit request: Request[_],
-      hc: HeaderCarrier,
-      ec: ExecutionContext) = {
+      ec: ExecutionContext): Future[Result] = {
     for {
       _ <- sessionCacheRepository.putSession[String](GROUP_NAME, name)
       _ <- sessionCacheRepository
@@ -48,8 +40,7 @@ class SessionCacheService @Inject()(
   }
 
   def confirmGroupNameAndRedirect(call: Call)(implicit request: Request[_],
-                                              hc: HeaderCarrier,
-                                              ec: ExecutionContext) = {
+                                              ec: ExecutionContext): Future[Result] = {
     for {
       _ <- sessionCacheRepository
         .putSession[Boolean](GROUP_NAME_CONFIRMED, true)
@@ -58,25 +49,20 @@ class SessionCacheService @Inject()(
 
   def saveSelectedClients(clients: Seq[DisplayClient])(
       implicit request: Request[_],
-      hc: HeaderCarrier,
-      ec: ExecutionContext) = {
+      ec: ExecutionContext): Future[(String, String)] = {
     sessionCacheRepository.putSession[Seq[DisplayClient]](
       SELECTED_CLIENTS,
       clients.map(dc => dc.copy(selected = true))
     )
   }
 
-  def clearSelectedClients()(implicit request: Request[_],
-                             hc: HeaderCarrier,
-                             ec: ExecutionContext) = {
+  def clearSelectedClients()(implicit request: Request[_]): Future[Unit] = {
     sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS)
-
   }
 
   def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])(
       implicit request: Request[_],
-      hc: HeaderCarrier,
-      ec: ExecutionContext) = {
+      ec: ExecutionContext): Future[(String, String)] = {
 
     sessionCacheRepository.putSession[Seq[TeamMember]](
       SELECTED_TEAM_MEMBERS,
@@ -84,9 +70,7 @@ class SessionCacheService @Inject()(
     )
   }
 
-  def clearAll()(implicit request: Request[_],
-                 hc: HeaderCarrier,
-                 ec: ExecutionContext) = {
+  def clearAll()(implicit request: Request[_]): Future[Unit] = {
     sessionCacheRepository.deleteFromSession(GROUP_NAME)
     sessionCacheRepository.deleteFromSession(GROUP_NAME_CONFIRMED)
     sessionCacheRepository.deleteFromSession(GROUP_CLIENTS)
@@ -94,9 +78,7 @@ class SessionCacheService @Inject()(
     sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
   }
 
-  def clearSelectedTeamMembers()(implicit request: Request[_],
-                                 hc: HeaderCarrier,
-                                 ec: ExecutionContext) = {
+  def clearSelectedTeamMembers()(implicit request: Request[_]): Future[Unit] = {
     sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
   }
 }

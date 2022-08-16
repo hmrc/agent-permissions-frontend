@@ -32,7 +32,7 @@ import views.html.groups._
 import views.html.groups.manage._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupClientsController @Inject()(

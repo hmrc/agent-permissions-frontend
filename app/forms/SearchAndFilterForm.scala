@@ -18,7 +18,7 @@ package forms
 
 import models.SearchFilter
 import play.api.data.Form
-import play.api.data.Forms.{boolean, list, mapping, optional, single, text}
+import play.api.data.Forms.{mapping, optional, text}
 
 object SearchAndFilterForm {
 

@@ -43,7 +43,6 @@ class ManageClientService @Inject()(
   }
 
   def getNewNameFromSession()(implicit request: Request[_],
-  hc: HeaderCarrier,
   ec: ExecutionContext): Future[Option[String]] = {
     for {
       newName <- sessionCacheRepository.getFromSession(CLIENT_REFERENCE)

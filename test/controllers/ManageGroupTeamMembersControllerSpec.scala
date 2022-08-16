@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
@@ -25,7 +25,7 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
 import play.api.Application
-import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
+import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest

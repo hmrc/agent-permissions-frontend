@@ -42,13 +42,12 @@ class SelectGroupsFormSpec extends AnyWordSpec
     "fails when both groups and createNew selected" in {
       val groupId = RandomStringUtils.randomAlphanumeric(10)
       val params = Map(createNewField -> "true", "groups[0]" -> groupId)
-      SelectGroupsForm.form().bind(params).errors(0).message shouldBe "unassigned.client.assign.existing.or.new.error"
+      SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.existing.or.new.error"
     }
 
     "fails when no checkboxes are selected" in {
-      val groupId = RandomStringUtils.randomAlphanumeric(10)
       val params = Map.empty[String, String]
-      SelectGroupsForm.form().bind(params).errors(0).message shouldBe "unassigned.client.assign.nothing.selected.error"
+      SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.nothing.selected.error"
     }
   }
 

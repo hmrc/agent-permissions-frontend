@@ -25,7 +25,6 @@ import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.lang.Thread.sleep
 import scala.concurrent.{ExecutionContext, Future}
 
 class GroupServiceSpec extends BaseSpec {
@@ -77,10 +76,10 @@ class GroupServiceSpec extends BaseSpec {
 
       //then
       clients.size shouldBe 10
-      clients(0).name shouldBe "friendlyName1"
-      clients(0).identifierKey shouldBe "enrolmentKey1"
-      clients(0).hmrcRef shouldBe "hmrcRef1"
-      clients(0).taxService shouldBe "tax1"
+      clients.head.name shouldBe "friendlyName1"
+      clients.head.identifierKey shouldBe "enrolmentKey1"
+      clients.head.hmrcRef shouldBe "hmrcRef1"
+      clients.head.taxService shouldBe "tax1"
 
       clients(5).name shouldBe "friendlyName5"
       clients(5).identifierKey shouldBe "enrolmentKey5"
@@ -110,10 +109,10 @@ class GroupServiceSpec extends BaseSpec {
 
       //then
       teamMembers.size shouldBe 3
-      teamMembers(0).name shouldBe "Name 1"
-      teamMembers(0).userId shouldBe Some("user1")
-      teamMembers(0).email shouldBe "bob1@accounting.com"
-      teamMembers(0).selected shouldBe false
+      teamMembers.head.name shouldBe "Name 1"
+      teamMembers.head.userId shouldBe Some("user1")
+      teamMembers.head.email shouldBe "bob1@accounting.com"
+      teamMembers.head.selected shouldBe false
 
     }
   }
@@ -147,7 +146,7 @@ class GroupServiceSpec extends BaseSpec {
       val maybeInput = await(sessionCacheRepo.getFromSession(FILTERED_GROUPS_INPUT))
       maybeSummaries.isDefined shouldBe true
       maybeSummaries.get.size shouldBe 1
-      maybeSummaries.get(0) shouldBe expectedFilteredGroup
+      maybeSummaries.get.head shouldBe expectedFilteredGroup
       maybeInput.get shouldBe "pot"
     }
   }

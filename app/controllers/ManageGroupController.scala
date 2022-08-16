@@ -20,9 +20,7 @@ import config.AppConfig
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import forms._
 import models.ButtonSelect.{Clear, Filter}
-import models.DisplayClient.toEnrolment
-import models.TeamMember.toAgentUser
-import models.{ButtonSelect, DisplayClient, DisplayGroup, TeamMember}
+import models.{ButtonSelect, DisplayClient}
 import play.api.Logging
 import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}

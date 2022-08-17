@@ -28,6 +28,7 @@ common.return.to.dashboard=Return to manage access groups
 common.return.to.unassigned.clients=Return to unassigned clients
 common.return.manage-account=Return to manage account
 common.return.manage-clients=Return to manage clients
+common.return.manage-team-members=Return to manage team members
 
 error.select-clients.empty=You must select at least one client
 error.search-filter.empty=You must enter a tax reference, client reference or select a tax service to apply filters

@@ -1,0 +1,88 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.html.main_layout
+@import utils.ViewUtils._
+@import connectors.GroupSummary
+@import java.util.Base64
+@import play.api.libs.json.Json
+
+@this(
+        layout: main_layout,
+        h1: h1, h2: h2, h3: h3,
+        p:p, a: a, span: span
+)
+
+@(
+    teamMember: TeamMember,
+    teamMemberGroups: Seq[GroupSummary]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+
+@layout(
+    title = msgs("details.team-members"),
+    backLinkHref = Some(routes.ManageTeamMemberController.showAllTeamMembers.url),
+    fullWidth = true
+) {
+
+<div class="govuk-grid-row">
+    @h1("details.team-members", classes = Some("govuk-grid-column-two-thirds"))
+
+    <div class="govuk-grid-column-two-thirds">
+        <!-- personally I would flip the info hierarchy but hey ho -->
+        @h2("group.members.list.table.th1", size = "s")
+        @p(teamMember.name)
+
+        @h2("group.members.list.table.th2", size = "s")
+        @p(teamMember.email)
+
+        @h2("group.members.list.table.th3", size = "s")
+        @p(teamMember.credentialRole.getOrElse("details.clients.no-data"))
+
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+        @a("common.return.manage-team-members", href = routes.ManageTeamMemberController.showAllTeamMembers.url)
+
+    </div>
+
+    <div class="govuk-grid-column-one-third">
+        @h2("common.details.groups.header")
+
+        @if(teamMemberGroups.isEmpty) {
+
+            @p("common.details.not-assigned")
+
+            @a("common.details.assign-to-group", href="#")
+
+        } else {
+
+        <ul class="govuk-list">
+            @for(group <- teamMemberGroups) {
+            <li class="govuk-list--item">@a(group.groupName, href=routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId)
+                    .url)</li>
+            }
+        </ul>
+
+            @a("common.details.assign-to-group", href="#")
+
+        }
+
+    </div>
+</div>
+
+}

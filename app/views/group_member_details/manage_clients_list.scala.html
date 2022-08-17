@@ -19,20 +19,20 @@
 @import views.html.main_layout
 @import utils.ViewUtils._
 @import models.AddClientsToGroup
-@import views.html.partials.filter_clients_table_form
+@import views.html.partials.clients_details_table_filter_form
 
 @this(
         layout: main_layout,
         p: p, h1: h1, a: a, span: span,
         table: table,
         summaryErrors: SummaryErrors,
-        filter_clients_table_form: filter_clients_table_form
+        clients_details_table_filter_form: clients_details_table_filter_form
 )
 
 @(
     clients: Option[Seq[DisplayClient]] = None,
-    form: Form[AddClientsToGroup],
-    formAction: Call = routes.ManageClientController.submitFilterAllClients,
+    form: Form[SearchFilter],
+    formAction: Call = routes.ManageClientController.showAllClients,
     backUrl: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -53,6 +53,6 @@
         @h1("group.manage.clients")
     </div>
 
-    @filter_clients_table_form(clients, form, formAction)
+    @clients_details_table_filter_form(clients, form, formAction)
 
 }

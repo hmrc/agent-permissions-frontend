@@ -18,8 +18,8 @@ package controllers
 
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import forms.{AddClientsToGroupForm, ClientReferenceForm, SearchAndFilterForm}
-import models.{ButtonSelect, DisplayClient, SearchFilter}
+import forms.{ClientReferenceForm, SearchAndFilterForm}
+import models.{DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json

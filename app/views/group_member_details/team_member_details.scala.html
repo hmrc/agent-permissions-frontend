@@ -33,8 +33,9 @@
     teamMemberGroups: Seq[GroupSummary]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@roleText = {
-    if(teamMember.credentialRole == "Admin" || teamMember.credentialRole == "User") {
+@roleText = @{
+    val role = teamMember.credentialRole.getOrElse("")
+    if(role == "Admin" || role == "User") {
         p("details.team-members.role.admin")
     } else {
         p("details.team-members.role.standard")

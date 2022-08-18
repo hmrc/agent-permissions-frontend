@@ -52,11 +52,22 @@ object ViewUtils {
     }
   }
 
+  // for hidden labels, name is preferred
   def displayNameOrFullReference(name: String, taxId: String): String = {
     if(name.isEmpty) {
       taxId
     } else {
       name
+    }
+  }
+
+  // we want to translate - included Admin but it should be deprecated?
+  def displayTeamMemberRole(role: String)(implicit mgs: Messages): String = {
+    if(role == "User" || role == "Admin") {
+      mgs("role.admin")
+    } else {
+      // role == Assistant
+      mgs("role.standard")
     }
   }
 

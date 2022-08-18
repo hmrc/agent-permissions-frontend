@@ -42,7 +42,7 @@
         Seq(
             Html(member.name),
             Html(member.email),
-            Html(member.credentialRole.getOrElse("details.clients.no-data")),
+            Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
             a(
                 key=Html(msgs("details.team-members") + span(classes=Some("govuk-visually-hidden"),
                                                         html=Some(Html(msgs("details.link-hidden", member.name)))

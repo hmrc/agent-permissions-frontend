@@ -35,7 +35,7 @@
 
 @clientReference = @{
     if(client.name.isEmpty) {
-        Html(msgs("details.clients.no-data")+ "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
+        Html(msgs("details.no-data")+ "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
     } else {
         Html(client.name + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
     }

@@ -17,13 +17,14 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.Css.H1
 import helpers.{BaseSpec, Css}
 import models.TeamMember
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -31,6 +32,8 @@ import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
+
+import java.util.Base64
 
 class ManageTeamMemberControllerSpec extends BaseSpec {
 
@@ -68,8 +71,6 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   val controller: ManageTeamMemberController =
     fakeApplication.injector.instanceOf[ManageTeamMemberController]
 
-  val memberId = "test123"
-
   val agentUsers: Set[AgentUser] = (1 to 5).map(i => AgentUser(id = s"John $i", name = s"John $i name")).toSet
 
   val userDetails: Seq[UserDetails] = (1 to 5)
@@ -84,6 +85,12 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
+  val memberId: String = Base64.getEncoder.encodeToString(Json.toJson(teamMembers.head).toString.getBytes)
+
+  val groupSummaries = Seq(
+    GroupSummary("groupId", "groupName", 33, 9),
+    GroupSummary("groupId-1", "groupName-1", 3, 0)
+  )
 
   s"GET ${routes.ManageTeamMemberController.showAllTeamMembers.url}" should {
 
@@ -167,10 +174,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   s"GET ${routes.ManageTeamMemberController.showTeamMemberDetails(memberId).url}" should {
 
-    "render correctly the confirmation page" in {
+    "render the team member details page with NO GROUPS" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, None)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)
@@ -178,7 +186,31 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.body.text shouldBe s"showTeamMemberDetails for $memberId not yet implemented ${arn.toString}"
+
+      html.title() shouldBe "Team member details - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Team member details"
+
+      html.body.text().contains("Not assigned to an access group") shouldBe true
+    }
+
+    "render the clients details page with list of groups" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, Some(groupSummaries))
+
+      //when
+      val result = controller.showTeamMemberDetails(memberId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Team member details - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Team member details"
+
+      html.body.text().contains("Not assigned to an access group") shouldBe false
+
     }
   }
 

@@ -154,6 +154,34 @@ class ManageClientControllerSpec extends BaseSpec {
       trs.size() shouldBe 1
     }
 
+    "render with filter that matches nothing" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      stubGetClientsOk(arn)(fakeClients)
+
+      //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
+      val NON_MATCHING_FILTER = "HMRC-CGT-PD"
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageTeamMemberController.showAllTeamMembers.url +
+          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.showAllClients()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Manage clients - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text shouldBe "Manage clients"
+
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      trs.size() shouldBe 0
+    }
+
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)

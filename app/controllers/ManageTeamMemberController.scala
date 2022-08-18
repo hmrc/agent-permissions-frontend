@@ -19,13 +19,13 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import forms.SearchAndFilterForm
-import models.SearchFilter
+import models.{SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.{GroupService, ManageTeamMemberService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
@@ -38,6 +38,7 @@ class ManageTeamMemberController @Inject()(
      authAction: AuthAction,
      mcc: MessagesControllerComponents,
      groupService: GroupService,
+     teamMemberService: ManageTeamMemberService,
      manage_team_members_list: manage_team_members_list,
      team_member_details: team_member_details,
      val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
@@ -86,7 +87,14 @@ class ManageTeamMemberController @Inject()(
   def showTeamMemberDetails(memberId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        Ok(s"showTeamMemberDetails for $memberId not yet implemented $arn").toFuture
+        val memberJson = Json.parse(new String(getDecoder.decode(memberId.replaceAll("'", "")))).asOpt[TeamMember]
+
+        teamMemberService.groupSummariesForTeamMember(arn, memberJson.get).flatMap { maybeGroups =>
+          Ok(team_member_details(
+            teamMember = memberJson.get,
+            teamMemberGroups = maybeGroups
+          )).toFuture
+        }
       }
     }
   }

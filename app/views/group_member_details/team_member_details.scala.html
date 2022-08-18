@@ -33,6 +33,13 @@
     teamMemberGroups: Seq[GroupSummary]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@roleText = {
+    if(teamMember.credentialRole == "Admin" || teamMember.credentialRole == "User") {
+        p("details.team-members.role.admin")
+    } else {
+        p("details.team-members.role.standard")
+    }
+}
 
 @layout(
     title = msgs("details.team-members"),
@@ -52,7 +59,7 @@
         @p(teamMember.email)
 
         @h2("group.members.list.table.th3", size = "s")
-        @p(teamMember.credentialRole.getOrElse("details.clients.no-data"))
+        @roleText
 
         <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

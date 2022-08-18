@@ -576,7 +576,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Manage access groups - Manage Agent Permissions - GOV.UK"
 
       html
         .select(Css.errorSummaryForField("searchGroupByName"))

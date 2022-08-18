@@ -914,12 +914,12 @@ class GroupControllerSpec extends BaseSpec {
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "John"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
-      trs.get(0).select("td").get(3).text() shouldBe "User"
+      trs.get(0).select("td").get(3).text() shouldBe "Administrator"
 
       // last row
       trs.get(9).select("td").get(1).text() shouldBe "John"
       trs.get(9).select("td").get(2).text() shouldBe "john10@abc.com"
-      trs.get(9).select("td").get(3).text() shouldBe "User"
+      trs.get(9).select("td").get(3).text() shouldBe "Administrator"
     }
 
     "render with filtered team members held in session when a filter was applied" in {
@@ -953,11 +953,11 @@ class GroupControllerSpec extends BaseSpec {
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "John"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
-      trs.get(0).select("td").get(3).text() shouldBe "User"
+      trs.get(0).select("td").get(3).text() shouldBe "Administrator"
       // last row
       trs.get(4).select("td").get(1).text() shouldBe "John"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
-      trs.get(4).select("td").get(3).text() shouldBe "User"
+      trs.get(4).select("td").get(3).text() shouldBe "Administrator"
     }
 
     "render with NO Team Members" in {
@@ -1269,12 +1269,12 @@ class GroupControllerSpec extends BaseSpec {
       // first row
       trs.get(0).select("td").get(0).text() shouldBe "team member 1"
       trs.get(0).select("td").get(1).text() shouldBe "x1@xyz.com"
-      trs.get(0).select("td").get(2).text() shouldBe "User"
+      trs.get(0).select("td").get(2).text() shouldBe "Administrator"
 
       // last row
       trs.get(4).select("td").get(0).text() shouldBe "team member 5"
       trs.get(4).select("td").get(1).text() shouldBe "x5@xyz.com"
-      trs.get(4).select("td").get(2).text() shouldBe "User"
+      trs.get(4).select("td").get(2).text() shouldBe "Administrator"
 
       html
         .select("a#change-selected-team-members")

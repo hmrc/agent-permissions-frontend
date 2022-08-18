@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import utils.ViewUtils._
 
 @this(
     layout: main_layout,
@@ -40,7 +41,7 @@
             Seq(
                 Html(teamMember.name),
                 Html(teamMember.email),
-                Html(teamMember.credentialRole)
+                Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse("")))
             )
         )
     }

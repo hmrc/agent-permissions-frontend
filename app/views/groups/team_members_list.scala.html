@@ -19,6 +19,7 @@
 @import views.html.main_layout
 @import java.util.Base64
 @import play.api.libs.json.Json
+@import utils.ViewUtils._
 
 @this(
     layout: main_layout,
@@ -53,7 +54,7 @@
                     checked = member.selected).toString),
                 Html(member.name),
                 Html(member.email),
-                Html(member.credentialRole)
+                Html(displayTeamMemberRole(member.credentialRole.getOrElse("")))
             )
         )
         )

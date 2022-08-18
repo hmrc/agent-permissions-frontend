@@ -25,8 +25,7 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsFormUrlEncoded
-import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.FakeRequest
 import repository.SessionCacheRepository
 import services.{GroupService, ManageClientService}
@@ -100,7 +99,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
   s"GET ${routes.ManageClientController.showAllClients.url}" should {
 
-    "render the manage clients list" in {
+    "render the manage clients list with no query params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
@@ -118,7 +117,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
+      th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
       th.get(3).text() shouldBe "Actions"
@@ -128,14 +127,21 @@ class ManageClientControllerSpec extends BaseSpec {
       trs.size() shouldBe 3
     }
 
-    "render a filtered list when filtered clients in session" in {
+    "render the manage clients list with search params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
-      await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
+      stubGetClientsOk(arn)(fakeClients)
+
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageClientController.showAllClients.url +
+          "?submit=filter&search=friendly1&filter="
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showAllClients()(request)
+      val result = controller.showAllClients()(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -144,122 +150,59 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Manage clients - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
-      th.get(1).text() shouldBe "Tax reference"
-      th.get(2).text() shouldBe "Tax service"
-      th.get(3).text() shouldBe "Actions"
-
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
-
       trs.size() shouldBe 1
-      //first row
-      trs.get(0).select("td").get(0).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
-      trs.get(0).select("td").get(2).text() shouldBe "VAT"
-      trs.get(0).select("td").get(3).text() shouldBe "Client details for friendly0"
     }
 
-  }
-
-  s"POST ${routes.ManageClientController.submitFilterAllClients.url}" should {
-
-    "filter clients and redirect to manage clients list" in {
+    "render with filter that matches nothing" in {
       //given
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", routes.ManageClientController.submitFilterAllClients.url)
-          .withFormUrlEncodedBody(
-            "clients" -> "",
-            "search" -> "friendly0",
-            "filter" -> "",
-            "submitFilter" -> "submitFilter"
-          )
-          .withSession(SessionKeys.sessionId -> "session-x")
-
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
-      await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
       stubGetClientsOk(arn)(fakeClients)
 
+      //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
+      val NON_MATCHING_FILTER = "HMRC-CGT-PD"
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageTeamMemberController.showAllTeamMembers.url +
+          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
       //when
-      val result = controller.submitFilterAllClients()(request)
+      val result = controller.showAllClients()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Manage clients - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text shouldBe "Manage clients"
+
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      trs.size() shouldBe 0
+    }
+
+    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      stubGetClientsOk(arn)(fakeClients)
+
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageClientController.showAllClients.url +
+          s"?submit=clear"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.showAllClients()(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageClientController.showAllClients.url
-    }
-
-    "display an error when no filter term is provided and filtered clients in session" in {
-      //given
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", routes.ManageClientController.submitFilterAllClients.url)
-          .withFormUrlEncodedBody(
-            "clients" -> "",
-            "search" -> "",
-            "filter" -> "",
-            "submitFilter" -> "submitFilter"
-          )
-          .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInReady)
-      await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
-
-      //when
-      val result = controller.submitFilterAllClients()(request)
-
-      //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Error: Manage clients - Manage Agent Permissions - GOV.UK"
-      html.select(H1).text() shouldBe "Manage clients"
-
-      html.select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a tax reference, client name or select a tax service to apply filters"
-
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
-      th.get(1).text() shouldBe "Tax reference"
-      th.get(2).text() shouldBe "Tax service"
-      th.get(3).text() shouldBe "Actions"
-    }
-
-    "display an error when no filter term is provided" in {
-      //given
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", routes.ManageClientController.submitFilterAllClients.url)
-          .withFormUrlEncodedBody(
-            "clients" -> "",
-            "search" -> "",
-            "filter" -> "",
-            "submitFilter" -> "submitFilter"
-          )
-          .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetClientsOk(arn)(fakeClients)
-
-      //when
-      val result = controller.submitFilterAllClients()(request)
-
-      //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Error: Manage clients - Manage Agent Permissions - GOV.UK"
-      html.select(H1).text() shouldBe "Manage clients"
-
-      html.select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a tax reference, client name or select a tax service to apply filters"
-
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 4
-      th.get(0).text() shouldBe "Client name"
-      th.get(1).text() shouldBe "Tax reference"
-      th.get(2).text() shouldBe "Tax service"
-      th.get(3).text() shouldBe "Actions"
+      redirectLocation(result).get
+        .shouldBe(routes.ManageClientController.showAllClients.url)
     }
 
   }

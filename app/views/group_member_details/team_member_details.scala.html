@@ -29,51 +29,41 @@
 )
 
 @(
-    client: DisplayClient,
-    clientGroups: Seq[GroupSummary]
+    teamMember: TeamMember,
+    teamMemberGroups: Seq[GroupSummary]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@clientReference = @{
-    if(client.name.isEmpty) {
-        Html(msgs("details.clients.no-data")+ "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
-    } else {
-        Html(client.name + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
-    }
-}
-
-@displayTaxReference = @{
-    Html(displayObfuscatedReference(client.name, client.hmrcRef))
-}
 
 @layout(
-    title = msgs("details.clients"),
-    backLinkHref = Some(routes.ManageClientController.showAllClients.url),
+    title = msgs("details.team-members"),
+    backLinkHref = Some(routes.ManageTeamMemberController.showAllTeamMembers.url),
     fullWidth = true
 ) {
 
 <div class="govuk-grid-row">
-    @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
+    @h1("details.team-members", classes = Some("govuk-grid-column-two-thirds"))
 
     <div class="govuk-grid-column-two-thirds">
-        @h2("group.client.list.table.th1", size = "s")
-        @p(html = Some(clientReference))
+        <!-- personally I would flip the info hierarchy but hey ho -->
+        @h2("group.members.list.table.th1", size = "s")
+        @p(teamMember.name)
 
-        @h2("group.client.list.table.th2", size = "s")
-        @p(html = Some(displayTaxReference))
+        @h2("group.members.list.table.th2", size = "s")
+        @p(teamMember.email)
 
-        @h2("group.client.list.table.th3", size = "s")
-        @p(displayTaxServiceFromServiceKey(client.taxService))
+        @h2("group.members.list.table.th3", size = "s")
+        @p(teamMember.credentialRole.getOrElse("details.clients.no-data"))
 
         <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-        @a("common.return.manage-clients", href = routes.ManageClientController.showAllClients.url)
+        @a("common.return.manage-team-members", href = routes.ManageTeamMemberController.showAllTeamMembers.url)
 
     </div>
 
     <div class="govuk-grid-column-one-third">
         @h2("common.details.groups.header")
 
-        @if(clientGroups.isEmpty) {
+        @if(teamMemberGroups.isEmpty) {
 
             @p("common.details.not-assigned")
 
@@ -82,8 +72,8 @@
         } else {
 
         <ul class="govuk-list">
-            @for(group <- clientGroups) {
-            <li class="govuk-list--item">@a(group.groupName, href=routes.ManageGroupClientsController.showExistingGroupClients(group.groupId)
+            @for(group <- teamMemberGroups) {
+            <li class="govuk-list--item">@a(group.groupName, href=routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId)
                     .url)</li>
             }
         </ul>

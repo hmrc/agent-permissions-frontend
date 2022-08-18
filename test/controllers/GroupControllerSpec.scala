@@ -440,7 +440,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs =
@@ -488,7 +488,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs =
@@ -526,7 +526,7 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe s"Select clients"
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client name"
+      th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs =
@@ -744,10 +744,10 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Select clients"
       html
         .select(Css.ERROR_SUMMARY_LINK)
-        .text() shouldBe "You must enter a tax reference, client name or select a tax service to apply filters"
+        .text() shouldBe "You must enter a tax reference, client reference or select a tax service to apply filters"
       html
         .select(Css.errorForField("filter"))
-        .text() shouldBe "Error: You must enter a tax reference, client name or select a tax service to apply filters"
+        .text() shouldBe "Error: You must enter a tax reference, client reference or select a tax service to apply filters"
       // and should have cleared the previously selected clients from the session
       await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
 
@@ -817,7 +817,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
-      th.get(0).text() shouldBe "Client name"
+      th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
       val trs =

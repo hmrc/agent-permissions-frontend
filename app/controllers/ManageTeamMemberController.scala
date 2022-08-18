@@ -18,14 +18,14 @@ package controllers
 
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import forms.{AddClientsToGroupForm, ClientReferenceForm}
-import models.{ButtonSelect, DisplayClient}
+import forms.SearchAndFilterForm
+import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, ManageClientService, SessionCacheService}
+import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
@@ -38,6 +38,8 @@ class ManageTeamMemberController @Inject()(
      authAction: AuthAction,
      mcc: MessagesControllerComponents,
      groupService: GroupService,
+     manage_team_members_list: manage_team_members_list,
+     team_member_details: team_member_details,
      val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
@@ -55,7 +57,28 @@ class ManageTeamMemberController @Inject()(
   def showAllTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        Ok(s"showAllTeamMembers not yet implemented $arn").toFuture
+        groupService.getTeamMembers(arn)().flatMap { maybeTeamMembers =>
+          val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+          searchFilter.submit.fold(
+            //no filter/clear was applied
+            Ok(manage_team_members_list(teamMembers = maybeTeamMembers, form = SearchAndFilterForm.form()))
+          )({
+            //clear/filter buttons pressed
+            case "clear" =>
+              Redirect(routes.ManageTeamMemberController.showAllTeamMembers)
+            case "filter" =>
+              val filterByName = maybeTeamMembers.getOrElse(Seq.empty)
+                .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+              val filterByEmail = maybeTeamMembers.getOrElse(Seq.empty)
+                .filter(_.email.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+              val filtered = (filterByName ++ filterByEmail).distinct
+              Ok(
+                manage_team_members_list(teamMembers = Some(filtered),
+                  form = SearchAndFilterForm.form().fill(searchFilter)
+                )
+              )
+          }).toFuture
+        }
       }
     }
   }

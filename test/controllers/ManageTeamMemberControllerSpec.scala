@@ -17,24 +17,20 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.Css.H1
 import helpers.{BaseSpec, Css}
-import models.DisplayClient
+import models.TeamMember
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{GroupService, ManageClientService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, OptedInReady}
+import services.GroupService
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
-
-import java.util.Base64
 
 class ManageTeamMemberControllerSpec extends BaseSpec {
 
@@ -74,12 +70,28 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   val memberId = "test123"
 
+  val agentUsers: Set[AgentUser] = (1 to 5).map(i => AgentUser(id = s"John $i", name = s"John $i name")).toSet
+
+  val userDetails: Seq[UserDetails] = (1 to 5)
+    .map { i =>
+      UserDetails(
+        Some(s"John $i"),
+        Some("User"),
+        Some(s"John $i name"),
+        Some(s"john$i@abc.com")
+      )
+    }
+
+  val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
+
+
   s"GET ${routes.ManageTeamMemberController.showAllTeamMembers.url}" should {
 
-    "render correctly the confirmation page" in {
+    "render the manage team members list" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
+      stubGetTeamMembersOk(arn)(userDetails)
 
       //when
       val result = controller.showAllTeamMembers()(request)
@@ -87,8 +99,70 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.body.text shouldBe s"showAllTeamMembers not yet implemented ${arn.toString}"
+
+      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Manage team members"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 4
+      th.get(0).text() shouldBe "Name"
+      th.get(1).text() shouldBe "Email"
+      th.get(2).text() shouldBe "Role"
+      th.get(3).text() shouldBe "Actions"
+
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      trs.size() shouldBe 5
     }
+
+    "render the manage team members list with query params" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      stubGetTeamMembersOk(arn)(userDetails)
+
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageTeamMemberController.showAllTeamMembers.url +
+          "?submit=filter&search=john1&filter="
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.showAllTeamMembers()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.select(H1).text() shouldBe "Manage team members"
+
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      trs.size() shouldBe 1
+    }
+
+    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubOptInStatusOk(arn)(OptedInReady)
+      stubGetTeamMembersOk(arn)(userDetails)
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageTeamMemberController.showAllTeamMembers.url +
+          "?submit=clear"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.showAllTeamMembers()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get
+        .shouldBe(routes.ManageTeamMemberController.showAllTeamMembers.url)
+    }
+
   }
 
   s"GET ${routes.ManageTeamMemberController.showTeamMemberDetails(memberId).url}" should {

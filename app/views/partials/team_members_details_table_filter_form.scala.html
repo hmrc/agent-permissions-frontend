@@ -18,8 +18,7 @@
 @import controllers.routes
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
-@import models.AddClientsToGroup
-
+@import models.Selectable
 @import java.util.Base64
 
 @this(
@@ -33,70 +32,50 @@
 )
 
 @(
-        clients: Option[Seq[DisplayClient]] = None,
-        form: Form[AddClientsToGroup],
-        formAction: Call = routes.ManageClientController.submitFilterAllClients,
+        teamMembers: Option[Seq[TeamMember]] = None,
+        form: Form[SearchFilter],
+        formAction: Call = routes.ManageTeamMemberController.showAllTeamMembers,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
+    teamMembers.fold(Seq.empty[Seq[Html]])(_.map(member =>
         Seq(
-            Html(client.name),
-            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            Html(member.name),
+            Html(member.email),
+            Html(member.credentialRole.getOrElse("details.clients.no-data")),
             a(
-                key=Html(msgs("details.clients") + span(classes=Some("govuk-visually-hidden"),
-                                                        html=Some(Html(msgs("details.link-hidden", displayNameOrFullReference(client.name, client.hmrcRef))))
+                key=Html(msgs("details.team-members") + span(classes=Some("govuk-visually-hidden"),
+                                                        html=Some(Html(msgs("details.link-hidden", member.name)))
                                                         ).toString
                 ).toString,
-                href= routes.ManageClientController.showClientDetails(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url
+                href= routes.ManageTeamMemberController.showTeamMemberDetails(Base64.getEncoder.encodeToString(Json.toJson[TeamMember](member).toString.getBytes)).url
             )
         )
-    )
-    )
+    ))
 }
 
-@formWithCSRF(action = formAction) {
+@views.html.helper.form(action = formAction) {
 
     <div class="govuk-grid-row">
-        @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-         }
-
         <fieldset class="govuk-fieldset">
             <legend class="govuk-fieldset__legend govuk-visually-hidden">
-            @msgs("filter.legend")
+                @msgs("filter.legend")
             </legend>
 
-            @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
-                <p id="filter-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">Error:</span>
-                    @msgs("error.search-filter.empty")
-                </p>
-            }
-
             <div class="govuk-grid-column-one-quarter">
-            @textbox(
+                @textbox(
                 field = form("search"),
-                label = "client-filter.text.label",
+                label = "group.members.list.filter.label",
                 labelClasses = "govuk-label--s",
                 classes = "govuk-input--width-20"
-            )
+                )
             </div>
 
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
-            @input_select(
-                field = form("filter"),
-                label = msgs("client-filter.select.label"),
-                options = getFiltersByTaxService()
-            )
-            </div>
-
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-            @submit_button_group()
+            <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
+                @submit_button_group(name = "submit", secondName="submit", secondValue="clear", submitValue="filter",
+                additionalClasses = "govuk-!-margin-bottom-7")
             </div>
         </fieldset>
-        @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
     </div>
 
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
@@ -106,15 +85,15 @@
             attrs = Map.empty,
             headings = Seq(
                 (
-                    Html(msgs("group.client.list.table.th1")),
+                    Html(msgs("group.members.list.table.th1")),
                     Map("aria-sort" -> "none")
                 ),
                 (
-                    Html(msgs("group.client.list.table.th2")),
+                    Html(msgs("group.members.list.table.th2")),
                     Map("aria-sort" -> "none")
                 ),
                 (
-                    Html(msgs("group.client.list.table.th3")),
+                    Html(msgs("group.members.list.table.th3")),
                     Map("aria-sort" -> "none")
                 ),
                 (

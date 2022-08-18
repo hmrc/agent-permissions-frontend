@@ -18,8 +18,8 @@ package controllers
 
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import forms.{AddClientsToGroupForm, ClientReferenceForm}
-import models.{ButtonSelect, DisplayClient}
+import forms.{ClientReferenceForm, SearchAndFilterForm}
+import models.{DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -61,59 +61,33 @@ class ManageClientController @Inject()(
   def showAllClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
-          if (maybeFilteredResult.isDefined)
-            Ok(
-              manage_clients_list(
-                maybeFilteredResult,
-                AddClientsToGroupForm.form()
-              )
-            ).toFuture
-          else
-            groupService.getClients(arn).flatMap { maybeClients =>
+        groupService.getClients(arn).flatMap { maybeClients =>
+          val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+          searchFilter.submit.fold(
+            //no filter/clear was applied
+            Ok(manage_clients_list(
+                maybeClients,
+                SearchAndFilterForm.form()
+            )).toFuture
+          )({
+            //clear/filter buttons pressed
+            case "clear" =>
+              Redirect(routes.ManageClientController.showAllClients).toFuture
+            case "filter" =>
+              val filteredClients = maybeClients.get
+                .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+                .filter(dc =>
+                  if (searchFilter.filter.isEmpty) true
+                  else {
+                    val filter = searchFilter.filter.get
+                    dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
+                  })
               Ok(
                 manage_clients_list(
-                  maybeClients,
-                  AddClientsToGroupForm.form()
-                )
-              ).toFuture
-            }
-        }
-      }
-    }
-  }
-
-  // button is never continue
-  def submitFilterAllClients: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
-          val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
-
-          AddClientsToGroupForm
-            .form(buttonSelection)
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-                for {
-                  result <- if (maybeFilteredResult.isDefined)
-                    Ok(
-                      manage_clients_list(maybeFilteredResult,
-                        formWithErrors)).toFuture
-                  else
-                    groupService.getClients(arn).flatMap { maybeClients =>
-                      Ok(
-                        manage_clients_list(
-                          maybeClients,
-                          formWithErrors)).toFuture
-                    }
-                } yield result
-              },
-              formData => {
-                groupService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)
-                  .map(_ => Redirect(routes.ManageClientController.showAllClients))
-              }
-            )
+                  Some(filteredClients),
+                  SearchAndFilterForm.form().fill(searchFilter)
+                )).toFuture
+          })
         }
       }
     }

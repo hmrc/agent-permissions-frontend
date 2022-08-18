@@ -80,7 +80,6 @@ GET     /manage-access-group/clients-assigned                   controllers.Mana
 
 # Manage clients
 GET     /manage-clients                                                     controllers.ManageClientController.showAllClients
-POST    /manage-clients                                                     controllers.ManageClientController.submitFilterAllClients
 GET     /manage-clients/client-details/:clientId                            controllers.ManageClientController.showClientDetails(clientId: String)
 
 GET     /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.showUpdateClientReference(clientId: String)

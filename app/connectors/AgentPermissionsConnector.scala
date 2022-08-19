@@ -223,7 +223,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
                                                          ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
     val userId = agentUser.id
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/team-member/$userId/groups"
-    monitor("ConsumedAPI-groupSummariesForClient-GET") {
+    monitor("ConsumedAPI-groupSummariesForTeamMember-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         val eventuallySummaries = response.status match {
           case OK => response.json.asOpt[Seq[GroupSummary]]

@@ -245,7 +245,7 @@ class GroupService @Inject()(
           )(SELECTED_CLIENTS, FILTERED_CLIENTS)
           _ <- sessionCacheRepository.putSession(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
           _ <- sessionCacheRepository.putSession(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
-          _ <- filterClients(arn)(formData) // this contains a bug when using on unassigned
+          _ <- filterClients(arn)(formData)
         } yield ()
     }
   }

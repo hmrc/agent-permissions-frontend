@@ -22,7 +22,7 @@
 @import java.util.Base64
 
 @this(
-        p: p, h1: h1, span: span, a: a,
+        p: p, h1: h1, h2: h2, span: span, a: a,
         caption: caption,
         table: table,
         submit_button_group: submit_button_group,
@@ -78,6 +78,7 @@
         </fieldset>
     </div>
 
+    @if(teamMembers.getOrElse(Seq.empty).nonEmpty) {
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
 
         @table(
@@ -104,5 +105,10 @@
             rows = tableRows,
         )
         </div>
+        @p(msgs("common.total.team-members", teamMembers.get.length), id = Some("team-members-in-group"))
+    } else {
+        @h2("team-members.not-found.heading")
+        @p("team-members.not-found.p")
+    }
 
 }

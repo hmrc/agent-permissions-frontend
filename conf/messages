@@ -30,6 +30,18 @@ common.return.manage-account=Return to manage account
 common.return.manage-clients=Return to manage clients
 common.return.manage-team-members=Return to manage team members
 
+common.total.client=Showing <strong>{0}</strong> client
+common.total.clients=Showing total of <strong>{0}</strong> clients
+common.total.team-members=Showing total of <strong>{0}</strong> team members
+common.total.team-member=Showing <strong>{0}</strong> team member
+
+unassigned-clients.not-found.heading=No unassigned clients found
+unassigned-clients.not-found.p=Update your filters and try again or clear your filters to see all your unassigned clients
+clients.not-found.p=Update your filters and try again or clear your filters to see all your clients
+clients.not-found.heading=No clients found
+team-members.not-found.p=Update your filters and try again or clear your filters to see all your team members
+team-members.not-found.heading=No team members found
+
 error.select-clients.empty=You must select at least one client
 error.search-filter.empty=You must enter a tax reference, client reference or select a tax service to apply filters
 error.select-members.empty=You must select at least one team member
@@ -146,7 +158,6 @@ group.manage.members=Manage team members
 
 group.existing.clients.h1=Manage clients
 group.existing.clients.title=Manage clients - {0}
-group.existing.clients.total=Showing total of <strong>{0}</strong> clients
 group.existing.clients.button=Update clients
 
 group.rename.h1=Rename group

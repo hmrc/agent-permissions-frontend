@@ -166,7 +166,8 @@
                     @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
             </div>
         }
-        @h3("group.manage.no.unassigned.clients.h3")
+        @h3("unassigned-clients.not-found.heading")
+        @p("unassigned-clients.not-found.p")
     }
 }
 

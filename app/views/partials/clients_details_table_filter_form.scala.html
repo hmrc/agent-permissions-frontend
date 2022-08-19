@@ -21,7 +21,7 @@
 @import java.util.Base64
 
 @this(
-        p: p, h1: h1, span: span, a: a,
+        p: p, h1: h1, h2: h2, span: span, a: a,
         caption: caption,
         table: table,
         submit_button_group: submit_button_group,
@@ -90,12 +90,14 @@
             </div>
 
             <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-            @submit_button_group()
+            @submit_button_group(name = "submit", secondName="submit", secondValue="clear", submitValue="filter",
+            additionalClasses = "govuk-!-margin-bottom-7")
             </div>
         </fieldset>
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
     </div>
 
+    @if(clients.getOrElse(Seq.empty).nonEmpty) {
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
 
         @table(
@@ -123,4 +125,10 @@
         )
         </div>
 
+        @p(msgs("common.total.clients", clients.get.length),
+        id = Some("clients-in-group"))
+    } else {
+        @h2("clients.not-found.heading")
+        @p("clients.not-found.p")
+    }
 }

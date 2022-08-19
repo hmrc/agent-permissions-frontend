@@ -61,6 +61,9 @@ package object controllers {
   val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]] = DataKey("filteredGroupSummaries")
   val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
 
+  val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
+  val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")
+
   val CLIENT_REFERENCE: DataKey[String] = DataKey("clientRef")
 
   val sessionKeys =

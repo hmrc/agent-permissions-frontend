@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary, UpdateAccessGroupRequest}
 import forms._
 import models.ButtonSelect.{Clear, Filter}
-import models.{ButtonSelect, DisplayClient}
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import play.api.Logging
 import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -70,16 +70,25 @@ class ManageGroupController @Inject()(
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[String](FILTERED_GROUPS_INPUT) { searchTerm =>
-          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-            groupService.groupSummaries(arn).map(gs =>
-              Ok(
-                dashboard(
-                  gs,
-                  AddClientsToGroupForm.form(),
-                  FilterByGroupNameForm.form.fill(searchTerm.getOrElse("")),
-                  maybeHiddenClients))
-            )
+        withSessionItem[String](FILTERED_GROUPS_INPUT) { groupSearchTerm =>
+          withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+            withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+              withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+                groupService.groupSummaries(arn).map(gs =>
+                  Ok(
+                    dashboard(
+                      gs,
+                      AddClientsToGroupForm.form().fill(
+                        AddClientsToGroup(
+                          maybeHiddenClients.getOrElse(false),
+                          search = clientSearchTerm,
+                          filter = clientFilterTerm,
+                          clients = None)),
+                      FilterByGroupNameForm.form.fill(groupSearchTerm.getOrElse("")),
+                      maybeHiddenClients))
+                )
+              }
+            }
           }
         }
       }
@@ -159,7 +168,7 @@ class ManageGroupController @Inject()(
           formWithErrors => {
             getGroupSummaries(arn).map( tuple => {
               val clonedForm = formWithErrors.copy(
-                errors = Seq(FormError("field-wrapper", formWithErrors.errors(0).message))
+                errors = Seq(FormError("field-wrapper", formWithErrors.errors.head.message))
               )
               Ok(select_groups_for_clients(clonedForm, tuple._1))
             }
@@ -232,9 +241,9 @@ class ManageGroupController @Inject()(
                       sessionCacheService.clearSelectedClients()
                     else ()).toFuture
                     result = if (maybeFilteredClients.isDefined)
-                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form,maybeHiddenClients, true))
+                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form,maybeHiddenClients, showUnassignedClients = true))
                     else
-                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form, maybeHiddenClients, true))
+                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form, maybeHiddenClients, showUnassignedClients = true))
                   } yield result
                 },
                 formData => {

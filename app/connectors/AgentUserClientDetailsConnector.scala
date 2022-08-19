@@ -87,7 +87,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
           case ACCEPTED => None
           case OK       => response.json.asOpt[Seq[UserDetails]]
           case e =>
-            throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
+            throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}",
                                         e)
         }
       }

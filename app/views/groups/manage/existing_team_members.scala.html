@@ -22,7 +22,7 @@
 
 @this(
     layout: main_layout,table: table,
-    p: p, h1: h1, a: a, caption: caption,
+    p: p, h1: h1, h2: h2, a: a, caption: caption,
     link_as_button: link_as_button,
     submit_button: submit_button,
     textbox: textbox, checkBox: checkBox,
@@ -84,27 +84,21 @@
                 </div>
             </div>
         }
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
 
+        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
         @table(
             id = Some("sortable-table"),
             headings = Seq(
-                (
-                    Html(msgs("group.members.list.table.th1")),
-                    Map("aria-sort" -> "ascending")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                ),
+                ( Html(msgs("group.members.list.table.th1")), Map("aria-sort" -> "ascending") ),
+                ( Html(msgs("group.members.list.table.th2")), Map("aria-sort" -> "none") ),
+                ( Html(msgs("group.members.list.table.th3")), Map("aria-sort" -> "none") ),
             ),
             rows = tableRows,
         )
         </div>
+
+        @p(msgs("common.total.team-members", teamMembers.length),
+        id = Some("team-members-in-group"))
 
         @link_as_button(
             key = "group.selected.teamMembers.change",

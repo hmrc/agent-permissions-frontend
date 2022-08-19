@@ -17,7 +17,7 @@
 package services
 
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
-import controllers.{FILTERED_CLIENTS, FILTERED_GROUPS_INPUT, FILTERED_GROUP_SUMMARIES, FILTERED_TEAM_MEMBERS, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, ToFuture}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, FILTERED_GROUPS_INPUT, FILTERED_GROUP_SUMMARIES, FILTERED_TEAM_MEMBERS, HIDDEN_CLIENTS_EXIST, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, ToFuture}
 import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, Selectable, TeamMember}
 import models.ButtonSelect._
 import models.DisplayClient.toEnrolment
@@ -28,6 +28,7 @@ import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
+
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
@@ -222,6 +223,8 @@ class GroupService @Inject()(
           )(SELECTED_CLIENTS, FILTERED_CLIENTS)
           _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
           _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
+          _ <- sessionCacheRepository.deleteFromSession(CLIENT_FILTER_INPUT)
+          _ <- sessionCacheRepository.deleteFromSession(CLIENT_SEARCH_INPUT)
         } yield ()
 
       case Continue =>
@@ -240,6 +243,8 @@ class GroupService @Inject()(
           _ <- addSelectablesToSession(
             formData.clients.map(_.map(_.copy(selected = true)))
           )(SELECTED_CLIENTS, FILTERED_CLIENTS)
+          _ <- sessionCacheRepository.putSession(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
+          _ <- sessionCacheRepository.putSession(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
           _ <- filterClients(arn)(formData)
         } yield ()
     }

@@ -161,7 +161,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(0).text() shouldBe "John 1 name"
       trs.get(0).select("td").get(1).text() shouldBe "john1@abc.com"
-      trs.get(0).select("td").get(2).text() shouldBe "User"
+      trs.get(0).select("td").get(2).text() shouldBe "Administrator"
 
     }
 
@@ -195,7 +195,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(0).text() shouldBe "John 2 name"
       trs.get(0).select("td").get(1).text() shouldBe "john2@abc.com"
-      trs.get(0).select("td").get(2).text() shouldBe "User"
+      trs.get(0).select("td").get(2).text() shouldBe "Administrator"
     }
   }
 

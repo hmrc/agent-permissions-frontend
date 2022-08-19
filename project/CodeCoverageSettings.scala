@@ -23,7 +23,6 @@ object CodeCoverageSettings {
     ".*complete.template",
     ".*manage_clients_list.template",
     ".*manage_team_members_list.template",
-    ".*team_member_details.template", // remove apb-6250
     ".*group_not_found.template",
     ".*ViewUtils.*",
     ".*GroupAction.*",

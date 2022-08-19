@@ -221,6 +221,60 @@ class AgentPermissionsConnectorSpec
     }
   }
 
+  "GET GroupSummariesForTeamMember" should {
+
+    val agentUser = AgentUser("id", "Name")
+
+    "return groups successfully" in {
+      //given
+      val groupSummaries = Seq(
+        GroupSummary("groupId", "groupName", 33, 9)
+      )
+
+      val agentUserId = agentUser.id
+
+      val expectedUrl =
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/team-member/$agentUserId/groups"
+      val mockJsonResponseBody = Json.toJson(groupSummaries).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //and
+      val expectedTransformedResponse = Some(
+        groupSummaries
+      )
+
+      //then
+      connector
+        .getGroupsForTeamMember(arn, agentUser)
+        .futureValue shouldBe expectedTransformedResponse
+    }
+
+    "return None 404 if no groups found" in {
+      //given
+      val mockResponse = HttpResponse.apply(NOT_FOUND, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      connector
+        .getGroupsForTeamMember(arn, agentUser)
+        .futureValue shouldBe None
+    }
+
+    "throw an exception for any other HTTP response code" in {
+      //given
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.getGroupsForTeamMember(arn, agentUser))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
   "GET Group" should {
 
     "return successfully" in {

@@ -64,6 +64,9 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def getGroupsForClient(arn: Arn, enrolment: Enrolment)(implicit hc: HeaderCarrier,
                                                          ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
 
+  def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit hc: HeaderCarrier,
+                                                         ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
+
   def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Done]
@@ -99,7 +102,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
         response.status match {
           case OK => response.json.asOpt[OptinStatus]
           case e =>
-            logger.warn(s"getOptInStatus returned status $e ${response.body}");
+            logger.warn(s"getOptInStatus returned status $e ${response.body}")
             None
         }
       }
@@ -216,10 +219,32 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
+  def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit hc: HeaderCarrier,
+                                                         ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
+    val userId = agentUser.id
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/team-member/$userId/groups"
+    monitor("ConsumedAPI-groupSummariesForClient-GET") {
+      http.GET[HttpResponse](url).map { response: HttpResponse =>
+        val eventuallySummaries = response.status match {
+          case OK => response.json.asOpt[Seq[GroupSummary]]
+          case NOT_FOUND => None
+          case e =>
+            throw UpstreamErrorResponse(
+              s"error getting group summary for arn: $arn, teamMember: $userId from $url",
+              e)
+        }
+        val maybeGroups = eventuallySummaries.map { summaries =>
+          summaries
+        }
+        maybeGroups
+      }
+    }
+  }
+
   override def getGroup(id: String)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Option[AccessGroup]] = {
-    val url = s"$baseUrl/agent-permissions/groups/${id}"
+    val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         response.status match {
@@ -239,7 +264,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
 
   override def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/groups/${id}"
+    val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-update group-PATCH") {
       http
         .PATCH[UpdateAccessGroupRequest, HttpResponse](url, groupRequest)
@@ -257,7 +282,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
 
   override def addUnassignedMembers(id: String, groupRequest: AddMembersToAccessGroupRequest)
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/groups/${id}/add-unassigned"
+    val url = s"$baseUrl/agent-permissions/groups/$id/add-unassigned"
     monitor("ConsumedAPI- add members to group -PUT") {
       http
         .PUT[AddMembersToAccessGroupRequest, HttpResponse](url, groupRequest)
@@ -275,7 +300,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
 
   override def deleteGroup(id: String)(implicit hc: HeaderCarrier,
                                        ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/groups/${id}"
+    val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-update group-PATCH") {
       http.DELETE[HttpResponse](url).map { response =>
         response.status match {

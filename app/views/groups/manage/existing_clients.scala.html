@@ -30,8 +30,7 @@
         textbox: textbox,
         submit_button_group: submit_button_group,
         input_select: input_select,
-        checkBox: checkBox,
-        formWithCSRF: FormWithCSRF
+        checkBox: checkBox
 )
 
 @(group: DisplayGroup, form: Form[SearchFilter])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -83,8 +82,12 @@
             </div>
 
             <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-            @submit_button_group(name = "submit", secondName="submit", secondValue="clear", submitValue="filter",
-                additionalClasses = "govuk-!-margin-bottom-7")
+                @submit_button_group(
+                    name = "submit",
+                    secondName="submit",
+                    secondValue="clear",
+                    submitValue="filter",
+                    additionalClasses = "govuk-!-margin-bottom-7")
             </div>
         </fieldset>
     </div>

@@ -21,8 +21,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.data.FormError
-import play.api.libs.json.Json
-import play.api.libs.json.Json.toJson
 
 
 class AddTeamMembersToGroupFormSpec
@@ -34,8 +32,8 @@ class AddTeamMembersToGroupFormSpec
   val search = "search"
   val members = "members[]"
 
-  val member1 = TeamMember("Bob", "bob@builds.com", None, None, selected = true)
-  val member2 = TeamMember("Steve", "steve@abc.com", None, None)
+  val member1 = TeamMember("Bob", "bob@builds.com", Some("user1"), None, selected = true)
+  val member2 = TeamMember("Steve", "steve@abc.com", Some("user2"), None)
 
   "AddTeamMembersToGroup form binding" should {
 

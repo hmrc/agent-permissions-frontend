@@ -24,7 +24,6 @@ import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -85,7 +84,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
   val displayClientsIds: Seq[String] =
     displayClients.map(client =>
-      clientId)
+      client.id)
 
   val clientId: String = displayClientsIds.head
 
@@ -213,6 +212,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolment, None)
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.showClientDetails(clientId)(request)
@@ -232,6 +232,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolment, Some(groupSummaries))
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.showClientDetails(clientId)(request)
@@ -255,6 +256,7 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
+      stubGetClientsOk(arn)(fakeClients)
       //when
       val result = controller.showUpdateClientReference(clientId)(request)
 
@@ -273,8 +275,12 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
 
+      val fakeClientWithoutFriendlyName = fakeClients.head.copy(friendlyName = "")
+
+      stubGetClientsOk(arn)(Seq(fakeClientWithoutFriendlyName))
+
       //when
-      val result = controller.showUpdateClientReference(clientWithoutNameId)(request)
+      val result = controller.showUpdateClientReference(DisplayClient.fromClient(fakeClientWithoutFriendlyName).id)(request)
 
       //then
       status(result) shouldBe OK
@@ -284,7 +290,6 @@ class ManageClientControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Update client reference"
 
       html.body.select("input#clientRef").attr("value") shouldBe ""
-
     }
 
   }
@@ -296,6 +301,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       //await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.submitUpdateClientReference(clientId)(request)
@@ -310,6 +316,7 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.submitUpdateClientReference(clientId)(request)
@@ -320,9 +327,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Error: Update client reference - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "Update client reference"
-
     }
-
   }
 
 
@@ -333,6 +338,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.showClientReferenceUpdatedComplete(clientId)(request)

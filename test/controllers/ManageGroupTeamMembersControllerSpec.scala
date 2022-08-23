@@ -26,7 +26,6 @@ import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
@@ -37,7 +36,6 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
-import java.util.Base64
 
 class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
@@ -70,6 +68,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         .toInstance(new AuthAction(mockAuthConnector, env, conf))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[GroupService]).toInstance(groupService)
     }
@@ -302,17 +301,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       s"button is Continue and redirect to ${routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" in {
 
-        val encodedDisplayTeamMembers = teamMembers.map(
-          member =>
-            Base64.getEncoder.encodeToString(
-              Json.toJson(member).toString.getBytes))
-
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
               "hasAlreadySelected" -> "false",
-              "members[0]" -> encodedDisplayTeamMembers.head,
-              "members[1]" -> encodedDisplayTeamMembers.last,
+              "members[0]" -> teamMembers.head.id,
+              "members[1]" -> teamMembers.last.id,
               "search" -> "",
               "continue" -> "continue"
             )
@@ -323,6 +317,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        stubGetTeamMembersOk(arn)(userDetails)
 
 
         val result =

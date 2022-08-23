@@ -70,6 +70,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         .toInstance(new AuthAction(mockAuthConnector, env, conf))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[GroupService]).toInstance(groupService)
     }
@@ -395,17 +396,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups.url}" in {
 
-        val encodedDisplayClients = displayClients.map(
-          client =>
-            Base64.getEncoder.encodeToString(
-              Json.toJson(client).toString.getBytes))
-
         implicit val request =
           FakeRequest("POST", routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
-              "clients[0]" -> encodedDisplayClients.head,
-              "clients[1]" -> encodedDisplayClients.last,
+              "clients[0]" -> displayClients.head.id,
+              "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
               "continue" -> "continue"
@@ -417,6 +413,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        stubGetClientsOk(arn)(fakeClients)
 
         expectUpdateGroupSuccess(accessGroup._id.toString,
           UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(toEnrolment(_)))))
@@ -484,6 +481,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
+        stubGetClientsOk(arn)(fakeClients)
 
         // when
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)

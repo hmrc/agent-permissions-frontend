@@ -24,16 +24,13 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
-import play.api.libs.json.Json
-import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.{FakeRequest, Helpers}
 import repository.SessionCacheRepository
 import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
-
-import java.util.Base64
 
 class GroupControllerSpec extends BaseSpec {
 
@@ -85,9 +82,8 @@ class GroupControllerSpec extends BaseSpec {
 
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
-  val encodedDisplayClients: Seq[String] =
-    displayClients.map(client =>
-      Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+  val displayClientsIds: Seq[String] =
+    displayClients.map(_.id)
 
   val users: Seq[UserDetails] = (1 to 10)
     .map { i =>
@@ -100,9 +96,8 @@ class GroupControllerSpec extends BaseSpec {
     }
 
   val teamMembers: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
-  val encodedTeamMembers: Seq[String] =
-    teamMembers.map(client =>
-      Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+  val teamMembersIds: Seq[String] =
+    teamMembers.map(_.id)
 
   def optedInWithGroupName(): Unit = {
 
@@ -457,6 +452,7 @@ class GroupControllerSpec extends BaseSpec {
       val displayClients = fakeClients.map(DisplayClient.fromClient(_))
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubGetClientsOk(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -540,19 +536,14 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Continue and redirect to ${routes.GroupController.showReviewSelectedClients.url}" in {
         // given
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-
-        val encodedDisplayClients =
-          displayClients.map(
-            client =>
-              Base64.getEncoder.encodeToString(
-                Json.toJson(client).toString.getBytes))
+        stubGetClientsOk(arn)(fakeClients)
 
         implicit val request =
           FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
-              "clients[0]" -> encodedDisplayClients.head,
-              "clients[1]" -> encodedDisplayClients.last,
+              "clients[0]" -> displayClients.head.id,
+              "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
               "continue" -> "continue"
@@ -579,19 +570,14 @@ class GroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         stubGetClientsOk(arn)(fakeClients)
-
-        val encodedDisplayClients =
-          displayClients.map(
-            client =>
-              Base64.getEncoder.encodeToString(
-                Json.toJson(client).toString.getBytes))
+        stubGetClientsOk(arn)(fakeClients)
 
         implicit val request =
           FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
-              "clients[0]" -> encodedDisplayClients.head,
-              "clients[1]" -> encodedDisplayClients.last,
+              "clients[0]" -> displayClients.head.id,
+              "clients[1]" -> displayClients.last.id,
               "search" -> "friendly0",
               "filter" -> "",
               "submitFilter" -> "submitFilter"
@@ -621,19 +607,14 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Clear and redirect to ${routes.GroupController.showSelectClients.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-
-        val encodedDisplayClients =
-          displayClients.map(
-            client =>
-              Base64.getEncoder.encodeToString(
-                Json.toJson(client).toString.getBytes))
+        stubGetClientsOk(arn)(fakeClients)
 
         implicit val request =
           FakeRequest("POST", routes.GroupController.submitSelectedClients.url)
             .withFormUrlEncodedBody(
               "hasSelectedClients" -> "false",
-              "clients[0]" -> encodedDisplayClients.head,
-              "clients[1]" -> encodedDisplayClients.last,
+              "clients[0]" -> displayClients.head.id,
+              "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
               "submitClear" -> "submitClear"
@@ -911,6 +892,7 @@ class GroupControllerSpec extends BaseSpec {
     "render with filtered team members held in session when a filter was applied" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubGetTeamMembersOk(arn)(users)
 
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -1001,8 +983,8 @@ class GroupControllerSpec extends BaseSpec {
                       routes.GroupController.submitSelectedTeamMembers.url)
             .withFormUrlEncodedBody(
               "hasAlreadySelected" -> "false",
-              "members[]" -> encodedTeamMembers.head,
-              "members[]" -> encodedTeamMembers.last,
+              "members[]" -> teamMembersIds.head,
+              "members[]" -> teamMembersIds.last,
               "continue" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
@@ -1034,8 +1016,8 @@ class GroupControllerSpec extends BaseSpec {
                       routes.GroupController.submitSelectedTeamMembers.url)
             .withFormUrlEncodedBody(
               "hasAlreadySelected" -> "false",
-              "members[]" -> encodedTeamMembers.head,
-              "members[]" -> encodedTeamMembers.last,
+              "members[]" -> teamMembersIds.head,
+              "members[]" -> teamMembersIds.last,
               "search" -> "10",
               "submitFilter" -> "submitFilter"
             )
@@ -1073,8 +1055,8 @@ class GroupControllerSpec extends BaseSpec {
                       routes.GroupController.submitSelectedTeamMembers.url)
             .withFormUrlEncodedBody(
               "hasAlreadySelected" -> "false",
-              "members[]" -> encodedTeamMembers.head,
-              "members[]" -> encodedTeamMembers.last,
+              "members[]" -> teamMembersIds.head,
+              "members[]" -> teamMembersIds.last,
               "search" -> "1",
               "submitClear" -> "submitClear"
             )
@@ -1153,8 +1135,8 @@ class GroupControllerSpec extends BaseSpec {
                     routes.GroupController.submitSelectedTeamMembers.url)
           .withFormUrlEncodedBody(
             "hasAlreadySelected" -> "false",
-            "members[]" -> encodedTeamMembers.head,
-            "members[]" -> encodedTeamMembers.last,
+            "members[]" -> teamMembersIds.head,
+            "members[]" -> teamMembersIds.last,
             "search" -> "",
             "submitFilter" -> "submitFilter"
           )

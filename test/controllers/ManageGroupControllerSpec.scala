@@ -68,6 +68,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .toInstance(new AuthAction(mockAuthConnector, env, conf))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[GroupService]).toInstance(groupService)
     }
@@ -842,7 +843,6 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request =
         FakeRequest("POST", routes.ManageGroupController.submitAddUnassignedClients.url)
-          .withHeaders("Authorization" -> s"Bearer whatever")
           .withFormUrlEncodedBody(
             "hasSelectedClients" -> "false",
             "clients[0]" -> displayClients.head.id,
@@ -870,6 +870,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       s"when button is NOT Continue" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubGetClientsOk(arn)(fakeClients)
       stubGetClientsOk(arn)(fakeClients)
 
       implicit val request =

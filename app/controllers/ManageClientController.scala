@@ -116,6 +116,7 @@ class ManageClientController @Inject()(
               client = client,
               form = ClientReferenceForm.form().fill(client.name)
             ))
+          case None => throw new RuntimeException("client reference supplied did not match any client")
         }
       }
     }

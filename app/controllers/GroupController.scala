@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, Enrolment}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -50,7 +50,9 @@ class GroupController @Inject()(
                                  val agentPermissionsConnector: AgentPermissionsConnector,
                                  val sessionCacheService: SessionCacheService,
                                  val sessionCacheRepository: SessionCacheRepository,
-                                 val groupService: GroupService
+                                 val groupService: GroupService,
+                                 clientService: ClientService,
+                                 teamMemberService: TeamMemberService
                                )(
                                  implicit val appConfig: AppConfig,
                                  ec: ExecutionContext,
@@ -137,24 +139,14 @@ class GroupController @Inject()(
 
   def showSelectClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
-        withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-          if (maybeFilteredResult.isDefined)
-            Ok(
-              client_group_list(
-                maybeFilteredResult,
-                groupName,
-                maybeHiddenClients,
-                AddClientsToGroupForm.form())).toFuture
-          else
-            groupService.getClients(arn).flatMap { maybeClients =>
-              Ok(
-                client_group_list(
-                  maybeClients,
-                  groupName,
-                  maybeHiddenClients,
-                  AddClientsToGroupForm.form())).toFuture
-            }
+      withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+        clientService.getClients(arn).flatMap { maybeClients =>
+          Ok(
+            client_group_list(
+              maybeClients,
+              groupName,
+              maybeHiddenClients,
+              AddClientsToGroupForm.form())).toFuture
         }
       }
     }
@@ -162,48 +154,37 @@ class GroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
-        withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+      withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+        val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
 
-          val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
+        AddClientsToGroupForm
+          .form(buttonSelection)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              for {
+                _ <- if (buttonSelection == ButtonSelect.Continue)
+                  sessionCacheService.clearSelectedClients()
+                else ().toFuture
+                clients <- clientService.getClients(arn)
+              } yield
+                Ok(
+                  client_group_list(clients,
+                    groupName,
+                    maybeHiddenClients,
+                    formWithErrors))
 
-          AddClientsToGroupForm
-            .form(buttonSelection)
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-                for {
-                  _ <- if (buttonSelection == ButtonSelect.Continue)
-                    sessionCacheService.clearSelectedClients()
-                  else ().toFuture
-                  result <- if (maybeFilteredResult.isDefined)
-                    Ok(
-                      client_group_list(maybeFilteredResult,
-                        groupName,
-                        maybeHiddenClients,
-                        formWithErrors)).toFuture
+            },
+            formData => {
+              clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)
+                .map(_ =>
+                  if (buttonSelection == ButtonSelect.Continue)
+                    Redirect(routes.GroupController.showReviewSelectedClients)
                   else
-                    groupService.getClients(arn).flatMap { maybeClients =>
-                      Ok(
-                        client_group_list(
-                          maybeClients,
-                          groupName,
-                          maybeHiddenClients,
-                          formWithErrors)).toFuture
-                    }
-                } yield result
-              },
-              formData => {
-                groupService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)
-                  .map(_ =>
-                    if (buttonSelection == ButtonSelect.Continue)
-                      Redirect(routes.GroupController.showReviewSelectedClients)
-                    else
-                      Redirect(
-                        routes.GroupController.showSelectClients))
-              }
-            )
-        }
+                    Redirect(
+                      routes.GroupController.showSelectClients))
+            }
+          )
       }
     }
   }
@@ -219,40 +200,25 @@ class GroupController @Inject()(
 
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
-        withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
           withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
-            if (maybeFilteredResult.isDefined)
+            teamMemberService.getTeamMembers(arn).map { maybeTeamMembers =>
               Ok(
                 team_members_list(
-                  maybeFilteredResult,
+                  maybeTeamMembers,
                   groupName,
                   maybeHiddenTeamMembers,
-                  AddTeamMembersToGroupForm.form())).toFuture
-            else
-              groupService
-                .getTeamMembers(arn)(maybeSelectedTeamMembers)
-                .flatMap { maybeTeamMembers =>
-                  Ok(
-                    team_members_list(
-                      maybeTeamMembers,
-                      groupName,
-                      maybeHiddenTeamMembers,
-                      AddTeamMembersToGroupForm.form())).toFuture
-                }
+                  AddTeamMembersToGroupForm.form()))
+            }
           }
-        }
-      }
     }
   }
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
-        withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
-          groupService.getTeamMembers(arn)(maybeSelectedTeamMembers).flatMap { maybeTeamMembers =>
             withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
+
+              val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
+
               AddTeamMembersToGroupForm
                 .form(buttonSelection)
                 .bindFromRequest()
@@ -263,25 +229,17 @@ class GroupController @Inject()(
                         sessionCacheService
                           .clearSelectedTeamMembers()
                       else ().toFuture
-                      result <- if (maybeFilteredResult.isDefined)
+                      teamMembers <- teamMemberService.getTeamMembers(arn)
+                    } yield
                         Ok(
                           team_members_list(
-                            maybeFilteredResult,
+                            teamMembers,
                             groupName,
                             maybeHiddenTeamMembers,
-                            formWithErrors)).toFuture
-                      else {
-                        Ok(
-                          team_members_list(
-                            maybeTeamMembers,
-                            groupName,
-                            maybeHiddenTeamMembers,
-                            formWithErrors)).toFuture
-                      }
-                    } yield result
+                            formWithErrors))
                   },
                   formData => {
-                    groupService
+                    teamMemberService
                       .saveSelectedOrFilteredTeamMembers(
                         buttonSelection)(arn)(formData)
                       .map(_ =>
@@ -290,11 +248,8 @@ class GroupController @Inject()(
                         else Redirect(routes.GroupController.showSelectTeamMembers))
                   }
                 )
-            }
-          }
         }
       }
-    }
   }
 
   def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>

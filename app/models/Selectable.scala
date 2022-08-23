@@ -18,6 +18,7 @@ package models
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, Enrolment, Identifier, UserDetails}
+import scala.util.hashing.MurmurHash3
 
 sealed trait Selectable {
   val selected: Boolean
@@ -29,7 +30,10 @@ case class TeamMember(
                        userId: Option[String] = None,
                        credentialRole: Option[String] = None,
                        selected: Boolean = false
-                     ) extends Selectable
+                     ) extends Selectable {
+  private val hashKey = s"$name$email${userId.getOrElse(throw new RuntimeException("userId missing from TeamMember"))}"
+  val id = MurmurHash3.stringHash(hashKey).toString
+}
 
 case object TeamMember {
   implicit val format = Json.format[TeamMember]
@@ -52,7 +56,10 @@ case class DisplayClient(
                           taxService: String,
                           identifierKey: String,
                           selected: Boolean = false
-                        ) extends Selectable
+                        ) extends Selectable {
+  private val enrolmentKey = s"$taxService~$identifierKey~$hmrcRef"
+  val id = MurmurHash3.stringHash(enrolmentKey).toString
+}
 
 case object DisplayClient {
 

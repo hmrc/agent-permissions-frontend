@@ -18,7 +18,6 @@
 @import controllers.routes
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
-@import java.util.Base64
 
 @this(
         p: p, h1: h1, h2: h2, span: span, a: a,
@@ -46,7 +45,7 @@
                                                         html=Some(Html(msgs("details.link-hidden", displayNameOrFullReference(client.name, client.hmrcRef))))
                                                         ).toString
                 ).toString,
-                href= routes.ManageClientController.showClientDetails(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url
+                href= routes.ManageClientController.showClientDetails(client.id).url
             )
         )
     )

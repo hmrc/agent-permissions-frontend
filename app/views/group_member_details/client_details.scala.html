@@ -19,7 +19,6 @@
 @import views.html.main_layout
 @import utils.ViewUtils._
 @import connectors.GroupSummary
-@import java.util.Base64
 @import play.api.libs.json.Json
 
 @this(
@@ -35,9 +34,9 @@
 
 @clientReference = @{
     if(client.name.isEmpty) {
-        Html(msgs("details.no-data")+ "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
+        Html(msgs("details.no-data")+ "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(client.id).url))
     } else {
-        Html(client.name + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url))
+        Html(client.name + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(client.id).url))
     }
 }
 

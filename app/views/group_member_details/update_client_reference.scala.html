@@ -18,9 +18,7 @@
 @import controllers.routes
 @import views.html.main_layout
 @import utils.ViewUtils._
-@import models.AddClientsToGroup
-@import java.util.Base64
-@import play.api.libs.json.Json
+
 
 @this(
         layout: main_layout,
@@ -44,14 +42,14 @@
 
 @layout(
     title = msgs("update-client-reference"),
-    backLinkHref = Some(routes.ManageClientController.showClientDetails(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url),
+    backLinkHref = Some(routes.ManageClientController.showClientDetails(client.id).url),
     formErrors = form.errors
 ) {
 
     @caption(msgs("update-client-reference.caption", displayTaxReference))
     @h1("update-client-reference")
 
-    @formWithCSRF(action = routes.ManageClientController.submitUpdateClientReference(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes))) {
+    @formWithCSRF(action = routes.ManageClientController.submitUpdateClientReference(client.id)) {
 
     @textbox(
         field = form("clientRef"),
@@ -65,7 +63,7 @@
 
     <div class="govuk-button-group">
         @link_as_button(
-            href= routes.ManageClientController.showClientDetails(Base64.getEncoder.encodeToString(Json.toJson[DisplayClient](client).toString.getBytes)).url,
+            href= routes.ManageClientController.showClientDetails(client.id).url,
             key = "common.cancel",
             submitClass = Some("govuk-button--secondary")
         )

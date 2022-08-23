@@ -19,5 +19,5 @@ package models
 case class AddTeamMembersToGroup(
     hasAlreadySelected: Boolean,
     search: Option[String],
-    members: Option[List[TeamMember]]
+    members: Option[List[String]]
 )

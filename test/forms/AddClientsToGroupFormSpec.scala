@@ -42,8 +42,6 @@ class AddClientsToGroupFormSpec
 
   "CreateGroupFrom binding" should {
 
-    val encode: DisplayClient => String = client =>
-      Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes)
 
     "be fillable with a AddClientsToGroup" in {
       val validatedForm = AddClientsToGroupForm
@@ -52,13 +50,13 @@ class AddClientsToGroupFormSpec
           AddClientsToGroup(hasSelectedClients = false,
                             None,
                             None,
-                            Some(List(client1, client2))))
+                            Some(List(client1.id, client2.id))))
       validatedForm.hasErrors shouldBe false
       validatedForm.value shouldBe Option(
         AddClientsToGroup(hasSelectedClients = false,
                           None,
                           None,
-                          Some(List(client1, client2))))
+                          Some(List(client1.id, client2.id))))
     }
 
     "be successful when clients are non-empty" in {
@@ -66,14 +64,14 @@ class AddClientsToGroupFormSpec
         hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List.empty,
-        clients -> List(encode(client1), encode(client2))
+        clients -> List(client1.id, client2.id)
       )
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
       boundForm.value shouldBe Some(
         AddClientsToGroup(hasSelectedClients = false,
                           None,
                           None,
-                          Some(List(client1, client2))))
+                          Some(List(client1.id, client2.id))))
     }
 
     "be successful when button is Clear and form is empty" in {
@@ -94,7 +92,7 @@ class AddClientsToGroupFormSpec
         hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List("abc"),
-        clients -> List(encode(client1), encode(client2))
+        clients -> List(client1.id, client2.id)
       )
       val boundForm =
         AddClientsToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
@@ -102,7 +100,7 @@ class AddClientsToGroupFormSpec
         AddClientsToGroup(hasSelectedClients = false,
                           None,
                           Some("abc"),
-                          Some(List(client1, client2)))
+                          Some(List(client1.id, client2.id)))
       )
     }
 
@@ -122,7 +120,7 @@ class AddClientsToGroupFormSpec
         hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List.empty,
-        clients -> List(encode(client1), encode(client2))
+        clients -> List(client1.id, client2.id)
       )
       val boundForm =
         AddClientsToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
@@ -146,16 +144,14 @@ class AddClientsToGroupFormSpec
       val model = AddClientsToGroup(hasSelectedClients = false,
                                     None,
                                     None,
-                                    Some(List(client1, client2)))
+                                    Some(List(client1.id, client2.id)))
       AddClientsToGroupForm
         .form(Continue)
         .mapping
         .unbind(model) shouldBe Map(
         "hasSelectedClients" -> "false",
-        "clients[0]" -> Base64.getEncoder.encodeToString(
-          toJson[DisplayClient](client1).toString().getBytes),
-        "clients[1]" -> Base64.getEncoder.encodeToString(
-          toJson[DisplayClient](client2).toString().getBytes)
+        "clients[0]" -> client1.id,
+        "clients[1]" -> client2.id
       )
     }
 
@@ -177,7 +173,7 @@ class AddClientsToGroupFormSpec
       val model = AddClientsToGroup(hasSelectedClients = false,
                                     Option("Ab"),
                                     Option("Bc"),
-                                    Some(List(client1)))
+                                    Some(List(client1.id)))
       AddClientsToGroupForm
         .form(Clear)
         .mapping
@@ -185,8 +181,7 @@ class AddClientsToGroupFormSpec
         "hasSelectedClients" -> "false",
         "filter" -> "Bc",
         "search" -> "Ab",
-        "clients[0]" -> Base64.getEncoder.encodeToString(
-          toJson[DisplayClient](client1).toString().getBytes)
+        "clients[0]" -> client1.id
       )
     }
 

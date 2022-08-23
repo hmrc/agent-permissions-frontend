@@ -19,7 +19,6 @@
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
 @import models.Selectable
-@import java.util.Base64
 
 @this(
         p: p, h1: h1, h2: h2, span: span, a: a,
@@ -48,7 +47,7 @@
                                                         html=Some(Html(msgs("details.link-hidden", member.name)))
                                                         ).toString
                 ).toString,
-                href= routes.ManageTeamMemberController.showTeamMemberDetails(Base64.getEncoder.encodeToString(Json.toJson[TeamMember](member).toString.getBytes)).url
+                href= routes.ManageTeamMemberController.showTeamMemberDetails(member.id).url
             )
         )
     ))

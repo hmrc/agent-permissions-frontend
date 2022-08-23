@@ -17,11 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{
-  AgentPermissionsConnector,
-  AgentUserClientDetailsConnector,
-  GroupRequest
-}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest}
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
@@ -30,20 +26,10 @@ import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.test.{FakeRequest, Helpers}
-import play.api.test.Helpers.{
-  await,
-  contentAsString,
-  defaultAwaitTimeout,
-  redirectLocation
-}
+import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  AgentUser,
-  Client,
-  OptedInReady,
-  UserDetails
-}
+import services.{GroupService, GroupServiceImpl}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
 
@@ -74,7 +60,7 @@ class GroupControllerSpec extends BaseSpec {
       bind(classOf[AgentUserClientDetailsConnector])
         .toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(
-        new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
+        new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
     }
   }
 

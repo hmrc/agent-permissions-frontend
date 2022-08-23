@@ -17,6 +17,7 @@
 package services
 
 import akka.Done
+import com.google.inject.ImplementedBy
 import connectors.AgentPermissionsConnector
 import controllers.OPTIN_STATUS
 import play.api.mvc.Request
@@ -27,11 +28,24 @@ import uk.gov.hmrc.http.HeaderCarrier
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@ImplementedBy(classOf[OptInServiceImpl])
+trait OptinService {
+  def optIn(arn: Arn)(implicit request: Request[_],
+                      hc: HeaderCarrier,
+                      ec: ExecutionContext): Future[Done]
+
+  def optOut(arn: Arn)(implicit request: Request[_],
+                       hc: HeaderCarrier,
+                       ec: ExecutionContext): Future[Done]
+
+}
+
+
 @Singleton
-class OptInService @Inject()(
+class OptInServiceImpl @Inject()(
     agentPermissionsConnector: AgentPermissionsConnector,
     sessionCacheRepository: SessionCacheRepository
-) {
+) extends OptinService {
 
   def optIn(arn: Arn)(implicit request: Request[_],
                       hc: HeaderCarrier,

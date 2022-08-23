@@ -16,9 +16,8 @@
 
 package helpers
 
-import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, TeamMember}
+import models.TeamMember
 import org.scalamock.scalatest.MockFactory
-import play.api.mvc.Request
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
@@ -26,21 +25,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 trait GroupServiceMocks extends MockFactory {
-
-  def stubGetTeamMembers(arn: Arn)(teamMembers: Seq[TeamMember])(
-      implicit groupService: GroupService): Unit =
-    (groupService
-      .getTeamMembers(_: Arn)(_: Option[Seq[TeamMember]])(_: HeaderCarrier,
-                                                          _: ExecutionContext))
-      .expects(arn, *, *, *)
-      .returning(Future successful Some(teamMembers))
-
-  def stubGetClients(arn: Arn)(clients: Seq[DisplayClient])(
-      implicit groupService: GroupService): Unit =
-    (groupService
-      .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, *, *, *)
-      .returning(Future successful Some(clients))
 
   def stubGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(
     implicit groupService: GroupService): Unit =
@@ -51,19 +35,5 @@ trait GroupServiceMocks extends MockFactory {
     )
     .expects(arn, Some(List()), *, *)
     .returning(Future successful Some(teamMembers))
-
-  def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(implicit groupService: GroupService): Unit =
-    (groupService
-      .saveSelectedOrFilteredClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)
-      (_: HeaderCarrier, _: Request[_], _: ExecutionContext))
-      .expects(buttonPress, arn, *, *, *, *)
-      .returning(Future successful ())
-
-  def expectProcessFormDataForTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(implicit groupService: GroupService): Unit =
-    (groupService
-      .saveSelectedOrFilteredTeamMembers(_: ButtonSelect)(_: Arn)(_: AddTeamMembersToGroup)
-      (_: HeaderCarrier, _: Request[_], _: ExecutionContext))
-      .expects(buttonPress, arn, *, *, *, *)
-      .returning(Future successful ())
 
 }

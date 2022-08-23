@@ -16,6 +16,7 @@
 
 package helpers
 
+import akka.Done
 import connectors.AgentUserClientDetailsConnector
 import org.scalamock.scalatest.MockFactory
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
@@ -72,4 +73,12 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory {
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
+
+  def stubUpdateClientReferenceSuccess()
+                                      (implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector.updateClientReference(_: Arn, _:Client)(_: HeaderCarrier, _: ExecutionContext))
+    .expects(*, *,*,*)
+    .returning(Future successful Done)
+
+
 }

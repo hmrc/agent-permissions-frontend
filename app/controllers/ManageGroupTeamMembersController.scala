@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -42,6 +42,7 @@ class ManageGroupTeamMembersController @Inject()(
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
      groupService: GroupService,
+     teamMemberService: TeamMemberService,
      existing_team_members: existing_team_members,
      team_members_list: team_members_list,
      review_team_members_to_add: review_team_members_to_add,
@@ -104,7 +105,7 @@ class ManageGroupTeamMembersController @Inject()(
         _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers.get)
         filteredTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
         maybeHiddenTeamMembers <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)
-        teamMembersForArn <- groupService.getTeamMembers(group.arn)(selectedTeamMembers)
+        teamMembersForArn <- teamMemberService.getTeamMembers(group.arn)
       } yield (filteredTeamMembers, maybeHiddenTeamMembers, teamMembersForArn)
       result.map {
         result =>
@@ -163,7 +164,7 @@ class ManageGroupTeamMembersController @Inject()(
                       backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
                     )).toFuture
                   else
-                    groupService.getTeamMembers(group.arn)().flatMap {
+                    teamMemberService.getTeamMembers(group.arn).flatMap {
                       maybeTeamMembers =>
                         Ok(team_members_list(
                           maybeTeamMembers,
@@ -177,7 +178,7 @@ class ManageGroupTeamMembersController @Inject()(
                 } yield result
               },
               formData => {
-                groupService.saveSelectedOrFilteredTeamMembers(buttonSelection)(group.arn)(formData).map(_ =>
+                teamMemberService.saveSelectedOrFilteredTeamMembers(buttonSelection)(group.arn)(formData).map(_ =>
                   if (buttonSelection == ButtonSelect.Continue) {
                     for {
                       members <- sessionCacheRepository

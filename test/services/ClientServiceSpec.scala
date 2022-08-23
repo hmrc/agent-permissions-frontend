@@ -28,9 +28,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ManageClientServiceSpec extends BaseSpec {
+class ClientServiceSpec extends BaseSpec {
 
-  val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+  implicit val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -39,7 +39,7 @@ class ManageClientServiceSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
 
   val service =
-    new ManageClientService(mockAgentUserClientDetailsConnector, sessionCacheRepo)
+    new ClientServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo)
 
   val fakeClients: Seq[Client] = (1 to 10)
     .map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly name $i"))
@@ -52,10 +52,8 @@ class ManageClientServiceSpec extends BaseSpec {
       //given
       val newName = "The new name"
       val clientWithNewName = Client("HMRC-MTD-VAT~VRN~123456781", newName)
-      (mockAgentUserClientDetailsConnector
-        .updateClientReference(_: Arn, _:Client)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, clientWithNewName,*,*)
-        .returning(Future successful Done)
+
+      stubUpdateClientReferenceSuccess()
 
       //when
       val updateRef = await(service.updateClientReference(arn, displayClients.head, newName))
@@ -79,6 +77,38 @@ class ManageClientServiceSpec extends BaseSpec {
       name shouldBe "new name"
     }
   }
+
+  "getClients" should {
+    "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
+      //given
+      stubGetClientsOk(arn)(fakeClients)
+
+      //when
+      val result =  await(service.getClients(arn))
+      val clients = result.get
+
+      //then
+      clients.size shouldBe 10
+      clients.head.name shouldBe "friendly name 1"
+      clients.head.identifierKey shouldBe "VRN"
+      clients.head.hmrcRef shouldBe "123456781"
+      clients.head.taxService shouldBe "HMRC-MTD-VAT"
+
+      clients(5).name shouldBe "friendly name 5"
+      clients(5).identifierKey shouldBe "VRN"
+      clients(5).hmrcRef shouldBe "123456785"
+      clients(5).taxService shouldBe "HMRC-MTD-VAT"
+
+      clients(9).name shouldBe "friendly name 9"
+      clients(9).hmrcRef shouldBe "123456789"
+      clients(9).identifierKey shouldBe "VRN"
+      clients(9).taxService shouldBe "HMRC-MTD-VAT"
+
+    }
+  }
+
+  // TODO implement tests for addClient/addTeamMember, refactor processFormData?
+  "filterClients" should {}
 
 
 }

@@ -26,18 +26,16 @@ import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
-import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.GroupService
+import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
-import java.util.Base64
 
 class ManageGroupControllerSpec extends BaseSpec {
 
@@ -46,7 +44,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
     : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val groupService: GroupService = new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
+  implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -70,6 +68,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .toInstance(new AuthAction(mockAuthConnector, env, conf))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[GroupService]).toInstance(groupService)
     }
@@ -85,8 +84,6 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
-  val encodedDisplayClients: Seq[String] = displayClients.map(client =>
-    Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
 
   val agentUsers: Set[AgentUser] = (1 to 5).map(i => AgentUser(id = s"John $i", name = s"John $i name")).toSet
 
@@ -842,13 +839,14 @@ class ManageGroupControllerSpec extends BaseSpec {
       s"when button is Continue" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      stubGetClientsOk(arn)(fakeClients)
 
       implicit val request =
         FakeRequest("POST", routes.ManageGroupController.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
             "hasSelectedClients" -> "false",
-            "clients[0]" -> encodedDisplayClients.head,
-            "clients[1]" -> encodedDisplayClients.last,
+            "clients[0]" -> displayClients.head.id,
+            "clients[1]" -> displayClients.last.id,
             "search" -> "",
             "filter" -> "",
             "continue" -> "continue"
@@ -873,13 +871,14 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubGetClientsOk(arn)(fakeClients)
+      stubGetClientsOk(arn)(fakeClients)
 
       implicit val request =
         FakeRequest("POST", routes.ManageGroupController.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
             "hasSelectedClients" -> "false",
-            "clients[0]" -> encodedDisplayClients.head,
-            "clients[1]" -> encodedDisplayClients.last,
+            "clients[0]" -> displayClients.head.id,
+            "clients[1]" -> displayClients.last.id,
             "search" -> "",
             "filter" -> "VAT",
             "submitFilter" -> "submitFilter"

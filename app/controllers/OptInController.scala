@@ -22,7 +22,7 @@ import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
-import services.OptInService
+import services.OptInServiceImpl
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -31,15 +31,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class OptInController @Inject()(
-    authAction: AuthAction,
-    mcc: MessagesControllerComponents,
-    val agentPermissionsConnector: AgentPermissionsConnector,
-    val sessionCacheRepository: SessionCacheRepository,
-    optInService: OptInService,
-    start_optIn: start,
-    want_to_opt_in: want_to_opt_in,
-    you_have_opted_in: you_have_opted_in,
-    you_have_not_opted_in: you_have_not_opted_in
+                                 authAction: AuthAction,
+                                 mcc: MessagesControllerComponents,
+                                 val agentPermissionsConnector: AgentPermissionsConnector,
+                                 val sessionCacheRepository: SessionCacheRepository,
+                                 optInService: OptInServiceImpl,
+                                 start_optIn: start,
+                                 want_to_opt_in: want_to_opt_in,
+                                 you_have_opted_in: you_have_opted_in,
+                                 you_have_not_opted_in: you_have_not_opted_in
 )(implicit val appConfig: AppConfig,
   ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi)

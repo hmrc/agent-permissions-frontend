@@ -19,17 +19,15 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import forms.{ClientReferenceForm, SearchAndFilterForm}
-import models.{DisplayClient, SearchFilter}
+import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, ManageClientService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
-import java.util.Base64.getDecoder
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
@@ -38,7 +36,7 @@ class ManageClientController @Inject()(
      authAction: AuthAction,
      mcc: MessagesControllerComponents,
      groupService: GroupService,
-     clientService: ManageClientService,
+     clientService: ClientService,
      manage_clients_list: manage_clients_list,
      client_details: client_details,
      update_client_reference: update_client_reference,
@@ -61,7 +59,7 @@ class ManageClientController @Inject()(
   def showAllClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getClients(arn).flatMap { maybeClients =>
+        clientService.getClients(arn).flatMap { maybeClients =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold(
             //no filter/clear was applied
@@ -96,13 +94,14 @@ class ManageClientController @Inject()(
   def showClientDetails(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val clientJson = Json.parse(new String(getDecoder.decode(clientId.replaceAll("'", "")))).asOpt[DisplayClient]
-
-          groupService.groupSummariesForClient(arn, clientJson.get).flatMap { maybeGroups =>
+        clientService.lookupClient(arn)(clientId).flatMap {
+          case Some(client) =>
+          groupService.groupSummariesForClient(arn, client).map { maybeGroups =>
             Ok(client_details(
-              client = clientJson.get,
+              client = client,
               clientGroups = maybeGroups
-            )).toFuture
+            ))
+          }
         }
       }
     }
@@ -111,13 +110,14 @@ class ManageClientController @Inject()(
   def showUpdateClientReference(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val clientJson = Json.parse(new String(getDecoder.decode(clientId.replaceAll("'", "")))).asOpt[DisplayClient]
-
-          Ok(update_client_reference(
-            client = clientJson.get,
-            form = ClientReferenceForm.form().fill(clientJson.get.name)
-          )).toFuture
-
+        clientService.lookupClient(arn)(clientId).map{
+          case Some(client) =>
+            Ok(update_client_reference(
+              client = client,
+              form = ClientReferenceForm.form().fill(client.name)
+            ))
+          case None => throw new RuntimeException("client reference supplied did not match any client")
+        }
       }
     }
   }
@@ -125,24 +125,26 @@ class ManageClientController @Inject()(
   def submitUpdateClientReference(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val clientJson = Json.parse(new String(getDecoder.decode(clientId.replaceAll("'", "")))).asOpt[DisplayClient]
-        ClientReferenceForm.form()
-          .bindFromRequest()
-          .fold(
-            formWithErrors => {
-              Ok(
-                update_client_reference(
-                  clientJson.get,
-                  formWithErrors)).toFuture
-            },
-            (newName: String) => {
-              for {
-                _ <- sessionCacheRepository.putSession[String](CLIENT_REFERENCE, newName)
-                _ <- clientService.updateClientReference(arn, clientJson.get, newName)
-              } yield ()
-              Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId)).toFuture
-            }
-          )
+        clientService.lookupClient(arn)(clientId).map {
+          case Some(client) =>
+            ClientReferenceForm.form()
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  Ok(
+                    update_client_reference(
+                      client,
+                      formWithErrors))
+                },
+                (newName: String) => {
+                  for {
+                    _ <- sessionCacheRepository.putSession[String](CLIENT_REFERENCE, newName)
+                    _ <- clientService.updateClientReference(arn, client, newName)
+                  } yield ()
+                  Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId))
+                }
+              )
+        }
       }
     }
   }
@@ -150,12 +152,15 @@ class ManageClientController @Inject()(
   def showClientReferenceUpdatedComplete(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val clientJson = Json.parse(new String(getDecoder.decode(clientId.replaceAll("'", "")))).asOpt[DisplayClient]
-        clientService.getNewNameFromSession().map( newName =>
-          Ok(update_client_reference_complete(
-            clientJson.get,
-            clientRef = newName.get
-          )))
+        clientService.lookupClient(arn)(clientId).flatMap{
+          case Some(client) =>
+            clientService.getNewNameFromSession().map( newName =>
+              Ok(update_client_reference_complete(
+                client,
+                clientRef = newName.get
+              )))
+        }
+
       }
     }
   }

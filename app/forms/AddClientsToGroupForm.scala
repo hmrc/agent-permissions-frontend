@@ -17,13 +17,10 @@
 package forms
 
 import models.ButtonSelect.{Clear, Continue, Filter}
-import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
+import models.{AddClientsToGroup, ButtonSelect}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
-import play.api.libs.json.Json.{parse, toJson}
-
-import java.util.Base64.{getDecoder, getEncoder}
 
 object AddClientsToGroupForm {
 
@@ -54,14 +51,5 @@ object AddClientsToGroupForm {
     "search" -> optional(text),
     "filter" -> optional(text),
     "clients" -> optional(list(text))
-      .transform[Option[List[DisplayClient]]](
-        _.map(_.map { str =>
-          parse(new String(getDecoder.decode(str.replaceAll("'", ""))))
-            .as[DisplayClient]
-        }),
-        _.map(_.map(dc =>
-          getEncoder.encodeToString(
-            toJson[DisplayClient](dc).toString().getBytes)))
-      )
   )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
 }

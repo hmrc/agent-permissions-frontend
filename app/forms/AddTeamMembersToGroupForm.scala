@@ -21,9 +21,6 @@ import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
-import play.api.libs.json.Json.{parse, toJson}
-
-import java.util.Base64.{getDecoder, getEncoder}
 
 object AddTeamMembersToGroupForm {
 
@@ -55,12 +52,6 @@ object AddTeamMembersToGroupForm {
     "hasAlreadySelected" -> boolean,
     "search" -> optional(text),
     "members" -> optional(list(text))
-      .transform[Option[List[TeamMember]]](
-        _.map(strList =>
-          strList.map(str => parse(new String(getDecoder.decode(str.replaceAll("'", "")))).as[TeamMember])),
-        _.map(members =>
-          members.map(dc => getEncoder.encodeToString(toJson[TeamMember](dc).toString().getBytes)))
-      )
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
 
 }

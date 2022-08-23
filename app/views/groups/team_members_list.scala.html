@@ -17,7 +17,6 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
-@import java.util.Base64
 @import play.api.libs.json.Json
 @import utils.ViewUtils._
 
@@ -48,8 +47,8 @@
             Seq(
                 Html(checkBox(
                     name = Some("members[]"),
-                    id = Some(s"add-member-${Base64.getEncoder.encodeToString(Json.toJson[TeamMember](member).toString.getBytes)}"),
-                    value = Some(Base64.getEncoder.encodeToString(Json.toJson[TeamMember](member).toString.getBytes)),
+                    id = Some(s"add-member-${member.id}"),
+                    value = Some(member.id),
                     label = member.name,
                     checked = member.selected).toString),
                 Html(member.name),

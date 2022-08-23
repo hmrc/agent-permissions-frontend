@@ -26,7 +26,7 @@ import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -42,6 +42,7 @@ class ManageGroupController @Inject()(
      authAction: AuthAction,
      groupAction: GroupAction,
      mcc: MessagesControllerComponents,
+     clientService: ClientService,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
@@ -247,7 +248,7 @@ class ManageGroupController @Inject()(
                   } yield result
                 },
                 formData => {
-                  groupService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData).map(_ =>
+                  clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData).map(_ =>
                     if(buttonSelection == ButtonSelect.Continue)
                   Redirect(routes.ManageGroupController.showSelectedUnassignedClients)
                     else Redirect(s"${routes.ManageGroupController.showManageGroups}#unassigned-clients")

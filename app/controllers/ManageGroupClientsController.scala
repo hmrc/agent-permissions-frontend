@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -38,6 +38,7 @@ import scala.concurrent.ExecutionContext
 class ManageGroupClientsController @Inject()(
      groupAction: GroupAction,
      mcc: MessagesControllerComponents,
+     clientService: ClientService,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
@@ -92,12 +93,11 @@ class ManageGroupClientsController @Inject()(
     withGroupForAuthorisedOptedAgent(groupId){ group =>
       for {
         _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS, DisplayClient.fromEnrolments(group.clients))
-        filteredClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS)
         maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
-        clientsForArn <- groupService.getClients(group.arn)
+        clients <- clientService.getClients(group.arn)
       } yield Ok(
         client_group_list(
-          filteredClients.orElse(clientsForArn),
+          clients,
           group.groupName,
           maybeHiddenClients,
           AddClientsToGroupForm.form(),
@@ -114,7 +114,7 @@ class ManageGroupClientsController @Inject()(
     val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
 
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredResult =>
+
         withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
           AddClientsToGroupForm
             .form(buttonSelection)
@@ -125,7 +125,7 @@ class ManageGroupClientsController @Inject()(
                   _ <- if (buttonSelection == ButtonSelect.Continue)
                     sessionCacheService.clearSelectedClients()
                   else ().toFuture
-                  clients <- maybeFilteredResult.fold(groupService.getClients(group.arn))(Some(_).toFuture)
+                  clients <- clientService.getClients(group.arn)
                  result <-
                     Ok(client_group_list(
                       clients,
@@ -138,7 +138,7 @@ class ManageGroupClientsController @Inject()(
                 } yield result
               },
               formData => {
-                groupService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData).flatMap(_ =>
+                clientService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData).flatMap(_ =>
                   if (buttonSelection == ButtonSelect.Continue) {
                     for {
                       enrolments <- sessionCacheRepository
@@ -159,7 +159,6 @@ class ManageGroupClientsController @Inject()(
                 )
               }
             )
-        }
       }
     }
   }

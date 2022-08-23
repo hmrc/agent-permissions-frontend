@@ -137,7 +137,7 @@ class SessionCacheServiceSpec extends BaseSpec {
     "puts Selected Team members in SessionCache Repo" in {
       //given
       val teamMembers: Seq[TeamMember] =
-        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
+        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com", Some(s"user$i")))
 
       //when
       await(service.saveSelectedTeamMembers(teamMembers))
@@ -150,17 +150,17 @@ class SessionCacheServiceSpec extends BaseSpec {
       maybeMembers.isDefined shouldBe true
       maybeMembers.get(0) shouldBe TeamMember("name1",
                                               "x1@xyz.com",
-                                              None,
+        Some("user1"),
                                               None,
                                               true)
       maybeMembers.get(1) shouldBe TeamMember("name2",
                                               "x2@xyz.com",
-                                              None,
+        Some("user2"),
                                               None,
                                               true)
       maybeMembers.get(2) shouldBe TeamMember("name3",
                                               "x3@xyz.com",
-                                              None,
+        Some("user3"),
                                               None,
                                               true)
     }
@@ -170,7 +170,7 @@ class SessionCacheServiceSpec extends BaseSpec {
     "Remove selected Team members from SessionCache Repo" in {
       //given
       val teamMembers: Seq[TeamMember] =
-        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com"))
+        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com", Some(s"user$i")))
 
       val (membersInSessionCache, clearedSessionCacheValue) = (for {
         _ <- sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS,

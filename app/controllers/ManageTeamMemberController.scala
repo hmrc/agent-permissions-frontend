@@ -19,32 +19,30 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import forms.SearchAndFilterForm
-import models.{SearchFilter, TeamMember}
+import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{GroupService, ManageTeamMemberService, SessionCacheService}
+import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
-import java.util.Base64.getDecoder
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageTeamMemberController @Inject()(
-     authAction: AuthAction,
-     mcc: MessagesControllerComponents,
-     groupService: GroupService,
-     teamMemberService: ManageTeamMemberService,
-     manage_team_members_list: manage_team_members_list,
-     team_member_details: team_member_details,
-     val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService)
+                                            authAction: AuthAction,
+                                            mcc: MessagesControllerComponents,
+                                            groupService: GroupService,
+                                            teamMemberService: TeamMemberService,
+                                            manage_team_members_list: manage_team_members_list,
+                                            team_member_details: team_member_details,
+                                            val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+                                            val agentPermissionsConnector: AgentPermissionsConnector,
+                                            val sessionCacheRepository: SessionCacheRepository,
+                                            val sessionCacheService: SessionCacheService)
                                           (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
@@ -58,7 +56,7 @@ class ManageTeamMemberController @Inject()(
   def showAllTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getTeamMembers(arn)().flatMap { maybeTeamMembers =>
+        teamMemberService.getTeamMembers(arn).flatMap { maybeTeamMembers =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold(
             //no filter/clear was applied
@@ -87,16 +85,18 @@ class ManageTeamMemberController @Inject()(
   def showTeamMemberDetails(memberId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val memberJson = Json.parse(new String(getDecoder.decode(memberId.replaceAll("'", "")))).asOpt[TeamMember]
-
-        teamMemberService.groupSummariesForTeamMember(arn, memberJson.get).flatMap { maybeGroups =>
-          Ok(team_member_details(
-            teamMember = memberJson.get,
-            teamMemberGroups = maybeGroups
-          )).toFuture
+        teamMemberService.lookupTeamMember(arn)(memberId).flatMap {
+          case Some(teamMember) =>
+            groupService.groupSummariesForTeamMember(arn, teamMember)
+              .map(gs =>
+                Ok(team_member_details(
+                  teamMember = teamMember,
+                  teamMemberGroups = gs
+                ))
+          )
+        }
         }
       }
-    }
   }
 
 }

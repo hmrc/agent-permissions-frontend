@@ -24,16 +24,14 @@ import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.libs.json.Json
-import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.FakeRequest
+import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{GroupService, ManageClientService}
+import services.{ClientService, GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
-import java.util.Base64
 
 class ManageClientControllerSpec extends BaseSpec {
 
@@ -44,7 +42,7 @@ class ManageClientControllerSpec extends BaseSpec {
     : AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
-  implicit val mockManageClientService: ManageClientService = mock[ManageClientService]
+  implicit val mockManageClientService: ClientService = mock[ClientService]
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -60,7 +58,7 @@ class ManageClientControllerSpec extends BaseSpec {
       bind(classOf[AgentUserClientDetailsConnector])
         .toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(
-        new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
+        new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
     }
   }
 
@@ -79,16 +77,16 @@ class ManageClientControllerSpec extends BaseSpec {
 
   val displayClientWithNoFrieldyName: DisplayClient = DisplayClient.fromClient(fakeClientWithNoFriendlyName)
 
-  val encodedClientWithNoName: String = Base64.getEncoder.encodeToString(Json.toJson(displayClientWithNoFrieldyName).toString.getBytes)
+  val clientWithoutNameId: String = displayClientWithNoFrieldyName.id
 
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
 
-  val encodedDisplayClients: Seq[String] =
+  val displayClientsIds: Seq[String] =
     displayClients.map(client =>
-      Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
+      client.id)
 
-  val clientId: String = encodedDisplayClients.head
+  val clientId: String = displayClientsIds.head
 
   val groupSummaries = Seq(
     GroupSummary("groupId", "groupName", 33, 9),
@@ -214,6 +212,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolment, None)
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.showClientDetails(clientId)(request)
@@ -233,6 +232,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolment, Some(groupSummaries))
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.showClientDetails(clientId)(request)
@@ -256,6 +256,7 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
+      stubGetClientsOk(arn)(fakeClients)
       //when
       val result = controller.showUpdateClientReference(clientId)(request)
 
@@ -274,8 +275,12 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
 
+      val fakeClientWithoutFriendlyName = fakeClients.head.copy(friendlyName = "")
+
+      stubGetClientsOk(arn)(Seq(fakeClientWithoutFriendlyName))
+
       //when
-      val result = controller.showUpdateClientReference(encodedClientWithNoName)(request)
+      val result = controller.showUpdateClientReference(DisplayClient.fromClient(fakeClientWithoutFriendlyName).id)(request)
 
       //then
       status(result) shouldBe OK
@@ -285,7 +290,6 @@ class ManageClientControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Update client reference"
 
       html.body.select("input#clientRef").attr("value") shouldBe ""
-
     }
 
   }
@@ -297,6 +301,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       //await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.submitUpdateClientReference(clientId)(request)
@@ -311,6 +316,7 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.submitUpdateClientReference(clientId)(request)
@@ -321,9 +327,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Error: Update client reference - Manage Agent Permissions - GOV.UK"
       html.select(H1).text() shouldBe "Update client reference"
-
     }
-
   }
 
 
@@ -334,6 +338,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
+      stubGetClientsOk(arn)(fakeClients)
 
       //when
       val result = controller.showClientReferenceUpdatedComplete(clientId)(request)

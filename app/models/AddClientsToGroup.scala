@@ -20,5 +20,5 @@ case class AddClientsToGroup(
     hasSelectedClients: Boolean,
     search: Option[String],
     filter: Option[String],
-    clients: Option[List[DisplayClient]]
+    clients: Option[List[String]]
 )

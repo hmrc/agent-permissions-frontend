@@ -38,7 +38,7 @@ class GroupServiceSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
 
   val service =
-    new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
+    new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
 
   val fakeClients: Seq[Client] = (1 to 10)
     .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
@@ -60,67 +60,6 @@ class GroupServiceSpec extends BaseSpec {
         Some(s"john$i@abc.com"),
       )
     })
-
-  "getClients" should {
-    "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
-      //given
-      (mockAgentUserClientDetailsConnector
-        .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, *, *)
-        .returning(Future successful Some(fakeClients))
-
-      //when
-      val maybeClients: Option[Seq[DisplayClient]] =
-        await(service.getClients(arn))
-      val clients: Seq[DisplayClient] = maybeClients.get
-
-      //then
-      clients.size shouldBe 10
-      clients.head.name shouldBe "friendlyName1"
-      clients.head.identifierKey shouldBe "enrolmentKey1"
-      clients.head.hmrcRef shouldBe "hmrcRef1"
-      clients.head.taxService shouldBe "tax1"
-
-      clients(5).name shouldBe "friendlyName5"
-      clients(5).identifierKey shouldBe "enrolmentKey5"
-      clients(5).hmrcRef shouldBe "hmrcRef5"
-      clients(5).taxService shouldBe "tax5"
-
-      clients(9).name shouldBe "friendlyName9"
-      clients(9).hmrcRef shouldBe "hmrcRef9"
-      clients(9).identifierKey shouldBe "enrolmentKey9"
-      clients(9).taxService shouldBe "tax9"
-
-    }
-  }
-
-  "getTeamMembers" should {
-    "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones" in {
-      //given
-      (mockAgentUserClientDetailsConnector
-        .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, *, *)
-        .returning(Future successful Some(users))
-
-      //when
-      val maybeTeamMembers: Option[Seq[TeamMember]] =
-        await(service.getTeamMembers(arn)(None))
-      val teamMembers: Seq[TeamMember] = maybeTeamMembers.get
-
-      //then
-      teamMembers.size shouldBe 3
-      teamMembers.head.name shouldBe "Name 1"
-      teamMembers.head.userId shouldBe Some("user1")
-      teamMembers.head.email shouldBe "bob1@accounting.com"
-      teamMembers.head.selected shouldBe false
-
-    }
-  }
-
-  // TODO implement tests for addClient/addTeamMember, refactor processFormData?
-  "filterClients" should {}
-
-  "filterTeamMembers" should {}
 
   "filterGroupsByName" should {
     "Filter out Groups from  agentPermissionsConnector and select those matching filter" in {

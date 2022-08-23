@@ -24,16 +24,13 @@ import models.TeamMember
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.GroupService
+import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
-
-import java.util.Base64
 
 class ManageTeamMemberControllerSpec extends BaseSpec {
 
@@ -59,7 +56,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       bind(classOf[AgentUserClientDetailsConnector])
         .toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(
-        new GroupService(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
+        new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
     }
   }
 
@@ -85,7 +82,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
-  val memberId: String = Base64.getEncoder.encodeToString(Json.toJson(teamMembers.head).toString.getBytes)
+  val memberId: String = teamMembers.head.id
 
   val groupSummaries = Seq(
     GroupSummary("groupId", "groupName", 33, 9),
@@ -179,6 +176,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, None)
+      stubGetTeamMembersOk(arn)(userDetails)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)
@@ -198,6 +196,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, Some(groupSummaries))
+      stubGetTeamMembersOk(arn)(userDetails)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)

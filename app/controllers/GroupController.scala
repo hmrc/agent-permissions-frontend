@@ -279,37 +279,8 @@ class GroupController @Inject()(
 
   def submitCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      val createGroupResponse = for {
-        enrolments: Option[Seq[Enrolment]]
-          <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
-          .flatMap { maybeClients: Option[Seq[DisplayClient]] =>
-            Future(
-              maybeClients.map(dcs => dcs.map(toEnrolment(_)))
-            )
-          }
-
-        members: Option[Seq[AgentUser]] <- sessionCacheRepository
-          .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
-          .flatMap { maybeTeamMembers: Option[Seq[TeamMember]] =>
-            Future(maybeTeamMembers.map(tms =>
-              tms.map(tm => AgentUser(tm.userId.get, tm.name))))
-          }
-
-        groupRequest = GroupRequest(groupName, members, enrolments)
-        response <- agentPermissionsConnector.createGroup(arn)(
-          groupRequest)
-
-      } yield response
-
-      createGroupResponse.transformWith {
-        case Success(_) =>
-          sessionCacheService.clearAll()
-          sessionCacheRepository
-            .putSession[String](NAME_OF_GROUP_CREATED, groupName)
-            .map(_ => Redirect(routes.GroupController.showGroupCreated))
-        case Failure(ex) =>
-          throw ex
-      }
+      groupService.createGroup(arn, groupName).map(_ =>
+      Redirect(routes.GroupController.showGroupCreated))
     }
   }
 

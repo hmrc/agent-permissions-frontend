@@ -17,8 +17,8 @@
 package services
 
 import com.google.inject.ImplementedBy
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
-import controllers.{FILTERED_CLIENTS, FILTERED_GROUPS_INPUT, FILTERED_GROUP_SUMMARIES, SELECTED_CLIENTS, ToFuture}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, GroupSummary}
+import controllers._
 import models.DisplayClient.toEnrolment
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
@@ -42,6 +42,8 @@ trait GroupService {
     teamMembersInGroup: Option[Seq[TeamMember]]
   )(implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[Seq[TeamMember]]]
+
+  def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit]
 
   def groupSummaries(arn: Arn)
                     (implicit request: Request[_],
@@ -103,6 +105,17 @@ class GroupServiceImpl @Inject()(
         .map(_.sortBy(_.name))
       groupTeamMembersSelected = groupTeamMembers.map(_.map(_.copy(selected = true))) // makes them selected
     } yield groupTeamMembersSelected
+
+  def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
+    for {
+      enrolments    <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS).map(_.map(_.map(client => toEnrolment(client))))
+      agentUsers    <- sessionCacheRepository.getFromSession(SELECTED_TEAM_MEMBERS).map(_.map(_.map(tm => toAgentUser(tm))))
+      groupRequest  = GroupRequest(groupName, agentUsers, enrolments)
+      _             <- agentPermissionsConnector.createGroup(arn)(groupRequest)
+      _             <- Future.sequence(creatingGroupKeys.map(key => sessionCacheRepository.deleteFromSession(key)))
+      _             <- sessionCacheRepository.putSession(NAME_OF_GROUP_CREATED, groupName)
+    } yield ()
+  }
 
 
   def groupSummaries(arn: Arn)

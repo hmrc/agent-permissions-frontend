@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture, selectingClientsKeys}
 import models.ButtonSelect.{Clear, Continue, Filter}
 import models.DisplayClient.toEnrolment
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
@@ -113,6 +113,9 @@ class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClie
     } yield es3AsDisplayClients
   }
 
+  private def clearSessionForSelectingClients()(implicit Request: Request[_]) =
+    selectingClientsKeys.foreach(key => sessionCacheRepository.deleteFromSession(key))
+
   def saveSelectedOrFilteredClients(buttonSelect: ButtonSelect)
                                    (arn: Arn)
                                    (formData: AddClientsToGroup
@@ -124,10 +127,7 @@ class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClie
           clients <- lookupClients(arn)(formData.clients)
           _ <- addSelectablesToSession(clients.map(_.map(dc => dc.copy(selected = true)))
           )(SELECTED_CLIENTS, FILTERED_CLIENTS)
-          _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
-          _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
-          _ <- sessionCacheRepository.deleteFromSession(CLIENT_FILTER_INPUT)
-          _ <- sessionCacheRepository.deleteFromSession(CLIENT_SEARCH_INPUT)
+         _ = clearSessionForSelectingClients()
         } yield ()
 
       case Continue =>
@@ -138,8 +138,7 @@ class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClie
             SELECTED_CLIENTS,
             FILTERED_CLIENTS
           )
-          _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
-          _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
+          _ = clearSessionForSelectingClients()
         } yield ()
 
       case Filter =>

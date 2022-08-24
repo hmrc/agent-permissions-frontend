@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{FILTERED_TEAM_MEMBERS, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_TEAM_MEMBERS, ToFuture}
+import controllers.{FILTERED_TEAM_MEMBERS, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_TEAM_MEMBERS, ToFuture, selectingTeamMemberKeys}
 import models.ButtonSelect.{Clear, Continue, Filter}
 import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
 import play.api.mvc.Request
@@ -108,9 +108,7 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-          _ <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
-          _ <- sessionCacheRepository.deleteFromSession(
-            HIDDEN_TEAM_MEMBERS_EXIST)
+         _ = selectingTeamMemberKeys.foreach(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
       case Continue =>
@@ -121,9 +119,7 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-          _ <- sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
-          _ <- sessionCacheRepository.deleteFromSession(
-            HIDDEN_TEAM_MEMBERS_EXIST)
+         _ = selectingTeamMemberKeys.foreach(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
       case Filter =>

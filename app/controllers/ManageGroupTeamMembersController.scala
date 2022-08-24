@@ -164,7 +164,7 @@ class ManageGroupTeamMembersController @Inject()(
                       backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
                     )).toFuture
                   else
-                    teamMemberService.getTeamMembers(group.arn).flatMap {
+                    teamMemberService.getTeamMembers(group.arn).map {
                       maybeTeamMembers =>
                         Ok(team_members_list(
                           maybeTeamMembers,
@@ -173,7 +173,7 @@ class ManageGroupTeamMembersController @Inject()(
                           formWithErrors,
                           formAction = controller.submitManageGroupTeamMembers(groupId),
                           backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
-                        )).toFuture
+                        ))
                     }
                 } yield result
               },
@@ -183,11 +183,10 @@ class ManageGroupTeamMembersController @Inject()(
                     for {
                       members <- sessionCacheRepository
                         .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
-                        .flatMap { maybeTeamMembers: Option[Seq[TeamMember]] =>
+                        .map { maybeTeamMembers: Option[Seq[TeamMember]] =>
                           maybeTeamMembers
                             .map(tm => tm.map(toAgentUser))
                             .map(_.toSet)
-                            .toFuture
                         }
                       groupRequest = UpdateAccessGroupRequest(teamMembers = members)
                       updated <- agentPermissionsConnector.updateGroup(groupId, groupRequest)

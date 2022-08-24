@@ -108,7 +108,7 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-         _ = selectingTeamMemberKeys.foreach(key => sessionCacheRepository.deleteFromSession(key))
+         _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
       case Continue =>
@@ -119,7 +119,7 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-         _ = selectingTeamMemberKeys.foreach(key => sessionCacheRepository.deleteFromSession(key))
+         _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
       case Filter =>

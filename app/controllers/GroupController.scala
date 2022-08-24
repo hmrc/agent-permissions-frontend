@@ -140,13 +140,13 @@ class GroupController @Inject()(
   def showSelectClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-        clientService.getClients(arn).flatMap { maybeClients =>
+        clientService.getClients(arn).map { maybeClients =>
           Ok(
             client_group_list(
               maybeClients,
               groupName,
               maybeHiddenClients,
-              AddClientsToGroupForm.form())).toFuture
+              AddClientsToGroupForm.form()))
         }
       }
     }

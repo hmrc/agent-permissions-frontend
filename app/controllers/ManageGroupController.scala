@@ -109,7 +109,7 @@ class ManageGroupController @Inject()(
                 _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES)
                 _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUPS_INPUT)
               } yield ()
-              u.flatMap(_ => Redirect(routes.ManageGroupController.showManageGroups).toFuture)
+              u.map(_ => Redirect(routes.ManageGroupController.showManageGroups))
             case Filter =>
               FilterByGroupNameForm.form
                 .bindFromRequest()
@@ -120,7 +120,7 @@ class ManageGroupController @Inject()(
                   ,
                   formData => {
                     groupService.filterByGroupName(formData)(arn)
-                      .flatMap(_ => Redirect(routes.ManageGroupController.showManageGroups).toFuture)
+                      .map(_ => Redirect(routes.ManageGroupController.showManageGroups))
                   }
                 )
           }
@@ -238,9 +238,7 @@ class ManageGroupController @Inject()(
                 formWithErrors => {
                   for {
                     groupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
-                    _ <- (if (buttonSelection == ButtonSelect.Continue)
-                      sessionCacheService.clearSelectedClients()
-                    else ()).toFuture
+                    _ <- if (buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else Future.successful(())
                     result = if (maybeFilteredClients.isDefined)
                       Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form,maybeHiddenClients, showUnassignedClients = true))
                     else
@@ -264,7 +262,7 @@ class ManageGroupController @Inject()(
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group =>
       Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId)).toFuture
-  }
+    }
   }
 
   def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -279,8 +277,7 @@ class ManageGroupController @Inject()(
               _ <- sessionCacheRepository.putSession[String](GROUP_RENAMED_FROM, group.groupName)
               patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
               _ <- agentPermissionsConnector.updateGroup(groupId, patchRequestBody)
-            } yield ()
-            Redirect(routes.ManageGroupController.showGroupRenamed(groupId)).toFuture
+            } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
           }
         )
     }
@@ -318,8 +315,7 @@ class ManageGroupController @Inject()(
               for {
                 _ <- sessionCacheRepository.putSession[String](GROUP_DELETED_NAME, group.groupName)
                 _ <- agentPermissionsConnector.deleteGroup(groupId)
-              } yield ()
-              Redirect(routes.ManageGroupController.showGroupDeleted.url).toFuture
+              } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
               Redirect(routes.ManageGroupController.showManageGroups.url).toFuture
           }

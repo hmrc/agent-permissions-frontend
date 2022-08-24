@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary, UpdateAccessGroupRequest}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
@@ -591,6 +591,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupSuccess(groupId, Some(accessGroup))
+      expectUpdateGroupSuccess(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
 
       implicit val request =
         FakeRequest("POST",
@@ -740,6 +741,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectDeleteGroupSuccess(accessGroup._id.toString)
 
       //when
       val result =

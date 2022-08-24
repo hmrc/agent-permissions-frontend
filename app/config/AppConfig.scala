@@ -17,6 +17,7 @@
 package config
 
 import com.google.inject.ImplementedBy
+import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
@@ -24,47 +25,51 @@ import scala.concurrent.duration.Duration
 
 @ImplementedBy(classOf[AppConfigImpl])
 trait AppConfig {
-  val servicesConfig: ServicesConfig
-  val appName: String
-  val welshLanguageSupportEnabled: Boolean
-  val contactFrontendBaseUrl: String
-  val contactFrontendServiceId: String
-  val betaFeedbackUrl: String
-  val basGatewayUrl: String
-  val loginContinueUrl: String
-  val agentServicesAccountExternalUrl: String
-  val agentServicesAccountManageAccountPath: String
-  val agentServicesAccountManageAccountUrl: String
-  val agentPermissionsBaseUrl: String
-  val agentUserClientDetailsBaseUrl: String
-  val sessionCacheExpiryDuration: Duration
+  def servicesConfig: ServicesConfig
+  def appName: String
+  def welshLanguageSupportEnabled: Boolean
+  def contactFrontendBaseUrl: String
+  def contactFrontendServiceId: String
+  def betaFeedbackUrl: String
+  def basGatewayUrl: String
+  def loginContinueUrl: String
+  def agentServicesAccountExternalUrl: String
+  def agentServicesAccountManageAccountPath: String
+  def agentServicesAccountManageAccountUrl: String
+  def agentPermissionsBaseUrl: String
+  def agentUserClientDetailsBaseUrl: String
+  def sessionCacheExpiryDuration: Duration
+  def checkArnAllowList: Boolean
+  def allowedArns: Seq[String]
 }
 
 @Singleton
-class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
+class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, configuration: Configuration)
     extends AppConfig {
-  val appName = servicesConfig.getString("appName")
-  val welshLanguageSupportEnabled: Boolean =
+  lazy val appName: String = servicesConfig.getString("appName")
+  lazy val welshLanguageSupportEnabled: Boolean =
     servicesConfig.getBoolean("features.welsh-language-support")
-  val contactFrontendBaseUrl: String =
+  lazy val contactFrontendBaseUrl: String =
     servicesConfig.baseUrl("contact-frontend")
-  val contactFrontendServiceId: String =
+  lazy val contactFrontendServiceId: String =
     servicesConfig.getString("contact-frontend.serviceId")
-  val betaFeedbackUrl: String =
+  lazy val betaFeedbackUrl: String =
     s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
-  val basGatewayUrl: String =
+  lazy val basGatewayUrl: String =
     servicesConfig.getString("microservice.services.bas-gateway.external-url")
-  val loginContinueUrl: String =
+  lazy val loginContinueUrl: String =
     servicesConfig.getString("microservice.services.bas-gateway.login-continue")
-  val agentServicesAccountExternalUrl: String = servicesConfig.getString(
+  lazy val agentServicesAccountExternalUrl: String = servicesConfig.getString(
     "microservice.services.agent-services-account-frontend.external-url")
-  val agentServicesAccountManageAccountPath: String = servicesConfig.getString(
+  lazy val agentServicesAccountManageAccountPath: String = servicesConfig.getString(
     "microservice.services.agent-services-account-frontend.manage-account-path")
-  val agentServicesAccountManageAccountUrl = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
-  val agentPermissionsBaseUrl: String =
+  lazy val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
+  lazy val agentPermissionsBaseUrl: String =
     servicesConfig.baseUrl("agent-permissions")
-  val agentUserClientDetailsBaseUrl: String =
+  lazy val agentUserClientDetailsBaseUrl: String =
     servicesConfig.baseUrl("agent-user-client-details")
-  val sessionCacheExpiryDuration: Duration =
+  lazy val sessionCacheExpiryDuration: Duration =
     servicesConfig.getDuration("mongodb.cache.expiry")
+  override lazy val checkArnAllowList: Boolean = servicesConfig.getBoolean("features.check-arn-allow-list")
+  override lazy val allowedArns: Seq[String] = configuration.get[Seq[String]]("allowed.arns")
 }

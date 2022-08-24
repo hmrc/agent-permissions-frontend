@@ -17,22 +17,20 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, GroupRequest}
+import connectors.AgentPermissionsConnector
 import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
-import models.DisplayClient.toEnrolment
 import models.{ButtonSelect, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, Enrolment}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 @Singleton
 class GroupController @Inject()(

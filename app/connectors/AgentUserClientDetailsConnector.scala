@@ -57,7 +57,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  private val baseUrl = appConfig.agentUserClientDetailsBaseUrl
+  private lazy val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
   def getClients(arn: Arn)(
       implicit hc: HeaderCarrier,

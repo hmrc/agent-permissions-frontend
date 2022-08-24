@@ -59,6 +59,5 @@ object ArnAllowListFilter {
     "/admin/metrics",
     "/ping/ping",
     "/agent-permissions/assets/",
-    "/agent-permissions/hmrc-frontend/",
-    "/agent-permissions/arnallowed")
+    "/agent-permissions/hmrc-frontend/")
 }

@@ -78,7 +78,7 @@ class ArnAllowListFilterSpec extends BaseSpec {
       "be allowed through" in {
         mockAppConfigCheckArnAllowList(toCheckArnAllowList = false)
 
-        filter(nextFilter)(FakeRequest("GET", "/agent-permissions/do-you-want-to-opt-in")).futureValue shouldBe Ok
+        filter(nextFilter)(FakeRequest("GET", "/agent-permissions/arn-allowed")).futureValue shouldBe Ok
       }
     }
 
@@ -89,7 +89,7 @@ class ArnAllowListFilterSpec extends BaseSpec {
           mockAppConfigCheckArnAllowList(toCheckArnAllowList = true)
           expectAuthorisationFails(InsufficientEnrolments())
 
-          filter(nextFilter)(FakeRequest("GET", "/agent-permissions/do-you-want-to-opt-in")).futureValue shouldBe Forbidden
+          filter(nextFilter)(FakeRequest("GET", "/agent-permissions/arn-allowed")).futureValue shouldBe Forbidden
         }
       }
 
@@ -100,7 +100,7 @@ class ArnAllowListFilterSpec extends BaseSpec {
           expectAuthorisationGrantsAccess(mockedAuthResponse)
           mockAppConfigAllowedArns(Seq(arn.value))
 
-          filter(nextFilter)(FakeRequest("GET", "/agent-permissions/do-you-want-to-opt-in")).futureValue shouldBe Ok
+          filter(nextFilter)(FakeRequest("GET", "/agent-permissions/arn-allowed")).futureValue shouldBe Ok
         }
       }
 
@@ -111,7 +111,7 @@ class ArnAllowListFilterSpec extends BaseSpec {
           expectAuthorisationGrantsAccess(mockedAuthResponse)
           mockAppConfigAllowedArns(Seq.empty)
 
-          filter(nextFilter)(FakeRequest("GET", "/agent-permissions/do-you-want-to-opt-in")).futureValue shouldBe Forbidden
+          filter(nextFilter)(FakeRequest("GET", "/agent-permissions/arn-allowed")).futureValue shouldBe Forbidden
         }
       }
     }

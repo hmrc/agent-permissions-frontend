@@ -17,6 +17,7 @@
 package config
 
 import com.google.inject.ImplementedBy
+import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
@@ -38,12 +39,14 @@ trait AppConfig {
   val agentPermissionsBaseUrl: String
   val agentUserClientDetailsBaseUrl: String
   val sessionCacheExpiryDuration: Duration
+  def checkArnAllowList: Boolean
+  def allowedArns: Seq[String]
 }
 
 @Singleton
-class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
+class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, configuration: Configuration)
     extends AppConfig {
-  val appName = servicesConfig.getString("appName")
+  val appName: String = servicesConfig.getString("appName")
   val welshLanguageSupportEnabled: Boolean =
     servicesConfig.getBoolean("features.welsh-language-support")
   val contactFrontendBaseUrl: String =
@@ -60,11 +63,13 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
     "microservice.services.agent-services-account-frontend.external-url")
   val agentServicesAccountManageAccountPath: String = servicesConfig.getString(
     "microservice.services.agent-services-account-frontend.manage-account-path")
-  val agentServicesAccountManageAccountUrl = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
+  val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
   val agentPermissionsBaseUrl: String =
     servicesConfig.baseUrl("agent-permissions")
   val agentUserClientDetailsBaseUrl: String =
     servicesConfig.baseUrl("agent-user-client-details")
   val sessionCacheExpiryDuration: Duration =
     servicesConfig.getDuration("mongodb.cache.expiry")
+  override lazy val checkArnAllowList: Boolean = servicesConfig.getBoolean("features.check-arn-allow-list")
+  override lazy val allowedArns: Seq[String] = configuration.get[Seq[String]]("allowed.arns")
 }

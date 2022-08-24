@@ -113,8 +113,8 @@ class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClie
     } yield es3AsDisplayClients
   }
 
-  private def clearSessionForSelectingClients()(implicit Request: Request[_]) =
-    selectingClientsKeys.foreach(key => sessionCacheRepository.deleteFromSession(key))
+  private def clearSessionForSelectingClients()(implicit Request: Request[_], ec: ExecutionContext): Future[Unit] =
+    Future.traverse(selectingClientsKeys)(key => sessionCacheRepository.deleteFromSession(key)).map(_ => ())
 
   def saveSelectedOrFilteredClients(buttonSelect: ButtonSelect)
                                    (arn: Arn)
@@ -127,7 +127,7 @@ class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClie
           clients <- lookupClients(arn)(formData.clients)
           _ <- addSelectablesToSession(clients.map(_.map(dc => dc.copy(selected = true)))
           )(SELECTED_CLIENTS, FILTERED_CLIENTS)
-         _ = clearSessionForSelectingClients()
+         _ <- clearSessionForSelectingClients()
         } yield ()
 
       case Continue =>
@@ -138,7 +138,7 @@ class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClie
             SELECTED_CLIENTS,
             FILTERED_CLIENTS
           )
-          _ = clearSessionForSelectingClients()
+          _ <- clearSessionForSelectingClients()
         } yield ()
 
       case Filter =>

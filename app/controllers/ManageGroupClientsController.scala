@@ -126,16 +126,16 @@ class ManageGroupClientsController @Inject()(
                     sessionCacheService.clearSelectedClients()
                   else ().toFuture
                   clients <- clientService.getClients(group.arn)
-                 result <-
-                    Ok(client_group_list(
-                      clients,
-                      group.groupName,
-                      maybeHiddenClients,
-                      formWithErrors,
-                      formAction = routes.ManageGroupClientsController.showManageGroupClients(groupId),
-                      backUrl = Some(routes.ManageGroupController.showManageGroups.url)
-                    )).toFuture
-                } yield result
+                } yield {
+                  Ok(client_group_list(
+                    clients,
+                    group.groupName,
+                    maybeHiddenClients,
+                    formWithErrors,
+                    formAction = routes.ManageGroupClientsController.showManageGroupClients(groupId),
+                    backUrl = Some(routes.ManageGroupController.showManageGroups.url)
+                  ))
+                }
               },
               formData => {
                 clientService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData).flatMap(_ =>

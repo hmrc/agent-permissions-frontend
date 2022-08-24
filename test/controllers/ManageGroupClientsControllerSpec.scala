@@ -594,6 +594,21 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
       html.select(Css.backLink).size() shouldBe 0
     }
+
+    s"redirect to ${routes.ManageGroupClientsController.showManageGroupClients(groupId)} when there are no selected clients" in {
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result = controller.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url
+    }
   }
 
 

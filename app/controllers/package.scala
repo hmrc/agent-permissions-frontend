@@ -37,17 +37,16 @@ package object controllers {
     status == OptedInReady
 
   val OPTIN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
+
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
-  val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
-  val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
 
-  val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
-  val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
-  val GROUP_DELETED_NAME: DataKey[String] = DataKey("groupDeletedName")
+  val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val HIDDEN_CLIENTS_EXIST
-    : DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
+  : DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
+  val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
+  val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")
 
   val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
     "filteredTeamMembers")
@@ -55,16 +54,41 @@ package object controllers {
   val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
     "groupTeamMembersSelected")
 
+  val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
+
+  val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
+  val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
+  val GROUP_DELETED_NAME: DataKey[String] = DataKey("groupDeletedName")
+
   val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]]
     = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
 
   val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]] = DataKey("filteredGroupSummaries")
   val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
 
-  val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
-  val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")
-
   val CLIENT_REFERENCE: DataKey[String] = DataKey("clientRef")
+
+  val selectingClientsKeys =
+    List(
+      FILTERED_CLIENTS,
+      HIDDEN_CLIENTS_EXIST,
+      CLIENT_FILTER_INPUT,
+      CLIENT_SEARCH_INPUT
+  )
+
+  val selectingTeamMemberKeys =
+    List(
+      FILTERED_TEAM_MEMBERS,
+      HIDDEN_TEAM_MEMBERS_EXIST
+    )
+
+  val creatingGroupKeys =
+    List(
+      GROUP_NAME,
+      GROUP_NAME_CONFIRMED,
+      SELECTED_CLIENTS,
+      SELECTED_TEAM_MEMBERS
+    )
 
   val sessionKeys =
     List(
@@ -83,7 +107,9 @@ package object controllers {
       SELECTED_TEAM_MEMBERS,
       GROUPS_FOR_UNASSIGNED_CLIENTS,
       FILTERED_GROUP_SUMMARIES,
-      CLIENT_REFERENCE
+      CLIENT_REFERENCE,
+      CLIENT_FILTER_INPUT,
+      CLIENT_SEARCH_INPUT
     )
 
 }

@@ -70,14 +70,6 @@ class SessionCacheService @Inject()(
     )
   }
 
-  def clearAll()(implicit request: Request[_]): Future[Unit] = {
-    sessionCacheRepository.deleteFromSession(GROUP_NAME)
-    sessionCacheRepository.deleteFromSession(GROUP_NAME_CONFIRMED)
-    sessionCacheRepository.deleteFromSession(GROUP_CLIENTS)
-    sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS)
-    sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
-  }
-
   def clearSelectedTeamMembers()(implicit request: Request[_]): Future[Unit] = {
     sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
   }

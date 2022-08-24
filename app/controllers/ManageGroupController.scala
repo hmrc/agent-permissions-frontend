@@ -261,15 +261,6 @@ class ManageGroupController @Inject()(
     }
   }
 
-  def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) {group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
-        if(selectedClients.isDefined) Ok(clients_update_complete(group.groupName)).toFuture
-        else Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId)).toFuture
-      }
-    }
-  }
-
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group =>
       Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId)).toFuture

@@ -229,7 +229,7 @@ client.not.found.error.a=Back to manage clients page
 
 client.added.to.groups.title=Client {0} added to access groups {1}
 client.added.to.groups.h1=Client added to access groups
-client.added.to.groups.p1=You have added Eve Adams to the following groups:
+client.added.to.groups.p1=You have added {0} to the following groups:
 client.added.to.groups.p2=The team members in these access groups can now view and manage the tax affairs of the client you added.
 client.added.to.groups.a=Back to manage clients page
 

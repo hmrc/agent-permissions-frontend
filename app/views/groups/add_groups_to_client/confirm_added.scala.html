@@ -39,8 +39,8 @@
  )
 
  @h2("common.what.happens.next")
- @p("client.added.to.groups.p1")
- @ul(items = groupsAddedTo.map(_.groupName))
+ @p(msgs("client.added.to.groups.p1", displayClient.name))
+ @ul(items = groupsAddedTo.map(_.groupName), id = Some("groups-added-to"))
  @p("client.added.to.groups.p2")
   @a_button(key = "client.not.found.error.a", href = routes.ManageClientController.showAllClients.url)
 }

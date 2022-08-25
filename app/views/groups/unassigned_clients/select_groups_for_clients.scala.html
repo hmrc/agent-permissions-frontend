@@ -16,7 +16,7 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import views.components.models.CheckBoxData
+@import views.components.models.CheckboxData
 @import views.components.models.LegendData
 @import views.html.main_layout
 @import connectors.GroupSummary
@@ -26,7 +26,7 @@
     layout: main_layout,
     p: p, h1: h1,
     submit_button: submit_button,
-    checkBoxes: checkBoxes,
+    checkboxes: checkboxes,
     formWithCSRF: FormWithCSRF
 )
 
@@ -48,12 +48,12 @@
                     classes = Some("govuk-error-message")
                 )
             }
-            @checkBoxes(
+            @checkboxes(
                 field = form("groups[]"),
                 name = "groups[]",
                 items = groups.zipWithIndex.map { case (groupSummary, idx) => {
                     val id = groupSummary.groupId
-                    CheckBoxData(
+                    CheckboxData(
                         id = id,
                         name = "groups[]",
                         label = groupSummary.groupName,
@@ -65,11 +65,11 @@
                 hint = Some(msgs("unassigned.client.assign.hint"))
             )
 
-            @checkBoxes(
+            @checkboxes(
                 field = form("createNew"),
                 name = "createNew",
                 items = Seq(
-                    CheckBoxData(
+                    CheckboxData(
                         id = "create_new",
                         name = "createNew",
                         label = "Add to a new access group",

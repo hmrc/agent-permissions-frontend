@@ -1,0 +1,74 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import connectors.GroupSummary
+@import controllers.routes
+@import views.components.models.CheckboxData
+@import views.html.main_layout
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1, h3: h3, a: a, ul: ul,
+    formWithCSRF: FormWithCSRF,
+    caption: caption, table: table,
+    submit_button: submit_button,
+    checkboxes: checkboxes,
+)
+
+@(
+    groupsForClient: Seq[GroupSummary],
+    availableGroups: Seq[GroupSummary],
+    client: DisplayClient,
+    form: Form[_]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig) {
+
+
+    @layout(
+        title = msgs("client.select.groups.h1", client.name),
+        backLinkHref = Some(routes.ManageClientController.showClientDetails(client.id).url),
+        fullWidth = true,
+        formErrors = form.errors
+    ) {
+
+        @formWithCSRF(action = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id)) {
+
+            <div class="govuk-!-width-two-thirds">
+            @h1(msgs("client.select.groups.h1", client.name))
+            </div>
+
+            @p("Client is currently in these access groups:")
+            @ul(items = groupsForClient.map(_.groupName))
+
+
+            @checkboxes(
+                id = Some("groups"),
+                hint = Some("Select all that apply"),
+                field = form("groups"),
+                name = "groups[]",
+                items = availableGroups.map { g =>
+                    CheckboxData(
+                        id = g.groupId,
+                        label = g.groupName,
+                        value = g.groupId
+                    )
+                }
+            )
+
+            @submit_button()
+        }
+    }
+}

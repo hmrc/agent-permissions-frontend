@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package views.components.models
+package forms
 
-case class CheckboxData(
-    id: String,
-    name: String = "",
-    label: String,
-    hint: Option[String] = None,
-    value: String,
-    checked: Boolean = false
-)
+import play.api.data.Form
+import play.api.data.Forms._
+
+object AddGroupsToClientForm {
+
+  def form(): Form[List[String]] = {
+    Form(
+      single(
+        "groups" -> list(text).verifying("error.client.select.groups.empty", groups => groups.size > 0)
+      )
+    )
+  }
+}

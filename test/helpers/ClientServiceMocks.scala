@@ -19,26 +19,36 @@ package helpers
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
-import services.{ClientService, GroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import services.ClientService
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ClientServiceMocks extends MockFactory {
 
-  def stubGetClients(arn: Arn)(clients: Seq[DisplayClient])(
-    implicit clientService: ClientService): Unit =
+  def stubGetClients(arn: Arn)
+                    (clients: Seq[DisplayClient])
+                    (implicit clientService: ClientService): Unit =
     (clientService
       .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Some(clients))
 
-  def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)(implicit clientService: ClientService): Unit =
+  def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)
+                                     (implicit clientService: ClientService): Unit =
     (clientService
       .saveSelectedOrFilteredClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)
       (_: HeaderCarrier,  _: ExecutionContext,  _: Request[_]))
       .expects(buttonPress, arn, *, *, *, *)
-      .returning(Future successful ())
+      .returning(Future successful((): Unit))
+
+  def stubLookupClient(arn: Arn, clientId: String)
+                      (client: DisplayClient)
+                      (clientService: ClientService): Unit =
+    (clientService
+      .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, clientId, *, *)
+      .returning(Future successful Some(client))
 
 }

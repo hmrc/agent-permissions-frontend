@@ -73,23 +73,20 @@
         @h2("common.details.groups.header")
 
         @if(clientGroups.isEmpty) {
-
             @p("common.details.not-assigned")
-
-            @a("common.details.assign-to-group", href="#")
-
         } else {
-
-        <ul class="govuk-list">
-            @for(group <- clientGroups) {
-            <li class="govuk-list--item">@a(group.groupName, href=routes.ManageGroupClientsController.showExistingGroupClients(group.groupId)
-                    .url)</li>
-            }
-        </ul>
-
-            @a("common.details.assign-to-group", href="#")
-
+            <ul class="govuk-list">
+                @for(group <- clientGroups) {
+                <li class="govuk-list--item">
+                @a(group.groupName,
+                    href = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId).url)
+                </li>
+                }
+            </ul>
         }
+        @a( "common.details.assign-to-group",
+            href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
+        )
 
     </div>
 </div>

@@ -23,12 +23,7 @@ import play.api.Application
 import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation}
-import uk.gov.hmrc.auth.core.{
-  AuthConnector,
-  InsufficientEnrolments,
-  MissingBearerToken,
-  UnsupportedAuthProvider
-}
+import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBearerToken, UnsupportedAuthProvider}
 
 import scala.concurrent.Future
 

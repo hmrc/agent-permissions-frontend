@@ -15,16 +15,17 @@
  *@
 
 @import uk.gov.hmrc.govukfrontend.views.Aliases.{Checkboxes, Fieldset, Hint, HtmlContent, Legend, Text}
-@import views.components.models.CheckBoxData
+@import views.components.models.CheckboxData
 @import views.components.models.LegendData
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 
 @this(govukCheckboxes: GovukCheckboxes)
 
 @(
+    id: Option[String] = None,
     field: Field,
     name: String,
-    items: Seq[CheckBoxData],
+    items: Seq[CheckboxData],
     hint: Option[String] = None,
     legend: Option[LegendData] = None
 )(implicit msgs: Messages)
@@ -32,7 +33,7 @@
 @govukCheckboxes(
     Checkboxes(
         name = name,
-        attributes = Map("id" -> name),
+        attributes = Map("id" -> id.getOrElse(name)),
         hint = hint.map(h => {
             Hint(content = HtmlContent(msgs(h)))
         }),
@@ -51,7 +52,7 @@
                 )
             )
         }),
-        items = items.map { (cbd: CheckBoxData) =>
+        items = items.map { (cbd: CheckboxData) =>
             CheckboxItem(
                 content = HtmlContent(msgs(cbd.label)),
                 value = cbd.value,

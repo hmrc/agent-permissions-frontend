@@ -53,7 +53,6 @@ class ManageGroupController @Inject()(
      confirm_delete_group: confirm_delete_group,
      delete_group_complete: delete_group_complete,
      review_clients_to_add: review_clients_to_add,
-     clients_update_complete: clients_update_complete,
      select_groups_for_clients: select_groups_for_clients,
      clients_added_to_groups_complete: clients_added_to_groups_complete
     )
@@ -190,7 +189,7 @@ class ManageGroupController @Inject()(
                   val enrolments: Set[Enrolment] = displayClients.map(DisplayClient.toEnrolment(_)).toSet
                   Future.sequence( groupsToAddTo.map{ grp =>
                     //TODO: what do we do if 3 out of 4 fail to save?
-                    agentPermissionsConnector.addUnassignedMembers (
+                    agentPermissionsConnector.addMembersToGroup (
                       grp.groupId, AddMembersToAccessGroupRequest(clients = Some(enrolments))
                     )
                   }).map{ _ =>

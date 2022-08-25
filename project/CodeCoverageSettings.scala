@@ -26,6 +26,7 @@ object CodeCoverageSettings {
     ".*group_not_found.template",
     ".*ViewUtils.*",
     ".*GroupAction.*",
+    ".*ClientAction.*",
   )
 
   val settings: Seq[Setting[_]] = Seq(

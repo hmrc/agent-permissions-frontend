@@ -104,11 +104,10 @@ class ManageGroupController @Inject()(
 
           buttonSelection match {
             case Clear =>
-              val u = for {
+              for {
                 _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES)
                 _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUPS_INPUT)
-              } yield ()
-              u.map(_ => Redirect(routes.ManageGroupController.showManageGroups))
+              } yield Redirect(routes.ManageGroupController.showManageGroups)
             case Filter =>
               FilterByGroupNameForm.form
                 .bindFromRequest()
@@ -208,15 +207,10 @@ class ManageGroupController @Inject()(
   def showConfirmClientsAddedToGroups: Action[AnyContent] = Action.async {implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        sessionCacheRepository.getFromSession(GROUPS_FOR_UNASSIGNED_CLIENTS).map(maybeGroupNames =>
-          maybeGroupNames.fold(
-            Redirect(routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients.url )
-          )(groups => {
-              sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS)
-              Ok(clients_added_to_groups_complete(groups))
-            }
-          )
-        )
+        sessionCacheRepository.getFromSession(GROUPS_FOR_UNASSIGNED_CLIENTS).flatMap {
+          case None => Future.successful(Redirect(routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients.url))
+          case Some(groups) => sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS).map(_ => Ok(clients_added_to_groups_complete(groups)))
+        }
       }
     }
   }
@@ -285,12 +279,10 @@ class ManageGroupController @Inject()(
   def showGroupRenamed(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val result = for {
+        for {
           group <- agentPermissionsConnector.getGroup(groupId)
           oldName <- sessionCacheRepository.getFromSession(GROUP_RENAMED_FROM)
-        } yield (group, oldName)
-        result.map(tuple =>
-          Ok(rename_group_complete(tuple._2.get, tuple._1.get.groupName)))
+        } yield Ok(rename_group_complete(oldName.get, group.get.groupName))
       }
     }
   }

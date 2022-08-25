@@ -91,7 +91,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  private val baseUrl = appConfig.agentPermissionsBaseUrl
+  private lazy val baseUrl = appConfig.agentPermissionsBaseUrl
 
   override def getOptInStatus(arn: Arn)(
       implicit hc: HeaderCarrier,

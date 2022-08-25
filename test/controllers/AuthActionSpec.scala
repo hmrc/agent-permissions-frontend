@@ -19,8 +19,9 @@ package controllers
 import com.google.inject.AbstractModule
 import config.AppConfig
 import helpers.BaseSpec
+import org.scalamock.handlers.CallHandler0
 import play.api.Application
-import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
+import play.api.http.Status.{FORBIDDEN, OK, SEE_OTHER}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation}
 import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBearerToken, UnsupportedAuthProvider}
@@ -31,9 +32,12 @@ class AuthActionSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
-  override def moduleWithOverrides = new AbstractModule() {
+  implicit lazy val mockAppConfig: AppConfig = mock[AppConfig]
+
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
     override def configure(): Unit = {
       bind(classOf[AuthConnector]).toInstance(mockAuthConnector)
+      bind(classOf[AppConfig]).toInstance(mockAppConfig)
     }
   }
 
@@ -41,20 +45,22 @@ class AuthActionSpec extends BaseSpec {
     appBuilder
       .build()
 
-  val authAction = fakeApplication.injector.instanceOf[AuthAction]
-  implicit val appConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val authAction: AuthAction = fakeApplication.injector.instanceOf[AuthAction]
 
   "Auth Action" when {
     "the user hasn't logged in" should {
       "redirect the user to log in " in {
 
         expectAuthorisationFails(MissingBearerToken())
+        mockAppConfigBasGatewayUrl("someUrl")
+        mockAppConfigLoginContinueUrl("someUrl")
+        mockAppConfigAppName("someName")
 
         val result =
           authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
-          "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2F&origin=agent-permissions-frontend"
+          "someUrl/bas-gateway/sign-in?continue_url=someUrl%2F&origin=someName"
       }
     }
 
@@ -67,17 +73,74 @@ class AuthActionSpec extends BaseSpec {
           authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
         status(result) shouldBe FORBIDDEN
       }
+    }
 
-      "the user has UnsupportedAuthProvider" should {
-        "return FORBIDDEN" in {
+    "the user has UnsupportedAuthProvider" should {
+      "return FORBIDDEN" in {
+        expectAuthorisationFails(UnsupportedAuthProvider())
 
-          expectAuthorisationFails(UnsupportedAuthProvider())
+        val result =
+          authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+        status(result) shouldBe FORBIDDEN
+      }
+    }
 
-          val result =
-            authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
-          status(result) shouldBe FORBIDDEN
+    "the user has authorization" when {
+
+      "check for Arn Allow List is false" should {
+        s"return $OK" in {
+          expectAuthorisationGrantsAccess(mockedAuthResponse)
+          mockAppConfigCheckArnAllowList(false)
+
+          val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+          status(result) shouldBe OK
+        }
+      }
+
+      "check for Arn Allow List is true" when {
+
+        "arn is not in allowed list" should {
+          s"return $FORBIDDEN" in {
+            expectAuthorisationGrantsAccess(mockedAuthResponse)
+            mockAppConfigCheckArnAllowList(toCheckArnAllowList = true)
+            mockAppConfigAllowedArns(Seq.empty)
+
+            val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+            status(result) shouldBe FORBIDDEN
+          }
+        }
+
+        "arn is in allowed list" should {
+          s"return $OK" in {
+            expectAuthorisationGrantsAccess(mockedAuthResponse)
+            mockAppConfigCheckArnAllowList(toCheckArnAllowList = true)
+            mockAppConfigAllowedArns(Seq(arn.value))
+
+            val result = authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+            status(result) shouldBe OK
+          }
         }
       }
     }
   }
+
+  def mockAppConfigBasGatewayUrl(url: String): CallHandler0[String] =
+    (() => mockAppConfig.basGatewayUrl)
+      .expects().returning(url)
+
+  def mockAppConfigLoginContinueUrl(url: String): CallHandler0[String] =
+    (() => mockAppConfig.loginContinueUrl)
+      .expects().returning(url)
+
+  def mockAppConfigAppName(name: String): CallHandler0[String] =
+    (() => mockAppConfig.appName)
+      .expects().returning(name)
+
+  def mockAppConfigCheckArnAllowList(toCheckArnAllowList: Boolean): CallHandler0[Boolean] =
+    (() => mockAppConfig.checkArnAllowList)
+      .expects().returning(toCheckArnAllowList)
+
+  def mockAppConfigAllowedArns(allowedArns: Seq[String]): CallHandler0[Seq[String]] =
+    (() => mockAppConfig.allowedArns)
+      .expects().returning(allowedArns)
 }

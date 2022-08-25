@@ -18,7 +18,7 @@ package controllers
 
 import config.AppConfig
 import play.api.mvc.Results.{Forbidden, Redirect}
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{RequestHeader, Result}
 import play.api.{Configuration, Environment, Logging}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
@@ -45,11 +45,10 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
 
   def isAuthorisedAgent(body: Arn => Future[Result])(
       implicit ec: ExecutionContext,
-      request: Request[_],
-      appConfig: AppConfig) = {
+      request: RequestHeader,
+      appConfig: AppConfig): Future[Result] = {
 
-    implicit val hc: HeaderCarrier =
-      HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     authorised(AuthProviders(GovernmentGateway) and Enrolment(agentEnrolment))
       .retrieve(allEnrolments and credentialRole) {
@@ -57,7 +56,16 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
           getArn(enrols) match {
             case Some(arn) =>
               credRole match {
-                case Some(User) | Some(Admin) => body(arn)
+                case Some(User) | Some(Admin) =>
+                  if (appConfig.checkArnAllowList) {
+                    if (appConfig.allowedArns.contains(arn.value)) {
+                      body(arn)
+                    } else {
+                      Future.successful(Forbidden)
+                    }
+                  } else {
+                    body(arn)
+                  }
                 case _ =>
                   logger.warn("Invalid credential role")
                   Future.successful(Forbidden)
@@ -71,7 +79,7 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
   }
 
   def handleFailure(
-      implicit request: Request[_],
+      implicit request: RequestHeader,
       appConfig: AppConfig): PartialFunction[Throwable, Result] = {
     case _: NoActiveSession =>
       Redirect(

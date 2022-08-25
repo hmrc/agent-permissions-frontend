@@ -93,3 +93,5 @@ GET     /manage-clients/assigned-to-groups/:clientId      controllers.AddClientT
 GET     /manage-team-members                                                     controllers.ManageTeamMemberController.showAllTeamMembers
 GET     /manage-team-members/team-member-details/:memberId                       controllers.ManageTeamMemberController.showTeamMemberDetails(memberId: String)
 
+# ARN Allow List
+GET     /arn-allowed                                                         controllers.ArnAllowListController.isArnAllowed

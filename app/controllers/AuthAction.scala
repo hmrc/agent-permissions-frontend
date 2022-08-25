@@ -51,7 +51,7 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
       request: RequestHeader,
       appConfig: AppConfig): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
     authorised(AuthProviders(GovernmentGateway) and Enrolment(agentEnrolment))
       .retrieve(allEnrolments and credentialRole) {

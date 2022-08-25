@@ -23,10 +23,7 @@ import helpers.BaseSpec
 import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
-import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.agentmtdidentifiers.model.Client
 
 class ClientServiceSpec extends BaseSpec {
 

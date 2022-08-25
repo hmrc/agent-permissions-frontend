@@ -22,10 +22,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.data.FormError
-import play.api.libs.json.Json
-import play.api.libs.json.Json.toJson
-
-import java.util.Base64
 
 class AddClientsToGroupFormSpec
     extends AnyWordSpec

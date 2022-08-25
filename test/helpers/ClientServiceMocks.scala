@@ -19,8 +19,8 @@ package helpers
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
-import services.{ClientService, GroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import services.ClientService
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}

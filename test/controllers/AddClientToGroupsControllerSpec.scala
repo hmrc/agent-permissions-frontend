@@ -22,9 +22,10 @@ import helpers.{BaseSpec, Css}
 import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
+import play.api.mvc.Request
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import services.{ClientService, ClientServiceImpl, GroupService, GroupServiceImpl}
+import services.{ClientService, GroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HeaderCarrier
@@ -36,8 +37,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
-  implicit val clientService: ClientService = new ClientServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo)
+  implicit val mockGroupService: GroupService = mock[GroupService]
+  implicit val mockClientService: ClientService = mock[ClientService]
   lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
   override def moduleWithOverrides = new AbstractModule() {
@@ -47,8 +48,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-      bind(classOf[GroupService]).toInstance(groupService)
-      bind(classOf[ClientService]).toInstance(clientService)
+      bind(classOf[GroupService]).toInstance(mockGroupService)
+      bind(classOf[ClientService]).toInstance(mockClientService)
     }
   }
 
@@ -58,7 +59,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val fakeClients: Seq[Client] =
-    List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
+    List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"Client $i"))
 
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
   private val client: DisplayClient = displayClients(0)
@@ -66,30 +67,49 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
   s"GET ${routes.AddClientToGroupsController.showSelectGroupsForClient(client.id)}" should {
 
-    "render correctly the EXISTING CLIENTS page with no query params" in {
+    "render correctly the html" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
-      val summaries = Some((groupSummaries, Seq.empty))
+        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      (clientService
+
+      (mockClientService
         .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
         .expects(arn, client.id, *, *)
         .returning(Future successful Some(client))
 
-      expectGetGroupSummarySuccess(arn, summaries)
-      expectGetGroupsForClientSuccess(arn, DisplayClient.toEnrolment(client), Some(groupsAlreadyAssociatedToClient))
+      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext,_: HeaderCarrier))
+        .expects(arn, *, *, *)
+        .returning( Future.successful(summaries))
+
+      (mockGroupService
+        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext,_: HeaderCarrier))
+        .expects(arn, client, *, *, *)
+        .returning( Future.successful(groupsAlreadyAssociatedToClient))
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      println(html)
-      html.title() shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
+      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently in these access groups:"
+      html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group 1"
+      html.select(Css.li("already-in-groups")).get(1).text() shouldBe "Group 2"
+      val form = html.select(Css.form)
+      form.attr("action")
+        .shouldBe( routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id).url)
+      val checkboxes = form.select(".govuk-checkboxes#groups input[name=groups[]]")
+      checkboxes size() shouldBe 3
+      val checkboxLabels = form.select("label.govuk-checkboxes__label")
+      checkboxLabels.get(0).text() shouldBe "Group 3"
+      checkboxLabels.get(1).text() shouldBe "Group 4"
+      checkboxLabels.get(2).text() shouldBe "Group 5"
+      html.select(Css.submitButton).text() shouldBe "Continue"
     }
 
   }

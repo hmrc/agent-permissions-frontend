@@ -220,6 +220,7 @@ error.group.filter.required=You must enter a group name or part of it
 group-name-filter.text.label=Filter by group name
 
 client.select.groups.h1=Which access groups would you like to add {0} to?
+client.select.groups.p1=Client is currently in these access groups:
 error.client.select.groups.empty=You must select at least one group
 
 client.not.found.error.h1=Client not found

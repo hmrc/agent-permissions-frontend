@@ -50,8 +50,11 @@
             @h1(msgs("client.select.groups.h1", client.name))
             </div>
 
-            @p("Client is currently in these access groups:")
-            @ul(items = groupsForClient.map(_.groupName))
+            @p("client.select.groups.p1")
+            @ul(
+                items = groupsForClient.map(_.groupName),
+                id = Some("already-in-groups")
+            )
 
 
             @checkboxes(

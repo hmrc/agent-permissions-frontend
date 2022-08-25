@@ -34,10 +34,13 @@ trait TeamMemberService {
 
   def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier,
     ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
+
   def lookupTeamMember(arn: Arn)(id: String
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]]
+
   def lookupTeamMembers(arn: Arn)(ids: Option[List[String]]
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]]
+
   def saveSelectedOrFilteredTeamMembers(buttonSelect: ButtonSelect)
                                    (arn: Arn)
                                    (formData: AddTeamMembersToGroup
@@ -54,8 +57,8 @@ class TeamMemberServiceImpl @Inject()(
     val sessionCacheRepository: SessionCacheRepository
 ) extends TeamMemberService with GroupMemberOps {
 
-  def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier,
-    ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
+  def getTeamMembers(arn: Arn)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
     val fromUgs = for {
       ugsAsTeamMembers <- getFromUgsAsTeamMember(arn)
       maybeSelectedTeamMembers <- sessionCacheRepository
@@ -76,16 +79,16 @@ class TeamMemberServiceImpl @Inject()(
     } yield filtered.orElse(ugs)
   }
 
-  def lookupTeamMember(arn: Arn)(id: String
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]] = {
+  def lookupTeamMember(arn: Arn)(id: String)
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]] = {
     for {
       ugsAsTeamMembers <- getFromUgsAsTeamMember(arn)
       maybeTeamMember = ugsAsTeamMembers.flatMap(clients => clients.find(_.id == id))
     } yield maybeTeamMember
   }
 
-  def lookupTeamMembers(arn: Arn)(ids: Option[List[String]]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]] = {
+  def lookupTeamMembers(arn: Arn)(ids: Option[List[String]])
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]] = {
     ids.fold(Option.empty[List[TeamMember]].toFuture){
       ids =>
         getFromUgsAsTeamMember(arn)

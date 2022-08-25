@@ -25,6 +25,7 @@ object Css {
     s".govuk-list.govuk-error-summary__list li a[href=$href]"
   val H1 = "main h1"
   val H2 = "main h2"
+  val li = (id: String) => s"main .govuk-list#${id} li"
   val PRE_H1 = "main .govuk-caption-l"
   val paragraphs = "main p"
   val insetText = "div.govuk-inset-text"

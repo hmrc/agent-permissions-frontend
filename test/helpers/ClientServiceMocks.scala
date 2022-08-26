@@ -38,9 +38,9 @@ trait ClientServiceMocks extends MockFactory {
   def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)
                                      (implicit clientService: ClientService): Unit =
     (clientService
-      .saveSelectedOrFilteredClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)
+      .saveSelectedOrFilteredClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)(_: Arn => Future[Option[Seq[DisplayClient]]])
       (_: HeaderCarrier,  _: ExecutionContext,  _: Request[_]))
-      .expects(buttonPress, arn, *, *, *, *)
+      .expects(buttonPress, arn, *, *, *, *, *)
       .returning(Future successful((): Unit))
 
   def stubLookupClient(arn: Arn, clientId: String)

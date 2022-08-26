@@ -892,7 +892,8 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       stubGetClientsOk(arn)(fakeClients)
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetGroupSummarySuccess(arn, Some(Seq.empty, displayClients))
+
 
       implicit val request =
         FakeRequest("POST", routes.ManageGroupController.submitAddUnassignedClients.url)

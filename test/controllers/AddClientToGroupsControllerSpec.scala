@@ -47,7 +47,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   override def moduleWithOverrides = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
@@ -79,6 +79,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       (mockClientService
         .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
@@ -129,6 +130,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
           .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
 
         (mockClientService
           .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
@@ -175,6 +177,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       (mockClientService
         .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
@@ -222,6 +225,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       (mockClientService
         .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))

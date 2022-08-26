@@ -133,7 +133,7 @@ class ManageGroupController @Inject()(
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
           selectedClients
             .fold {
-              Redirect(routes.ManageGroupController.showManageGroups)
+              Redirect(routes.ManageGroupController.showManageGroups).toFuture
             } { clients => Ok(
                 review_clients_to_add(
                   clients = clients,
@@ -141,9 +141,8 @@ class ManageGroupController @Inject()(
                   backUrl = Some(s"${routes.ManageGroupController.showManageGroups.url}#unassigned-clients"),
                   continueCall = routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
                 )
-              )
+              ).toFuture
             }
-            .toFuture
         }
       }
     }
@@ -239,7 +238,7 @@ class ManageGroupController @Inject()(
                   } yield result
                 },
                 formData => {
-                  clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData).map(_ =>
+                  clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getUnassignedClients).map(_ =>
                     if(buttonSelection == ButtonSelect.Continue)
                   Redirect(routes.ManageGroupController.showSelectedUnassignedClients)
                     else Redirect(s"${routes.ManageGroupController.showManageGroups}#unassigned-clients")

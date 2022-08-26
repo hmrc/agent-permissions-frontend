@@ -67,6 +67,7 @@ package object controllers {
   val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
 
   val CLIENT_REFERENCE: DataKey[String] = DataKey("clientRef")
+  val GROUP_IDS_ADDED_TO: DataKey[Seq[String]] = DataKey("groupIdsAddedTo")
 
   val selectingClientsKeys =
     List(

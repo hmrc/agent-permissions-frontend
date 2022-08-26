@@ -28,7 +28,7 @@
     submit_button_group: submit_button_group,
     textbox: textbox,
     submit_button: submit_button,
-    checkBox: checkBox,
+    chekbox: chekbox,
     summaryErrors: SummaryErrors,
     formWithCSRF: FormWithCSRF
 )
@@ -45,7 +45,7 @@
     @tableRows = @{
         maybeTeamMembers.fold(Seq.empty[Seq[Html]])( _.map( member =>
             Seq(
-                Html(checkBox(
+                Html(chekbox(
                     name = Some("members[]"),
                     id = Some(s"add-member-${member.id}"),
                     value = Some(member.id),

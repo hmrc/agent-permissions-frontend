@@ -71,7 +71,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Done]
 
-  def addUnassignedMembers(id: String, groupRequest: AddMembersToAccessGroupRequest)(
+  def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Done]
 
@@ -282,8 +282,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  override def addUnassignedMembers(id: String, groupRequest: AddMembersToAccessGroupRequest)
-                                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  override def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
+                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/$id/add-unassigned"
     monitor("ConsumedAPI- add members to group -PUT") {
       http

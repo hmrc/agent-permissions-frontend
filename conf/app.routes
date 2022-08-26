@@ -85,6 +85,10 @@ GET     /manage-clients/client-details/update-client-reference/:clientId    cont
 POST    /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.submitUpdateClientReference(clientId: String)
 GET     /manage-clients/client-details/client-reference-updated/:clientId   controllers.ManageClientController.showClientReferenceUpdatedComplete(clientId: String)
 
+GET     /manage-clients/assign-to-a-group/:clientId      controllers.AddClientToGroupsController.showSelectGroupsForClient(clientId: String)
+POST    /manage-clients/assign-to-a-group/:clientId      controllers.AddClientToGroupsController.submitSelectGroupsForClient(clientId: String)
+GET     /manage-clients/assigned-to-groups/:clientId      controllers.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId: String)
+
 # Manage team members
 GET     /manage-team-members                                                     controllers.ManageTeamMemberController.showAllTeamMembers
 GET     /manage-team-members/team-member-details/:memberId                       controllers.ManageTeamMemberController.showTeamMemberDetails(memberId: String)

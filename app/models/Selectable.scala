@@ -17,7 +17,8 @@
 package models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, Enrolment, Identifier, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model._
+
 import scala.util.hashing.MurmurHash3
 
 sealed trait Selectable {

@@ -34,37 +34,34 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[ClientServiceImpl])
 trait ClientService {
 
-  def getClients(arn: Arn
-                )(implicit request: Request[_],
-                  hc: HeaderCarrier,
-                  ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
-  def lookupClient(arn: Arn)(id: String
-                  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]]
-  def lookupClients(arn: Arn)(ids: Option[List[String]]
-                   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]]
-  def saveSelectedOrFilteredClients(buttonSelect: ButtonSelect)
-                                   (arn: Arn)
-                                   (formData: AddClientsToGroup
-                                   )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
+  def getClients(arn: Arn)
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
 
-  def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit request: Request[_],
-                                                                                     hc: HeaderCarrier,
-                                                                                     ec: ExecutionContext): Future[Done]
+  def lookupClient(arn: Arn)(clientId: String)
+                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]]
 
-  def getNewNameFromSession()(implicit request: Request[_],
-                              ec: ExecutionContext): Future[Option[String]]
+  def lookupClients(arn: Arn)(ids: Option[List[String]])
+                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]]
+
+  def saveSelectedOrFilteredClients(buttonSelect: ButtonSelect)(arn: Arn)
+                                   (formData: AddClientsToGroup)
+                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
+
+  def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
+                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def getNewNameFromSession()(implicit request: Request[_], ec: ExecutionContext): Future[Option[String]]
 
 }
 
 @Singleton
-class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-                                  val sessionCacheRepository: SessionCacheRepository
-  ) extends ClientService with GroupMemberOps {
+class ClientServiceImpl @Inject()(
+                                   agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+                                   val sessionCacheRepository: SessionCacheRepository
+                                 ) extends ClientService with GroupMemberOps {
 
-  def getClients(arn: Arn
-                )(implicit request: Request[_],
-                  hc: HeaderCarrier,
-                  ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
+  def getClients(arn: Arn)
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     val fromEs3 = for {
       es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
       maybeSelectedClients <- sessionCacheRepository
@@ -87,16 +84,18 @@ class ClientServiceImpl @Inject()(agentUserClientDetailsConnector: AgentUserClie
 
   }
 
-  def lookupClient(arn: Arn)(id: String
-                  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]] = {
+  def lookupClient(arn: Arn)
+                  (clientId: String)
+                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]] = {
     for {
       es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
-      maybeClient = es3AsDisplayClients.flatMap(clients => clients.find(_.id == id))
+      maybeClient = es3AsDisplayClients.flatMap(clients => clients.find(_.id == clientId))
     } yield maybeClient
   }
 
-  def lookupClients(arn: Arn)(ids: Option[List[String]]
-                   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]] = {
+  def lookupClients(arn: Arn)
+                   (ids: Option[List[String]])
+                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]] = {
     ids.fold(Option.empty[List[DisplayClient]].toFuture){
       ids =>
         getFromEs3AsDisplayClients(arn)

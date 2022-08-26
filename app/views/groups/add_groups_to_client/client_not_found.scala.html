@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,15 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package views.components.models
+@import config.AppConfig
+@import views.html.main_layout
 
-case class CheckboxData(
-    id: String,
-    name: String = "",
-    label: String,
-    hint: Option[String] = None,
-    value: String,
-    checked: Boolean = false
-)
+@this(layout: main_layout, h1: h1, p: p, a_button: link_as_button)
+
+@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@layout(title = msgs("group.not.found.error.h1")) {
+
+  @h1("client.not.found.error.h1")
+  @p("client.not.found.error.p")
+  @a_button(key = "client.not.found.error.a", href = routes.ManageClientController.showAllClients.url)
+}
+

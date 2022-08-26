@@ -24,10 +24,7 @@ import play.api.Application
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{
-  OptedInSingleUser,
-  OptedOutEligible
-}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInSingleUser, OptedOutEligible}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.SessionKeys
 

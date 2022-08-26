@@ -30,7 +30,7 @@
         textbox: textbox,
         submit_button_group: submit_button_group,
         input_select: input_select,
-        checkBox: checkBox
+        chekbox: chekbox
 )
 
 @(group: DisplayGroup, form: Form[SearchFilter])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -38,7 +38,10 @@
 @tableRows = @{
     group.clients.map(client =>
         Seq(
-            Html(client.name),
+            Html(
+               a(key = client.name,
+                   href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url).toString
+            ),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client.taxService))
         )

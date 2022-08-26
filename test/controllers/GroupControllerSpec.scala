@@ -50,7 +50,7 @@ class GroupControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
@@ -112,6 +112,7 @@ class GroupControllerSpec extends BaseSpec {
     s"redirect to ${routes.GroupController.showGroupName}" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       val result = controller.start()(request)
 
@@ -125,6 +126,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "have correct layout and content" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showGroupName()(request)
@@ -153,6 +155,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "redirect to confirmation page with when posting a valid group name" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitGroupName.url)
@@ -170,6 +173,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "render correct error messages when form not filled in" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitGroupName.url)
@@ -196,6 +200,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "render correct error messages when name exceeds 32 chars" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitGroupName.url)
@@ -224,6 +229,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "have correct layout and content" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -250,6 +256,7 @@ class GroupControllerSpec extends BaseSpec {
     "redirect to /group/group-name when there is no groupName in the session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
@@ -263,6 +270,7 @@ class GroupControllerSpec extends BaseSpec {
   "POST /group/confirm-name" should {
     "render correct error messages when nothing is submitted" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
@@ -289,6 +297,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "redirect to /group/group-name when there is no name in session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
@@ -305,6 +314,7 @@ class GroupControllerSpec extends BaseSpec {
 
     s"redirect to ${routes.GroupController.showAccessGroupNameExists.url} when the access group name already exists" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       getGroupNameCheckReturns(ok = false)(arn, groupName)
 
       implicit val request =
@@ -324,6 +334,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "redirect to add-clients page when confirm group name 'yes' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       getGroupNameCheckReturns(ok = true)(arn, groupName)
 
       implicit val request =
@@ -343,6 +354,7 @@ class GroupControllerSpec extends BaseSpec {
 
     "redirect to /group/group-name when confirm group name 'no' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", routes.GroupController.submitConfirmGroupName.url)
@@ -365,6 +377,7 @@ class GroupControllerSpec extends BaseSpec {
     "display content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -404,6 +417,7 @@ class GroupControllerSpec extends BaseSpec {
         }
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetClientsOk(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -452,6 +466,7 @@ class GroupControllerSpec extends BaseSpec {
       val displayClients = fakeClients.map(DisplayClient.fromClient(_))
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetClientsOk(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
@@ -491,6 +506,7 @@ class GroupControllerSpec extends BaseSpec {
     "render with No CLIENTS" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetClientsOk(arn)(List.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -520,6 +536,7 @@ class GroupControllerSpec extends BaseSpec {
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showSelectClients()(request)
@@ -536,6 +553,7 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Continue and redirect to ${routes.GroupController.showReviewSelectedClients.url}" in {
         // given
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubGetClientsOk(arn)(fakeClients)
 
         implicit val request =
@@ -569,6 +587,7 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Filter and redirect to ${routes.GroupController.showSelectClients.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubGetClientsOk(arn)(fakeClients)
         stubGetClientsOk(arn)(fakeClients)
 
@@ -607,6 +626,7 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Clear and redirect to ${routes.GroupController.showSelectClients.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubGetClientsOk(arn)(fakeClients)
 
         implicit val request =
@@ -645,6 +665,7 @@ class GroupControllerSpec extends BaseSpec {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetClientsOk(arn)(fakeClients)
 
       implicit val request = FakeRequest(
@@ -683,6 +704,7 @@ class GroupControllerSpec extends BaseSpec {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetClientsOk(arn)(fakeClients)
 
       implicit val request = FakeRequest(
@@ -724,6 +746,7 @@ class GroupControllerSpec extends BaseSpec {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request = FakeRequest(
         "POST",
@@ -763,6 +786,7 @@ class GroupControllerSpec extends BaseSpec {
         }
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -813,6 +837,7 @@ class GroupControllerSpec extends BaseSpec {
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showReviewSelectedClients()(request)
@@ -824,6 +849,7 @@ class GroupControllerSpec extends BaseSpec {
     "redirect to SELECT CLIENTS page when no selected clients are in the session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
@@ -852,6 +878,7 @@ class GroupControllerSpec extends BaseSpec {
     "render team members when filter is not applied" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetTeamMembersOk(arn)(fakeTeamMembers)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -892,6 +919,7 @@ class GroupControllerSpec extends BaseSpec {
     "render with filtered team members held in session when a filter was applied" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetTeamMembersOk(arn)(users)
 
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
@@ -931,6 +959,7 @@ class GroupControllerSpec extends BaseSpec {
     "render with NO Team Members" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetTeamMembersOk(arn)(Seq.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -960,6 +989,7 @@ class GroupControllerSpec extends BaseSpec {
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showSelectTeamMembers()(request)
@@ -976,6 +1006,7 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Continue and redirect to ${routes.GroupController.showReviewSelectedTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubGetTeamMembersOk(arn)(users)
 
         implicit val request =
@@ -1008,6 +1039,7 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Filter and redirect to ${routes.GroupController.showSelectTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubGetTeamMembersOk(arn)(users)
         stubGetTeamMembersOk(arn)(users)
 
@@ -1048,6 +1080,7 @@ class GroupControllerSpec extends BaseSpec {
       s"button is Clear and redirect to ${routes.GroupController.showSelectTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubGetTeamMembersOk(arn)(users)
 
         implicit val request =
@@ -1086,6 +1119,7 @@ class GroupControllerSpec extends BaseSpec {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetTeamMembersOk(arn)(users)
 
       implicit val request = FakeRequest(
@@ -1128,6 +1162,7 @@ class GroupControllerSpec extends BaseSpec {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetTeamMembersOk(arn)(users)
 
       implicit val request =
@@ -1171,6 +1206,7 @@ class GroupControllerSpec extends BaseSpec {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request = FakeRequest(
         "POST",
@@ -1206,6 +1242,7 @@ class GroupControllerSpec extends BaseSpec {
         }
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -1257,6 +1294,7 @@ class GroupControllerSpec extends BaseSpec {
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showReviewSelectedTeamMembers()(request)
@@ -1287,6 +1325,7 @@ class GroupControllerSpec extends BaseSpec {
                        None,
                        selected = true))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -1334,6 +1373,7 @@ class GroupControllerSpec extends BaseSpec {
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showCheckYourAnswers()(request)
@@ -1353,6 +1393,7 @@ class GroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       // when
@@ -1380,6 +1421,7 @@ class GroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, clients))
@@ -1419,6 +1461,7 @@ class GroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, clients))
@@ -1441,6 +1484,7 @@ class GroupControllerSpec extends BaseSpec {
     "render correctly the confirmation page" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(NAME_OF_GROUP_CREATED, groupName))

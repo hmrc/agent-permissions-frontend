@@ -17,16 +17,14 @@
 package controllers
 
 import config.AppConfig
+import connectors.AgentPermissionsConnector
 import play.api.mvc.Results.{Forbidden, Redirect}
 import play.api.mvc.{RequestHeader, Result}
 import play.api.{Configuration, Environment, Logging}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{
-  allEnrolments,
-  credentialRole
-}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
@@ -38,7 +36,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class AuthAction @Inject()(val authConnector: AuthConnector,
                            val env: Environment,
-                           val config: Configuration)
+                           val config: Configuration,
+                           agentPermissionsConnector: AgentPermissionsConnector)
     extends AuthRedirects
     with AuthorisedFunctions
     with Logging {
@@ -60,14 +59,13 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
             case Some(arn) =>
               credRole match {
                 case Some(User) | Some(Admin) =>
-                  if (appConfig.checkArnAllowList) {
-                    if (appConfig.allowedArns.contains(arn.value)) {
+                  agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
+                    if (isArnAllowed) {
                       body(arn)
                     } else {
+                      logger.warn("ARN is not on allowed list")
                       Future.successful(Forbidden)
                     }
-                  } else {
-                    body(arn)
                   }
                 case _ =>
                   logger.warn("Invalid credential role")

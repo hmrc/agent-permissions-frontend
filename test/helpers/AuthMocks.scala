@@ -16,6 +16,8 @@
 
 package helpers
 
+import connectors.AgentPermissionsConnector
+import org.scalamock.handlers.CallHandler2
 import org.scalamock.scalatest.MockFactory
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
@@ -43,4 +45,10 @@ trait AuthMocks extends MockFactory {
                                                           _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future failed throwable)
+
+  def expectIsArnAllowed(allowed: Boolean)
+                        (implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler2[HeaderCarrier, ExecutionContext, Future[Boolean]] =
+    (agentPermissionsConnector.isArnAllowed(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *)
+      .returning(Future successful allowed)
 }

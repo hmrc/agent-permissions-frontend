@@ -49,7 +49,7 @@ class OptInControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
@@ -70,6 +70,7 @@ class OptInControllerSpec extends BaseSpec {
     "display content for start" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.start()(request)
@@ -127,6 +128,7 @@ class OptInControllerSpec extends BaseSpec {
     "redirect user to root when user is not eligible" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedOutSingleUser)
 
       val result = controller.start()(request)
@@ -139,6 +141,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.showDoYouWantToOptIn()(request)
@@ -171,6 +174,7 @@ class OptInControllerSpec extends BaseSpec {
     "redirect to 'you have opted in' page with answer 'true'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -191,6 +195,7 @@ class OptInControllerSpec extends BaseSpec {
     "redirect to 'you have not opted in' page with answer 'false'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -209,6 +214,7 @@ class OptInControllerSpec extends BaseSpec {
     "render correct error messages when form not filled in" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
@@ -237,6 +243,7 @@ class OptInControllerSpec extends BaseSpec {
     "throw exception when there was a problem with optin call" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubPostOptInError(arn)
 
       implicit val request =
@@ -256,6 +263,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content when client list not available yet" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(
         sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
 
@@ -292,6 +300,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content when client list is ready" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(
         sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
 
@@ -325,6 +334,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(
         sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS,
                                                  OptedOutEligible))

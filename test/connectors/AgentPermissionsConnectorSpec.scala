@@ -21,7 +21,7 @@ import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.DisplayClient
 import play.api.Application
-import play.api.http.Status.{CONFLICT, CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
+import play.api.http.Status.{CONFLICT, CREATED, FORBIDDEN, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, EnrolmentKey, Identifier, OptedInReady}
@@ -431,6 +431,35 @@ class AgentPermissionsConnectorSpec
         await(connector.groupNameCheck(arn, groupName))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "Is Arn Allowed" when {
+
+    s"backend returns $OK" should {
+      "return true" in {
+        val expectedUrl =
+          s"http://localhost:9447/agent-permissions/arn-allowed"
+
+        val mockResponse = HttpResponse.apply(OK, "")
+
+        mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+        connector.isArnAllowed.futureValue shouldBe true
+      }
+    }
+
+    s"backend returns non-$OK" should {
+      "return false" in {
+        val expectedUrl =
+          s"http://localhost:9447/agent-permissions/arn-allowed"
+
+        val mockResponse = HttpResponse.apply(FORBIDDEN, "")
+
+        mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+        connector.isArnAllowed.futureValue shouldBe false
+      }
     }
   }
 }

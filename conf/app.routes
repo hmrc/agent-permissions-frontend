@@ -88,6 +88,3 @@ GET     /manage-clients/client-details/client-reference-updated/:clientId   cont
 # Manage team members
 GET     /manage-team-members                                                     controllers.ManageTeamMemberController.showAllTeamMembers
 GET     /manage-team-members/team-member-details/:memberId                       controllers.ManageTeamMemberController.showTeamMemberDetails(memberId: String)
-
-# ARN Allow List
-GET     /arn-allowed                                                         controllers.ArnAllowListController.isArnAllowed

@@ -17,7 +17,6 @@
 package config
 
 import com.google.inject.ImplementedBy
-import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
@@ -39,12 +38,10 @@ trait AppConfig {
   def agentPermissionsBaseUrl: String
   def agentUserClientDetailsBaseUrl: String
   def sessionCacheExpiryDuration: Duration
-  def checkArnAllowList: Boolean
-  def allowedArns: Seq[String]
 }
 
 @Singleton
-class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, configuration: Configuration)
+class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
     extends AppConfig {
   lazy val appName: String = servicesConfig.getString("appName")
   lazy val welshLanguageSupportEnabled: Boolean =
@@ -70,6 +67,4 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, configuration:
     servicesConfig.baseUrl("agent-user-client-details")
   lazy val sessionCacheExpiryDuration: Duration =
     servicesConfig.getDuration("mongodb.cache.expiry")
-  override lazy val checkArnAllowList: Boolean = servicesConfig.getBoolean("features.check-arn-allow-list")
-  override lazy val allowedArns: Seq[String] = configuration.get[Seq[String]]("allowed.arns")
 }

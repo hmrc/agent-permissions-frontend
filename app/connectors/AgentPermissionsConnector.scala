@@ -81,6 +81,8 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def groupNameCheck(arn: Arn, name: String)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Boolean]
+
+  def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
 }
 
 @Singleton
@@ -309,6 +311,20 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
             throw UpstreamErrorResponse(
               s"error DELETING update group request to $url",
               anyOtherStatus)
+        }
+      }
+    }
+  }
+
+  override def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
+    val url = s"$baseUrl/agent-permissions/arn-allowed"
+    monitor("ConsumedAPI-GranPermsArnAllowed-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK => true
+          case other =>
+            logger.warn(s"ArnAllowed call returned status $other")
+            false
         }
       }
     }

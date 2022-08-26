@@ -44,7 +44,7 @@ class RootControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
@@ -60,6 +60,7 @@ class RootControllerSpec extends BaseSpec {
       "retrieve opt-in status from backend and redirect to self if status available" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubOptInStatusOk(arn)(OptedOutEligible)
 
         val result = controller.start()(request)
@@ -72,6 +73,7 @@ class RootControllerSpec extends BaseSpec {
       "throw an exception if there was no response from the backend" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         stubOptInStatusError(arn)
 
         intercept[UpstreamErrorResponse] {
@@ -84,6 +86,7 @@ class RootControllerSpec extends BaseSpec {
       "redirect to opt-in journey if the optin status is eligible to opt-in" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
         val result = controller.start()(request)
@@ -96,6 +99,7 @@ class RootControllerSpec extends BaseSpec {
       "redirect to opt-out journey if the optin status is eligible to opt-out" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
         val result = controller.start()(request)
@@ -108,6 +112,7 @@ class RootControllerSpec extends BaseSpec {
       "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutSingleUser))
 
         val result = controller.start()(request)

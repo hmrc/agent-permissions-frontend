@@ -65,7 +65,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
@@ -103,6 +103,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
       stubGetTeamMembersOk(arn)(userDetails)
 
@@ -141,6 +142,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
       stubGetTeamMembersOk(arn)(userDetails)
 
@@ -175,6 +177,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
       stubGetTeamMembersOk(arn)(userDetails)
 
@@ -204,6 +207,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
       stubGetTeamMembersOk(arn)(userDetails)
       stubGetTeamMembersOk(arn)(userDetails)
@@ -236,6 +240,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers ))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
       stubGetTeamMembersOk(arn)(userDetails)
       stubGetTeamMembersOk(arn)(userDetails)
@@ -267,6 +272,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(Set(AgentUser("id1", "John"))))))
       stubGetTeamMembersOk(arn)(userDetails)
       stubGetTeamMembersOk(arn)(userDetails)
@@ -316,6 +322,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         stubGetTeamMembersOk(arn)(userDetails)
 
@@ -344,6 +351,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             .withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         stubGetTeamMembersOk(accessGroup.arn)(userDetails)
@@ -375,6 +383,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             .withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
@@ -409,6 +418,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         stubGetTeamMembersOk(arn)(userDetails)
 
@@ -429,6 +439,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
@@ -445,6 +456,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
@@ -466,6 +478,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
@@ -482,6 +495,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when

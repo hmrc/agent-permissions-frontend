@@ -51,7 +51,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
@@ -100,6 +100,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render the manage clients list with no query params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
 
@@ -128,6 +129,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render the manage clients list with search params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
 
@@ -155,6 +157,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render with filter that matches nothing" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
 
@@ -183,6 +186,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
 
@@ -210,6 +214,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render the clients details page with NO GROUPS" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolment, None)
       stubGetClientsOk(arn)(fakeClients)
@@ -230,6 +235,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render the clients details page with list of groups" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolment, Some(groupSummaries))
       stubGetClientsOk(arn)(fakeClients)
@@ -255,6 +261,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render update_client_reference with existing client reference" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
       //when
@@ -273,6 +280,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render update_client_reference without a client reference" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
 
       val fakeClientWithoutFriendlyName = fakeClients.head.copy(friendlyName = "")
@@ -299,6 +307,7 @@ class ManageClientControllerSpec extends BaseSpec {
     s"redirect to ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       //await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
       stubGetClientsOk(arn)(fakeClients)
@@ -315,6 +324,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "display errors for update_client_details" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetClientsOk(arn)(fakeClients)
 
@@ -336,6 +346,7 @@ class ManageClientControllerSpec extends BaseSpec {
     "render client_details_complete with new client reference" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
       stubGetClientsOk(arn)(fakeClients)

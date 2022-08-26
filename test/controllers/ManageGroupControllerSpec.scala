@@ -65,7 +65,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
@@ -107,6 +107,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
@@ -194,6 +195,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val summaries = None
@@ -255,6 +257,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render content when filtered clients in session" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
       val groupSummaries = (1 to 3).map(i =>
@@ -339,6 +342,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render content when filtered access groups and filtered clients in session" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
 
@@ -427,6 +431,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the manage groups page" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
@@ -453,6 +458,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render NOT_FOUND when no group is found for this group id" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(groupId, Option.empty[AccessGroup])
 
@@ -481,7 +487,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-
+      expectIsArnAllowed(true)
 
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
@@ -517,6 +523,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
@@ -545,6 +552,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
@@ -590,6 +598,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(groupId, Some(accessGroup))
       expectUpdateGroupSuccess(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
 
@@ -617,6 +626,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "redirect when no group is returned for this group id" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       implicit val request =
         FakeRequest("POST",
                     routes.ManageGroupController.submitRenameGroup(groupId).url)
@@ -654,6 +664,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
       //when
@@ -668,6 +679,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the manage groups page" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_RENAMED_FROM, "Previous Name"))
       expectGetGroupSuccess(groupId, Some(accessGroup))
@@ -701,6 +713,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the DELETE group page" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
@@ -730,6 +743,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST",
@@ -758,6 +772,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the DASHBOARD group page when 'no' selected" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       implicit val request =
         FakeRequest("POST",
@@ -792,6 +807,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSuccess(groupId, Some(accessGroup))
 
       //when
@@ -806,6 +822,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_DELETED_NAME, "Rubbish"))
 
@@ -841,6 +858,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       s"when button is Continue" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetClientsOk(arn)(fakeClients)
 
       implicit val request =
@@ -872,6 +890,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       s"when button is NOT Continue" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubGetClientsOk(arn)(fakeClients)
       stubGetClientsOk(arn)(fakeClients)
 
@@ -903,6 +922,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     s"present page with errors when form validation fails" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSummarySuccess(arn, None)
 
       implicit val request =
@@ -926,6 +946,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     s"present page with errors when form validation fails and filtered clients exist" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSummarySuccess(arn, None)
 
       implicit val request =
@@ -955,6 +976,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "redirect if no clients selected are in session" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectIsArnAllowed(true)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       //when
@@ -970,6 +992,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       //when
       val result = controller.showSelectedUnassignedClients(request)
@@ -996,6 +1019,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
 
       //when
@@ -1024,6 +1048,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
@@ -1046,6 +1071,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
 
       //when
@@ -1070,6 +1096,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
 
       //when
@@ -1098,6 +1125,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
 
       //when
@@ -1122,6 +1150,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groups))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       //when
       val result = controller.showConfirmClientsAddedToGroups(request)
@@ -1146,6 +1175,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
 
       //when
       val result = controller.showConfirmClientsAddedToGroups(request)

@@ -49,7 +49,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
@@ -94,6 +94,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     "render the manage team members list" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetTeamMembersOk(arn)(userDetails)
 
@@ -121,6 +122,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     "render the manage team members list with query params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetTeamMembersOk(arn)(userDetails)
 
@@ -148,6 +150,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetTeamMembersOk(arn)(userDetails)
       //and we have CLEAR filter in query params
@@ -174,6 +177,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     "render the team member details page with NO GROUPS" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, None)
       stubGetTeamMembersOk(arn)(userDetails)
@@ -194,6 +198,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     "render the clients details page with list of groups" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, Some(groupSummaries))
       stubGetTeamMembersOk(arn)(userDetails)

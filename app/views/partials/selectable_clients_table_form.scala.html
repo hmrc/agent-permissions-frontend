@@ -32,7 +32,7 @@
         submit_button_group: submit_button_group,
         textbox: textbox,
         input_select: input_select,
-        checkbox: checkbox,
+        chekbox: chekbox,
         summaryErrors: SummaryErrors,
         formWithCSRF: FormWithCSRF
 )
@@ -48,7 +48,7 @@
     clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
         Seq(
             Html(
-                checkbox(
+                chekbox(
                     name = Some("clients[]"),
                     id = Some(s"add-client-${client.id}"),
                     label = displayNameOrFullReference(client.name, client.hmrcRef),

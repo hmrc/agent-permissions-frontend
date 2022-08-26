@@ -25,7 +25,7 @@
     p: p, h1: h1, h3: h3, a: a, ul: ul,
     formWithCSRF: FormWithCSRF,
     caption: caption, table: table,
-    submit_button: submit_button,
+    submit_button: submit_button, a_button: link_as_button,
     checkboxes: checkboxes,
 )
 
@@ -70,7 +70,10 @@
                     )
                 }
             )
-
+            @a_button(
+                routes.ManageClientController.showClientDetails(client.id).url,
+                key = "common.cancel"
+            )
             @submit_button()
         }
     }

@@ -21,60 +21,66 @@
 @import views.html.main_layout
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, h3: h3, a: a, ul: ul,
-    formWithCSRF: FormWithCSRF,
-    caption: caption, table: table,
-    submit_button: submit_button, a_button: link_as_button,
-    checkboxes: checkboxes,
+        layout: main_layout,
+        p: p, h1: h1, h3: h3, a: a, ul: ul,
+        formWithCSRF: FormWithCSRF,
+        caption: caption, table: table,
+        submit_button: submit_button, a_button: link_as_button,
+        checkboxes: checkboxes,
 )
 
 @(
     groupsForClient: Seq[GroupSummary],
-    availableGroups: Seq[GroupSummary],
+    availableGroups: Seq[GroupSummary] = Seq.empty,
     client: DisplayClient,
     form: Form[_]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig) {
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@h1Text = @{msgs(if(availableGroups.isEmpty) "client.select.groups.none.h1" else "client.select.groups.h1", client.name)}
 
     @layout(
-        title = msgs("client.select.groups.h1", client.name),
+        title = h1Text,
         backLinkHref = Some(routes.ManageClientController.showClientDetails(client.id).url),
         fullWidth = true,
         formErrors = form.errors
     ) {
 
-        @formWithCSRF(action = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id)) {
+        <div class="govuk-!-width-two-thirds">
+            @h1(h1Text)
+        </div>
 
-            <div class="govuk-!-width-two-thirds">
-            @h1(msgs("client.select.groups.h1", client.name))
-            </div>
+        @p("client.select.groups.p1")
 
-            @p("client.select.groups.p1")
-            @ul(
-                items = groupsForClient.map(_.groupName),
-                id = Some("already-in-groups")
-            )
+        @ul(
+            items = groupsForClient.map(_.groupName),
+            id = Some("already-in-groups")
+        )
 
+        @if(!availableGroups.isEmpty) {
 
-            @checkboxes(
-                id = Some("groups"),
-                hint = Some("Select all that apply"),
-                field = form("groups"),
-                name = "groups[]",
-                items = availableGroups.map { g =>
-                    CheckboxData(
-                        id = g.groupId,
-                        label = g.groupName,
-                        value = g.groupId
-                    )
-                }
-            )
-            @a_button(
-                routes.ManageClientController.showClientDetails(client.id).url,
-                key = "common.cancel"
-            )
-            @submit_button()
+            @formWithCSRF(action = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id)) {
+
+                @checkboxes(
+                    id = Some("groups"),
+                    hint = Some("Select all that apply"),
+                    field = form("groups"),
+                    name = "groups[]",
+                    items = availableGroups.map { g =>
+                        CheckboxData(
+                            id = g.groupId,
+                            label = g.groupName,
+                            value = g.groupId
+                        )
+                    }
+                )
+
+                @a_button(
+                    routes.ManageClientController.showClientDetails(client.id).url,
+                    key = "common.cancel",
+                    classes = Some("govuk-button--secondary govuk-!-margin-right-3")
+                )
+                @submit_button(messageKey = "save.and.continue.button")
+            }
         }
     }
-}
+

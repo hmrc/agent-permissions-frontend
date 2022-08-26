@@ -20,10 +20,10 @@
    href: String,
    key: String = "common.continue",
    id: String = "button-link",
-   submitClass: Option[String] = None
+   classes: Option[String] = None
 )(implicit msgs: Messages)
 
-@cls = @{submitClass.getOrElse("").concat(" govuk-button")}
+@cls = @{classes.getOrElse("").concat(" govuk-button")}
 
 <a id="@id"
    href="@href"

@@ -222,6 +222,7 @@ group-name-filter.text.label=Filter by group name
 client.select.groups.h1=Which access groups would you like to add {0} to?
 client.select.groups.p1=Client is currently in these access groups:
 error.client.select.groups.empty=You must select at least one group
+client.select.groups.none.h1=There are no available groups to add {0} to
 
 client.not.found.error.h1=Client not found
 client.not.found.error.p=Please check the url or return to the Manage groups page

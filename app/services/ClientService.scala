@@ -18,7 +18,7 @@ package services
 
 import akka.Done
 import com.google.inject.ImplementedBy
-import connectors.AgentUserClientDetailsConnector
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture, selectingClientsKeys}
 import models.ButtonSelect.{Clear, Continue, Filter}
 import models.DisplayClient.toEnrolment
@@ -37,6 +37,9 @@ trait ClientService {
   def getClients(arn: Arn)
                 (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
 
+  def getUnassignedClients(arn: Arn)
+                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
+
   def lookupClient(arn: Arn)(clientId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]]
 
@@ -44,7 +47,7 @@ trait ClientService {
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]]
 
   def saveSelectedOrFilteredClients(buttonSelect: ButtonSelect)(arn: Arn)
-                                   (formData: AddClientsToGroup)
+                                   (formData: AddClientsToGroup)(getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
@@ -57,6 +60,7 @@ trait ClientService {
 @Singleton
 class ClientServiceImpl @Inject()(
                                    agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+                                   agentPermissionsConnector: AgentPermissionsConnector,
                                    val sessionCacheRepository: SessionCacheRepository
                                  ) extends ClientService with GroupMemberOps {
 
@@ -83,6 +87,10 @@ class ClientServiceImpl @Inject()(
     } yield filtered.orElse(es3)
 
   }
+
+  def getUnassignedClients(arn: Arn)
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] =
+    agentPermissionsConnector.groupsSummaries(arn).map(_.map(_._2))
 
   def lookupClient(arn: Arn)
                   (clientId: String)
@@ -118,7 +126,8 @@ class ClientServiceImpl @Inject()(
   def saveSelectedOrFilteredClients(buttonSelect: ButtonSelect)
                                    (arn: Arn)
                                    (formData: AddClientsToGroup
-                                   )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
+                                   )(getClients: Arn => Future[Option[Seq[DisplayClient]]])
+                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     buttonSelect match {
       case Clear =>
@@ -148,13 +157,13 @@ class ClientServiceImpl @Inject()(
           )(SELECTED_CLIENTS, FILTERED_CLIENTS)
           _ <- sessionCacheRepository.putSession(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
           _ <- sessionCacheRepository.putSession(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
-          _ <- filterClients(arn)(formData)
+          _ <- filterClients(arn)(formData)(getClients)
         } yield ()
 
     }
   }
 
-    private def filterClients(arn: Arn)(formData: AddClientsToGroup)
+    private def filterClients(arn: Arn)(formData: AddClientsToGroup)(getClients: Arn => Future[Option[Seq[DisplayClient]]])
                      (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext)
     : Future[Option[Seq[DisplayClient]]] =
       for {

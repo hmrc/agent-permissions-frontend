@@ -36,7 +36,7 @@ class ClientServiceSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
 
   val service =
-    new ClientServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo)
+    new ClientServiceImpl(mockAgentUserClientDetailsConnector, mockAgentPermissionsConnector,sessionCacheRepo)
 
   val fakeClients: Seq[Client] = (1 to 10)
     .map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly name $i"))

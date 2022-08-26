@@ -138,7 +138,7 @@ class ManageGroupClientsController @Inject()(
                 }
               },
               formData => {
-                clientService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData).flatMap(_ =>
+                clientService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData)(clientService.getClients).flatMap(_ =>
                   if (buttonSelection == ButtonSelect.Continue) {
                     for {
                       enrolments <- sessionCacheRepository

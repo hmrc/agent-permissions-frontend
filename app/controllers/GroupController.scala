@@ -174,7 +174,7 @@ class GroupController @Inject()(
 
             },
             formData => {
-              clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)
+              clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getClients)
                 .map(_ =>
                   if (buttonSelection == ButtonSelect.Continue)
                     Redirect(routes.GroupController.showReviewSelectedClients)

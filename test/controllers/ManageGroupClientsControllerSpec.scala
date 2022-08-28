@@ -20,7 +20,6 @@ import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.DisplayClient.toEnrolment
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
@@ -111,7 +110,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "render correctly the EXISTING CLIENTS page with no query params" in {
       //given
       val groupWithClients = accessGroup.copy(clients =
-        Some(displayClients.map(DisplayClient.toEnrolment).toSet))
+        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -158,7 +157,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "render with filter & searchTerm set" in {
       //given
       val groupWithClients = accessGroup.copy(clients =
-        Some(displayClients.map(DisplayClient.toEnrolment).toSet))
+        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -192,7 +191,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "render with filter that matches nothing" in {
       //given
       val groupWithClients = accessGroup.copy(clients =
-        Some(displayClients.map(DisplayClient.toEnrolment).toSet))
+        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -227,7 +226,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
       val groupWithClients = accessGroup.copy(clients =
-        Some(displayClients.map(DisplayClient.toEnrolment).toSet))
+        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -326,8 +325,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "render correctly the manage group CLIENTS page when there are clients already in the group" in {
       //given
-      val enrolments = displayClients.map(dc => DisplayClient.toEnrolment(dc)).toSet
-      val groupWithClients = accessGroup.copy(clients = Some(enrolments))
+      val clients = displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
+      val groupWithClients = accessGroup.copy(clients = Some(clients))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -425,7 +424,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         stubGetClientsOk(arn)(fakeClients)
 
         expectUpdateGroupSuccess(accessGroup._id.toString,
-          UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(toEnrolment(_)))))
+          UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name)))))
 
         val result =
           controller.submitManageGroupClients(accessGroup._id.toString)(request)

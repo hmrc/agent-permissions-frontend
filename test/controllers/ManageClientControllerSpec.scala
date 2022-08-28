@@ -28,7 +28,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, GroupServiceImpl}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, Enrolment, Identifier, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -93,7 +93,7 @@ class ManageClientControllerSpec extends BaseSpec {
     GroupSummary("groupId-1", "groupName-1", 3, 0)
   )
 
-  val enrolment: Enrolment = Enrolment("HMRC-MTD-VAT","Activated","friendly0",Seq(Identifier("VRN","123456780")))
+  val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
 
   s"GET ${routes.ManageClientController.showAllClients.url}" should {
 
@@ -216,7 +216,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
-      expectGetGroupsForClientSuccess(arn, enrolment, None)
+      expectGetGroupsForClientSuccess(arn, enrolmentKey, None)
       stubGetClientsOk(arn)(fakeClients)
 
       //when
@@ -237,7 +237,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
-      expectGetGroupsForClientSuccess(arn, enrolment, Some(groupSummaries))
+      expectGetGroupsForClientSuccess(arn, enrolmentKey, Some(groupSummaries))
       stubGetClientsOk(arn)(fakeClients)
 
       //when

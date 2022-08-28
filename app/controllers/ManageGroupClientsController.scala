@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
-import models.DisplayClient.{format, toEnrolment}
+import models.DisplayClient.format
 import models.{ButtonSelect, DisplayClient, DisplayGroup, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -92,7 +92,8 @@ class ManageGroupClientsController @Inject()(
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group =>
       for {
-        _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS, DisplayClient.fromEnrolments(group.clients))
+        _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS,
+          group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true)))
         maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
         clients <- clientService.getClients(group.arn)
       } yield Ok(
@@ -145,7 +146,7 @@ class ManageGroupClientsController @Inject()(
                         .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
                         .map { maybeClients: Option[Seq[DisplayClient]] =>
                           maybeClients
-                            .map(_.map(toEnrolment(_)))
+                            .map(_.map(dc => Client(dc.enrolmentKey, dc.name)))
                             .map(_.toSet)
                         }
                       groupRequest = UpdateAccessGroupRequest(clients = enrolments)

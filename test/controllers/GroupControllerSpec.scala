@@ -1431,9 +1431,9 @@ class GroupControllerSpec extends BaseSpec {
       // and we expect the following call to the agentPermissionsConnector
       val expectedAgents =
         teamMembers.map(tm => AgentUser(tm.userId.get, tm.name))
-      val expectedEnrolments = clients.map(DisplayClient.toEnrolment(_))
+      val expectedClients = clients.map(dc => Client(dc.enrolmentKey, dc.name))
       val expectedGroupRequest =
-        GroupRequest(groupName, Some(expectedAgents), Some(expectedEnrolments))
+        GroupRequest(groupName, Some(expectedAgents), Some(expectedClients))
       expectCreateGroupSuccess(arn, expectedGroupRequest)
 
       // when

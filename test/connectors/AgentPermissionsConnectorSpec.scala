@@ -21,10 +21,10 @@ import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.DisplayClient
 import play.api.Application
-import play.api.http.Status.{CONFLICT, CREATED, FORBIDDEN, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
+import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Enrolment, EnrolmentKey, Identifier, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
@@ -169,7 +169,7 @@ class AgentPermissionsConnectorSpec
 
   "GET GroupSummariesForClient" should {
 
-    val enrolment = Enrolment("HMRC-MTD-VAT","Activated","friendly0",Seq(Identifier("VRN","123456780")))
+    val client = Client("123456780", "friendly0")
 
     "return groups successfully" in {
       //given
@@ -177,10 +177,8 @@ class AgentPermissionsConnectorSpec
         GroupSummary("groupId", "groupName", 33, 9)
       )
 
-      val enrolmentKey = EnrolmentKey.enrolmentKeys(enrolment).head
-
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/$enrolmentKey/groups"
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/${client.enrolmentKey}/groups"
       val mockJsonResponseBody = Json.toJson(groupSummaries).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
@@ -193,7 +191,7 @@ class AgentPermissionsConnectorSpec
 
       //then
       connector
-        .getGroupsForClient(arn, enrolment)
+        .getGroupsForClient(arn, client.enrolmentKey)
         .futureValue shouldBe expectedTransformedResponse
     }
 
@@ -204,7 +202,7 @@ class AgentPermissionsConnectorSpec
 
       //then
       connector
-        .getGroupsForClient(arn, enrolment)
+        .getGroupsForClient(arn, client.enrolmentKey)
         .futureValue shouldBe None
     }
 
@@ -215,7 +213,7 @@ class AgentPermissionsConnectorSpec
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
-        await(connector.getGroupsForClient(arn, enrolment))
+        await(connector.getGroupsForClient(arn, client.enrolmentKey))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
@@ -291,12 +289,7 @@ class AgentPermissionsConnectorSpec
                     agent,
                     agent,
                     Some(Set(agent)),
-                    Some(
-                      Set(
-                        Enrolment("service",
-                                  "state",
-                                  "friendly",
-                                  Seq(Identifier("key", "value"))))))
+                    Some(Set(Client("service~key~value", "friendly"))))
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/groups/$groupId"

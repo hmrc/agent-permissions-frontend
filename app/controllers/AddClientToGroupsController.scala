@@ -25,7 +25,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.add_groups_to_client.{confirm_added, select_groups}
 
@@ -89,10 +89,10 @@ class AddClientToGroupsController @Inject()(
           }
         }
       }, { groupIds =>
-        val enrolment = DisplayClient.toEnrolment(displayClient)
+        val client = Client(displayClient.enrolmentKey, displayClient.name)
         Future.sequence(groupIds.map { grp =>
           agentPermissionsConnector.addMembersToGroup(
-            grp, AddMembersToAccessGroupRequest(clients = Some(Set(enrolment))
+            grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))
             ))
         }).map { _ =>
           sessionCacheRepository.putSession[Seq[String]](GROUP_IDS_ADDED_TO, groupIds)

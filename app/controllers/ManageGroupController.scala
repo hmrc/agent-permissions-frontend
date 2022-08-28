@@ -184,11 +184,11 @@ class ManageGroupController @Inject()(
                   Redirect(routes.ManageGroupController.showManageGroups).toFuture
                 )
                 { displayClients =>
-                  val enrolments: Set[Enrolment] = displayClients.map(DisplayClient.toEnrolment(_)).toSet
+                  val clients: Set[Client] = displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
                   Future.sequence( groupsToAddTo.map{ grp =>
                     //TODO: what do we do if 3 out of 4 fail to save?
                     agentPermissionsConnector.addMembersToGroup (
-                      grp.groupId, AddMembersToAccessGroupRequest(clients = Some(enrolments))
+                      grp.groupId, AddMembersToAccessGroupRequest(clients = Some(clients))
                     )
                   }).map{ _ =>
                     Redirect(routes.ManageGroupController.showConfirmClientsAddedToGroups)

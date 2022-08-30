@@ -38,8 +38,7 @@ class OptInController @Inject()(
                                  optInService: OptInServiceImpl,
                                  start_optIn: start,
                                  want_to_opt_in: want_to_opt_in,
-                                 you_have_opted_in: you_have_opted_in,
-                                 you_have_not_opted_in: you_have_not_opted_in
+                                 you_have_opted_in: you_have_opted_in
 )(implicit val appConfig: AppConfig,
   ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi)
@@ -82,7 +81,7 @@ class OptInController @Inject()(
                     .map(_ =>
                       Redirect(routes.OptInController.showYouHaveOptedIn.url))
                 else
-                  Redirect(routes.OptInController.showYouHaveNotOptedIn.url).toFuture
+                  Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
               }
             )
         }
@@ -95,15 +94,6 @@ class OptInController @Inject()(
       isAuthorisedAgent { arn =>
         isOptedIn(arn) { status =>
             Ok(you_have_opted_in(status)).toFuture
-        }
-      }
-  }
-
-  def showYouHaveNotOptedIn: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent { arn =>
-        isEligibleToOptIn(arn) { _ =>
-          Future.successful(Ok(you_have_not_opted_in()))
         }
       }
   }

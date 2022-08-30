@@ -40,6 +40,7 @@ object Css {
   def tabPanelWithIdOf(id: String) = s".govuk-tabs__panel#$id"
   val submitButton = "main form button#continue[type=submit]"
   val linkStyledAsButton = "a.govuk-button"
+  val link = "main a"
   val currentLanguage =
     "ul.hmrc-language-select__list li.hmrc-language-select__list-item span[aria-current=true]";
   val alternateLanguage =

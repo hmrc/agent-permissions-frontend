@@ -26,7 +26,7 @@
 
 @ready = @{optinStatus == OptedInReady}
 
-@optionalP = @{if(ready){a(key = "you-have-opted-in.link",href= appConfig.agentServicesAccountManageAccountUrl, classes = Some("govuk-!-margin-left-5 govuk-!-margin-top-5"))} else {}}
+@optionalA = @{if(ready){a(key = "you-have-opted-in.link",href= appConfig.agentServicesAccountManageAccountUrl, classes = Some("govuk-!-margin-left-3 govuk-!-margin-top-5"))} else {}}
 
 @continueUrl = @{if(ready) {routes.GroupController.start.url} else {appConfig.agentServicesAccountManageAccountUrl}}
 
@@ -36,8 +36,11 @@
     @h2(s"you-have-opted-in.h2")
     @p(s"you-have-opted-in.p1.ready.$ready")
     @p(s"you-have-opted-in.p2.ready.$ready")
-    @link_as_button(key = s"you-have-opted-in.button.ready.$ready", href = continueUrl, classes = Some("govuk-!-margin-top-5"))
-    @optionalP
+
+    <div class="govuk-button-group">
+        @link_as_button(key = s"you-have-opted-in.button.ready.$ready", href = continueUrl, classes = Some("govuk-!-margin-top-5"))
+        @optionalA
+    </div>
 
 
 }

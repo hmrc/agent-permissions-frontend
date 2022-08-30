@@ -59,7 +59,7 @@ class OptInControllerSpec extends BaseSpec {
 
   val controller = fakeApplication.injector.instanceOf[OptInController]
 
-  "GET /opt-in/start" should {
+  s"GET ${routes.OptInController.start}" should {
 
     "display content for start" in {
 
@@ -71,24 +71,31 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Opting in to use access groups - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Opting in to use access groups"
+      html.title() shouldBe "Turn on access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Turn on access groups"
       html
         .select(Css.insetText)
-        .text() shouldBe "By default, agent services accounts allow all users to view and manage the tax affairs of all clients using a shared login"
+        .text() shouldBe "By default, agent services accounts allow all team members to view and manage the tax affairs of all clients using shared sign in details."
       //if adding a para please test it!
       val paragraphs = html.select(Css.paragraphs)
-      paragraphs.size() shouldBe 2
+      paragraphs.size() shouldBe 4
       paragraphs
         .get(0)
-        .text() shouldBe "If you opt in to use access groups you can create groups of clients based on client type, tax services, regions or your team members internal working groups."
+        .text() shouldBe "This feature is designed for agent services accounts with multiple clients who would like to assign team members to view and manage their client‘s tax affairs."
       paragraphs
         .get(1)
-        .text() shouldBe "This feature is designed for agent services accounts that have multiple clients and want to manage team member access rights to their client’s tax information."
+        .text() shouldBe "If you turn on this feature you can create access groups of clients based on client type, tax services, regions or your internal working groups."
+      paragraphs
+        .get(2)
+        .text() shouldBe "You can then manage access permissions by assigning your team members to each access group."
+      paragraphs
+        .get(3)
+        .text() shouldBe "Your organisation may have already created access groups and then turned this feature off. Turning access groups on will restore these groups."
+
       html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
+        .attr("href") shouldBe "/agent-permissions/confirm-turn-on"
     }
 
     "return Forbidden when user is not an Agent" in {
@@ -131,7 +138,7 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  "GET /opt-in/do-you-want-to-opt-in" should {
+  s"GET ${routes.OptInController.showDoYouWantToOptIn}" should {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -143,35 +150,35 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Do you want to turn on access groups? - Manage Agent Permissions - GOV.UK"
       html
         .select(Css.H1)
-        .text() shouldBe "Do you want to opt in to use access groups?"
+        .text() shouldBe "Do you want to turn on access groups?"
       html
         .select(Css.form)
-        .attr("action") shouldBe "/agent-permissions/opt-in/do-you-want-to-opt-in"
+        .attr("action") shouldBe "/agent-permissions/confirm-turn-on"
 
       val answerRadios = html.select(Css.radioButtonsField("answer"))
       answerRadios
         .select("label[for=true]")
-        .text() shouldBe "Yes, I want to opt-in"
+        .text() shouldBe "Yes, I want to turn access groups on"
       answerRadios
         .select("label[for=false]")
-        .text() shouldBe "No, I want to remain opted-out"
+        .text() shouldBe "No, I want to keep access groups turned off"
 
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
   }
 
-  "POST /opt-in/do-you-want-to-opt-in" should {
+  s"POST ${routes.OptInController.submitDoYouWantToOptIn}" should {
 
-    "redirect to 'you have opted in' page with answer 'true'" in {
+    s"redirect to '${routes.OptInController.showYouHaveOptedIn}' page with answer 'true'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
 
       implicit val request =
-        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -186,13 +193,13 @@ class OptInControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.OptInController.showYouHaveOptedIn.url
     }
 
-    "redirect to 'you have not opted in' page with answer 'false'" in {
+    "redirect to 'ASA Manage account' page with answer 'false'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
 
       implicit val request =
-        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -202,7 +209,7 @@ class OptInControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(
-        "/agent-permissions/opt-in/you-have-not-opted-in")
+        "http://localhost:9401/agent-services-account/manage-account")
     }
 
     "render correct error messages when form not filled in" in {
@@ -211,7 +218,7 @@ class OptInControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
 
       implicit val request =
-        FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -222,7 +229,7 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Do you want to opt in to use access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Do you want to turn on access groups? - Manage Agent Permissions - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
         .text() shouldBe "Please select an option."
@@ -253,7 +260,7 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  "GET /opt-in/you-have-opted-in" should {
+  s"GET ${routes.OptInController.showYouHaveOptedIn}" should {
     "display expected content when client list not available yet" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -303,59 +310,28 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have opted in to use access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "You have turned on access groups - Manage Agent Permissions - GOV.UK"
       html
         .select(Css.H1)
-        .text() shouldBe "You have opted in to use access groups"
+        .text() shouldBe "You have turned on access groups"
 
       html.select(Css.H2).text() shouldBe "What happens next"
 
       html
         .select(Css.paragraphs)
         .get(0)
-        .text() shouldBe "You now need to create access groups and assign clients and team members to them."
+        .text() shouldBe "You can now create access groups for your clients and assign your team members to each access group. Any access groups created in the past have been restored."
 
       html
+        .select(Css.paragraphs)
+        .get(1)
+        .text() shouldBe "Clients and team members can be in more than one access group and you can make changes to these assignments whenever you need to."
+      html
         .select(Css.linkStyledAsButton)
-        .text() shouldBe "Create an access group"
+        .text() shouldBe "Create access group"
       html
         .select(Css.linkStyledAsButton)
         .attr("href") shouldBe routes.GroupController.start.url
-    }
-  }
-
-  "GET /opt-in/you-have-not-opted-in" should {
-    "display expected content" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      await(
-        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS,
-                                                 OptedOutEligible))
-
-      val result = controller.showYouHaveNotOptedIn()(request)
-
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have not opted-in to use access groups - Manage Agent Permissions - GOV.UK"
-      html
-        .select(Css.H1)
-        .text() shouldBe "You have not opted-in to use access groups"
-      html.select(Css.H2).text() shouldBe "What happens next"
-
-      html
-        .select(Css.paragraphs)
-        .get(0)
-        .text() shouldBe "You can opt in at any time later"
-
-      html
-        .select(Css.linkStyledAsButton)
-        .text() shouldBe "Back to manage groups page"
-      html
-        .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
-
     }
   }
 

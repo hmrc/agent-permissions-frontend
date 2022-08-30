@@ -52,7 +52,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   val controller = fakeApplication.injector.instanceOf[OptOutController]
 
-  "GET /opt-out/start" should {
+  s"GET ${routes.OptOutController.start}" should {
 
     "display content for start" in {
 
@@ -65,29 +65,29 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Opting out of using access groups - Manage Agent Permissions - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Opting out of using access groups"
+      html.title() shouldBe "Turn off access groups - Manage Agent Permissions - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Turn off access groups"
       html
         .select(Css.insetText)
-        .text() shouldBe "If you opt out of using this feature any access groups you have created will be removed."
+        .text() shouldBe "If you turn off this feature any access groups you have created will be disabled. The groups can be turned on again at any time."
       //if adding a para please test it!
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 2
       paragraphs
         .get(0)
-        .text() shouldBe "Opting out will mean that all users will be able to view and manage the tax affairs of all clients."
+        .text() shouldBe "Turning off access groups will mean that all your team members can view and manage the tax affairs of all your clients. We recommend checking with your team before turning off access groups."
       paragraphs
         .get(1)
-        .text() shouldBe "You can opt in to use access groups later but you will have to create them again and reassign clients and team members to each group."
+        .text() shouldBe "If you turn access groups back on your groups will be restored. Team members will only be able to manage the clients in their access groups."
       html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe "/agent-permissions/opt-out/do-you-want-to-opt-out"
+        .attr("href") shouldBe "/agent-permissions/confirm-turn-off"
     }
 
   }
 
-  "GET /opt-out/do-you-want-to-opt-out" should {
+  s"GET ${routes.OptOutController.showDoYouWantToOptOut}" should {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -100,29 +100,29 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Do you want to opt out of using access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Do you want to turn off access groups? - Manage Agent Permissions - GOV.UK"
       html
         .select(Css.H1)
-        .text() shouldBe "Do you want to opt out of using access groups?"
+        .text() shouldBe "Do you want to turn off access groups?"
       html
         .select(Css.form)
-        .attr("action") shouldBe "/agent-permissions/opt-out/do-you-want-to-opt-out"
+        .attr("action") shouldBe "/agent-permissions/confirm-turn-off"
 
       val answerRadios = html.select(Css.radioButtonsField("answer"))
       answerRadios
         .select("label[for=true]")
-        .text() shouldBe "Yes, I want to opt out"
+        .text() shouldBe "Yes, I want to turn access groups off"
       answerRadios
         .select("label[for=false]")
-        .text() shouldBe "No, I want to stay opted in"
+        .text() shouldBe "No, I want to keep access groups turned on"
 
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
   }
 
-  "POST /opt-out/do-you-want-to-opt-out" should {
+  s"POST ${routes.OptOutController.submitDoYouWantToOptOut}" should {
 
-    "redirect to 'you have opted out' page with answer 'true'" in {
+    s"redirect to ${routes.OptOutController.showYouHaveOptedOut} page with answer 'true'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -148,7 +148,7 @@ class OptOutControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
 
       implicit val request =
-        FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
+        FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -166,7 +166,7 @@ class OptOutControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       implicit val request =
-        FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
+        FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut}")
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -177,7 +177,7 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Do you want to opt out of using access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Do you want to turn off access groups? - Manage Agent Permissions - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
         .text() shouldBe "Please select an option."
@@ -190,7 +190,7 @@ class OptOutControllerSpec extends BaseSpec {
     }
   }
 
-  "GET /opt-out/you-have-opted-out" should {
+  s"GET ${routes.OptOutController.showYouHaveOptedOut}" should {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -202,27 +202,29 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have opted out of using access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "You have turned off access groups - Manage Agent Permissions - GOV.UK"
       html
         .select(Css.H1)
-        .text() shouldBe "You have opted out of using access groups"
+        .text() shouldBe "You have turned off access groups"
 
       html.select(Css.H2).text() shouldBe "What happens next"
 
       html
         .select(Css.paragraphs)
         .get(0)
-        .text() shouldBe "You will need to log out and log back in to see this change, after which all users will be able to view all clients."
+        .text() shouldBe "You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients."
       html
         .select(Css.paragraphs)
         .get(1)
-        .text() shouldBe "Your account will show that you have chosen to opt out of using access groups. If you wish to opt in to use this feature again you can do so from your agent services manage account page."
+        .text() shouldBe "Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account‘ page."
 
       html
-        .select(Css.linkStyledAsButton)
+        .select(Css.link)
+        .get(0)
         .text() shouldBe "Return to manage account"
       html
-        .select(Css.linkStyledAsButton)
+        .select(Css.link)
+        .get(0)
         .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
   }

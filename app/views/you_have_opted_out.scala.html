@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import views.html.main_layout
 
-@this(layout: main_layout, p: p, h1: h1, h2: h2, link_as_button: link_as_button)
+@this(layout: main_layout, p: p, h1: h1, h2: h2, a:a)
 
 @()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -26,7 +26,7 @@
     @h2("you-have-opted-out.h2")
     @p("you-have-opted-out.p1")
     @p("you-have-opted-out.p2")
-    @link_as_button(
+    @a(
         key = "common.return.manage-account",
         href = appConfig.agentServicesAccountManageAccountUrl
     )

@@ -99,7 +99,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently in these access groups:"
       html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group 1"
@@ -147,7 +147,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "There are no available groups to add Client 0 to - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "There are no available groups to add Client 0 to - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "There are no available groups to add Client 0 to"
       html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently in these access groups:"
       html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group 1"
@@ -247,7 +247,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Which access groups would you like to add Client 0 to? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
       html.select(Css.errorSummaryForField("groups")).text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"
@@ -280,7 +280,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val result = controller.showConfirmClientAddedToGroups(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Client Client 0 added to access groups Group 1,Group 2 - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Client Client 0 added to access groups Group 1,Group 2 - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Client added to access groups"
       html.select(Css.H2).text() shouldBe "What happens next"
       html.select(Css.li("groups-added-to")).get(0).text shouldBe "Group 1"

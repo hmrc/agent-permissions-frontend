@@ -65,7 +65,7 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Turn off access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Turn off access groups - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Turn off access groups"
       html
         .select(Css.insetText)
@@ -100,7 +100,7 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Do you want to turn off access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Do you want to turn off access groups? - Agent services account - GOV.UK"
       html
         .select(Css.H1)
         .text() shouldBe "Do you want to turn off access groups?"
@@ -177,7 +177,7 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Do you want to turn off access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Do you want to turn off access groups? - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
         .text() shouldBe "Please select an option."
@@ -202,7 +202,7 @@ class OptOutControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have turned off access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "You have turned off access groups - Agent services account - GOV.UK"
       html
         .select(Css.H1)
         .text() shouldBe "You have turned off access groups"

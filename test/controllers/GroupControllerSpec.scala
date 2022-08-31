@@ -134,7 +134,7 @@ class GroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Create an access group - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Create an access group - Agent services account - GOV.UK"
       html
         .select(Css.backLink)
         .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
@@ -188,7 +188,7 @@ class GroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Create an access group - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Create an access group - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
         .text() shouldBe "Enter an access group name"
@@ -215,7 +215,7 @@ class GroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Create an access group - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Create an access group - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
         .text() shouldBe "Access group name must be 38 characters or fewer"
@@ -239,7 +239,7 @@ class GroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Confirm group name for " + groupName + " - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Confirm group name for " + groupName + " - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Confirm group name for " + groupName
       html
         .select(Css.form)
@@ -285,7 +285,7 @@ class GroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Confirm group name for " + groupName + " - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Confirm group name for " + groupName + " - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
         .text() shouldBe "Select yes if the access group name is correct"
@@ -389,7 +389,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Access group name already exists - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Access group name already exists - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Access group name already exists"
       html
         .select(Css.paragraphs)
@@ -430,7 +430,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
@@ -480,7 +480,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
@@ -520,7 +520,7 @@ class GroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html
-        .title() shouldBe s"Select clients - Manage Agent Permissions - GOV.UK"
+        .title() shouldBe s"Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Select clients"
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
@@ -690,7 +690,7 @@ class GroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
       html
         .select(Css.errorSummaryForField("clients"))
@@ -729,7 +729,7 @@ class GroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
       html
         .select(Css.ERROR_SUMMARY_LINK)
@@ -800,7 +800,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe s"Review selected clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe s"Review selected clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 10 clients"
       html
         .select(Css.backLink)
@@ -891,7 +891,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
       html
         .select(Css.backLink)
@@ -933,7 +933,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
@@ -972,7 +972,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
@@ -1144,7 +1144,7 @@ class GroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
       html
         .select(Css.errorSummaryLinkWithHref("#members"))
@@ -1188,7 +1188,7 @@ class GroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 //      html
 //        .select(Css.errorSummaryForField("search"))
@@ -1257,7 +1257,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe s"Review selected team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe s"Review selected team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 5 team members"
       html
         .select(Css.backLink)
@@ -1341,7 +1341,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Check your answers - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Check your answers - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Check your answers"
       html
         .select(Css.H2)
@@ -1495,7 +1495,7 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Access group created - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Access group created - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Access group created"

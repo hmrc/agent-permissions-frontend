@@ -111,7 +111,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
@@ -147,7 +147,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
 
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -176,7 +176,7 @@ class ManageClientControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Manage clients - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Manage clients - Agent services account - GOV.UK"
       html.select(Css.H1).text shouldBe "Manage clients"
 
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -226,7 +226,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Client details - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Client details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Client details"
 
       html.body.text().contains("Not assigned to an access group") shouldBe true
@@ -247,7 +247,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Client details - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Client details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Client details"
 
       html.body.text().contains("Not assigned to an access group") shouldBe false
@@ -271,7 +271,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Update client reference - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Update client reference"
 
       html.body.select("input#clientRef").attr("value") shouldBe "friendly0"
@@ -294,7 +294,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Update client reference - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Update client reference - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Update client reference"
 
       html.body.select("input#clientRef").attr("value") shouldBe ""
@@ -335,7 +335,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Error: Update client reference - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Update client reference - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Update client reference"
     }
   }
@@ -358,7 +358,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Client reference updated - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Client reference updated - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Tax reference: ending in 6780 Client reference updated to The New Name"

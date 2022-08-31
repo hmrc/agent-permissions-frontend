@@ -126,7 +126,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage access groups"
       html
         .select("p#info")
@@ -209,7 +209,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage access groups"
       html
         .select("p#info")
@@ -275,7 +275,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage access groups"
       html
         .select("p#info")
@@ -360,7 +360,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage access groups"
       html
         .select("p#info")
@@ -443,7 +443,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //and
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Rename group - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Rename group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Rename group"
       html.select(Css.form).attr("action") shouldBe routes.ManageGroupController
         .submitRenameGroup(groupId)
@@ -467,7 +467,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe NOT_FOUND
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Access group not found - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Access group not found - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Access group not found"
       html
         .select(Css.paragraphs)
@@ -581,7 +581,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Error: Manage access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Manage access groups - Agent services account - GOV.UK"
 
       html
         .select(Css.errorSummaryForField("searchGroupByName"))
@@ -641,7 +641,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe NOT_FOUND
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Access group not found - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Access group not found - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Access group not found"
       html
         .select(Css.paragraphs)
@@ -692,7 +692,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //and
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Access group renamed - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Access group renamed - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Access group renamed"
@@ -723,7 +723,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Delete group - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Delete group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Delete group"
       html
         .select(Css.form)
@@ -834,7 +834,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //and
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Rubbish access group deleted - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Rubbish access group deleted - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Rubbish access group deleted"
@@ -1001,7 +1001,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Review selected clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
       //and the back link should go to the unassigned clients tab
@@ -1029,7 +1029,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add the selected clients to? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Which access groups would you like to add the selected clients to? - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Which access groups would you like to add the selected clients to?"
       //and the back link should go to the unassigned clients tab
       html.select(Css.backLink).attr("href") shouldBe routes.ManageGroupController.showSelectedUnassignedClients.url
@@ -1159,7 +1159,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Clients added to access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Clients added to access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Clients added to access groups"
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.get(0).text() shouldBe "You have added these clients to the following groups:"

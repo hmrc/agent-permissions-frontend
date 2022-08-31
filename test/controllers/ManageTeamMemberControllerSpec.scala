@@ -105,7 +105,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
@@ -140,7 +140,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
 
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -189,7 +189,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Team member details - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Team member details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Team member details"
 
       html.body.text().contains("Not assigned to an access group") shouldBe true
@@ -210,7 +210,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Team member details - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Team member details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Team member details"
 
       html.body.text().contains("Not assigned to an access group") shouldBe false

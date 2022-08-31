@@ -50,8 +50,8 @@ GET     /group/group-created                        controllers.GroupController.
 GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups
 POST    /manage-access-groups                       controllers.ManageGroupController.submitAddUnassignedClients
 POST    /manage-access-groups/search                controllers.ManageGroupController.submitFilterByGroupName
-GET     /rename-group/:groupId                      controllers.ManageGroupController.showRenameGroup(groupId: String)
-POST    /rename-group/:groupId                      controllers.ManageGroupController.submitRenameGroup(groupId: String)
+GET     /rename-access-group/:groupId               controllers.ManageGroupController.showRenameGroup(groupId: String)
+POST    /rename-access-group/:groupId               controllers.ManageGroupController.submitRenameGroup(groupId: String)
 GET     /access-group-renamed/:groupId              controllers.ManageGroupController.showGroupRenamed(groupId: String)
 
 GET     /delete-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)

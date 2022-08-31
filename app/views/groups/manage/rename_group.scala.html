@@ -24,6 +24,7 @@
         p: p, h1: h1, caption: caption,
         textbox: textbox,
         submit_button: submit_button,
+        link_as_button: link_as_button,
         formWithCSRF: FormWithCSRF
 )
 
@@ -42,6 +43,11 @@ AppConfig)
     @formWithCSRF(action = routes.ManageGroupController.submitRenameGroup(groupId)) {
 
         @textbox(field = form("name"), label = "group.create.name.label")
+        @link_as_button(
+            href = routes.ManageGroupController.showManageGroups.url,
+            key = "common.cancel",
+            classes = Some("govuk-button--secondary govuk-!-margin-right-3")
+        )
         @submit_button("save.and.continue.button")
     }
 }

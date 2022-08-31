@@ -699,11 +699,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelBody)
         .text() shouldBe "Previous Name access group renamed to Bananas"
-      html.select(Css.H2).text() shouldBe "What happens next"
-      html
-        .select(Css.paragraphs)
-        .get(0)
-        .text() shouldBe "You can rename groups any time from the ‘manage access groups’ section"
+      //we have removed the "what happens next h2 and paragraph.
+      // so just check it's not there in case someone merges it back
+      html.select(Css.H2).size() shouldBe 0
+      html.select(Css.paragraphs).size() shouldBe 0
       html.select(Css.backLink).size() shouldBe 0
     }
   }

@@ -167,7 +167,6 @@ group.rename.h1=Rename group
 
 group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
-group.renamed.p=You can rename groups any time from the ‘manage access groups’ section
 
 group.delete.h1=Delete group
 group.delete.name.label=Are you sure you want to delete {0} access group?

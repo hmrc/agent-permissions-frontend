@@ -19,6 +19,6 @@ package views.components.models
 /** provides terser data for the verbose GovukLegend */
 case class LegendData(
     msg: String,
-    classes: Option[String] = None,
+    classes: Option[String] = Some("govuk-!-font-weight-bold"),
     isH1: Boolean = false
 )

@@ -23,11 +23,11 @@ GET     /access-groups-turned-off                   controllers.OptOutController
 # create group
 GET     /group/create-access-group                  controllers.GroupController.start
 
-GET     /group/group-name                           controllers.GroupController.showGroupName
-POST    /group/group-name                           controllers.GroupController.submitGroupName
+GET     /create-access-group-name                   controllers.GroupController.showGroupName
+POST    /create-access-group-name                   controllers.GroupController.submitGroupName
 
-GET     /group/confirm-name                         controllers.GroupController.showConfirmGroupName
-POST    /group/confirm-name                         controllers.GroupController.submitConfirmGroupName
+GET     /confirm-access-group-name                  controllers.GroupController.showConfirmGroupName
+POST    /confirm-access-group-name                  controllers.GroupController.submitConfirmGroupName
 
 GET     /group/access-group-name-exists             controllers.GroupController.showAccessGroupNameExists
 

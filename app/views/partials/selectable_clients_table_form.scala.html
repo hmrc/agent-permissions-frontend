@@ -45,20 +45,20 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
+    clients.fold(Seq.empty[Seq[Html]])(_.zipWithIndex.map(client =>
         Seq(
             Html(
                 checkbox(
                     name = Some("clients[]"),
-                    id = Some(s"add-client-${client.id}"),
-                    label = displayNameOrFullReference(client.name, client.hmrcRef),
-                    value = Some(client.id),
-                    checked = client.selected
+                    id = Some(s"add-client-${client._2}"),
+                    label = displayNameOrFullReference(client._1.name, client._1.hmrcRef),
+                    value = Some(client._1.id),
+                    checked = client._1.selected
                 ).toString
             ),
-            Html(client.name),
-            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            Html(client._1.name),
+            Html(displayObfuscatedReference(client._1.name, client._1.hmrcRef)),
+            Html(displayTaxServiceFromServiceKey(client._1.taxService)),
         )
     )
     )

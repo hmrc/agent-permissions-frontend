@@ -25,7 +25,7 @@
     attributes: Map[String, String] = Map.empty,
     inputMode: Option[String] = None,
     pattern: Option[String] = None,
-    labelClasses: String = "",
+    labelClasses: String = "govuk-!-font-weight-bold",
     labelIsHeading : Boolean = false,
     hint: Option[String] = None,
     classes: String = "",
@@ -36,7 +36,7 @@
 @govukInput(
     Input(
         label = if(label != null) Label(
-            classes = if(labelIsHeading) "govuk-heading-l" else labelClasses,
+            classes = if(labelIsHeading) "govuk-heading-xl" else labelClasses,
             content = HtmlContent(msgs(label)),
             isPageHeading = labelIsHeading
         ) else Label(),

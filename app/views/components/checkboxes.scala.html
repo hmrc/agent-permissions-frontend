@@ -39,7 +39,7 @@
         }),
         fieldset = legend.map(l => {
             val cssClasses = l match {
-                case LegendData(_, None, true) => "LEGEND_H1_CLASS"
+                case LegendData(_, None, true) => "govuk-heading-xl"
                 case LegendData(_, Some(_), _) => l.classes.get
                 case _ => ""
             }

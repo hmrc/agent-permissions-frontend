@@ -142,12 +142,12 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Create an access group"
       html
         .select(Css.form)
-        .attr("action") shouldBe "/agent-permissions/group/group-name"
+        .attr("action") shouldBe "/agent-permissions/create-access-group-name"
       html
         .select(Css.labelFor("name"))
         .text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
-      html.select(Css.submitButton).text() shouldBe "Save and continue"
+      html.select(Css.submitButton).text() shouldBe "Continue"
     }
   }
 
@@ -243,14 +243,14 @@ class GroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Confirm group name for " + groupName
       html
         .select(Css.form)
-        .attr("action") shouldBe "/agent-permissions/group/confirm-name"
+        .attr("action") shouldBe "/agent-permissions/confirm-access-group-name"
       html
         .select(Css.legend)
         .text() shouldBe "Is the access group name correct?"
       html.select("label[for=answer-yes]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
-      html.select(Css.submitButton).text() shouldBe "Continue"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
     "redirect to /group/group-name when there is no groupName in the session" in {

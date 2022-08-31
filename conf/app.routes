@@ -77,17 +77,22 @@ GET     /update-group-team-members/review/:groupId  controllers.ManageGroupTeamM
 GET     /team-members-updated/:groupId              controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
 
 # Manage clients
-GET     /manage-clients                                                     controllers.ManageClientController.showAllClients
-GET     /manage-clients/client-details/:clientId                            controllers.ManageClientController.showClientDetails(clientId: String)
+GET     /manage-clients                                               controllers.ManageClientController.showAllClients
+GET     /manage-clients/client-details/:id                            controllers.ManageClientController.showClientDetails(id: String)
 
-GET     /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.showUpdateClientReference(clientId: String)
-POST    /manage-clients/client-details/update-client-reference/:clientId    controllers.ManageClientController.submitUpdateClientReference(clientId: String)
-GET     /manage-clients/client-details/client-reference-updated/:clientId   controllers.ManageClientController.showClientReferenceUpdatedComplete(clientId: String)
+GET     /manage-clients/client-details/update-client-reference/:id    controllers.ManageClientController.showUpdateClientReference(id: String)
+POST    /manage-clients/client-details/update-client-reference/:id    controllers.ManageClientController.submitUpdateClientReference(id: String)
+GET     /manage-clients/client-details/client-reference-updated/:id   controllers.ManageClientController.showClientReferenceUpdatedComplete(id: String)
 
-GET     /manage-clients/assign-to-a-group/:clientId      controllers.AddClientToGroupsController.showSelectGroupsForClient(clientId: String)
-POST    /manage-clients/assign-to-a-group/:clientId      controllers.AddClientToGroupsController.submitSelectGroupsForClient(clientId: String)
-GET     /manage-clients/assigned-to-groups/:clientId      controllers.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId: String)
+GET     /manage-clients/assign-to-a-group/:id      controllers.AddClientToGroupsController.showSelectGroupsForClient(id: String)
+POST    /manage-clients/assign-to-a-group/:id      controllers.AddClientToGroupsController.submitSelectGroupsForClient(id: String)
+GET     /manage-clients/assigned-to-groups/:id      controllers.AddClientToGroupsController.showConfirmClientAddedToGroups(id: String)
 
 # Manage team members
-GET     /manage-team-members                                                     controllers.ManageTeamMemberController.showAllTeamMembers
-GET     /manage-team-members/team-member-details/:memberId                       controllers.ManageTeamMemberController.showTeamMemberDetails(memberId: String)
+GET     /manage-team-members                            controllers.ManageTeamMemberController.showAllTeamMembers
+GET     /manage-team-members/team-member-details/:id    controllers.ManageTeamMemberController.showTeamMemberDetails(id: String)
+
+GET     /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(id: String)
+POST    /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMemberToGroupsController.submitSelectGroupsForTeamMember(id: String)
+GET     /manage-team-members/assigned-to-groups/:id     controllers.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id: String)
+

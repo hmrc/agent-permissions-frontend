@@ -20,24 +20,24 @@
 
 @this(layout: main_layout, h2: h2, p: p, ul: ul, a: a, govukPanel: GovukPanel)
 
-@(displayClient: DisplayClient, groupsAddedTo: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(tm: TeamMember, groupsAddedTo: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@layout(title = msgs("client.added.to.groups.title", displayClient.name, groupsAddedTo.map(_.groupName).mkString(","))) {
+@layout(title = msgs("member.added.to.groups.title", tm.name, groupsAddedTo.map(_.groupName).mkString(","))) {
 
     @govukPanel(
         Panel(
-            title = Text(msgs("client.added.to.groups.h1"))
+            title = Text(msgs("member.added.to.groups.h1"))
         )
     )
 
     @h2("common.what.happens.next")
-    @p(msgs("client.added.to.groups.p1", displayClient.name))
+    @p(msgs("member.added.to.groups.p1", tm.name))
     @ul(items = groupsAddedTo.map(_.groupName), id = Some("groups-added-to"))
-    @p("client.added.to.groups.p2")
+    @p(msgs("member.added.to.groups.p2", tm.name))
     @a(
         id = Some("back-to-manage"),
-        key = "client.added.to.groups.a",
-        href = routes.ManageClientController.showAllClients.url
+        key = "member.added.to.groups.a",
+        href = routes.ManageTeamMemberController.showAllTeamMembers.url
     )
 }
 

@@ -19,22 +19,14 @@
 @import views.html.main_layout
 @import utils.ViewUtils._
 @import connectors.GroupSummary
-@import play.api.libs.json.Json
 
-@this(
-        layout: main_layout,
-        h1: h1, h2: h2, h3: h3,
-        p:p, a: a, span: span
-)
+@this(layout: main_layout, h1: h1, h2: h2, h3: h3, p: p, a: a, span: span, ul_html: ul_html)
 
-@(
-    client: DisplayClient,
-    clientGroups: Seq[GroupSummary]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(client: DisplayClient, clientGroups: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @clientReference = @{
     if(client.name.isEmpty) {
-        Html(msgs("details.no-data")+ "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(client.id).url))
+        Html(msgs("details.no-data") + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(client.id).url))
     } else {
         Html(client.name + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(client.id).url))
     }
@@ -50,45 +42,41 @@
     fullWidth = true
 ) {
 
-<div class="govuk-grid-row">
-    @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
+    <div class="govuk-grid-row">
+        @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
 
-    <div class="govuk-grid-column-two-thirds">
-        @h2("group.client.list.table.th1", size = "s")
-        @p(html = Some(clientReference))
+        <div class="govuk-grid-column-two-thirds">
+            @h2("group.client.list.table.th1", size = "s")
+            @p(html = Some(clientReference))
 
-        @h2("group.client.list.table.th2", size = "s")
-        @p(html = Some(displayTaxReference))
+            @h2("group.client.list.table.th2", size = "s")
+            @p(html = Some(displayTaxReference))
 
-        @h2("group.client.list.table.th3", size = "s")
-        @p(displayTaxServiceFromServiceKey(client.taxService))
+            @h2("group.client.list.table.th3", size = "s")
+            @p(displayTaxServiceFromServiceKey(client.taxService))
 
-        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+            <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-        @a("common.return.manage-clients", href = routes.ManageClientController.showAllClients.url)
+            @a("common.return.manage-clients", href = routes.ManageClientController.showAllClients.url)
 
+        </div>
+
+        <div class="govuk-grid-column-one-third">
+            @h2("common.details.groups.header")
+
+            @if(clientGroups.isEmpty) {
+                @p("common.details.not-assigned")
+            } else {
+                @ul_html(items = clientGroups.map { group =>
+                    a(group.groupName, href = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId).url)
+                })
+            }
+
+                @a("common.details.assign-to-group",
+                    href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
+                )
+
+            </div>
     </div>
-
-    <div class="govuk-grid-column-one-third">
-        @h2("common.details.groups.header")
-
-        @if(clientGroups.isEmpty) {
-            @p("common.details.not-assigned")
-        } else {
-            <ul class="govuk-list">
-                @for(group <- clientGroups) {
-                <li class="govuk-list--item">
-                @a(group.groupName,
-                    href = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId).url)
-                </li>
-                }
-            </ul>
-        }
-        @a( "common.details.assign-to-group",
-            href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
-        )
-
-    </div>
-</div>
 
 }

@@ -54,8 +54,8 @@ GET     /rename-access-group/:groupId               controllers.ManageGroupContr
 POST    /rename-access-group/:groupId               controllers.ManageGroupController.submitRenameGroup(groupId: String)
 GET     /access-group-renamed/:groupId              controllers.ManageGroupController.showGroupRenamed(groupId: String)
 
-GET     /delete-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)
-POST    /delete-group/:groupId                      controllers.ManageGroupController.submitDeleteGroup(groupId: String)
+GET     /delete-access-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)
+POST    /delete-access-group/:groupId                      controllers.ManageGroupController.submitDeleteGroup(groupId: String)
 GET     /access-group-deleted                       controllers.ManageGroupController.showGroupDeleted
 # UNASSIGNED CLIENTS
 GET     /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.showSelectedUnassignedClients

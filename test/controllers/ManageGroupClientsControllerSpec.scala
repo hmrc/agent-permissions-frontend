@@ -125,7 +125,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Manage clients - Bananas - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients"
 
@@ -178,7 +178,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Manage clients - Bananas - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients"
 
@@ -213,7 +213,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Manage clients - Bananas - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients"
 
@@ -269,7 +269,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Select clients"
 
@@ -308,7 +308,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Select clients"
 
@@ -342,7 +342,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Select clients"
 
@@ -384,7 +384,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
 
       val trs =
@@ -465,7 +465,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
+        html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Select clients"
         html
           .select(Css.errorSummaryForField("clients"))
@@ -500,7 +500,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select clients - Manage Agent Permissions - GOV.UK"
+        html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Select clients"
         html
           .select(Css.errorSummaryForField("clients"))
@@ -566,7 +566,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Review selected clients - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
 
@@ -591,7 +591,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //and
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Bananas access group clients updated - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Bananas access group clients updated - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Bananas access group clients updated"

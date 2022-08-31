@@ -1,5 +1,4 @@
-service.name = Manage Agent Permissions
-service.text = Manage Agent Permissions
+service.name = Cyfrif gwasanaethau asiant
 
 generic.title={0} - {1} - GOV.UK
 error-prefix=Error:

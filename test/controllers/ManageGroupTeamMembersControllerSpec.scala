@@ -113,7 +113,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Manage team members"
 
       val trs =
@@ -152,7 +152,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Manage team members"
 
       val trs =
@@ -187,7 +187,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Manage team members"
 
       val trs =
@@ -218,7 +218,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 
       val trs =
@@ -251,7 +251,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 
       val trs =
@@ -283,7 +283,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 
       val trs =
@@ -363,7 +363,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
+        html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Select team members"
         html
           .select(Css.errorSummaryForField("members"))
@@ -395,7 +395,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select team members - Manage Agent Permissions - GOV.UK"
+        html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Select team members"
         html
           .select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a name or email to apply filters"
@@ -465,7 +465,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Review selected team members - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 5 team members"
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 5
 
@@ -504,7 +504,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Bananas access group team members updated - Manage Agent Permissions - GOV.UK"
+      html.title shouldBe "Bananas access group team members updated - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Bananas access group team members updated"

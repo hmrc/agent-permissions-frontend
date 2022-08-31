@@ -71,7 +71,7 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Turn on access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Turn on access groups - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Turn on access groups"
       html
         .select(Css.insetText)
@@ -150,7 +150,7 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Do you want to turn on access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Do you want to turn on access groups? - Agent services account - GOV.UK"
       html
         .select(Css.H1)
         .text() shouldBe "Do you want to turn on access groups?"
@@ -229,7 +229,7 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Do you want to turn on access groups? - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "Error: Do you want to turn on access groups? - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
         .text() shouldBe "Please select an option."
@@ -273,7 +273,7 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have turned on access groups but we need some time to gather the client data - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "You have turned on access groups but we need some time to gather the client data - Agent services account - GOV.UK"
       html
         .select(Css.H1)
         .text() shouldBe "You have turned on access groups but we need some time to gather the client data"
@@ -310,7 +310,7 @@ class OptInControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "You have turned on access groups - Manage Agent Permissions - GOV.UK"
+      html.title() shouldBe "You have turned on access groups - Agent services account - GOV.UK"
       html
         .select(Css.H1)
         .text() shouldBe "You have turned on access groups"

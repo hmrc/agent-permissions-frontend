@@ -43,17 +43,17 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        maybeTeamMembers.fold(Seq.empty[Seq[Html]])( _.map( member =>
+        maybeTeamMembers.fold(Seq.empty[Seq[Html]])( _.zipWithIndex.map( member =>
             Seq(
                 Html(checkbox(
                     name = Some("members[]"),
-                    id = Some(s"add-member-${member.id}"),
-                    value = Some(member.id),
-                    label = member.name,
-                    checked = member.selected).toString),
-                Html(member.name),
-                Html(member.email),
-                Html(displayTeamMemberRole(member.credentialRole.getOrElse("")))
+                    id = Some(s"add-member-${member._2}"),
+                    value = Some(member._1.id),
+                    label = member._1.name,
+                    checked = member._1.selected).toString),
+                Html(member._1.name),
+                Html(member._1.email),
+                Html(displayTeamMemberRole(member._1.credentialRole.getOrElse("")))
             )
         )
         )

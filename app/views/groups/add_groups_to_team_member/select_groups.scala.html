@@ -1,0 +1,86 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import connectors.GroupSummary
+@import controllers.routes
+@import views.components.models.CheckboxData
+@import views.html.main_layout
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1, h3: h3, a: a, ul: ul,
+    formWithCSRF: FormWithCSRF,
+    caption: caption, table: table,
+    submit_button: submit_button, a_button: link_as_button,
+    checkboxes: checkboxes,
+)
+
+@(
+    groupsForClient: Seq[GroupSummary],
+    availableGroups: Seq[GroupSummary] = Seq.empty,
+    teamMember: TeamMember,
+    form: Form[_]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@h1Text = @{msgs(if(availableGroups.isEmpty) "member.select.groups.none.h1" else "member.select.groups.h1", teamMember.name)}
+
+    @layout(
+        title = h1Text,
+        backLinkHref = Some(routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url),
+        fullWidth = true,
+        formErrors = form.errors
+    ) {
+
+        <div class="govuk-!-width-two-thirds">
+            @h1(h1Text)
+        </div>
+
+        @p("member.select.groups.p1")
+
+        @ul(
+            items = groupsForClient.map(_.groupName),
+            id = Some("already-in-groups")
+        )
+
+        @if(!availableGroups.isEmpty) {
+
+            @formWithCSRF(action = routes.AddTeamMemberToGroupsController.submitSelectGroupsForTeamMember(teamMember.id)) {
+
+                @checkboxes(
+                    id = Some("groups"),
+                    hint = Some("Select all that apply"),
+                    field = form("groups"),
+                    name = "groups[]",
+                    items = availableGroups.map { g =>
+                        CheckboxData(
+                            id = g.groupId,
+                            label = g.groupName,
+                            value = g.groupId
+                        )
+                    }
+                )
+
+                @a_button(
+                    routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url,
+                    key = "common.cancel",
+                    classes = Some("govuk-button--secondary govuk-!-margin-right-3")
+                )
+                @submit_button(messageKey = "save.and.continue.button")
+            }
+        }
+    }
+

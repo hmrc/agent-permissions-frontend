@@ -23,12 +23,14 @@ object CodeCoverageSettings {
     ".*complete.template",
     ".*manage_clients_list.template",
     ".*client_not_found.template",
+    ".*team_member_not_found.template",
     ".*manage_team_members_list.template",
     ".*confirm_added.template",
     ".*group_not_found.template",
     ".*ViewUtils.*",
     ".*GroupAction.*",
     ".*ClientAction.*",
+    ".*TeamMemberAction.*",
   )
 
   val settings: Seq[Setting[_]] = Seq(

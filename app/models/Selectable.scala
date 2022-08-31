@@ -58,20 +58,13 @@ case class DisplayClient(
                           identifierKey: String,
                           selected: Boolean = false
                         ) extends Selectable {
-  private val enrolmentKey = s"$taxService~$identifierKey~$hmrcRef"
+  val enrolmentKey = s"$taxService~$identifierKey~$hmrcRef"
   val id = MurmurHash3.stringHash(enrolmentKey).toString
 }
 
 case object DisplayClient {
 
   implicit val format = Json.format[DisplayClient]
-
-  def fromEnrolments(clients: Option[Set[Enrolment]]): Seq[DisplayClient] =
-    clients.map { maybeEnrolments: Set[Enrolment] =>
-      maybeEnrolments.toSeq
-        .map(Client.fromEnrolment)
-        .map(DisplayClient.fromClient(_, selected = true))
-    }.getOrElse(Seq.empty[DisplayClient])
 
 
   def fromClient(client: Client, selected: Boolean = false): DisplayClient = {
@@ -87,9 +80,4 @@ case object DisplayClient {
       selected)
   }
 
-  def toEnrolment(dc: DisplayClient): Enrolment =
-    Enrolment(dc.taxService,
-      "Activated",
-      dc.name,
-      Seq(Identifier(dc.identifierKey, dc.hmrcRef)))
 }

@@ -61,8 +61,8 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def getGroup(id: String)(implicit hc: HeaderCarrier,
                            ec: ExecutionContext): Future[Option[AccessGroup]]
 
-  def getGroupsForClient(arn: Arn, enrolment: Enrolment)(implicit hc: HeaderCarrier,
-                                                         ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
+  def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
+                                                            ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
 
   def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit hc: HeaderCarrier,
                                                          ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
@@ -199,9 +199,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  def getGroupsForClient(arn: Arn, enrolment: Enrolment)(implicit hc: HeaderCarrier,
-                                ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
-    val enrolmentKey = EnrolmentKey.enrolmentKeys(enrolment).head
+  def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
+                                                            ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client/$enrolmentKey/groups"
     monitor("ConsumedAPI-groupSummariesForClient-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
@@ -210,7 +209,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
           case NOT_FOUND => None
           case e =>
             throw UpstreamErrorResponse(
-              s"error getting group summary for arn: $arn, client: $enrolment from $url",
+              s"error getting group summary for arn: $arn, client: $enrolmentKey from $url",
               e)
         }
         val maybeGroups = eventuallySummaries.map { summaries =>
@@ -333,7 +332,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
 
 case class GroupRequest(groupName: String,
                         teamMembers: Option[Seq[AgentUser]],
-                        clients: Option[Seq[Enrolment]])
+                        clients: Option[Seq[Client]])
 
 case object GroupRequest {
   implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] =
@@ -361,7 +360,7 @@ object AccessGroupSummaries {
 case class UpdateAccessGroupRequest(
     groupName: Option[String] = None,
     teamMembers: Option[Set[AgentUser]] = None,
-    clients: Option[Set[Enrolment]] = None
+    clients: Option[Set[Client]] = None
 )
 object UpdateAccessGroupRequest {
   implicit val format: OFormat[UpdateAccessGroupRequest] =
@@ -370,7 +369,7 @@ object UpdateAccessGroupRequest {
 
 case class AddMembersToAccessGroupRequest(
                                            teamMembers: Option[Set[AgentUser]] = None,
-                                          clients: Option[Set[Enrolment]] = None
+                                          clients: Option[Set[Client]] = None
                                          )
 
 object AddMembersToAccessGroupRequest {

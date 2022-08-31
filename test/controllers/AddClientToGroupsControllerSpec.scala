@@ -177,13 +177,13 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
           .expects(arn, client.id, *, *)
           .returning(Future successful Some(client))
 
-        val expectedAddRequest1 = AddMembersToAccessGroupRequest(clients = Some(Set(DisplayClient.toEnrolment(client))))
+        val expectedAddRequest1 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         (mockAgentPermissionsConnector
           .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
           .expects(groupSummaries(3).groupId, expectedAddRequest1, *, *)
           .returning(Future successful Done)
 
-        val expectedAddRequest2 = AddMembersToAccessGroupRequest(clients = Some(Set(DisplayClient.toEnrolment(client))))
+        val expectedAddRequest2 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         (mockAgentPermissionsConnector
           .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
           .expects(groupSummaries(4).groupId, expectedAddRequest2, *, *)

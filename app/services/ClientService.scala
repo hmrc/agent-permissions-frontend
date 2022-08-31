@@ -21,11 +21,10 @@ import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture, selectingClientsKeys}
 import models.ButtonSelect.{Clear, Continue, Filter}
-import models.DisplayClient.toEnrolment
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, EnrolmentKey}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -204,7 +203,7 @@ class ClientServiceImpl @Inject()(
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit request: Request[_],
                                                                                      hc: HeaderCarrier,
                                                                                      ec: ExecutionContext): Future[Done] = {
-    val client = Client(EnrolmentKey.enrolmentKeys(toEnrolment(displayClient)).head, newName)
+    val client = Client(displayClient.enrolmentKey, newName)
     agentUserClientDetailsConnector.updateClientReference(arn, client)
   }
 

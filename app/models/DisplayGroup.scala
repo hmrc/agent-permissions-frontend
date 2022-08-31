@@ -33,7 +33,7 @@ object DisplayGroup {
      DisplayGroup(
        _id = accessGroup._id.toString,
        name = accessGroup.groupName,
-      clients =  DisplayClient.fromEnrolments(accessGroup.clients)
+      clients =  accessGroup.clients.toSeq.flatten.map(DisplayClient.fromClient(_))
      )
   }
 }

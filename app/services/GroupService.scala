@@ -19,13 +19,12 @@ package services
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, GroupSummary}
 import controllers._
-import models.DisplayClient.toEnrolment
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -108,9 +107,9 @@ class GroupServiceImpl @Inject()(
 
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
     for {
-      enrolments    <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS).map(_.map(_.map(client => toEnrolment(client))))
+      clients    <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS).map(_.map(_.map(client => Client(client.enrolmentKey, client.name))))
       agentUsers    <- sessionCacheRepository.getFromSession(SELECTED_TEAM_MEMBERS).map(_.map(_.map(tm => toAgentUser(tm))))
-      groupRequest  = GroupRequest(groupName, agentUsers, enrolments)
+      groupRequest  = GroupRequest(groupName, agentUsers, clients)
       _             <- agentPermissionsConnector.createGroup(arn)(groupRequest)
       _             <- Future.sequence(creatingGroupKeys.map(key => sessionCacheRepository.deleteFromSession(key)))
       _             <- sessionCacheRepository.putSession(NAME_OF_GROUP_CREATED, groupName)
@@ -152,8 +151,7 @@ class GroupServiceImpl @Inject()(
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
                     (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[GroupSummary]] = {
-    val enrolment = toEnrolment(client)
-    val groupSummaries = agentPermissionsConnector.getGroupsForClient(arn, enrolment).map {
+    val groupSummaries = agentPermissionsConnector.getGroupsForClient(arn, client.enrolmentKey).map {
           case Some(gs) => gs
           case None => Seq.empty
         }

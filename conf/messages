@@ -125,8 +125,10 @@ group.clients.review.h1=You have selected {0} clients
 group.selected.clients.change=Change selected clients
 group.clients.review.title=Review selected clients
 
-group.members.list.h1=Select team members
-group.members.list.p1=Select team members for this access group by ticking the boxes. You can also use the select all box or filter by name or email address.
+group.select.members.list.h1=Select team members
+group.update.members.list.h1=Update team members in this group
+group.select.members.list.p1=Select team members for this access group by ticking the boxes. You can also use the select all box or filter by name or email address.
+group.update.members.list.p1=Existing team members in this access group are shown as selected. Add or remove team members then select "Save and continue"
 group.members.list.filter.label=Filter by name or email
 group.members.list.table.th1=Name
 group.members.list.table.th2=Email
@@ -136,6 +138,10 @@ error.members.list.empty=You must select at least one team member
 group.teamMembers.review.h1=You have selected {0} team members
 group.selected.teamMembers.change=Change selected team members
 group.teamMembers.review.title=Review selected team members
+group.teamMembers.review.radio.legend=Do you need to add or remove selected team members?
+group.teamMembers.review.yes.label=Yes, add or remove team members
+group.teamMembers.review.no.label=No, continue to next section
+group.teamMembers.review.error=Select an option
 
 cya.h1=Check your selection
 cya.p=Confirm clients and team members selected for this access group

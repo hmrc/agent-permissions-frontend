@@ -227,8 +227,10 @@ class ManageGroupTeamMembersController @Inject()(
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
-        if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName)).toFuture
-        else Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
+        sessionCacheService.clearSelectedTeamMembers().map(_ =>
+        if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
+        else Redirect(controller.showManageGroupTeamMembers(groupId))
+        )
       }
     }
   }

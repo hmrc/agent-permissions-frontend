@@ -503,6 +503,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe OK
+      // selected team members should be cleared from session
+      await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)) shouldBe None
+
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Bananas access group team members updated - Agent services account - GOV.UK"
       html

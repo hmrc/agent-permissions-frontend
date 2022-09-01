@@ -188,8 +188,10 @@ class ManageGroupClientsController @Inject()(
   def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) {group: AccessGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
-        if(selectedClients.isDefined) Ok(clients_update_complete(group.groupName)).toFuture
-        else Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId)).toFuture
+        sessionCacheService.clearSelectedClients().map(_ =>
+        if(selectedClients.isDefined) Ok(clients_update_complete(group.groupName))
+        else Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId))
+        )
       }
     }
   }

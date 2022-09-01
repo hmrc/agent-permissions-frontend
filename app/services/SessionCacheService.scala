@@ -16,7 +16,7 @@
 
 package services
 
-import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS}
+import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, selectingClientsKeys, selectingTeamMemberKeys}
 import models.{DisplayClient, TeamMember}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request, Result}

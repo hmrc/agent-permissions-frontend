@@ -588,6 +588,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe OK
+      // selected clients should be cleared from session
+      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)) shouldBe None
 
       //and
       val html = Jsoup.parse(contentAsString(result))

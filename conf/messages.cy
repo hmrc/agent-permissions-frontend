@@ -1,18 +1,17 @@
 service.name = Cyfrif gwasanaethau asiant
 
 generic.title={0} - {1} - GOV.UK
-error-prefix=Error:
-common.errorSummary.heading=There is a problem
-continue=Continue
 
-common.yes.label=Yes
-common.no.label=No
+error-prefix=Gwall:
+common.errorSummary.heading=Mae problem wedi codi
+
+common.yes.label=Iawn
+common.no.label=Na
+common.continue=Yn eich blaen
+
 common.caption.group.name={0} access group
-continue=Continue
 common.what.happens.next=What happens next
 common.change=Change
-
-continue.button=Continue
 save.and.continue.button=Save and continue
 submit.button=Submit
 filter.apply=Apply filters

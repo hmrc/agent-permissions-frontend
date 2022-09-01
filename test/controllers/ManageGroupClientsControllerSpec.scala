@@ -126,8 +126,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas"
-      html.select(Css.H1).text shouldBe "Manage clients"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
@@ -179,8 +179,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas"
-      html.select(Css.H1).text shouldBe "Manage clients"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
@@ -214,8 +214,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas"
-      html.select(Css.H1).text shouldBe "Manage clients"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
@@ -269,9 +269,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Agent services account - GOV.UK"
+      html.title shouldBe "Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
-      html.select(Css.H1).text shouldBe "Select clients"
+      html.select(Css.H1).text shouldBe "Update clients in this group"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
@@ -308,19 +308,15 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Agent services account - GOV.UK"
+      html.title shouldBe "Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
-      html.select(Css.H1).text shouldBe "Select clients"
+      html.select(Css.H1).text shouldBe "Update clients in this group"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client reference"
-      th.get(2).text() shouldBe "Tax reference"
-      th.get(3).text() shouldBe "Tax service"
-      val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      th.size() shouldBe 0
+      html.select(Css.H2).text() shouldBe "No clients found"
+      html.select(Css.paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
 
-      trs.size() shouldBe 0
     }
 
     "render correctly the manage group CLIENTS page when there are clients already in the group" in {
@@ -342,9 +338,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Agent services account - GOV.UK"
+      html.title shouldBe "Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
-      html.select(Css.H1).text shouldBe "Select clients"
+      html.select(Css.H1).text shouldBe "Update clients in this group"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
@@ -384,8 +380,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
+      html.title() shouldBe "Update clients in this group - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Update clients in this group"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -465,8 +461,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Select clients"
+        html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Update clients in this group"
         html
           .select(Css.errorSummaryForField("clients"))
         await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
@@ -500,8 +496,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Select clients"
+        html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Update clients in this group"
         html
           .select(Css.errorSummaryForField("clients"))
         await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false

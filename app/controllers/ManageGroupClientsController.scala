@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService}
+import services.{ClientService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -42,9 +42,8 @@ class ManageGroupClientsController @Inject()(
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
-     groupService: GroupService,
      review_clients_to_add: review_clients_to_add,
-     client_group_list: client_group_list,
+     update_client_group_list: update_client_group_list,
      existing_clients: existing_clients,
      clients_update_complete: clients_update_complete
     )(implicit val appConfig: AppConfig, ec: ExecutionContext,
@@ -97,7 +96,7 @@ class ManageGroupClientsController @Inject()(
         maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
         clients <- clientService.getClients(group.arn)
       } yield Ok(
-        client_group_list(
+        update_client_group_list(
           clients,
           group.groupName,
           maybeHiddenClients,
@@ -128,7 +127,7 @@ class ManageGroupClientsController @Inject()(
                   else ().toFuture
                   clients <- clientService.getClients(group.arn)
                 } yield {
-                  Ok(client_group_list(
+                  Ok(update_client_group_list(
                     clients,
                     group.groupName,
                     maybeHiddenClients,

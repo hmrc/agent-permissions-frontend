@@ -14,7 +14,6 @@ POST    /confirm-turn-on                            controllers.OptInController.
 GET     /access-groups-turned-on                    controllers.OptInController.showYouHaveOptedIn
 
 GET     /turn-off-guide                             controllers.OptOutController.start
-
 GET     /confirm-turn-off                           controllers.OptOutController.showDoYouWantToOptOut
 POST    /confirm-turn-off                           controllers.OptOutController.submitDoYouWantToOptOut
 
@@ -50,31 +49,36 @@ GET     /group/group-created                        controllers.GroupController.
 GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups
 POST    /manage-access-groups                       controllers.ManageGroupController.submitAddUnassignedClients
 POST    /manage-access-groups/search                controllers.ManageGroupController.submitFilterByGroupName
+
 GET     /rename-access-group/:groupId               controllers.ManageGroupController.showRenameGroup(groupId: String)
 POST    /rename-access-group/:groupId               controllers.ManageGroupController.submitRenameGroup(groupId: String)
 GET     /access-group-renamed/:groupId              controllers.ManageGroupController.showGroupRenamed(groupId: String)
 
-GET     /delete-access-group/:groupId                      controllers.ManageGroupController.showDeleteGroup(groupId: String)
-POST    /delete-access-group/:groupId                      controllers.ManageGroupController.submitDeleteGroup(groupId: String)
+GET     /delete-access-group/:groupId               controllers.ManageGroupController.showDeleteGroup(groupId: String)
+POST    /delete-access-group/:groupId               controllers.ManageGroupController.submitDeleteGroup(groupId: String)
 GET     /access-group-deleted                       controllers.ManageGroupController.showGroupDeleted
+
+# Manage groups - clients
+GET     /manage-access-groups/manage-clients/:groupId               controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String)
+GET     /update-clients/:groupId                                    controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
+POST    /update-clients/:groupId                                    controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
+GET     /clients-selected/:groupId                                  controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)
+GET     /clients-updated/:groupId                                   controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
+
+# Manage groups - team members
+GET     /manage-group-team-members/:groupId         controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String)
+GET     /update-group-team-members/:groupId         controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: String)
+POST    /update-group-team-members/:groupId         controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String)
+GET     /update-group-team-members/review/:groupId  controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String)
+GET     /team-members-updated/:groupId              controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
+
+
 # UNASSIGNED CLIENTS
 GET     /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.showSelectedUnassignedClients
 GET     /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
 POST    /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients
 GET     /manage-access-group/clients-assigned                   controllers.ManageGroupController.showConfirmClientsAddedToGroups
 
-
-GET     /manage-group-clients/:groupId              controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String)
-GET     /update-group-clients/:groupId              controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
-POST    /update-group-clients/:groupId              controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
-GET     /update-group-clients/review/:groupId       controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)
-GET     /clients-updated/:groupId                   controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
-
-GET     /manage-group-team-members/:groupId         controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String)
-GET     /update-group-team-members/:groupId         controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: String)
-POST    /update-group-team-members/:groupId         controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String)
-GET     /update-group-team-members/review/:groupId  controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String)
-GET     /team-members-updated/:groupId              controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
 
 # Manage clients
 GET     /manage-clients                                               controllers.ManageClientController.showAllClients
@@ -84,9 +88,9 @@ GET     /manage-clients/client-details/update-client-reference/:id    controller
 POST    /manage-clients/client-details/update-client-reference/:id    controllers.ManageClientController.submitUpdateClientReference(id: String)
 GET     /manage-clients/client-details/client-reference-updated/:id   controllers.ManageClientController.showClientReferenceUpdatedComplete(id: String)
 
-GET     /manage-clients/assign-to-a-group/:id      controllers.AddClientToGroupsController.showSelectGroupsForClient(id: String)
-POST    /manage-clients/assign-to-a-group/:id      controllers.AddClientToGroupsController.submitSelectGroupsForClient(id: String)
-GET     /manage-clients/assigned-to-groups/:id      controllers.AddClientToGroupsController.showConfirmClientAddedToGroups(id: String)
+GET     /manage-clients/assign-to-a-group/:id           controllers.AddClientToGroupsController.showSelectGroupsForClient(id: String)
+POST    /manage-clients/assign-to-a-group/:id           controllers.AddClientToGroupsController.submitSelectGroupsForClient(id: String)
+GET     /manage-clients/assigned-to-groups/:id          controllers.AddClientToGroupsController.showConfirmClientAddedToGroups(id: String)
 
 # Manage team members
 GET     /manage-team-members                            controllers.ManageTeamMemberController.showAllTeamMembers

@@ -41,8 +41,8 @@ POST    /group/select-team-members                  controllers.GroupController.
 
 GET     /group/select-team-members/review           controllers.GroupController.showReviewSelectedTeamMembers
 
-GET     /group/check-your-answers                   controllers.GroupController.showCheckYourAnswers
-POST    /group/check-your-answers                   controllers.GroupController.submitCheckYourAnswers
+GET     /confirm-clients-team-members               controllers.GroupController.showCheckYourAnswers
+POST    /confirm-clients-team-members               controllers.GroupController.submitCheckYourAnswers
 
 GET     /group/group-created                        controllers.GroupController.showGroupCreated
 

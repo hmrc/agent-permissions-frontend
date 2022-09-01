@@ -21,9 +21,7 @@
 
 @this(
     layout: main_layout,
-    p: p,
-    h1: h1,
-    h2: h2,
+    p: p, h1: h1, h2: h2, caption: caption,
     submit_button: submit_button,
     summary_list: summary_list,
     inset_text: inset_text,
@@ -41,6 +39,7 @@
     backLinkHref = Some(routes.GroupController.showReviewSelectedTeamMembers.url)
 ) {
 
+    @caption(msgs("common.caption.group.name", groupName))
     @h1(msgs("cya.h1", groupName))
     @h2("cya.p")
 
@@ -62,7 +61,7 @@
     @inset_text("cya.inset")
 
     @formWithCSRF(action = routes.GroupController.submitCheckYourAnswers) {
-        @submit_button()
+        @submit_button("cya.submit")
     }
 
 }

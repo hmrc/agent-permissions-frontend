@@ -23,6 +23,7 @@ object Css {
   val ERROR_SUMMARY_LINK = ".govuk-list.govuk-error-summary__list li a"
   val errorSummaryLinkWithHref = (href: String) =>
     s".govuk-list.govuk-error-summary__list li a[href=$href]"
+  val caption = "main span.govuk-caption-l"
   val H1 = "main h1"
   val H2 = "main h2"
   val li = (id: String) => s"main .govuk-list#${id} li"

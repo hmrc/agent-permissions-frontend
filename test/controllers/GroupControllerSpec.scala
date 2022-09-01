@@ -82,6 +82,7 @@ class GroupControllerSpec extends BaseSpec {
 
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
+
   val displayClientsIds: Seq[String] =
     displayClients.map(_.id)
 
@@ -96,6 +97,7 @@ class GroupControllerSpec extends BaseSpec {
     }
 
   val teamMembers: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
+
   val teamMembersIds: Seq[String] =
     teamMembers.map(_.id)
 
@@ -1341,8 +1343,9 @@ class GroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Check your answers - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Check your answers"
+      html.title() shouldBe "Check your selection - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Check your selection"
+      html.select(Css.caption).text() shouldBe "XYZ access group"
       html
         .select(Css.H2)
         .text() shouldBe "Confirm clients and team members selected for this access group"
@@ -1366,7 +1369,7 @@ class GroupControllerSpec extends BaseSpec {
       html
         .select(Css.form)
         .attr("action") shouldBe routes.GroupController.submitCheckYourAnswers.url
-      html.select(Css.submitButton).text() shouldBe "Continue"
+      html.select(Css.submitButton).text() shouldBe "Confirm access group"
 
     }
 

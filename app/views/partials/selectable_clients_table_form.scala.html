@@ -25,7 +25,7 @@
 
 @this(
         layout: main_layout,
-        p: p, h1: h1, span: span,
+        p: p, h1: h1, h2: h2, span: span,
         caption: caption,
         table: table,
         submit_button: submit_button,
@@ -109,46 +109,53 @@
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
     </div>
 
+    @if(clients.getOrElse(Seq.empty).nonEmpty) {
 
+        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
+            <div class="govuk-form-group govuk-form-group--error">
+                <p id="clients-error" class="govuk-error-message">
+                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
+                </p>
+                }
 
-    @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
-        <div class="govuk-form-group govuk-form-group--error">
-            <p id="clients-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
-            </p>
-            }
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                @msgs("group.client.list.h1")
+            </legend>
+            <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
 
-    <fieldset class="govuk-fieldset">
-        <legend class="govuk-fieldset__legend govuk-visually-hidden">
-            @msgs("group.client.list.h1")
-        </legend>
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
+            @table(
+                id = Some("sortable-table"),
+                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
+                headings = Seq(
+                    (
+                            span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
+                            Map("id" -> "select-all")
+                    ),
+                    (
+                            Html(msgs("group.client.list.table.th1")),
+                            Map("aria-sort" -> "none")
+                    ),
+                    (
+                            Html(msgs("group.client.list.table.th2")),
+                            Map("aria-sort" -> "none")
+                    ),
+                    (
+                            Html(msgs("group.client.list.table.th3")),
+                            Map("aria-sort" -> "none")
+                    )),
+                rows = tableRows,
+            )
+            </div>
+        </fieldset>
+        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
-        @table(
-            id = Some("sortable-table"),
-            attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-            headings = Seq(
-                (
-                        span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
-                        Map("id" -> "select-all")
-                ),
-                (
-                        Html(msgs("group.client.list.table.th1")),
-                        Map("aria-sort" -> "none")
-                ),
-                (
-                        Html(msgs("group.client.list.table.th2")),
-                        Map("aria-sort" -> "none")
-                ),
-                (
-                        Html(msgs("group.client.list.table.th3")),
-                        Map("aria-sort" -> "none")
-                )),
-            rows = tableRows,
-        )
-        </div>
-    </fieldset>
-    @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
+        @p(msgs("common.total.clients", clients.get.length),
+        id = Some("clients-in-group"))
+    } else {
+        @h2("clients.not-found.heading")
+        @p("clients.not-found.p")
+    }
 
-    @submit_button("save.and.continue.button")
+    @submit_button()
 }

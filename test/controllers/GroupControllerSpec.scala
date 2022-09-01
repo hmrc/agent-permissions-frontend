@@ -524,15 +524,11 @@ class GroupControllerSpec extends BaseSpec {
       html
         .title() shouldBe s"Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Select clients"
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 4
-      th.get(1).text() shouldBe "Client reference"
-      th.get(2).text() shouldBe "Tax reference"
-      th.get(3).text() shouldBe "Tax service"
-      val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
-      trs.size() shouldBe 0
 
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 0
+      html.select(Css.H2).text() shouldBe "No clients found"
+      html.select(Css.paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
     }
 
     "redirect when no group name is in session" in {

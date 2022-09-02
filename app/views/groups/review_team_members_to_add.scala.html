@@ -34,11 +34,11 @@
 )
 
 @(
-        teamMembers: Seq[TeamMember],
-        groupName: String,
-        form: Form[Boolean],
-        continueCall: Call = routes.GroupController.showCheckYourAnswers,
-        backUrl: Option[String] = Some(routes.GroupController.showSelectTeamMembers.url)
+    teamMembers: Seq[TeamMember],
+    groupName: String,
+    form: Form[Boolean],
+    continueCall: Call = routes.GroupController.showCheckYourAnswers,
+    backUrl: Option[String] = Some(routes.GroupController.showSelectTeamMembers.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{

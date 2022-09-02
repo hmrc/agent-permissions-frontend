@@ -18,6 +18,7 @@
 @import controllers.routes
 @import views.html.main_layout
 @import utils.ViewUtils._
+@import views.components.models._
 
 @this(
     layout: main_layout,
@@ -26,16 +27,19 @@
     link_as_button: link_as_button,
     table: table,
     submit_button: submit_button,
-    checkbox: checkbox
+    checkbox: checkbox,
+    radioButtons: radioButtons,
+    formWithCSRF: FormWithCSRF,
+    summaryErrors: SummaryErrors
 )
 
 @(
     clients: Seq[DisplayClient],
     groupName: String,
+    form: Form[Boolean],
     continueCall: Call = routes.GroupController.showSelectTeamMembers,
     backUrl: Option[String] = Some(routes.GroupController.showSelectClients.url)
-)(
-        implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         clients.map(client =>
@@ -52,6 +56,8 @@
         backLinkHref = backUrl,
         fullWidth = true
     ) {
+
+    @summaryErrors(form.errors)
 
         <div class="govuk-!-width-two-thirds">
             @if(groupName != ""){
@@ -82,12 +88,17 @@
         )
         </div>
 
-        <p class="govuk-!-margin-bottom-9">
-        @a("group.selected.clients.change",
-            href = backUrl.get,
-            id = Some("change-selected-clients")
-        )
-        </p>
+        @formWithCSRF(action = routes.GroupController.submitReviewSelectedClients) {
+            @radioButtons(
+                field = form("answer"),
+                items = Seq(
+                    RadioData("true", "group.teamMembers.review.yes.label"),
+                    RadioData("false", "group.teamMembers.review.no.label")
+                ),
+                legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
+            )
 
-        @link_as_button(href = continueCall.url, id = "add-team-members")
+            @submit_button("save.and.continue.button")
+        }
+
     }

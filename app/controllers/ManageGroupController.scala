@@ -138,6 +138,7 @@ class ManageGroupController @Inject()(
                 review_clients_to_add(
                   clients = clients,
                   groupName = "",
+                  form = YesNoForm.form(),
                   backUrl = Some(s"${routes.ManageGroupController.showManageGroups.url}#unassigned-clients"),
                   continueCall = routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
                 )

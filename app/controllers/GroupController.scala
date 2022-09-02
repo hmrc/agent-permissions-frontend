@@ -191,10 +191,34 @@ class GroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(Redirect(routes.GroupController.showSelectClients).toFuture)(
-          clients => Ok(review_clients_to_add(clients, groupName)).toFuture)
+          clients => Ok(review_clients_to_add(clients, groupName,YesNoForm.form())).toFuture)
       }
     }
   }
+
+  def submitReviewSelectedClients(): Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameForAuthorisedOptedAgent{ (groupName, arn) =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
+        maybeClients =>
+          maybeClients.fold(Redirect(routes.GroupController.showSelectClients).toFuture)(
+            clients  =>
+            YesNoForm
+              .form("group.teamMembers.review.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors =>{
+                  Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
+                }, (yes: Boolean) => {
+                  if (yes)
+                    Redirect(routes.GroupController.showSelectClients).toFuture
+                  else
+                    Redirect(routes.GroupController.showSelectTeamMembers).toFuture
+                }
+              )
+          )
+          }
+      }
+    }
 
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>

@@ -28,23 +28,24 @@ POST    /create-access-group-name                   controllers.GroupController.
 GET     /confirm-access-group-name                  controllers.GroupController.showConfirmGroupName
 POST    /confirm-access-group-name                  controllers.GroupController.submitConfirmGroupName
 
-GET     /group/access-group-name-exists             controllers.GroupController.showAccessGroupNameExists
+GET     /access-group-name-exists             controllers.GroupController.showAccessGroupNameExists
 
-GET     /group/select-clients                       controllers.GroupController.showSelectClients
-POST    /group/select-clients                       controllers.GroupController.submitSelectedClients
+GET     /select-clients                       controllers.GroupController.showSelectClients
+POST    /select-clients                       controllers.GroupController.submitSelectedClients
 
-GET     /group/select-clients/review                controllers.GroupController.showReviewSelectedClients
+GET     /clients-selected                     controllers.GroupController.showReviewSelectedClients
+POST    /clients-selected                     controllers.GroupController.submitReviewSelectedClients
 
-GET     /select-team-members                        controllers.GroupController.showSelectTeamMembers
-POST    /select-team-members                        controllers.GroupController.submitSelectedTeamMembers
+GET     /select-team-members                  controllers.GroupController.showSelectTeamMembers
+POST    /select-team-members                  controllers.GroupController.submitSelectedTeamMembers
 
-GET     /team-members-selected                      controllers.GroupController.showReviewSelectedTeamMembers
-POST    /team-members-selected                      controllers.GroupController.submitReviewSelectedTeamMembers
+GET     /team-members-selected                controllers.GroupController.showReviewSelectedTeamMembers
+POST    /team-members-selected                controllers.GroupController.submitReviewSelectedTeamMembers
 
-GET     /confirm-clients-team-members               controllers.GroupController.showCheckYourAnswers
-POST    /confirm-clients-team-members               controllers.GroupController.submitCheckYourAnswers
+GET     /confirm-clients-team-members         controllers.GroupController.showCheckYourAnswers
+POST    /confirm-clients-team-members         controllers.GroupController.submitCheckYourAnswers
 
-GET     /group/group-created                        controllers.GroupController.showGroupCreated
+GET     /group-created                        controllers.GroupController.showGroupCreated
 
 # Manage groups
 GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups

@@ -174,6 +174,7 @@ class ManageGroupClientsController @Inject()(
               review_clients_to_add(
                 clients = clients,
                 groupName = group.groupName,
+                form = YesNoForm.form(),
                 backUrl = Some(routes.ManageGroupClientsController.showManageGroupClients(groupId).url),
                 continueCall = routes.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId)
               )

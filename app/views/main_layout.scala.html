@@ -68,7 +68,7 @@
     phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
     isWelshTranslationAvailable = true,
     displayHmrcBanner = true,
-    serviceUrl = None,
+    serviceUrl = Some(appConfig.agentServicesAccountManageAccountUrl),
     signOutUrl = None,
     backLinkUrl = backLinkHref,
     nonce = CSPNonce.get,

@@ -913,6 +913,7 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(9).select("td").get(1).text() shouldBe "John"
       trs.get(9).select("td").get(2).text() shouldBe "john10@abc.com"
       trs.get(9).select("td").get(3).text() shouldBe "Administrator"
+      html.select(Css.submitButton).text() shouldBe "Continue"
     }
 
     "render with filtered team members held in session when a filter was applied" in {

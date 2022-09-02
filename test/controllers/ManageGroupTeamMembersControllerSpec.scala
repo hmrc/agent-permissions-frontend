@@ -298,6 +298,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
       trs.get(4).select("td").get(3).text() shouldBe "Administrator"
+      html.select(Css.submitButton).text() shouldBe "Continue"
     }
   }
 
@@ -476,6 +477,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       answerRadios
         .select("label[for=false]")
         .text() shouldBe "No, continue to next section"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
     }
   }
 

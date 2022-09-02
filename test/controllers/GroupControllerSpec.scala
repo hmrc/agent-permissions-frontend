@@ -825,12 +825,20 @@ class GroupControllerSpec extends BaseSpec {
 
       html
         .select("a#change-selected-clients")
-        .attr("href") shouldBe routes.GroupController.showSelectClients.url
-      html.select("a#add-team-members").text() shouldBe "Continue"
+        .attr("href").size shouldBe 0
       html
         .select("a#add-team-members")
-        .attr("href") shouldBe routes.GroupController.showSelectTeamMembers.url
-      html.select("a#add-team-members").hasClass("govuk-button")
+        .attr("href").size shouldBe 0
+
+      val form = html.select(Css.form)
+      form.attr("action") shouldBe "/agent-permissions/clients-selected"
+      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      answerRadios
+        .select("label[for=true]")
+        .text() shouldBe "Yes, add or remove team members"
+      answerRadios
+        .select("label[for=false]")
+        .text() shouldBe "No, continue to next section"
     }
 
     "redirect when no group name is in session" in {
@@ -856,6 +864,78 @@ class GroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.GroupController.showSelectClients.url
+    }
+  }
+
+  s"POST ${routes.GroupController.submitReviewSelectedClients}" should {
+
+    s"redirect to '${routes.GroupController.showSelectTeamMembers}' page with answer 'false'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showSelectTeamMembers.url
+    }
+
+    s"redirect to '${routes.GroupController.showSelectClients}'" +
+      s" page with answer 'true'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showSelectClients.url
+    }
+
+    s"render errors when no radio button selected" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers}")
+          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 3 clients"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select an option"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select an option"
+
     }
   }
 

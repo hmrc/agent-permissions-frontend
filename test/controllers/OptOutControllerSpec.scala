@@ -79,9 +79,13 @@ class OptOutControllerSpec extends BaseSpec {
       paragraphs
         .get(1)
         .text() shouldBe "If you turn access groups back on your groups will be restored. Team members will only be able to manage the clients in their access groups."
-      html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
+      html.select(Css.linkStyledAsButton).get(0).text() shouldBe "Cancel"
       html
-        .select(Css.linkStyledAsButton)
+        .select(Css.linkStyledAsButton).get(0)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.linkStyledAsButton).get(1).text() shouldBe "Continue"
+      html
+        .select(Css.linkStyledAsButton).get(1)
         .attr("href") shouldBe "/agent-permissions/confirm-turn-off"
     }
 

@@ -30,5 +30,8 @@
     @inset_text("opt-out-info.inset")
     @p("opt-out-info.p1")
     @p("opt-out-info.p2")
+<div class="govuk-button-group">
+    @link_as_button(appConfig.agentServicesAccountManageAccountUrl, key = "common.cancel", classes = Some("govuk-button--secondary"))
     @link_as_button(OptOutController.showDoYouWantToOptOut.url)
+</div>
 }

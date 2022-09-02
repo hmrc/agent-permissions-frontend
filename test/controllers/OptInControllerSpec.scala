@@ -92,9 +92,14 @@ class OptInControllerSpec extends BaseSpec {
         .get(3)
         .text() shouldBe "Your organisation may have already created access groups and then turned this feature off. Turning access groups on will restore these groups."
 
-      html.select(Css.linkStyledAsButton).text() shouldBe "Continue"
+      html.select(Css.linkStyledAsButton).get(0).text() shouldBe "Cancel"
       html
-        .select(Css.linkStyledAsButton)
+        .select(Css.linkStyledAsButton).get(0)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+
+      html.select(Css.linkStyledAsButton).get(1).text() shouldBe "Continue"
+      html
+        .select(Css.linkStyledAsButton).get(1)
         .attr("href") shouldBe "/agent-permissions/confirm-turn-on"
     }
 

@@ -36,10 +36,11 @@ POST    /group/select-clients                       controllers.GroupController.
 
 GET     /group/select-clients/review                controllers.GroupController.showReviewSelectedClients
 
-GET     /group/select-team-members                  controllers.GroupController.showSelectTeamMembers
-POST    /group/select-team-members                  controllers.GroupController.submitSelectedTeamMembers
+GET     /select-team-members                        controllers.GroupController.showSelectTeamMembers
+POST    /select-team-members                        controllers.GroupController.submitSelectedTeamMembers
 
-GET     /group/select-team-members/review           controllers.GroupController.showReviewSelectedTeamMembers
+GET     /team-members-selected                      controllers.GroupController.showReviewSelectedTeamMembers
+POST    /team-members-selected                      controllers.GroupController.submitReviewSelectedTeamMembers
 
 GET     /confirm-clients-team-members               controllers.GroupController.showCheckYourAnswers
 POST    /confirm-clients-team-members               controllers.GroupController.submitCheckYourAnswers

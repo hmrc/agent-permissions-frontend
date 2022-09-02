@@ -34,7 +34,11 @@
     summaryErrors: SummaryErrors
 )
 
-@(teamMembers: Seq[TeamMember], group: AccessGroup, form: Form[Boolean])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    teamMembers: Seq[TeamMember],
+    group: AccessGroup,
+    form: Form[Boolean]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
         teamMembers.map(teamMember =>

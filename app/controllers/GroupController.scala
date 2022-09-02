@@ -256,8 +256,33 @@ class GroupController @Inject()(
         maybeTeamMembers.fold(
           Redirect(routes.GroupController.showSelectTeamMembers).toFuture
         )(members =>
-          Ok(review_team_members_to_add(members, groupName)).toFuture
+          Ok(review_team_members_to_add(members, groupName, YesNoForm.form())).toFuture
         )
+      }
+    }
+  }
+
+  def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameForAuthorisedOptedAgent{ (groupName, arn) =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
+        selectedMembers
+          .fold(
+            Redirect(routes.GroupController.showSelectTeamMembers).toFuture
+          ){ members =>
+            YesNoForm
+              .form("group.teamMembers.review.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors =>{
+                  Ok(review_team_members_to_add(members, groupName, formWithErrors)).toFuture
+                }, (yes: Boolean) => {
+                  if (yes)
+                    Redirect(routes.GroupController.showSelectTeamMembers).toFuture
+                  else
+                    Redirect(routes.GroupController.showCheckYourAnswers).toFuture
+                }
+              )
+          }
       }
     }
   }

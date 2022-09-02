@@ -218,8 +218,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Update team members in this group"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -251,8 +251,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Update team members in this group"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -283,8 +283,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Update team members in this group"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -468,6 +468,87 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 5 team members"
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 5
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected team members?"
+      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      answerRadios
+        .select("label[for=true]")
+        .text() shouldBe "Yes, add or remove team members"
+      answerRadios
+        .select("label[for=false]")
+        .text() shouldBe "No, continue to next section"
+    }
+  }
+
+  s"POST ${routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(accessGroup._id.toString)}" should {
+
+    s"redirect to '${routes.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      val result = controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupTeamMembersController
+        .showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString).url
+    }
+
+    s"redirect to '${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString)}'" +
+      s" page with answer 'true'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      val result = controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupTeamMembersController
+        .showManageGroupTeamMembers(accessGroup._id.toString).url
+    }
+
+    s"render errors when no radio button selected" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)}")
+          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+
+      val result = controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 5 team members"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select an option"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select an option"
 
     }
   }

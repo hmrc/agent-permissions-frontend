@@ -16,79 +16,87 @@
 
 @import config.AppConfig
 @import controllers.routes
+@import views.components.models.{LegendData, RadioData}
 @import views.html.main_layout
 @import utils.ViewUtils._
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, a: a,
-    caption: caption,
-    link_as_button: link_as_button,
-    table: table,
-    submit_button: submit_button,
-    checkbox: checkbox
+        layout: main_layout,
+        p: p, h1: h1, a: a,
+        caption: caption,
+        link_as_button: link_as_button,
+        table: table,
+        submit_button: submit_button,
+        checkbox: checkbox,
+        radioButtons: radioButtons,
+        formWithCSRF: FormWithCSRF,
+        summaryErrors: SummaryErrors
 )
 
 @(
-    teamMembers: Seq[TeamMember],
-    groupName: String,
-    continueCall: Call = routes.GroupController.showCheckYourAnswers,
-    backUrl: Option[String] = Some(routes.GroupController.showSelectTeamMembers.url)
+        teamMembers: Seq[TeamMember],
+        groupName: String,
+        form: Form[Boolean],
+        continueCall: Call = routes.GroupController.showCheckYourAnswers,
+        backUrl: Option[String] = Some(routes.GroupController.showSelectTeamMembers.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @tableRows = @{
-        teamMembers.map(teamMember =>
-            Seq(
-                Html(teamMember.name),
-                Html(teamMember.email),
-                Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse("")))
-            )
+@tableRows = @{
+    teamMembers.map(teamMember =>
+        Seq(
+            Html(teamMember.name),
+            Html(teamMember.email),
+            Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse("")))
         )
-    }
+    )
+}
 
-    @layout(
-        title = msgs("group.teamMembers.review.title", groupName),
-        backLinkHref = backUrl,
-        fullWidth = true
-    ) {
+@layout(
+    title = msgs("group.teamMembers.review.title", groupName),
+    backLinkHref = backUrl,
+    fullWidth = true
+) {
 
-        <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs("group.teamMembers.review.h1", teamMembers.size))
-        </div>
+    @summaryErrors(form.errors)
 
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
 
-        @table(
-            id = Some("sortable-table"),
-            headings = Seq(
-                (
+    <div class="govuk-!-width-two-thirds">
+        @caption(msgs("common.caption.group.name", groupName))
+        @h1(msgs("group.teamMembers.review.h1", teamMembers.size))
+    </div>
+
+    <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
+
+    @table(
+        id = Some("sortable-table"),
+        headings = Seq(
+            (
                     Html(msgs("group.members.list.table.th1")),
                     Map("aria-sort" -> "ascending")
-                ),
-                (
+            ),
+            (
                     Html(msgs("group.members.list.table.th2")),
                     Map("aria-sort" -> "none")
-                ),
-                (
-                Html(msgs("group.members.list.table.th3")),
-                Map("aria-sort" -> "none")
-                )
             ),
-            rows = tableRows,
-        )
-        </div>
-
-        <p class="govuk-!-margin-bottom-9">
-            @a("group.selected.teamMembers.change",
-                href = backUrl.get,
-                id = Some("change-selected-team-members")
+            (
+                    Html(msgs("group.members.list.table.th3")),
+                    Map("aria-sort" -> "none")
             )
-        </p>
+        ),
+        rows = tableRows,
+    )
+    </div>
+    @formWithCSRF(action = routes.GroupController.submitReviewSelectedTeamMembers) {
+        @radioButtons(
+            field = form("answer"),
+            items = Seq(
+                RadioData("true", "group.teamMembers.review.yes.label"),
+                RadioData("false", "group.teamMembers.review.no.label")
+            ),
+            legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
+        )
 
-        @link_as_button(
-            href = continueCall.url,
-            id = "check-your-answers")
-
-   
+        @submit_button("save.and.continue.button")
     }
+
+}

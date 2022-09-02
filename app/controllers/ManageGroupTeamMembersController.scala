@@ -45,7 +45,7 @@ class ManageGroupTeamMembersController @Inject()(
      teamMemberService: TeamMemberService,
      existing_team_members: existing_team_members,
      team_members_list: team_members_list,
-     review_team_members_to_add: review_team_members_to_add,
+     review_update_team_members: review_update_team_members,
      team_members_update_complete: team_members_update_complete,
     )
                                                 (implicit val appConfig: AppConfig, ec: ExecutionContext,
@@ -119,6 +119,7 @@ class ManageGroupTeamMembersController @Inject()(
                 group.groupName,
                 maybeHiddenTeamMembers,
                 AddTeamMembersToGroupForm.form(),
+                msgKey = "update",
                 formAction = controller.submitManageGroupTeamMembers(groupId),
                 backUrl = backUrl
               )
@@ -130,6 +131,7 @@ class ManageGroupTeamMembersController @Inject()(
                 group.groupName,
                 maybeHiddenTeamMembers,
                 AddTeamMembersToGroupForm.form(),
+                msgKey = "update",
                 formAction = controller.submitManageGroupTeamMembers(groupId),
                 backUrl = backUrl
               ))
@@ -212,13 +214,32 @@ class ManageGroupTeamMembersController @Inject()(
             Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
           ){ members =>
             Ok(
-              review_team_members_to_add(
-                teamMembers = members,
-                groupName = group.groupName,
-                continueCall = controller.showGroupTeamMembersUpdatedConfirmation(groupId),
-                backUrl = Some(controller.showManageGroupTeamMembers(groupId).url)
+              review_update_team_members(members, group, YesNoForm.form())).toFuture
+          }
+      }
+    }
+  }
+
+  def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
+        selectedMembers
+          .fold(
+            Redirect(controller.showExistingGroupTeamMembers(groupId)).toFuture
+          ){ members =>
+            YesNoForm
+              .form("group.teamMembers.review.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors =>{
+                  Ok(review_update_team_members(members, group, formWithErrors)).toFuture
+                }, (yes: Boolean) => {
+                  if (yes)
+                      Redirect(controller.showManageGroupTeamMembers(group._id.toString)).toFuture
+                  else
+                    Redirect(controller.showGroupTeamMembersUpdatedConfirmation(groupId)).toFuture
+                }
               )
-            ).toFuture
           }
       }
     }

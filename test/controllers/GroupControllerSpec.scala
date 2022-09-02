@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest}
+import helpers.Css.H1
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
@@ -1279,14 +1280,13 @@ class GroupControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(1).text() shouldBe "x5@xyz.com"
       trs.get(4).select("td").get(2).text() shouldBe "Administrator"
 
-      html
-        .select("a#change-selected-team-members")
-        .attr("href") shouldBe routes.GroupController.showSelectTeamMembers.url
-      html.select("a#check-your-answers").text() shouldBe "Continue"
-      html
-        .select("a#check-your-answers")
-        .attr("href") shouldBe routes.GroupController.showCheckYourAnswers.url
-      html.select("a#check-your-answers").hasClass("govuk-button")
+      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      answerRadios
+        .select("label[for=true]")
+        .text() shouldBe "Yes, add or remove team members"
+      answerRadios
+        .select("label[for=false]")
+        .text() shouldBe "No, continue to next section"
     }
 
     "redirect when no group name is in session" in {
@@ -1299,6 +1299,78 @@ class GroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+    }
+  }
+
+  s"POST ${routes.GroupController.submitReviewSelectedTeamMembers}" should {
+
+    s"redirect to '${routes.GroupController.showCheckYourAnswers}' page with answer 'false'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      val result = controller.submitReviewSelectedTeamMembers()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showCheckYourAnswers.url
+    }
+
+    s"redirect to '${routes.GroupController.showSelectTeamMembers}'" +
+      s" page with answer 'true'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      val result = controller.submitReviewSelectedTeamMembers()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.GroupController.showSelectTeamMembers.url
+    }
+
+    s"render errors when no radio button selected" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers}")
+          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      val result = controller.submitReviewSelectedTeamMembers()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 10 team members"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select an option"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select an option"
+
     }
   }
 

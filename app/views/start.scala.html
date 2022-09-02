@@ -33,7 +33,7 @@
     @p("opt-in-info.p3")
     @p("opt-in-info.p4")
     <div class="govuk-button-group">
-        @link_as_button(appConfig.agentServicesAccountManageAccountUrl, classes = Some("govuk-button--secondary"))
+        @link_as_button(href = appConfig.agentServicesAccountManageAccountUrl, key = "common.cancel", classes = Some("govuk-button--secondary"))
         @link_as_button(OptInController.showDoYouWantToOptIn.url)
     </div>
 }

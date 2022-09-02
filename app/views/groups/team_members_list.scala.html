@@ -144,7 +144,7 @@ errorPrefix.concat(msgs(s"group.${msgKey}.members.list.h1", groupName))
             </div>
                 @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
 
-            @submit_button("save.and.continue.button")
+            @submit_button()
         }
     }
 

@@ -92,10 +92,10 @@
             @radioButtons(
                 field = form("answer"),
                 items = Seq(
-                    RadioData("true", "group.teamMembers.review.yes.label"),
-                    RadioData("false", "group.teamMembers.review.no.label")
+                    RadioData("true", "group.clients.review.yes.label"),
+                    RadioData("false", "group.clients.review.no.label")
                 ),
-                legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
+                legend = Some(LegendData(msg = "group.clients.review.radio.legend"))
             )
 
             @submit_button("save.and.continue.button")

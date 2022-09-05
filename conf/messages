@@ -124,6 +124,10 @@ error.client.list.empty=You must select at least one client
 group.clients.review.h1=You have selected {0} clients
 group.selected.clients.change=Change selected clients
 group.clients.review.title=Review selected clients
+group.clients.review.radio.legend=Do you need to add or remove selected clients?
+group.clients.review.yes.label=Yes, add or remove clients
+group.clients.review.no.label=No, continue to next section
+group.clients.review.error=Select an option
 
 group.select.members.list.h1=Select team members
 group.update.members.list.h1=Update team members in this group

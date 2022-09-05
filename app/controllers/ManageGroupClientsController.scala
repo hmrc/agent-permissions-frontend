@@ -42,7 +42,7 @@ class ManageGroupClientsController @Inject()(
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
-     review_clients_to_add: review_clients_to_add,
+     review_update_clients: review_update_clients,
      update_client_group_list: update_client_group_list,
      existing_clients: existing_clients,
      clients_update_complete: clients_update_complete
@@ -171,16 +171,40 @@ class ManageGroupClientsController @Inject()(
             Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId))
           } { clients =>
             Ok(
-              review_clients_to_add(
+              review_update_clients(
                 clients = clients,
                 groupName = group.groupName,
                 form = YesNoForm.form(),
-                backUrl = Some(routes.ManageGroupClientsController.showManageGroupClients(groupId).url),
-                continueCall = routes.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId)
+                backUrl = Some(routes.ManageGroupClientsController.showManageGroupClients(groupId).url)
               )
             )
           }
           .toFuture
+      }
+    }
+  }
+
+  def submitReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+        selectedClients
+          .fold(
+            Redirect(routes.ManageGroupClientsController.showExistingGroupClients(groupId)).toFuture
+          ){ clients =>
+            YesNoForm
+              .form("group.clients.review.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors =>{
+                  Ok(review_update_clients(clients, group.groupName, formWithErrors, Some(routes.ManageGroupClientsController.showManageGroupClients(groupId).url))).toFuture
+                }, (yes: Boolean) => {
+                  if (yes)
+                    Redirect(routes.ManageGroupClientsController.showManageGroupClients(group._id.toString)).toFuture
+                  else
+                    Redirect(routes.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId)).toFuture
+                }
+              )
+          }
       }
     }
   }

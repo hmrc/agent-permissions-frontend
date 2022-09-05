@@ -37,8 +37,7 @@
     clients: Seq[DisplayClient],
     groupName: String,
     form: Form[Boolean],
-    continueCall: Call = routes.GroupController.showSelectTeamMembers,
-    backUrl: Option[String] = Some(routes.GroupController.showSelectClients.url)
+    backUrl: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{

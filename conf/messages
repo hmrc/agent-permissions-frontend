@@ -263,3 +263,9 @@ member.added.to.groups.h1=Team member added to access groups
 member.added.to.groups.p1=You have added {0} to the following groups:
 member.added.to.groups.p2={0} can now view and manage the tax affairs of the clients in these access groups.
 member.added.to.groups.a=Back to manage team members page
+
+signout.h1=You have signed out
+signout.signin.again.a=Sign in again
+signout.signin.again.p=to use this service.
+timeout.h1=You have been timed out
+timeout.p=You have not done anything for 15 minutes, so we have signed you out to keep your account secure.

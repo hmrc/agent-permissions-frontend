@@ -73,6 +73,6 @@
     backLinkUrl = backLinkHref,
     nonce = CSPNonce.get,
     mainContentLayout = None,
-    additionalHeadBlock = Some(head()),
+    additionalHeadBlock = Some(head(hasTimeout)),
     additionalScriptsBlock = Some(scripts)
 )(mainContentWithTechIssueHelper)

@@ -15,24 +15,23 @@
  *@
 
 @import config.AppConfig
+@import views.html.main_layout
 
-@this(hmrcTimeoutDialog: HmrcTimeoutDialog)
+@this(layout: main_layout, h1: h1, p: p, a: a, span: span)
 
-@(hasTimeout: Boolean = true)(implicit appConfig: AppConfig, msgs: Messages)
 
-<link   rel="stylesheet" type="text/css"
-        href="@controllers.routes.Assets.versioned("stylesheets/application.css")">
+@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@if(hasTimeout) {
 
- @hmrcTimeoutDialog(
-  TimeoutDialog(
-   timeout = Some(appConfig.userTimeout),
-   countdown = Some(appConfig.userTimeoutCountdown),
-   keepAliveUrl = Some(routes.TimeoutController.keepAlive.url),
-   signOutUrl = Some(routes.TimeoutController.signOut.url),
-   timeoutUrl = Some(routes.TimeoutController.timedOut.url),
-   language = Some(msgs.lang.code)
-  )
- )
+@layout(title = msgs("timeout.h1"), hasTimeout = false) {
+    @h1("timeout.h1")
+    @p("timeout.p")
+    @p(
+        html = Some(Html(
+            a(href = appConfig.agentServicesAccountManageAccountUrl,
+                key = "signout.signin.again.a"
+            ).toString +
+            span("signout.signin.again.p").toString
+        ))
+    )
 }

@@ -65,6 +65,7 @@ GET     /manage-access-groups/manage-clients/:groupId               controllers.
 GET     /update-clients/:groupId                                    controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
 POST    /update-clients/:groupId                                    controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
 GET     /clients-selected/:groupId                                  controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)
+POST    /clients-selected/:groupId                                  controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
 GET     /clients-updated/:groupId                                   controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 # Manage groups - team members

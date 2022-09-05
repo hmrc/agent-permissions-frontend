@@ -176,8 +176,7 @@ class ManageGroupClientsController @Inject()(
               review_update_clients(
                 clients = clients,
                 group = group,
-                form = YesNoForm.form(),
-                backUrl = Some(controller.showManageGroupClients(groupId).url)
+                form = YesNoForm.form()
               )
             )
           }
@@ -198,7 +197,7 @@ class ManageGroupClientsController @Inject()(
               .bindFromRequest
               .fold(
                 formWithErrors =>{
-                  Ok(review_update_clients(clients, group, formWithErrors, Some(controller.showManageGroupClients(groupId).url))).toFuture
+                  Ok(review_update_clients(clients, group, formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showManageGroupClients(group._id.toString)).toFuture

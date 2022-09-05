@@ -37,8 +37,7 @@
 @(
     clients: Seq[DisplayClient],
     group: AccessGroup,
-    form: Form[Boolean],
-    backUrl: Option[String] = None
+    form: Form[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -53,7 +52,7 @@
 
     @layout(
         title = msgs("group.clients.review.title", group.groupName),
-        backLinkHref = backUrl,
+        backLinkHref =  Some(routes.ManageGroupClientsController.showManageGroupClients(group._id.toString).url),
         fullWidth = true
     ) {
 

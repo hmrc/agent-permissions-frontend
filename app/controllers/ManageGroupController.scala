@@ -140,6 +140,7 @@ class ManageGroupController @Inject()(
                   groupName = "",
                   form = YesNoForm.form(),
                   backUrl = Some(s"${routes.ManageGroupController.showManageGroups.url}#unassigned-clients"),
+                  // TODO needs to be updated to a submit for the yes no form
                   continueCall = routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
                 )
               ).toFuture

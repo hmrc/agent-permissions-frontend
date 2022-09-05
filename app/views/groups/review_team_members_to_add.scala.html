@@ -37,7 +37,6 @@
     teamMembers: Seq[TeamMember],
     groupName: String,
     form: Form[Boolean],
-    continueCall: Call = routes.CreateGroupController.showCheckYourAnswers,
     backUrl: Option[String] = Some(routes.CreateGroupController.showSelectTeamMembers.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

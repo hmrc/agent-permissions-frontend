@@ -1006,6 +1006,16 @@ class ManageGroupControllerSpec extends BaseSpec {
       //and the back link should go to the unassigned clients tab
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups#unassigned-clients"
 
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
+      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      answerRadios
+        .select("label[for=true]")
+        .text() shouldBe "Yes, add or remove clients"
+      answerRadios
+        .select("label[for=false]")
+        .text() shouldBe "No, continue to next section"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
     }
   }
 

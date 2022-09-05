@@ -36,7 +36,7 @@
 
 @layout(
     title = msgs("cya.h1"),
-    backLinkHref = Some(routes.GroupController.showReviewSelectedTeamMembers.url)
+    backLinkHref = Some(routes.CreateGroupController.showReviewSelectedTeamMembers.url)
 ) {
 
     @caption(msgs("common.caption.group.name", groupName))
@@ -48,19 +48,19 @@
             SummaryListData(
                 "common.clients",
                 numberOfClients.getOrElse(0).toString,
-                routes.GroupController.showSelectClients
+                routes.CreateGroupController.showSelectClients
             ),
             SummaryListData(
                 "common.teamMembers",
                 numberOfTeamMembers.getOrElse(0).toString,
-                routes.GroupController.showSelectTeamMembers
+                routes.CreateGroupController.showSelectTeamMembers
             ),
         )
     )
 
     @inset_text("cya.inset")
 
-    @formWithCSRF(action = routes.GroupController.submitCheckYourAnswers) {
+    @formWithCSRF(action = routes.CreateGroupController.submitCheckYourAnswers) {
         @submit_button("cya.submit")
     }
 

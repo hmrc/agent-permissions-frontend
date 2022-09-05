@@ -40,8 +40,8 @@
     groupName: String,
     hiddenClientsExist: Option[Boolean],
     form: Form[AddClientsToGroup],
-    formAction: Call = routes.GroupController.submitSelectedClients,
-    backUrl: Option[String] = Some(routes.GroupController.showConfirmGroupName.url)
+    formAction: Call,
+    backUrl: Option[String]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 

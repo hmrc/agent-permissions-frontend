@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 @import utils.ViewUtils._
 @import views.components.models._
 
@@ -35,7 +36,7 @@
 
 @(
     clients: Seq[DisplayClient],
-    groupName: String,
+    group: AccessGroup,
     form: Form[Boolean],
     backUrl: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -51,7 +52,7 @@
     }
 
     @layout(
-        title = msgs("group.clients.review.title", groupName),
+        title = msgs("group.clients.review.title", group.groupName),
         backLinkHref = backUrl,
         fullWidth = true
     ) {
@@ -59,8 +60,8 @@
     @summaryErrors(form.errors)
 
         <div class="govuk-!-width-two-thirds">
-            @if(groupName != ""){
-                @caption(msgs("common.caption.group.name", groupName))
+            @if(group.groupName != ""){
+                @caption(msgs("common.caption.group.name", group.groupName))
             }
             @h1(msgs("group.clients.review.h1", clients.size))
         </div>
@@ -87,7 +88,7 @@
         )
         </div>
 
-        @formWithCSRF(action = routes.GroupController.submitReviewSelectedClients) {
+        @formWithCSRF(action = routes.ManageGroupClientsController.submitReviewSelectedClients(group._id.toString)) {
             @radioButtons(
                 field = form("answer"),
                 items = Seq(

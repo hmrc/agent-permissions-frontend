@@ -236,7 +236,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groupsPanel.select("a").text() shouldBe "Create new access group"
       groupsPanel
         .select("a")
-        .attr("href") shouldBe routes.GroupController.showGroupName.url
+        .attr("href") shouldBe routes.CreateGroupController.showGroupName.url
       groupsPanel.select("a").hasClass("govuk-button") shouldBe true
 
       val unassignedClientsPanel =
@@ -1055,7 +1055,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
 
     }
 

@@ -33,7 +33,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class GroupController @Inject()(
+class CreateGroupController @Inject()(
                                  authAction: AuthAction,
                                  mcc: MessagesControllerComponents,
                                  create: create,
@@ -63,9 +63,11 @@ class GroupController @Inject()(
 
   import authAction._
 
+  private val controller: ReverseCreateGroupController = routes.CreateGroupController
+
   def start: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { _ =>
-      clearSession().map(_ => Redirect(routes.GroupController.showGroupName))
+      clearSession().map(_ => Redirect(controller.showGroupName))
     }
   }
 
@@ -73,7 +75,7 @@ class GroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[String](GROUP_NAME) { maybeName =>
-          Ok(create(GroupNameForm.form.fill(maybeName.getOrElse("")))).toFuture
+          Ok(create(GroupNameForm.form().fill(maybeName.getOrElse("")))).toFuture
         }
       }
     }
@@ -89,7 +91,7 @@ class GroupController @Inject()(
             formWithErrors => Ok(create(formWithErrors)).toFuture,
             (name: String) =>
               sessionCacheService.writeGroupNameAndRedirect(name)(
-                routes.GroupController.showConfirmGroupName)
+                controller.showConfirmGroupName)
           )
       }
     }
@@ -118,12 +120,12 @@ class GroupController @Inject()(
                   nameAvailable =>
                     if (nameAvailable)
                       sessionCacheService.confirmGroupNameAndRedirect(
-                        routes.GroupController.showSelectClients)
+                        controller.showSelectClients)
                     else
                       Redirect(
-                        routes.GroupController.showAccessGroupNameExists).toFuture)
+                        controller.showAccessGroupNameExists).toFuture)
             else
-              Redirect(routes.GroupController.showGroupName.url).toFuture
+              Redirect(controller.showGroupName.url).toFuture
           }
         )
     }
@@ -177,10 +179,10 @@ class GroupController @Inject()(
               clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getClients)
                 .map(_ =>
                   if (buttonSelection == ButtonSelect.Continue)
-                    Redirect(routes.GroupController.showReviewSelectedClients)
+                    Redirect(controller.showReviewSelectedClients)
                   else
                     Redirect(
-                      routes.GroupController.showSelectClients))
+                      controller.showSelectClients))
             }
           )
       }
@@ -190,7 +192,7 @@ class GroupController @Inject()(
   def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
-        maybeClients.fold(Redirect(routes.GroupController.showSelectClients).toFuture)(
+        maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
           clients => Ok(review_clients_to_add(clients, groupName,YesNoForm.form())).toFuture)
       }
     }
@@ -200,7 +202,7 @@ class GroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent{ (groupName, arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
-          maybeClients.fold(Redirect(routes.GroupController.showSelectClients).toFuture)(
+          maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
             clients  =>
             YesNoForm
               .form("group.teamMembers.review.error")
@@ -210,9 +212,9 @@ class GroupController @Inject()(
                   Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
-                    Redirect(routes.GroupController.showSelectClients).toFuture
+                    Redirect(controller.showSelectClients).toFuture
                   else
-                    Redirect(routes.GroupController.showSelectTeamMembers).toFuture
+                    Redirect(controller.showSelectTeamMembers).toFuture
                 }
               )
           )
@@ -266,8 +268,8 @@ class GroupController @Inject()(
                         buttonSelection)(arn)(formData)
                       .map(_ =>
                         if (buttonSelection == ButtonSelect.Continue)
-                          Redirect(routes.GroupController.showReviewSelectedTeamMembers)
-                        else Redirect(routes.GroupController.showSelectTeamMembers))
+                          Redirect(controller.showReviewSelectedTeamMembers)
+                        else Redirect(controller.showSelectTeamMembers))
                   }
                 )
         }
@@ -278,7 +280,7 @@ class GroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers.fold(
-          Redirect(routes.GroupController.showSelectTeamMembers).toFuture
+          Redirect(controller.showSelectTeamMembers).toFuture
         )(members =>
           Ok(review_team_members_to_add(members, groupName, YesNoForm.form())).toFuture
         )
@@ -291,7 +293,7 @@ class GroupController @Inject()(
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
-            Redirect(routes.GroupController.showSelectTeamMembers).toFuture
+            Redirect(controller.showSelectTeamMembers).toFuture
           ){ members =>
             YesNoForm
               .form("group.teamMembers.review.error")
@@ -301,9 +303,9 @@ class GroupController @Inject()(
                   Ok(review_team_members_to_add(members, groupName, formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
-                    Redirect(routes.GroupController.showSelectTeamMembers).toFuture
+                    Redirect(controller.showSelectTeamMembers).toFuture
                   else
-                    Redirect(routes.GroupController.showCheckYourAnswers).toFuture
+                    Redirect(controller.showCheckYourAnswers).toFuture
                 }
               )
           }
@@ -327,7 +329,7 @@ class GroupController @Inject()(
   def submitCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       groupService.createGroup(arn, groupName).map(_ =>
-      Redirect(routes.GroupController.showGroupCreated))
+      Redirect(controller.showGroupCreated))
     }
   }
 
@@ -336,7 +338,7 @@ class GroupController @Inject()(
       isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) {
         maybeGroupName =>
           maybeGroupName.fold(
-            Redirect(routes.GroupController.showGroupName).toFuture
+            Redirect(controller.showGroupName).toFuture
           )(groupName => Ok(group_created(groupName)).toFuture)
       }
     }
@@ -346,7 +348,7 @@ class GroupController @Inject()(
                                                   (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.GroupController.showGroupName).toFuture) {
+        maybeGroupName.fold(Redirect(controller.showGroupName).toFuture) {
           groupName => body(groupName, arn)
         }
       }

@@ -134,8 +134,8 @@ class ManageGroupClientsController @Inject()(
                     group.groupName,
                     maybeHiddenClients,
                     formWithErrors,
-                    formAction = controller.showManageGroupClients(groupId),
-                    backUrl = Some(routes.ManageGroupController.showManageGroups.url)
+                    formAction = controller.submitManageGroupClients(groupId),
+                    backUrl = Some(controller.showExistingGroupClients(groupId).url)
                   ))
                 }
               },
@@ -175,7 +175,7 @@ class ManageGroupClientsController @Inject()(
             Ok(
               review_update_clients(
                 clients = clients,
-                groupName = group.groupName,
+                group = group,
                 form = YesNoForm.form(),
                 backUrl = Some(controller.showManageGroupClients(groupId).url)
               )
@@ -198,7 +198,7 @@ class ManageGroupClientsController @Inject()(
               .bindFromRequest
               .fold(
                 formWithErrors =>{
-                  Ok(review_update_clients(clients, group.groupName, formWithErrors, Some(controller.showManageGroupClients(groupId).url))).toFuture
+                  Ok(review_update_clients(clients, group, formWithErrors, Some(controller.showManageGroupClients(groupId).url))).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showManageGroupClients(group._id.toString)).toFuture

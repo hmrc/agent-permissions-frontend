@@ -173,7 +173,7 @@ class ManageGroupController @Inject()(
             }
             )
           }, validForm => {
-            if(validForm.createNew.isDefined) Redirect(routes.GroupController.showGroupName).toFuture
+            if(validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
             else {
               for {
                 summaries <- getGroupSummaries(arn)

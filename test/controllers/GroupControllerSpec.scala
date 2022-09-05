@@ -835,7 +835,7 @@ class GroupControllerSpec extends BaseSpec {
       val answerRadios = html.select(Css.radioButtonsField("answer"))
       answerRadios
         .select("label[for=true]")
-        .text() shouldBe "Yes, add or remove team members"
+        .text() shouldBe "Yes, add or remove clients"
       answerRadios
         .select("label[for=false]")
         .text() shouldBe "No, continue to next section"

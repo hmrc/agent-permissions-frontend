@@ -38,6 +38,8 @@ trait AppConfig {
   def agentPermissionsBaseUrl: String
   def agentUserClientDetailsBaseUrl: String
   def sessionCacheExpiryDuration: Duration
+  def userTimeoutCountdown: Int
+  def userTimeout: Int
 }
 
 @Singleton
@@ -61,10 +63,10 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
   lazy val agentServicesAccountManageAccountPath: String = servicesConfig.getString(
     "microservice.services.agent-services-account-frontend.manage-account-path")
   lazy val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
-  lazy val agentPermissionsBaseUrl: String =
-    servicesConfig.baseUrl("agent-permissions")
-  lazy val agentUserClientDetailsBaseUrl: String =
-    servicesConfig.baseUrl("agent-user-client-details")
-  lazy val sessionCacheExpiryDuration: Duration =
-    servicesConfig.getDuration("mongodb.cache.expiry")
+  lazy val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
+  lazy val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
+  lazy val sessionCacheExpiryDuration: Duration = servicesConfig.getDuration("mongodb.cache.expiry")
+
+  lazy val userTimeout: Int = servicesConfig.getInt("timeout.duration")
+  lazy val userTimeoutCountdown: Int = servicesConfig.getInt("timeout.countDown")
 }

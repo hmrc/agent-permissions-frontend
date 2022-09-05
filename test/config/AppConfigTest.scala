@@ -41,4 +41,11 @@ class AppConfigTest
     }
   }
 
+  "Timeout" should {
+    "be" in {
+      appConfig.userTimeout shouldBe 900
+      appConfig.userTimeoutCountdown shouldBe 120
+    }
+  }
+
 }

@@ -10,6 +10,7 @@ object CodeCoverageSettings {
     "uk.gov.hmrc.BuildInfo",
     "views.html",
     "views.html.components",
+    "views.html.timeout",
     "views.html.partials",
     "app.assets.*",
     "prod.*",
@@ -31,6 +32,7 @@ object CodeCoverageSettings {
     ".*GroupAction.*",
     ".*ClientAction.*",
     ".*TeamMemberAction.*",
+    ".*TimeoutController.*",
   )
 
   val settings: Seq[Setting[_]] = Seq(

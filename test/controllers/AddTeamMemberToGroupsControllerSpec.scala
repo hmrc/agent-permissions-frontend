@@ -160,6 +160,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       html.select(Css.li("already-in-groups")).get(1).text() shouldBe "Group 2"
       val form = html.select(Css.form)
       form.size() shouldBe 0
+      val backLink = html.select("main a#back-to-member-details")
+      backLink.text() shouldBe "Back to John Smith 1"
+      backLink.attr("href") shouldBe routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url
     }
 
   }

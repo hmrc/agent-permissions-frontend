@@ -1495,11 +1495,11 @@ class CreateGroupControllerSpec extends BaseSpec {
       cyaRows.size() shouldBe 2
       cyaRows.get(0).select("dt").text() shouldBe "Clients"
       cyaRows.get(0).select("dd").get(0).text() shouldBe "3"
-      cyaRows.get(0).select("dd").get(1).text() shouldBe "Change"
+      cyaRows.get(0).select("dd").get(1).text() shouldBe "Change Clients"
 
       cyaRows.get(1).select("dt").text() shouldBe "Team members"
       cyaRows.get(1).select("dd").get(0).text() shouldBe "5"
-      cyaRows.get(1).select("dd").get(1).text() shouldBe "Change"
+      cyaRows.get(1).select("dd").get(1).text() shouldBe "Change Team members"
 
       html
         .select(Css.insetText)

@@ -158,7 +158,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__value")
         .text() shouldBe "3"
       clientsRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage clients"
+        .text() shouldBe "Manage clients for name 1"
       clientsRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-access-groups/manage-clients/groupId1"
 
@@ -168,7 +168,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__value")
         .text() shouldBe "4"
       membersRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage team members"
+        .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
 
@@ -307,7 +307,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__value")
         .text() shouldBe "3"
       clientsRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage clients"
+        .text() shouldBe "Manage clients for name 1"
       clientsRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-access-groups/manage-clients/groupId1"
 
@@ -317,7 +317,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__value")
         .text() shouldBe "4"
       membersRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage team members"
+        .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
 
@@ -393,7 +393,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__value")
         .text() shouldBe "3"
       clientsRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage clients"
+        .text() shouldBe "Manage clients for name 1"
       clientsRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-access-groups/manage-clients/groupId1"
 
@@ -403,7 +403,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__value")
         .text() shouldBe "4"
       membersRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage team members"
+        .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
 

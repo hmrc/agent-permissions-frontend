@@ -48,12 +48,14 @@
             SummaryListData(
                 "common.clients",
                 numberOfClients.getOrElse(0).toString,
-                routes.CreateGroupController.showSelectClients
+                routes.CreateGroupController.showSelectClients,
+                hiddenText = Some(msgs("common.clients"))
             ),
             SummaryListData(
                 "common.teamMembers",
                 numberOfTeamMembers.getOrElse(0).toString,
-                routes.CreateGroupController.showSelectTeamMembers
+                routes.CreateGroupController.showSelectTeamMembers,
+                hiddenText = Some(msgs("common.teamMembers"))
             ),
         )
     )

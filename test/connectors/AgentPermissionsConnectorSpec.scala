@@ -70,13 +70,13 @@ class AgentPermissionsConnectorSpec
     "return Done when successful" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
-      connector.optIn(arn).futureValue shouldBe Done
+      connector.optIn(arn, None).futureValue shouldBe Done
     }
     "throw an exception when there was a problem" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
       intercept[UpstreamErrorResponse] {
-        await(connector.optIn(arn))
+        await(connector.optIn(arn, None))
       }
     }
   }

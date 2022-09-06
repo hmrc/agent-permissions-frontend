@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[OptInServiceImpl])
 trait OptinService {
-  def optIn(arn: Arn)(implicit request: Request[_],
+  def optIn(arn: Arn, lang: Option[String])(implicit request: Request[_],
                       hc: HeaderCarrier,
                       ec: ExecutionContext): Future[Done]
 
@@ -47,10 +47,10 @@ class OptInServiceImpl @Inject()(
     sessionCacheRepository: SessionCacheRepository
 ) extends OptinService {
 
-  def optIn(arn: Arn)(implicit request: Request[_],
+  def optIn(arn: Arn, lang: Option[String])(implicit request: Request[_],
                       hc: HeaderCarrier,
                       ec: ExecutionContext): Future[Done] = {
-    optingTo(agentPermissionsConnector.optIn)(arn)(request, hc, ec)
+    optingTo(agentPermissionsConnector.optIn(_, lang))(arn)(request, hc, ec)
   }
 
   def optOut(arn: Arn)(implicit request: Request[_],

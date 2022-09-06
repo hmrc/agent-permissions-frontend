@@ -45,15 +45,15 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
   def stubPostOptInAccepted(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, *, *)
+      .optIn(_: Arn, _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
       .returning(Future successful Done)
 
   def stubPostOptInError(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .optIn(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, *, *)
+      .optIn(_: Arn, _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
   def stubPostOptOutAccepted(arn: Arn)(

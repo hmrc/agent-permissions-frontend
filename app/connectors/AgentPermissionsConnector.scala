@@ -44,7 +44,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Option[OptinStatus]]
 
-  def optIn(arn: Arn)(implicit hc: HeaderCarrier,
+  def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier,
                       ec: ExecutionContext): Future[Done]
 
   def optOut(arn: Arn)(implicit hc: HeaderCarrier,
@@ -111,9 +111,9 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  def optIn(arn: Arn)(implicit hc: HeaderCarrier,
+  def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier,
                       ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin"
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin" + lang.fold("")("?lang=" + _)
     monitor("ConsumedAPI-optin-POST") {
       http.POSTEmpty[HttpResponse](url).map { response =>
         response.status match {

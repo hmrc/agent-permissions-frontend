@@ -704,6 +704,9 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.H2).size() shouldBe 0
       html.select(Css.paragraphs).size() shouldBe 0
       html.select(Css.backLink).size() shouldBe 0
+      val dashboardLink = html.select("main a#back-to-dashboard")
+      dashboardLink.text() shouldBe "Return to manage access groups"
+      dashboardLink.attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
     }
   }
 

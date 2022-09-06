@@ -32,7 +32,8 @@
 
     <div class="govuk-!-margin-top-9">
     @a("common.return.to.dashboard",
-        href = appConfig.agentServicesAccountManageAccountUrl,
+        id = Some("back-to-dashboard"),
+        href = routes.ManageGroupController.showManageGroups.url,
     )
     </div>
 

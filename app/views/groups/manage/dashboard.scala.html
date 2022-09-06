@@ -23,7 +23,7 @@
 @import utils.ViewUtils._
 
 @this(
-    layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a,
+    layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a, span: span,
     table: table, textbox: textbox, input_select: input_select,
     a_button: link_as_button,summary_list: summary_list, govukTabs: GovukTabs,
     selectable_clients_table_form: selectable_clients_table_form,
@@ -76,21 +76,26 @@
                         summary.clientCount.toString,
                         routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
                         linkMsgKey = "group.manage.clients",
-                        linkClasses = Some("govuk-!-width-one-half")
+                        linkClasses = Some("govuk-!-width-one-half"),
+                        hiddenText = Some(msgs("details.link-hidden", summary.groupName))
                     ),
                     SummaryListData(
                         "common.teamMembers",
                         summary.teamMemberCount.toString,
                         routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId),
                         linkMsgKey = "group.manage.members",
-                        linkClasses = Some("govuk-!-width-one-half")
+                        linkClasses = Some("govuk-!-width-one-half"),
+                        hiddenText = Some(msgs("details.link-hidden", summary.groupName))
                     ),
                 )
             )
-            @a("group.manage.rename",
+            @a(key = msgs("group.manage.rename") + span(classes=Some("govuk-visually-hidden"),
+                key = summary.groupName).toString,
                 href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
                 classes = Some("govuk-!-margin-right-9"))
-            @a("group.manage.delete", href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
+            @a(key = msgs("group.manage.delete") + span(classes=Some("govuk-visually-hidden"),
+                key=summary.groupName).toString,
+                href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
             <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
             style="height: 3px;
                 border-width: 0;

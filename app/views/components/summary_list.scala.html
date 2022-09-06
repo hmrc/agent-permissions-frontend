@@ -20,7 +20,6 @@
 
 @(rows: Seq[SummaryListData])(implicit msgs: Messages)
 
-
     @govukSummaryList(
         SummaryList(
             rows = rows.map(summaryListRow =>
@@ -33,7 +32,8 @@
                             items = Seq(
                                 ActionItem(
                                     href = summaryListRow.link.url,
-                                    content = Text(msgs(summaryListRow.linkMsgKey))
+                                    content = Text(msgs(summaryListRow.linkMsgKey)),
+                                    visuallyHiddenText = summaryListRow.hiddenText
                                 )
                             )
                         )

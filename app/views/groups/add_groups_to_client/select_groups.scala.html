@@ -83,12 +83,11 @@
             }
         } else{
             <div class="govuk-!-margin-top-8">
-
-            @a(
-                href = routes.ManageClientController.showClientDetails(client.id).url,
-                id = Some("back-to-client-details"),
-                key = msgs("client.select.back", client.name)
-            )
+                @a(
+                    href = routes.ManageClientController.showClientDetails(client.id).url,
+                    id = Some("back-to-client-details"),
+                    key = msgs("client.select.back", client.name)
+                )
             </div>
         }
     }

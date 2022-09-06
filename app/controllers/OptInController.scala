@@ -75,9 +75,10 @@ class OptInController @Inject()(
             .fold(
               formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
               (iWantToOptIn: Boolean) => {
+                val lang = request.cookies.get("PLAY_LANG").map(_.value)
                 if (iWantToOptIn)
                   optInService
-                    .optIn(arn)
+                    .optIn(arn, lang)
                     .map(_ =>
                       Redirect(routes.OptInController.showYouHaveOptedIn.url))
                 else

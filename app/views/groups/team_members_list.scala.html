@@ -39,8 +39,8 @@
     hiddenTeamMembersExist: Option[Boolean],
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
-    formAction: Call = routes.GroupController.submitSelectedTeamMembers,
-    backUrl: Option[String] = Some(routes.GroupController.showReviewSelectedClients.url)
+    formAction: Call = routes.CreateGroupController.submitSelectedTeamMembers,
+    backUrl: Option[String] = Some(routes.CreateGroupController.showReviewSelectedClients.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{

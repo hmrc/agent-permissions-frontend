@@ -140,6 +140,7 @@ class ManageGroupController @Inject()(
                   groupName = "",
                   form = YesNoForm.form(),
                   backUrl = Some(s"${routes.ManageGroupController.showManageGroups.url}#unassigned-clients"),
+                  // TODO needs to be updated to a submit for the yes no form
                   continueCall = routes.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
                 )
               ).toFuture
@@ -173,7 +174,7 @@ class ManageGroupController @Inject()(
             }
             )
           }, validForm => {
-            if(validForm.createNew.isDefined) Redirect(routes.GroupController.showGroupName).toFuture
+            if(validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
             else {
               for {
                 summaries <- getGroupSummaries(arn)

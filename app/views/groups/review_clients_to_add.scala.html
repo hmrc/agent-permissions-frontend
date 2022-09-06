@@ -37,8 +37,8 @@
     clients: Seq[DisplayClient],
     groupName: String,
     form: Form[Boolean],
-    continueCall: Call = routes.GroupController.showSelectTeamMembers,
-    backUrl: Option[String] = Some(routes.GroupController.showSelectClients.url)
+    continueCall: Call = routes.CreateGroupController.submitReviewSelectedClients,
+    backUrl: Option[String] = Some(routes.CreateGroupController.showSelectClients.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -88,7 +88,7 @@
         )
         </div>
 
-        @formWithCSRF(action = routes.GroupController.submitReviewSelectedClients) {
+        @formWithCSRF(action = continueCall) {
             @radioButtons(
                 field = form("answer"),
                 items = Seq(

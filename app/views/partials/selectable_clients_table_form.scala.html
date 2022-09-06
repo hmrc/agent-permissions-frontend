@@ -41,7 +41,7 @@
         clients: Option[Seq[DisplayClient]] = None,
         hiddenClientsExist: Option[Boolean],
         form: Form[AddClientsToGroup],
-        formAction: Call = routes.GroupController.submitSelectedClients,
+        formAction: Call = routes.CreateGroupController.submitSelectedClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{

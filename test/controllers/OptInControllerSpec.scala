@@ -39,7 +39,7 @@ class OptInControllerSpec extends BaseSpec {
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
@@ -57,14 +57,14 @@ class OptInControllerSpec extends BaseSpec {
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val controller = fakeApplication.injector.instanceOf[OptInController]
+  val controller: OptInController = fakeApplication.injector.instanceOf[OptInController]
 
   s"GET ${routes.OptInController.start}" should {
 
     "display content for start" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.start()(request)
@@ -134,7 +134,7 @@ class OptInControllerSpec extends BaseSpec {
     "redirect user to root when user is not eligible" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedOutSingleUser)
 
       val result = controller.start()(request)
@@ -147,7 +147,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.showDoYouWantToOptIn()(request)
@@ -180,7 +180,7 @@ class OptInControllerSpec extends BaseSpec {
     s"redirect to '${routes.OptInController.showYouHaveOptedIn}' page with answer 'true'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       implicit val request =
         FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
@@ -201,7 +201,7 @@ class OptInControllerSpec extends BaseSpec {
     "redirect to 'ASA Manage account' page with answer 'false'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       implicit val request =
         FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
@@ -220,7 +220,7 @@ class OptInControllerSpec extends BaseSpec {
     "render correct error messages when form not filled in" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       implicit val request =
         FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
@@ -249,7 +249,7 @@ class OptInControllerSpec extends BaseSpec {
     "throw exception when there was a problem with optin call" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       stubPostOptInError(arn)
 
       implicit val request =
@@ -269,7 +269,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content when client list not available yet" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       await(
         sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
 
@@ -306,7 +306,7 @@ class OptInControllerSpec extends BaseSpec {
     "display expected content when client list is ready" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       await(
         sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
 
@@ -336,7 +336,7 @@ class OptInControllerSpec extends BaseSpec {
         .text() shouldBe "Create access group"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe routes.GroupController.start.url
+        .attr("href") shouldBe routes.CreateGroupController.start.url
     }
   }
 

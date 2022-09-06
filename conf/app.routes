@@ -20,32 +20,32 @@ POST    /confirm-turn-off                           controllers.OptOutController
 GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut
 
 # create group
-GET     /group/create-access-group                  controllers.GroupController.start
+GET     /group/create-access-group            controllers.CreateGroupController.start
 
-GET     /create-access-group-name                   controllers.GroupController.showGroupName
-POST    /create-access-group-name                   controllers.GroupController.submitGroupName
+GET     /create-access-group-name             controllers.CreateGroupController.showGroupName
+POST    /create-access-group-name             controllers.CreateGroupController.submitGroupName
 
-GET     /confirm-access-group-name                  controllers.GroupController.showConfirmGroupName
-POST    /confirm-access-group-name                  controllers.GroupController.submitConfirmGroupName
+GET     /confirm-access-group-name            controllers.CreateGroupController.showConfirmGroupName
+POST    /confirm-access-group-name            controllers.CreateGroupController.submitConfirmGroupName
 
-GET     /access-group-name-exists             controllers.GroupController.showAccessGroupNameExists
+GET     /access-group-name-exists             controllers.CreateGroupController.showAccessGroupNameExists
 
-GET     /select-clients                       controllers.GroupController.showSelectClients
-POST    /select-clients                       controllers.GroupController.submitSelectedClients
+GET     /select-clients                       controllers.CreateGroupController.showSelectClients
+POST    /select-clients                       controllers.CreateGroupController.submitSelectedClients
 
-GET     /clients-selected                     controllers.GroupController.showReviewSelectedClients
-POST    /clients-selected                     controllers.GroupController.submitReviewSelectedClients
+GET     /clients-selected                     controllers.CreateGroupController.showReviewSelectedClients
+POST    /clients-selected                     controllers.CreateGroupController.submitReviewSelectedClients
 
-GET     /select-team-members                  controllers.GroupController.showSelectTeamMembers
-POST    /select-team-members                  controllers.GroupController.submitSelectedTeamMembers
+GET     /select-team-members                  controllers.CreateGroupController.showSelectTeamMembers
+POST    /select-team-members                  controllers.CreateGroupController.submitSelectedTeamMembers
 
-GET     /team-members-selected                controllers.GroupController.showReviewSelectedTeamMembers
-POST    /team-members-selected                controllers.GroupController.submitReviewSelectedTeamMembers
+GET     /team-members-selected                controllers.CreateGroupController.showReviewSelectedTeamMembers
+POST    /team-members-selected                controllers.CreateGroupController.submitReviewSelectedTeamMembers
 
-GET     /confirm-clients-team-members         controllers.GroupController.showCheckYourAnswers
-POST    /confirm-clients-team-members         controllers.GroupController.submitCheckYourAnswers
+GET     /confirm-clients-team-members         controllers.CreateGroupController.showCheckYourAnswers
+POST    /confirm-clients-team-members         controllers.CreateGroupController.submitCheckYourAnswers
 
-GET     /group-created                        controllers.GroupController.showGroupCreated
+GET     /group-created                        controllers.CreateGroupController.showGroupCreated
 
 # Manage groups
 GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups

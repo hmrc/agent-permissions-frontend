@@ -236,7 +236,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groupsPanel.select("a").text() shouldBe "Create new access group"
       groupsPanel
         .select("a")
-        .attr("href") shouldBe routes.GroupController.showGroupName.url
+        .attr("href") shouldBe routes.CreateGroupController.showGroupName.url
       groupsPanel.select("a").hasClass("govuk-button") shouldBe true
 
       val unassignedClientsPanel =
@@ -1006,6 +1006,16 @@ class ManageGroupControllerSpec extends BaseSpec {
       //and the back link should go to the unassigned clients tab
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups#unassigned-clients"
 
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
+      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      answerRadios
+        .select("label[for=true]")
+        .text() shouldBe "Yes, add or remove clients"
+      answerRadios
+        .select("label[for=false]")
+        .text() shouldBe "No, continue to next section"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
     }
   }
 
@@ -1055,7 +1065,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.GroupController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
 
     }
 

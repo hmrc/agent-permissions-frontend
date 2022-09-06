@@ -56,6 +56,8 @@ class ManageGroupClientsController @Inject()(
 
   import groupAction._
 
+  private val controller: ReverseManageGroupClientsController = routes.ManageGroupClientsController
+
   def showExistingGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       val displayGroup = DisplayGroup.fromAccessGroup(group)
@@ -67,7 +69,7 @@ class ManageGroupClientsController @Inject()(
         //either the 'filter' button or the 'clear' filter button was clicked
         submitButton match {
           case "clear" =>
-            Redirect(routes.ManageGroupClientsController.showExistingGroupClients(groupId))
+            Redirect(controller.showExistingGroupClients(groupId))
           case "filter" =>
             val filteredClients = displayGroup.clients
               .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
@@ -101,8 +103,8 @@ class ManageGroupClientsController @Inject()(
           group.groupName,
           maybeHiddenClients,
           AddClientsToGroupForm.form(),
-          formAction = routes.ManageGroupClientsController.submitManageGroupClients(groupId),
-          backUrl = Some(routes.ManageGroupClientsController.showExistingGroupClients(groupId).url)
+          formAction = controller.submitManageGroupClients(groupId),
+          backUrl = Some(controller.showExistingGroupClients(groupId).url)
         )
       )
       }
@@ -132,8 +134,8 @@ class ManageGroupClientsController @Inject()(
                     group.groupName,
                     maybeHiddenClients,
                     formWithErrors,
-                    formAction = routes.ManageGroupClientsController.showManageGroupClients(groupId),
-                    backUrl = Some(routes.ManageGroupController.showManageGroups.url)
+                    formAction = controller.submitManageGroupClients(groupId),
+                    backUrl = Some(controller.showExistingGroupClients(groupId).url)
                   ))
                 }
               },
@@ -153,9 +155,9 @@ class ManageGroupClientsController @Inject()(
                       _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
                       _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
                     } yield
-                      Redirect(routes.ManageGroupClientsController.showReviewSelectedClients(groupId))
+                      Redirect(controller.showReviewSelectedClients(groupId))
                   }
-                  else Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId)).toFuture
+                  else Redirect(controller.showManageGroupClients(groupId)).toFuture
                 )
               }
             )
@@ -168,14 +170,13 @@ class ManageGroupClientsController @Inject()(
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
-            Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId))
+            Redirect(controller.showManageGroupClients(groupId))
           } { clients =>
             Ok(
               review_update_clients(
                 clients = clients,
-                groupName = group.groupName,
-                form = YesNoForm.form(),
-                backUrl = Some(routes.ManageGroupClientsController.showManageGroupClients(groupId).url)
+                group = group,
+                form = YesNoForm.form()
               )
             )
           }
@@ -189,19 +190,19 @@ class ManageGroupClientsController @Inject()(
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold(
-            Redirect(routes.ManageGroupClientsController.showExistingGroupClients(groupId)).toFuture
+            Redirect(controller.showExistingGroupClients(groupId)).toFuture
           ){ clients =>
             YesNoForm
               .form("group.clients.review.error")
               .bindFromRequest
               .fold(
                 formWithErrors =>{
-                  Ok(review_update_clients(clients, group.groupName, formWithErrors, Some(routes.ManageGroupClientsController.showManageGroupClients(groupId).url))).toFuture
+                  Ok(review_update_clients(clients, group, formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
-                    Redirect(routes.ManageGroupClientsController.showManageGroupClients(group._id.toString)).toFuture
+                    Redirect(controller.showManageGroupClients(group._id.toString)).toFuture
                   else
-                    Redirect(routes.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId)).toFuture
+                    Redirect(controller.showGroupClientsUpdatedConfirmation(groupId)).toFuture
                 }
               )
           }
@@ -214,7 +215,7 @@ class ManageGroupClientsController @Inject()(
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         sessionCacheService.clearSelectedClients().map(_ =>
         if(selectedClients.isDefined) Ok(clients_update_complete(group.groupName))
-        else Redirect(routes.ManageGroupClientsController.showManageGroupClients(groupId))
+        else Redirect(controller.showManageGroupClients(groupId))
         )
       }
     }

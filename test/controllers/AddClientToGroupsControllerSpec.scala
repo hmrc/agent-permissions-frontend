@@ -154,6 +154,9 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       html.select(Css.li("already-in-groups")).get(1).text() shouldBe "Group 2"
       val form = html.select(Css.form)
       form.size() shouldBe 0
+      val backLink = html.select("main a#back-to-client-details")
+      backLink.text() shouldBe "Back to Client 0"
+      backLink.attr("href") shouldBe routes.ManageClientController.showClientDetails(client.id).url
     }
 
   }

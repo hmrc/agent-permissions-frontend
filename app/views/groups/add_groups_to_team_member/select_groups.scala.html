@@ -81,6 +81,14 @@
                 )
                 @submit_button(messageKey = "save.and.continue.button")
             }
+        } else {
+            <div class="govuk-!-margin-top-8">
+                @a(
+                    href = routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url,
+                    id = Some("back-to-member-details"),
+                    key = msgs("member.select.back", teamMember.name)
+                )
+            </div>
         }
     }
 

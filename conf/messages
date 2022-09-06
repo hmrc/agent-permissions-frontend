@@ -237,6 +237,7 @@ client.select.groups.h1=Which access groups would you like to add {0} to?
 client.select.groups.p1=Client is currently in these access groups:
 error.client.select.groups.empty=You must select at least one group
 client.select.groups.none.h1=There are no available groups to add {0} to
+client.select.back=Back to {0}
 
 client.not.found.error.h1=Client not found
 client.not.found.error.p=Please check the url or return to the Manage groups page
@@ -251,8 +252,8 @@ client.added.to.groups.a=Back to manage clients page
 member.select.groups.h1=Which access groups would you like to add {0} to?
 member.select.groups.p1=Team member is currently in these access groups:
 member.select.groups.none.h1=There are no available groups to add {0} to
+member.select.back=Back to {0}
 error.member.select.groups.empty=You must select at least one group
-
 
 member.not.found.error.h1=Team member not found
 member.not.found.error.p=Please check the url or return to the Manage team members page

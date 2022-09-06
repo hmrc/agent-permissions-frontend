@@ -340,7 +340,6 @@ class ManageClientControllerSpec extends BaseSpec {
     }
   }
 
-
   s"GET ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId).url}" should {
 
     "render client_details_complete with new client reference" in {

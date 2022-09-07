@@ -104,7 +104,10 @@
             rows = tableRows,
         )
         </div>
-        @p(msgs("common.total.team-members", teamMembers.get.length), id = Some("team-members-in-group"))
+        @p(
+            msgs("common.total.team-members", teamMembers.get.length),
+            id = Some("team-members-in-group")
+        )
     } else {
         @h2("team-members.not-found.heading")
         @p("team-members.not-found.p")

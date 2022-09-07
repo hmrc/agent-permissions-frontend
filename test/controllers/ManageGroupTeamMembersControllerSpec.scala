@@ -128,7 +128,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(0).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(1).text() shouldBe "john5@abc.com"
       trs.get(4).select("td").get(2).text() shouldBe "Administrator"
-
+      html.select("a#update-team-members-button").text() shouldBe "Update team members"
     }
 
     "render with name/email searchTerm set" in {

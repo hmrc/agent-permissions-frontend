@@ -122,7 +122,6 @@ group.client.list.table.th3=Tax service
 error.client.list.empty=You must select at least one client 
 
 group.clients.review.h1=You have selected {0} clients
-group.selected.clients.change=Change selected clients
 group.clients.review.title=Review selected clients
 group.clients.review.radio.legend=Do you need to add or remove selected clients?
 group.clients.review.yes.label=Yes, add or remove clients
@@ -140,7 +139,7 @@ group.members.list.table.th3=Role
 error.members.list.empty=You must select at least one team member 
 
 group.teamMembers.review.h1=You have selected {0} team members
-group.selected.teamMembers.change=Change selected team members
+group.selected.teamMembers.change=Update team members
 group.teamMembers.review.title=Review selected team members
 group.teamMembers.review.radio.legend=Do you need to add or remove selected team members?
 group.teamMembers.review.yes.label=Yes, add or remove team members

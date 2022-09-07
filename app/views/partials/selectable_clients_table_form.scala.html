@@ -17,7 +17,6 @@
 @import config.AppConfig
 @import controllers.routes
 @import play.api.libs.json.Json
-@import utils.ViewUtils._
 @import views.html.main_layout
 @import models.AddClientsToGroup
 @import models.ButtonSelect.{Clear, Continue, Filter}
@@ -150,8 +149,11 @@
         </fieldset>
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
-        @p(msgs("common.total.clients", clients.get.length),
-        id = Some("clients-in-group"))
+        @p(key = msgs("common.total.clients.selected",
+            clients.get.count(_.selected),
+            clients.get.length),
+            id = Some("member-count-text")
+        )
     } else {
         @h2("clients.not-found.heading")
         @p("clients.not-found.p")

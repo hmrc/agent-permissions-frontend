@@ -17,8 +17,6 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
-@import play.api.libs.json.Json
-@import utils.ViewUtils._
 
 @this(
     layout: main_layout,
@@ -94,11 +92,11 @@ errorPrefix.concat(msgs(s"group.${msgKey}.members.list.h1", groupName))
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-one-third">
                     @textbox(
-                    field = form("search"),
-                    label = "group.members.list.filter.label",
-                    labelClasses = "govuk-label--s",
-                    classes = "govuk-input--width-20",
-                    errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {Some(msgs("error.search-members.empty"))} else {None}
+                        field = form("search"),
+                        label = "group.members.list.filter.label",
+                        labelClasses = "govuk-label--s",
+                        classes = "govuk-input--width-20",
+                        errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {Some(msgs("error.search-members.empty"))} else {None}
                     )
                 </div>
 
@@ -143,6 +141,12 @@ errorPrefix.concat(msgs(s"group.${msgKey}.members.list.h1", groupName))
             )
             </div>
                 @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
+
+            @p(key = msgs("common.total.team-members.selected",
+                maybeTeamMembers.get.count(_.selected),
+                maybeTeamMembers.get.length),
+                id = Some("member-count-text")
+            )
 
             @submit_button()
         }

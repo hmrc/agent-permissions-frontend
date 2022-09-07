@@ -8,6 +8,7 @@ val silencerVersion = "1.7.8"
 TwirlKeys.templateImports ++= Seq(
   "views.html.components._",
   "views.html.main_layout",
+  "utils.ViewUtils._",
   "uk.gov.hmrc.govukfrontend.views.html.components._",
   "uk.gov.hmrc.hmrcfrontend.views.html.components._",
 )

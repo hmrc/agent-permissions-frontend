@@ -29,10 +29,11 @@ common.return.manage-account=Return to manage account
 common.return.manage-clients=Return to manage clients
 common.return.manage-team-members=Return to manage team members
 
-common.total.client=Showing <strong>{0}</strong> client
 common.total.clients=Showing total of <strong>{0}</strong> clients
 common.total.team-members=Showing total of <strong>{0}</strong> team members
-common.total.team-member=Showing <strong>{0}</strong> team member
+common.total.team-members.selected=Selected <strong>{0}</strong> team members of <strong>{1}</strong>
+common.total.clients.selected=Selected <strong>{0}</strong> clients of <strong>{1}</strong>
+
 
 unassigned-clients.not-found.heading=No unassigned clients found
 unassigned-clients.not-found.p=Update your filters and try again or clear your filters to see all your unassigned clients
@@ -174,6 +175,7 @@ group.existing.clients.title=Manage clients - {0}
 group.existing.clients.button=Update clients
 group.client.list.update.h1=Update clients in this group
 group.client.list.update.p=Existing clients in this group are shown as selected. Select any new clients and click “Continue”.
+
 group.rename.h1=Rename group
 
 group.renamed.h1=Access group renamed

@@ -6,33 +6,24 @@ $(document).ready(function () {
     */
 
     // MOJ multi-select & sortable table
-    var table = document.getElementById('sortable-table');
+    const table = document.getElementById('sortable-table');
     if (table !== null) {
-        // activates multi-select
-        window.MOJFrontend.initAll()
-
-        // Needed because table has multi-select data module
-        new SortableTable(table)
+        window.MOJFrontend.initAll();   // activates multi-select
+        new SortableTable(table);       // Needed because table has multi-select data module
     }
 
     //---------------------------------------
     // Agents
 
     // Removes elements only visible without js - fallback label if no multi-select checkbox
-    var span = document.getElementById('no-js');
+    const span = document.getElementById('no-js');
     if (span !== null) {
-    span.remove();
+        span.remove();
     }
 
-
-//    // Accessible autocomplete for a select component with the id="client-auto-complete"
-//    var selectEl = document.querySelector('#client-auto-complete')
-//    if (selectEl) {
-//        accessibleAutocomplete.enhanceSelectElement({
-//            defaultValue: '',
-//            minLength: 0,
-//            selectElement: selectEl
-//        })
-//    }
+    $('#sortable-table input[type=checkbox]').on("change", () => {
+        const selectedCount = $('#sortable-table input[type=checkbox]:checked:not(#checkboxes-all)').length
+        $('#member-count-text strong')[0].innerHTML = selectedCount;
+    });
 
 });

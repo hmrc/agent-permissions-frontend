@@ -113,7 +113,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      println(html)
       html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Manage team members"
 

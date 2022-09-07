@@ -17,7 +17,6 @@
 @import config.AppConfig
 @import controllers.routes
 @import play.api.libs.json.Json
-@import utils.ViewUtils._
 @import models.Selectable
 
 @this(
@@ -104,7 +103,10 @@
             rows = tableRows,
         )
         </div>
-        @p(msgs("common.total.team-members", teamMembers.get.length), id = Some("team-members-in-group"))
+        @p(
+            msgs("common.total.team-members", teamMembers.get.length),
+            id = Some("team-members-in-group")
+        )
     } else {
         @h2("team-members.not-found.heading")
         @p("team-members.not-found.p")

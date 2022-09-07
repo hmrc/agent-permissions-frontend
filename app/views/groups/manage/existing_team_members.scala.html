@@ -18,7 +18,6 @@
 @import controllers.routes
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
-@import utils.ViewUtils._
 
 @this(
     layout: main_layout,table: table,
@@ -103,7 +102,7 @@
         @link_as_button(
             key = "group.selected.teamMembers.change",
             href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group._id.toString).url,
-            id = "check-your-answers")
+            id = "update-team-members-button")
 
    
     }

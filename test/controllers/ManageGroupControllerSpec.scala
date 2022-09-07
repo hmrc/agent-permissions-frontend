@@ -160,7 +160,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage clients for name 1"
       clientsRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-access-groups/manage-clients/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
 
@@ -170,7 +170,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
 
       val unassignedClientsPanel =
         html.select(tabPanelWithIdOf("unassigned-clients"))
@@ -309,7 +309,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage clients for name 1"
       clientsRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-access-groups/manage-clients/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
 
@@ -319,7 +319,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
 
       val unassignedClientsPanel =
         html.select(tabPanelWithIdOf("unassigned-clients"))
@@ -395,7 +395,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage clients for name 1"
       clientsRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-access-groups/manage-clients/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
 
@@ -405,7 +405,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-group-team-members/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
 
       val unassignedClientsPanel =
         html.select(tabPanelWithIdOf("unassigned-clients"))

@@ -291,6 +291,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(2).select("td").get(1).text() shouldBe "friendly2"
       trs.get(2).select("td").get(2).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(3).text() shouldBe "VAT"
+
+      html.select("p#member-count-text").text() shouldBe "Selected 0 clients of 3"
     }
 
     "render correctly the manage group CLIENTS page when there are no clients" in {
@@ -360,6 +362,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(2).select("td").get(1).text() shouldBe "friendly2"
       trs.get(2).select("td").get(2).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(3).text() shouldBe "VAT"
+
+      html.select("p#member-count-text").text() shouldBe "Selected 3 clients of 3"
     }
 
     "render with clients held in session when a filter was applied" in {

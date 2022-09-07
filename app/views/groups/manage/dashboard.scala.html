@@ -121,13 +121,13 @@
             Some(summaries._2),
             hiddenClientsExist,
             addClientsToGroupForm,
-            routes.ManageGroupController.submitAddUnassignedClients
+            routes.UnassignedClientController.submitAddUnassignedClients
         )
 
     }
     @if(summaries._2.isEmpty) {
 
-        @formWithCSRF(action = routes.ManageGroupController.submitAddUnassignedClients) {
+        @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
             <div class="govuk-grid-row">
                 @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {
                 <div class="govuk-form-group govuk-form-group--error">

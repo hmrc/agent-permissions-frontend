@@ -36,10 +36,10 @@
 @layout(
     title = msgs("unassigned.client.assign.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.ManageGroupController.showSelectedUnassignedClients.url)
+    backLinkHref = Some(routes.UnassignedClientController.showSelectedUnassignedClients.url)
 ) {
     @h1("unassigned.client.assign.h1")
-    @formWithCSRF(action = routes.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients) {
+    @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
 
         <div id="field-wrapper" class="govuk-form-group  @{if(form.errors)"govuk-form-group--error" else ""}">
             @if(form.errors){

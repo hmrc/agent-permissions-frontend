@@ -49,7 +49,6 @@ GET     /group-created                        controllers.CreateGroupController.
 
 # Manage groups
 GET     /manage-access-groups                       controllers.ManageGroupController.showManageGroups
-POST    /manage-access-groups                       controllers.ManageGroupController.submitAddUnassignedClients
 POST    /manage-access-groups/search                controllers.ManageGroupController.submitFilterByGroupName
 
 GET     /rename-access-group/:groupId               controllers.ManageGroupController.showRenameGroup(groupId: String)
@@ -78,10 +77,11 @@ GET     /team-members-updated/:groupId              controllers.ManageGroupTeamM
 
 
 # UNASSIGNED CLIENTS
-GET     /manage-access-group/unassigned-clients-selected        controllers.ManageGroupController.showSelectedUnassignedClients
-GET     /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.showSelectGroupsForSelectedUnassignedClients
-POST    /manage-access-group/unassigned-clients-select-group    controllers.ManageGroupController.submitSelectGroupsForSelectedUnassignedClients
-GET     /manage-access-group/clients-assigned                   controllers.ManageGroupController.showConfirmClientsAddedToGroups
+POST    /manage-access-groups                                   controllers.UnassignedClientController.submitAddUnassignedClients
+GET     /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.showSelectedUnassignedClients
+GET     /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients
+POST    /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients
+GET     /manage-access-group/clients-assigned                   controllers.UnassignedClientController.showConfirmClientsAddedToGroups
 
 
 # Manage clients

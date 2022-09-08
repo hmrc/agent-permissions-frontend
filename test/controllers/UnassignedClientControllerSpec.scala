@@ -333,19 +333,86 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
   s"POST ${routes.UnassignedClientController.submitSelectedUnassignedClients}" should {
 
-    "not be implemented yet" in {
+    "redirect if no selected clients in session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.UnassignedClientController.showUnassignedClients.url)
+    }
+
+    s"redirect if yes to ${routes.UnassignedClientController.showUnassignedClients}" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.UnassignedClientController.submitSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.UnassignedClientController.showUnassignedClients.url)
+    }
+
+    s"redirect if no to ${routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients}" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.UnassignedClientController.submitSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe
+        Some(routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients.url)
+    }
+
+    "render Review selected clients page if errors" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.UnassignedClientController.submitSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody()
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubOptInStatusOk(arn)(OptedInReady)
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
 
       //then
       status(result) shouldBe OK
-
       val html = Jsoup.parse(contentAsString(result))
-      html.body().text() shouldBe s"submitSelectedUnassignedClients not yet implemented $arn"
+      html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "Select an option"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: Select an option"
+
     }
 
   }

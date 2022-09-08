@@ -53,10 +53,9 @@
     @layout(
         title = msgs("group.clients.review.title", groupName),
         backLinkHref = backUrl,
+        formErrors = form.errors,
         fullWidth = true
     ) {
-
-    @summaryErrors(form.errors)
 
         <div class="govuk-!-width-two-thirds">
             @if(groupName != ""){

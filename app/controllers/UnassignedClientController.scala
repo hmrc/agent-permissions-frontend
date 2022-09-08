@@ -138,8 +138,7 @@ class UnassignedClientController @Inject()(
                   groupName = "",
                   form = YesNoForm.form(),
                   backUrl = Some(controller.showUnassignedClients.url),
-                  // TODO needs to be updated to a submit for the yes no form
-                  continueCall = controller.showSelectGroupsForSelectedUnassignedClients
+                  continueCall = controller.submitSelectedUnassignedClients
                 )
               ).toFuture
             }
@@ -151,7 +150,32 @@ class UnassignedClientController @Inject()(
   def submitSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        Ok(s"submitSelectedUnassignedClients not yet implemented $arn").toFuture
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+          selectedClients
+            .fold {
+              Redirect(controller.showUnassignedClients).toFuture
+            } { clients =>
+              YesNoForm
+                .form("group.clients.review.error")
+                .bindFromRequest
+                .fold(
+                  formWithErrors => {
+                    Ok(review_clients_to_add(
+                      clients,
+                      "",
+                      formWithErrors,
+                      backUrl = Some(controller.showUnassignedClients.url),
+                      continueCall = controller.submitSelectedUnassignedClients)
+                    ).toFuture
+                  }, (yes: Boolean) => {
+                    if (yes)
+                      Redirect(controller.showUnassignedClients).toFuture
+                    else
+                      Redirect(controller.showSelectGroupsForSelectedUnassignedClients).toFuture
+                  }
+                )
+            }
+        }
       }
     }
   }

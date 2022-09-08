@@ -28,6 +28,7 @@ object CodeCoverageSettings {
     ".*manage_team_members_list.template",
     ".*confirm_added.template",
     ".*group_not_found.template",
+    ".*unassigned_clients_list.template",
     ".*ViewUtils.*",
     ".*GroupAction.*",
     ".*ClientAction.*",

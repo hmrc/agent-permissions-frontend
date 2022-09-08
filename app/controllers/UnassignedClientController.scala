@@ -19,19 +19,19 @@ package controllers
 import config.AppConfig
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary}
 import forms._
-import models.{ButtonSelect, DisplayClient}
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import play.api.Logging
 import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{ClientService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
-import views.html.groups.unassigned_clients.select_groups_for_clients
+import views.html.groups.unassigned_clients._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,11 +40,12 @@ import scala.concurrent.{ExecutionContext, Future}
 class UnassignedClientController @Inject()(
      authAction: AuthAction,
      mcc: MessagesControllerComponents,
+     groupService: GroupService,
      clientService: ClientService,
      val agentPermissionsConnector: AgentPermissionsConnector,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
-     dashboard: dashboard,
+     unassigned_clients_list: unassigned_clients_list,
      review_clients_to_add: review_clients_to_add,
      select_groups_for_clients: select_groups_for_clients,
      clients_added_to_groups_complete: clients_added_to_groups_complete
@@ -61,23 +62,118 @@ class UnassignedClientController @Inject()(
 
   private val controller: ReverseUnassignedClientController = routes.UnassignedClientController
 
+  def showUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+          withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+            withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+              groupService.groupSummaries(arn).map(gs =>
+                Ok(unassigned_clients_list(
+                    gs,
+                    AddClientsToGroupForm.form().fill(
+                      AddClientsToGroup(
+                        maybeHiddenClients.getOrElse(false),
+                        search = clientSearchTerm,
+                        filter = clientFilterTerm,
+                        clients = None)),
+                    maybeHiddenClients))
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+
+  def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+
+    val encoded = request.body.asFormUrlEncoded
+    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
+
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredClients =>
+          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+            AddClientsToGroupForm
+              .form(buttonSelection)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  for {
+                    groupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
+                    _ <- if (buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else Future.successful(())
+                    result = if (maybeFilteredClients.isDefined)
+                      Ok(unassigned_clients_list(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors,maybeHiddenClients))
+                    else
+                      Ok(unassigned_clients_list(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, maybeHiddenClients))
+                  } yield result
+                },
+                formData => {
+                  // TODO update the filter here, currently filters from a list of ALL clients rather than just unassigned clients
+                  clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getUnassignedClients).map(_ =>
+                    if(buttonSelection == ButtonSelect.Continue)
+                      Redirect(controller.showSelectedUnassignedClients)
+                    else Redirect(controller.showUnassignedClients)
+                  )
+                }
+              )
+          }
+        }
+      }
+    }
+  }
+
+
   def showSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
           selectedClients
             .fold {
-              Redirect(routes.ManageGroupController.showManageGroups).toFuture
+              Redirect(controller.showUnassignedClients).toFuture
             } { clients => Ok(
                 review_clients_to_add(
                   clients = clients,
                   groupName = "",
                   form = YesNoForm.form(),
-                  backUrl = Some(s"${routes.ManageGroupController.showManageGroups.url}#unassigned-clients"),
-                  // TODO needs to be updated to a submit for the yes no form
-                  continueCall = controller.showSelectGroupsForSelectedUnassignedClients
+                  backUrl = Some(controller.showUnassignedClients.url),
+                  continueCall = controller.submitSelectedUnassignedClients
                 )
               ).toFuture
+            }
+        }
+      }
+    }
+  }
+
+  def submitSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+          selectedClients
+            .fold {
+              Redirect(controller.showUnassignedClients).toFuture
+            } { clients =>
+              YesNoForm
+                .form("group.clients.review.error")
+                .bindFromRequest
+                .fold(
+                  formWithErrors => {
+                    Ok(review_clients_to_add(
+                      clients,
+                      "",
+                      formWithErrors,
+                      backUrl = Some(controller.showUnassignedClients.url),
+                      continueCall = controller.submitSelectedUnassignedClients)
+                    ).toFuture
+                  }, (yes: Boolean) => {
+                    if (yes)
+                      Redirect(controller.showUnassignedClients).toFuture
+                    else
+                      Redirect(controller.showSelectGroupsForSelectedUnassignedClients).toFuture
+                  }
+                )
             }
         }
       }
@@ -145,43 +241,6 @@ class UnassignedClientController @Inject()(
         sessionCacheRepository.getFromSession(GROUPS_FOR_UNASSIGNED_CLIENTS).flatMap {
           case None => Future.successful(Redirect(controller.showSelectGroupsForSelectedUnassignedClients.url))
           case Some(groups) => sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS).map(_ => Ok(clients_added_to_groups_complete(groups)))
-        }
-      }
-    }
-  }
-
-  def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
-
-    val encoded = request.body.asFormUrlEncoded
-    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
-
-    isAuthorisedAgent { arn =>
-      isOptedInComplete(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredClients =>
-          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-            AddClientsToGroupForm
-              .form(buttonSelection)
-              .bindFromRequest()
-              .fold(
-                formWithErrors => {
-                  for {
-                    groupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
-                    _ <- if (buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else Future.successful(())
-                    result = if (maybeFilteredClients.isDefined)
-                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form,maybeHiddenClients, showUnassignedClients = true))
-                    else
-                      Ok(dashboard(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, FilterByGroupNameForm.form, maybeHiddenClients, showUnassignedClients = true))
-                  } yield result
-                },
-                formData => {
-                  clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getUnassignedClients).map(_ =>
-                    if(buttonSelection == ButtonSelect.Continue)
-                  Redirect(controller.showSelectedUnassignedClients)
-                    else Redirect(s"${routes.ManageGroupController.showManageGroups}#unassigned-clients")
-                  )
-                }
-              )
-          }
         }
       }
     }

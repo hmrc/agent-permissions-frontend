@@ -117,7 +117,6 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectGetGroupSummarySuccess(arn, summaries)
       expectGetGroupSummarySuccess(arn, summaries)
 
-
       //when
       val result = controller.showManageGroups()(request)
 
@@ -131,27 +130,13 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select("p#info")
         .get(0)
-        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group"
+        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group."
 
-      //verify the tabs/tab headings first
-      val tabs = html.select("li.govuk-tabs__list-item")
-      tabs.size() shouldBe 2
-      val accessGroupsTab = tabs.get(0)
-      accessGroupsTab.hasClass("govuk-tabs__list-item--selected") shouldBe true
-      accessGroupsTab.select("a").text() shouldBe "Access groups"
-      accessGroupsTab.select("a").attr("href") shouldBe "#groups-panel"
-
-      val unassignedClientsTab = tabs.get(1)
-      unassignedClientsTab.hasClass("govuk-tabs__list-item--selected") shouldBe false
-      unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
-      unassignedClientsTab.select("a").attr("href") shouldBe "#unassigned-clients"
-
-      //verify the tab panel contents
-      val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
-      groupsPanel.select("h2").text() shouldBe "Access groups"
-
-      val groups = groupsPanel.select("dl.govuk-summary-list")
+      val groups = html.select("dl.govuk-summary-list")
       groups.size() shouldBe 3
+
+      // check first group
+      html.select(H2).get(0).text() shouldBe "name 1"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
@@ -163,7 +148,6 @@ class ManageGroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
-
       membersRow.select("dt").text() shouldBe "Team members"
       membersRow.select(".govuk-summary-list__value")
         .text() shouldBe "4"
@@ -171,18 +155,6 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
-
-      val unassignedClientsPanel =
-        html.select(tabPanelWithIdOf("unassigned-clients"))
-      unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
-      val clientsTh = unassignedClientsPanel.select("table th")
-      clientsTh.size() shouldBe 4
-      clientsTh.get(1).text() shouldBe "Client reference"
-      clientsTh.get(2).text() shouldBe "Tax reference"
-      clientsTh.get(3).text() shouldBe "Tax service"
-
-      val clientsTrs = unassignedClientsPanel.select("table tbody tr")
-      clientsTrs.size() shouldBe 8
 
       val backlink = html.select(backLink)
       backlink.size() shouldBe 1
@@ -214,39 +186,14 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select("p#info")
         .get(0)
-        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group"
+        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group."
 
-      //verify the tabs/tab headings first
-      val tabs = html.select("li.govuk-tabs__list-item")
-      tabs.size() shouldBe 2
-      val accessGroupsTab = tabs.get(0)
-      accessGroupsTab.hasClass("govuk-tabs__list-item--selected") shouldBe true
-      accessGroupsTab.select("a").text() shouldBe "Access groups"
-      accessGroupsTab.select("a").attr("href") shouldBe "#groups-panel"
-
-      val unassignedClientsTab = tabs.get(1)
-      unassignedClientsTab.hasClass("govuk-tabs__list-item--selected") shouldBe false
-      unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
-      unassignedClientsTab.select("a").attr("href") shouldBe "#unassigned-clients"
-
-      //verify the tab panel contents
-      val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
-      groupsPanel.select("h2").text() shouldBe "Access groups"
-      groupsPanel.select("h3").text() shouldBe "No groups found"
-      groupsPanel.select("a").text() shouldBe "Create new access group"
-      groupsPanel
-        .select("a")
+      html.select(H2).text() shouldBe "No groups found"
+      val buttonLink = html.select("a#button-link")
+      buttonLink.text() shouldBe "Create new access group"
+      buttonLink
         .attr("href") shouldBe routes.CreateGroupController.showGroupName.url
-      groupsPanel.select("a").hasClass("govuk-button") shouldBe true
-
-      val unassignedClientsPanel =
-        html.select(tabPanelWithIdOf("unassigned-clients"))
-      unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
-      unassignedClientsPanel
-        .select("h3")
-        .text() shouldBe "No unassigned clients found"
-      val table = unassignedClientsPanel.select("table")
-      table.size() shouldBe 0
+      buttonLink.hasClass("govuk-button") shouldBe true
 
       val backlink = html.select(backLink)
       backlink.size() shouldBe 1
@@ -254,17 +201,19 @@ class ManageGroupControllerSpec extends BaseSpec {
       backlink.text() shouldBe "Back"
     }
 
-    "render content when filtered clients in session" in {
+    "render content when filtered access groups" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
       val unassignedClients = (1 to 8).map(i =>
         DisplayClient(s"hmrcRef$i", s"name$i", s"HMRC-MTD-IT", ""))
       val summaries = Some((groupSummaries, unassignedClients))
+
+      await(sessionCacheRepo.putSession(FILTERED_GROUPS_INPUT, "Potato"))
+      await(sessionCacheRepo.putSession(FILTERED_GROUP_SUMMARIES, groupSummaries))
       expectGetGroupSummarySuccess(arn, summaries)
 
       //when
@@ -274,33 +223,20 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-
       html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage access groups"
       html
         .select("p#info")
         .get(0)
-        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group"
+        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group."
 
-      //verify the tabs/tab headings first
-      val tabs = html.select("li.govuk-tabs__list-item")
-      tabs.size() shouldBe 2
-      val accessGroupsTab = tabs.get(0)
-      accessGroupsTab.hasClass("govuk-tabs__list-item--selected") shouldBe true
-      accessGroupsTab.select("a").text() shouldBe "Access groups"
-      accessGroupsTab.select("a").attr("href") shouldBe "#groups-panel"
+      html.select("input#searchGroupByName").attr("value") shouldBe "Potato"
 
-      val unassignedClientsTab = tabs.get(1)
-      unassignedClientsTab.hasClass("govuk-tabs__list-item--selected") shouldBe false
-      unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
-      unassignedClientsTab.select("a").attr("href") shouldBe "#unassigned-clients"
-
-      //verify the tab panel contents
-      val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
-      groupsPanel.select("h2").text() shouldBe "Access groups"
-
-      val groups = groupsPanel.select("dl.govuk-summary-list")
+      val groups = html.select("dl.govuk-summary-list")
       groups.size() shouldBe 3
+
+      // check first group contents
+      html.select(H2).get(0).text() shouldBe "name 1"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
@@ -312,7 +248,6 @@ class ManageGroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
-
       membersRow.select("dt").text() shouldBe "Team members"
       membersRow.select(".govuk-summary-list__value")
         .text() shouldBe "4"
@@ -320,104 +255,6 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
-
-      val unassignedClientsPanel =
-        html.select(tabPanelWithIdOf("unassigned-clients"))
-      unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
-      val clientsTh = unassignedClientsPanel.select("table th")
-      clientsTh.size() shouldBe 4
-      clientsTh.get(1).text() shouldBe "Client reference"
-      clientsTh.get(2).text() shouldBe "Tax reference"
-      clientsTh.get(3).text() shouldBe "Tax service"
-
-      val clientsTrs = unassignedClientsPanel.select("table tbody tr")
-      clientsTrs.size() shouldBe 3
-
-      val backlink = html.select(backLink)
-      backlink.size() shouldBe 1
-      backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
-      backlink.text() shouldBe "Back"
-    }
-
-    "render content when filtered access groups and filtered clients in session" in {
-      //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
-
-      val groupSummaries = (1 to 3).map(i =>
-        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
-      await(sessionCacheRepo.putSession(FILTERED_GROUPS_INPUT, "Potato"))
-      await(sessionCacheRepo.putSession(FILTERED_GROUP_SUMMARIES, groupSummaries))
-
-
-      //when
-      val result = controller.showManageGroups()(request)
-
-      //then
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage access groups"
-      html
-        .select("p#info")
-        .get(0)
-        .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group"
-
-      //verify the tabs/tab headings first
-      val tabs = html.select("li.govuk-tabs__list-item")
-      tabs.size() shouldBe 2
-      val accessGroupsTab = tabs.get(0)
-      accessGroupsTab.hasClass("govuk-tabs__list-item--selected") shouldBe true
-      accessGroupsTab.select("a").text() shouldBe "Access groups"
-      accessGroupsTab.select("a").attr("href") shouldBe "#groups-panel"
-
-      val unassignedClientsTab = tabs.get(1)
-      unassignedClientsTab.hasClass("govuk-tabs__list-item--selected") shouldBe false
-      unassignedClientsTab.select("a").text() shouldBe "Unassigned clients"
-      unassignedClientsTab.select("a").attr("href") shouldBe "#unassigned-clients"
-
-      //verify the tab panel contents
-      val groupsPanel = html.select(tabPanelWithIdOf("groups-panel"))
-
-      groupsPanel.select("h2").text() shouldBe "Access groups"
-      groupsPanel.select("input#searchGroupByName").attr("value") shouldBe "Potato"
-      val groups = groupsPanel.select("dl.govuk-summary-list")
-      groups.size() shouldBe 3
-      val firstGroup = groups.get(0)
-      val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
-      clientsRow.select("dt").text() shouldBe "Clients"
-      clientsRow.select(".govuk-summary-list__value")
-        .text() shouldBe "3"
-      clientsRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage clients for name 1"
-      clientsRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
-
-      val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
-
-      membersRow.select("dt").text() shouldBe "Team members"
-      membersRow.select(".govuk-summary-list__value")
-        .text() shouldBe "4"
-      membersRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage team members for name 1"
-      membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
-
-      val unassignedClientsPanel =
-        html.select(tabPanelWithIdOf("unassigned-clients"))
-      unassignedClientsPanel.select("h2").text() shouldBe "Unassigned clients"
-      val clientsTh = unassignedClientsPanel.select("table th")
-      clientsTh.size() shouldBe 4
-      clientsTh.get(1).text() shouldBe "Client reference"
-      clientsTh.get(2).text() shouldBe "Tax reference"
-      clientsTh.get(3).text() shouldBe "Tax service"
-
-      val clientsTrs = unassignedClientsPanel.select("table tbody tr")
-      clientsTrs.size() shouldBe 3
 
       val backlink = html.select(backLink)
       backlink.size() shouldBe 1

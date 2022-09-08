@@ -69,7 +69,100 @@ class UnassignedClientControllerSpec extends BaseSpec {
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
 
+  val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
+    GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
+
+  s"GET ${routes.UnassignedClientController.showUnassignedClients}" should {
+
+    "render unassigned clients list" in {
+      // given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+
+      //when
+      val result = controller.showUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Unassigned clients - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Unassigned clients"
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 4
+      val tr = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      tr.size() shouldBe 3
+
+
+    }
+
+    "render list with client search" in {
+      // given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1"))
+
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+
+      //when
+      val result = controller.showUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Unassigned clients - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Unassigned clients"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 4
+      val tr = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      tr.size() shouldBe 3
+
+      html.select("input#search").attr("value") shouldBe "friendly1"
+
+
+    }
+
+    "render list with hidden clients exist" in {
+      // given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(HIDDEN_CLIENTS_EXIST, true))
+
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+
+      //when
+      val result = controller.showUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Unassigned clients - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Unassigned clients"
+
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 4
+      val tr = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      tr.size() shouldBe 3
+
+
+    }
+
+  }
 
   s"POST ${routes.UnassignedClientController.submitAddUnassignedClients}" should {
     s"save selected unassigned clients and redirect to ${routes.UnassignedClientController.showSelectedUnassignedClients} " +
@@ -104,7 +197,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     }
 
-    s"save selected unassigned clients and redirect to ${routes.ManageGroupController.showManageGroups}#unassigned-clients " +
+    s"save selected unassigned clients and redirect to ${routes.UnassignedClientController.showUnassignedClients} " +
       s"when button is NOT Continue" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -131,7 +224,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe s"${routes.ManageGroupController.showManageGroups}#unassigned-clients"
+      redirectLocation(result).get shouldBe s"${routes.UnassignedClientController.showUnassignedClients}"
 
       await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)) shouldBe Some(Seq(displayClients.head.copy(selected = true),
         displayClients.last.copy(selected = true)))
@@ -203,7 +296,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupController.showManageGroups.url
+      redirectLocation(result).get shouldBe routes.UnassignedClientController.showUnassignedClients.url
     }
 
     "render correctly the selected unassigned clients page" in {
@@ -223,7 +316,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
       //and the back link should go to the unassigned clients tab
-      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups#unassigned-clients"
+      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/unassigned-clients"
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
       val answerRadios = html.select(Css.radioButtonsField("answer"))
@@ -237,6 +330,93 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     }
   }
+
+  s"POST ${routes.UnassignedClientController.submitSelectedUnassignedClients}" should {
+
+    "redirect if no selected clients in session" in {
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.UnassignedClientController.showUnassignedClients.url)
+    }
+
+    s"redirect if yes to ${routes.UnassignedClientController.showUnassignedClients}" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.UnassignedClientController.submitSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.UnassignedClientController.showUnassignedClients.url)
+    }
+
+    s"redirect if no to ${routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients}" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.UnassignedClientController.submitSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe
+        Some(routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients.url)
+    }
+
+    "render Review selected clients page if errors" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", routes.UnassignedClientController.submitSelectedUnassignedClients.url)
+          .withFormUrlEncodedBody()
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubOptInStatusOk(arn)(OptedInReady)
+
+      //when
+      val result = controller.submitSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "Select an option"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: Select an option"
+
+    }
+
+  }
+
 
   s"GET ${routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients}" should {
 
@@ -395,7 +575,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       listItems.size() shouldBe groups.size
       listItems.get(0).text shouldBe groups.head
       listItems.get(1).text shouldBe groups(1)
-      //and the back link should go to the unassigned clients tab
+      //and the back link should not be present
       html.select(Css.backLink).size() shouldBe 0
 
     }

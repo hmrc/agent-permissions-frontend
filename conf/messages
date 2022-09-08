@@ -157,7 +157,7 @@ group.created.panelContent={0} access group is now active
 group.created.p=The team members you selected can now view and manage the tax affairs of all the clients in this access group
 
 group.manage.h1=Manage access groups
-group.manage.p=The team members in the group will be able to manage the tax affairs of clients in the group
+group.manage.p=The team members in the group will be able to manage the tax affairs of clients in the group.
 group.manage.tabs.1.label=Access groups
 group.manage.tabs.2.label=Unassigned clients
 
@@ -198,6 +198,7 @@ group.manage.confirm.updated.clients.p=You have changed the clients that can be 
 group.manage.confirm.updated.team-members.h1={0} access group team members updated
 group.manage.confirm.updated.team-members.p=The team members you selected can view and manage the tax affairs of all the clients in this access group.
 
+unassigned.client.list.p=These clients are visible to all team members.
 unassigned.client.assign.hint=Select all that apply
 unassigned.client.assign.h1=Which access groups would you like to add the selected clients to?
 unassigned.client.assign.existing.or.new.error=You cannot add to existing groups at the same time as creating a new group

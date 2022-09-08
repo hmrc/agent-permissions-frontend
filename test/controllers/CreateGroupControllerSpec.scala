@@ -923,7 +923,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select an option"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select an option"

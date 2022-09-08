@@ -24,7 +24,7 @@
 @this(
     layout: main_layout, p: p, h1: h1, h2: h2, h3: h3, a: a, span: span,
     table: table, textbox: textbox, input_select: input_select,
-    a_button: link_as_button,summary_list: summary_list, govukTabs: GovukTabs,
+    a_button: link_as_button,summary_list: summary_list,
     selectable_clients_table_form: selectable_clients_table_form,
         formWithCSRF: FormWithCSRF,
         submit_button_group: submit_button_group,
@@ -33,153 +33,11 @@
 
 @(
     summaries: (Seq[GroupSummary], Seq[DisplayClient]),
-    addClientsToGroupForm: Form[AddClientsToGroup],
-    filterGroupSummaryForm: Form[String],
-    hiddenClientsExist: Option[Boolean],
-    showUnassignedClients: Boolean = false
+    filterGroupSummaryForm: Form[String]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-
-@groupSummaries = {
-    @h2("group.manage.tabs.1.label")
-    <div class="govuk-!-width-one-third"></div>
-
-    @formWithCSRF(routes.ManageGroupController.submitFilterByGroupName){
-
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-one-third">
-            @textbox(
-                field = filterGroupSummaryForm("searchGroupByName"),
-                label = "group-name-filter.text.label",
-                labelClasses = "govuk-label--s",
-                classes = "govuk-input--width-20"
-            )
-            </div>
-            <div class="govuk-grid-column-one-third" id="filter-buttons-wrapper">
-                @submit_button_group(submitId="group-filter-button", secondId="group-clear-button")
-            </div>
-        </div>
-
-    }
-    <hr>
-    @if(summaries._1.nonEmpty){
-
-
-        @summaries._1.map { summary =>
-
-            @h3(summary.groupName)
-            @summary_list(
-                Seq(
-                    SummaryListData(
-                        "common.clients",
-                        summary.clientCount.toString,
-                        routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
-                        linkMsgKey = "group.manage.clients",
-                        linkClasses = Some("govuk-!-width-one-half"),
-                        hiddenText = Some(msgs("details.link-hidden", summary.groupName))
-                    ),
-                    SummaryListData(
-                        "common.teamMembers",
-                        summary.teamMemberCount.toString,
-                        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId),
-                        linkMsgKey = "group.manage.members",
-                        linkClasses = Some("govuk-!-width-one-half"),
-                        hiddenText = Some(msgs("details.link-hidden", summary.groupName))
-                    ),
-                )
-            )
-            @a(key = msgs("group.manage.rename") + span(classes=Some("govuk-visually-hidden"),
-                key = summary.groupName).toString,
-                href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
-                classes = Some("govuk-!-margin-right-9"))
-            @a(key = msgs("group.manage.delete") + span(classes=Some("govuk-visually-hidden"),
-                key=summary.groupName).toString,
-                href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
-            <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-            style="height: 3px;
-                border-width: 0;
-                color: #c6c6c6;
-                background-color: #c6c6c6">
-
-        }
-
-    }
-    @if(summaries._1.isEmpty){
-        @h3("group.manage.no.groups.h3", classes = Some("govuk-!-margin-top-5"))
-        @p("group.manage.no.groups.p", classes = Some("govuk-!-margin-bottom-8"))
-    }
-
-    @a_button(key="group.manage.no.groups.button", href=routes.CreateGroupController.showGroupName.url)
-
-}
-
-@unassignedClients = {
-    @h2("group.manage.tabs.2.label")
-
-    @if(!summaries._2.isEmpty) {
-        @selectable_clients_table_form(
-            Some(summaries._2),
-            hiddenClientsExist,
-            addClientsToGroupForm,
-            routes.UnassignedClientController.submitAddUnassignedClients
-        )
-
-    }
-    @if(summaries._2.isEmpty) {
-
-        @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
-            <div class="govuk-grid-row">
-                @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {
-                <div class="govuk-form-group govuk-form-group--error">
-                    }
-
-                    <fieldset class="govuk-fieldset">
-                        <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                            @msgs("filter.legend")
-                        </legend>
-
-                        @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {
-                        <p id="filter-error" class="govuk-error-message">
-                            <span class="govuk-visually-hidden">Error:</span>
-                            @msgs("error.search-filter.empty")
-                        </p>
-                        }
-
-                        <div class="govuk-grid-column-one-quarter">
-                            @textbox(
-                            field = addClientsToGroupForm("search"),
-                            label = "client-filter.text.label",
-                            labelClasses = "govuk-label--s",
-                            classes = "govuk-input--width-20"
-                            )
-                        </div>
-
-                        <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
-                            @input_select(
-                            field = addClientsToGroupForm("filter"),
-                            label = msgs("client-filter.select.label"),
-                            options = getFiltersByTaxService()
-                            )
-                        </div>
-
-                        <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-                            @submit_button_group(additionalClasses = "govuk-!-margin-bottom-7")
-                        </div>
-                    </fieldset>
-                    @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
-            </div>
-        }
-        @h3("unassigned-clients.not-found.heading")
-        @p("unassigned-clients.not-found.p")
-    }
-}
-
-@errorHref = @{
-if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
-}
-
 @pageTitle = @{
-val errorPrefix = if((!addClientsToGroupForm.errors.isEmpty) || (!filterGroupSummaryForm.errors.isEmpty)) msgs("error-prefix") + " " else ""
+val errorPrefix = if(!filterGroupSummaryForm.errors.isEmpty) msgs("error-prefix") + " " else ""
 errorPrefix.concat(msgs("group.manage.h1"))
 }
 
@@ -187,38 +45,82 @@ errorPrefix.concat(msgs("group.manage.h1"))
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
     fullWidth = true) {
 
-
     @h1("group.manage.h1")
-    @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id= Some("info"))
-
+    <div class="govuk-!-width-two-thirds">
+        @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id= Some("info"))
+    </div>
     @summaryErrors(filterGroupSummaryForm.errors, Some("searchGroupByName"))
-    @summaryErrors(addClientsToGroupForm.errors, Some(errorHref))
 
-    @govukTabs(Tabs(
-        id = Some("manage-groups-tabs"),
-        items = Seq(
-            TabItem(
-                id = Some("groups-panel"),
-                label = msgs("group.manage.tabs.1.label"),
-                panel = TabPanel(
-                    content = HtmlContent(groupSummaries)
+    @formWithCSRF(routes.ManageGroupController.submitFilterByGroupName){
+
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-third">
+                @textbox(
+                field = filterGroupSummaryForm("searchGroupByName"),
+                label = "group-name-filter.text.label",
+                labelClasses = "govuk-label--s",
+                classes = "govuk-input--width-20"
                 )
-            ),
-            TabItem(
-                id = Some("unassigned-clients"),
-                label = msgs("group.manage.tabs.2.label"),
-                panel = TabPanel(content = HtmlContent(unassignedClients))
+            </div>
+            <div class="govuk-grid-column-one-third" id="filter-buttons-wrapper">
+                @submit_button_group(submitId="group-filter-button", secondId="group-clear-button")
+            </div>
+        </div>
+
+    }
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
+                        border-width: 0;
+                        color: #c6c6c6;
+                        background-color: #c6c6c6">
+    @if(summaries._1.nonEmpty){
+
+        @summaries._1.map { summary =>
+
+        @h2(summary.groupName)
+        @summary_list(
+            Seq(
+                SummaryListData(
+                    "common.clients",
+                    summary.clientCount.toString,
+                    routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
+                    linkMsgKey = "group.manage.clients",
+                    linkClasses = Some("govuk-!-width-one-half"),
+                    hiddenText = Some(msgs("details.link-hidden", summary.groupName))
+                ),
+                SummaryListData(
+                    "common.teamMembers",
+                    summary.teamMemberCount.toString,
+                    routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId),
+                    linkMsgKey = "group.manage.members",
+                    linkClasses = Some("govuk-!-width-one-half"),
+                    hiddenText = Some(msgs("details.link-hidden", summary.groupName))
+                ),
             )
         )
-    ))
+
+        @a(key = msgs("group.manage.rename") + span(classes=Some("govuk-visually-hidden"),
+        key = summary.groupName).toString,
+        href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
+        classes = Some("govuk-!-margin-right-9"))
+
+        @a(key = msgs("group.manage.delete") + span(classes=Some("govuk-visually-hidden"),
+        key=summary.groupName).toString,
+        href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
+
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
+                        border-width: 0;
+                        color: #c6c6c6;
+                        background-color: #c6c6c6">
+
+        }
+
+    } else {
+        @h2("group.manage.no.groups.h3", classes = Some("govuk-!-margin-top-5"))
+        @p("group.manage.no.groups.p", classes = Some("govuk-!-margin-bottom-8"))
+    }
+
+    @a_button(key="group.manage.no.groups.button", href=routes.CreateGroupController.showGroupName.url)
 
 
 }
-@if(showUnassignedClients){
-    <script @{CSPNonce.attr}>
-        $(document).ready(function(){
-            $(".govuk-tabs__list-item").toggleClass("govuk-tabs__list-item--selected");
-            $(".govuk-tabs__panel").toggleClass("govuk-tabs__panel--hidden");
-        });
-    </script>
-}
+

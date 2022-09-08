@@ -77,8 +77,10 @@ GET     /team-members-updated/:groupId      controllers.ManageGroupTeamMembersCo
 
 
 # UNASSIGNED CLIENTS
-POST    /manage-access-groups                                   controllers.UnassignedClientController.submitAddUnassignedClients
+GET     /unassigned-clients                                     controllers.UnassignedClientController.showUnassignedClients
+POST    /unassigned-clients                                     controllers.UnassignedClientController.submitAddUnassignedClients
 GET     /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.showSelectedUnassignedClients
+POST    /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.submitSelectedUnassignedClients
 GET     /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients
 POST    /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients
 GET     /manage-access-group/clients-assigned                   controllers.UnassignedClientController.showConfirmClientsAddedToGroups

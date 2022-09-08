@@ -63,25 +63,12 @@ class ManageGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         withSessionItem[String](FILTERED_GROUPS_INPUT) { groupSearchTerm =>
-          withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
-            withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-              withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-                groupService.groupSummaries(arn).map(gs =>
-                  Ok(
-                    dashboard(
-                      gs,
-                      AddClientsToGroupForm.form().fill(
-                        AddClientsToGroup(
-                          maybeHiddenClients.getOrElse(false),
-                          search = clientSearchTerm,
-                          filter = clientFilterTerm,
-                          clients = None)),
-                      FilterByGroupNameForm.form.fill(groupSearchTerm.getOrElse("")),
-                      maybeHiddenClients))
-                )
-              }
-            }
-          }
+          groupService.groupSummaries(arn).map(gs =>
+            Ok(dashboard(
+                gs,
+                FilterByGroupNameForm.form.fill(groupSearchTerm.getOrElse(""))
+              ))
+          )
         }
       }
     }
@@ -90,7 +77,6 @@ class ManageGroupController @Inject()(
   def submitFilterByGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
           val encoded = request.body.asFormUrlEncoded
           val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
 
@@ -106,7 +92,7 @@ class ManageGroupController @Inject()(
                 .fold(
                   hasErrors =>
                     groupService.groupSummaries(arn).map(
-                      gs => Ok(dashboard(gs, AddClientsToGroupForm.form(), hasErrors, maybeHiddenClients)))
+                      gs => Ok(dashboard(gs, hasErrors)))
                   ,
                   formData => {
                     groupService.filterByGroupName(formData)(arn)
@@ -114,7 +100,6 @@ class ManageGroupController @Inject()(
                   }
                 )
           }
-        }
       }
     }
   }

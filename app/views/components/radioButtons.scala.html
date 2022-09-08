@@ -35,7 +35,7 @@
 @govukRadios(
     Radios(
         name = fieldName,
-        attributes = Map("id" -> fieldName),
+        attributes = Map("id" -> s"$fieldName-radios"),
         hint = hint.map(h => {
             Hint(content = HtmlContent(msgs(h)))
         }),
@@ -59,7 +59,7 @@
             RadioItem(
                 content = Text(msgs(radioData.label)),
                 value = Some(radioData.name),
-                id = Some(radioData.id.getOrElse(radioData.name)),
+                id = Some(radioData.id.getOrElse(fieldName)),
                 checked = radioData.isChecked.getOrElse(false) ,
                 hint = radioData.hint.map(h =>{
                     Hint(content = HtmlContent(msgs(h)))

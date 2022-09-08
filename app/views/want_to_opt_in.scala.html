@@ -39,7 +39,7 @@
             field = form("answer"),
             items = Seq(
                 RadioData("true", "do-you-want-to-opt-in.yes.label"),
-                RadioData("false", "do-you-want-to-opt-in.no.label")
+                RadioData("false", "do-you-want-to-opt-in.no.label", id = Some("answer-no"))
             ),
             legend = Some(LegendData(msg = "do-you-want-to-opt-in.h1", isH1 = true))
         )

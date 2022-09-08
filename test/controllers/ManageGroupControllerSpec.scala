@@ -734,7 +734,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.legend)
         .text() shouldBe s"Are you sure you want to delete ${accessGroup.groupName} access group?"
-      html.select("label[for=answer-yes]").text() shouldBe "Yes"
+      html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
       html.select(Css.submitButton).text() shouldBe "Save and continue"

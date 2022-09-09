@@ -124,6 +124,19 @@ class AddClientsToGroupFormSpec
         FormError("", List("error.search-filter.empty")))
     }
 
+    "have errors when button is Filter and search contains invalid characters" in {
+      val params = Map(
+        hasSelectedClients -> List("false"),
+        search -> List("bad<search>"),
+        filter -> List.empty,
+        clients -> List(client1.id, client2.id)
+      )
+      val boundForm =
+        AddClientsToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
+      boundForm.errors shouldBe List(
+        FormError("search", List("error.search.invalid")))
+    }
+
     "throw exception for invalid Button Select" in {
       val exception = intercept[RuntimeException] {
         AddClientsToGroupForm.form(null).bindFromRequest(Map.empty)

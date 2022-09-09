@@ -16,6 +16,7 @@
 
 package forms
 
+
 import play.api.data.Form
 import play.api.data.Forms._
 
@@ -30,6 +31,7 @@ object ClientReferenceForm {
           text
             .verifying("error.client-reference.required", _.trim.nonEmpty)
             .verifying("error.client-reference.max-length", _.trim.length < 80)
+            .verifying("error.client-reference.invalid", _.matches(friendlyNameRegex))
       )
     )
 

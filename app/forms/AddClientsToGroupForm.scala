@@ -48,7 +48,7 @@ object AddClientsToGroupForm {
 
   private val addClientsToGroupMapping = mapping(
     "hasSelectedClients" -> boolean,
-    "search" -> optional(text.verifying("error.search.clients.invalid", s => !(s.contains('<') || s.contains('>')))),
+    "search" -> optional(text.verifying("error.search.invalid", s => !(s.contains('<') || s.contains('>')))),
     "filter" -> optional(text),
     "clients" -> optional(list(text))
   )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)

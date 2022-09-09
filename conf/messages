@@ -46,6 +46,7 @@ error.select-clients.empty=You must select at least one client
 error.search-filter.empty=You must enter a tax reference, client reference or select a tax service to apply filters
 error.select-members.empty=You must select at least one team member
 error.search-members.empty=You must enter a name or email to apply filters
+error.search.invalid=Filter term must not contain < or >
 
 tax-service.mdt-it=Making Tax Digital for Income Tax
 tax-service.vat=VAT
@@ -105,7 +106,7 @@ group.create.h1=Create an access group
 group.create.name.label=What do you want to call this access group?
 group.name.max.length=Access group name must be 38 characters or fewer
 group.name.required=Enter an access group name
-
+group.name.invalid=Access group name must not contain < or >
 
 group.confirm.h1=Confirm group name for {0}
 group.confirm.name.label=Is the access group name correct?
@@ -226,6 +227,7 @@ update-client-reference.caption=Tax reference: {0}
 update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
 error.client-reference.required=Enter client reference
 error.client-reference.max-length=Client reference must be 80 characters or fewer
+error.client-reference.invalid=Client reference must not contain invalid characters
 
 client-reference.updated.title=Client reference updated
 client-reference.updated.panel=Client reference updated to {0}
@@ -233,6 +235,7 @@ client-reference.updated.p=You have updated this client reference in your access
 
 error.group.filter.max.length=You can only enter 32 characters or fewer
 error.group.filter.required=You must enter a group name or part of it
+error.group.filter.invalid=Group name must not contain < or >
 group-name-filter.text.label=Filter by group name
 
 client.select.groups.h1=Which access groups would you like to add {0} to?

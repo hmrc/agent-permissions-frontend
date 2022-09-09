@@ -21,6 +21,8 @@ import play.api.data.Forms._
 
 object ClientReferenceForm {
 
+  val friendlyNameRegex = "^[!%*^()_+\\\\\\-={}:;@~#,.?\\\\[\\\\]\\/A-Za-z0-9 ]{0,80}$"
+
   def form(): Form[String] = {
     Form(
       single(

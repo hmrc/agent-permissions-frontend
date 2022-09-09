@@ -50,7 +50,7 @@ object AddTeamMembersToGroupForm {
 
   private val addTeamMembersToGroupMapping = mapping(
     "hasAlreadySelected" -> boolean,
-    "search" -> optional(text),
+    "search" -> optional(text.verifying("error.search.teamMembers.invalid", s => !(s.contains('<') || s.contains('>')))),
     "members" -> optional(list(text))
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
 

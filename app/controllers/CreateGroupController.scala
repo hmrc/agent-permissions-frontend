@@ -205,7 +205,7 @@ class CreateGroupController @Inject()(
           maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
             clients  =>
             YesNoForm
-              .form("group.teamMembers.review.error")
+              .form("group.clients.review.error")
               .bindFromRequest
               .fold(
                 formWithErrors =>{

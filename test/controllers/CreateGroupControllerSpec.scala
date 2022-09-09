@@ -242,7 +242,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       html
         .select(Css.legend)
         .text() shouldBe "Is the access group name correct?"
-      html.select("label[for=answer-yes]").text() shouldBe "Yes"
+      html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
       html.select(Css.submitButton).text() shouldBe "Save and continue"
@@ -824,12 +824,12 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       val form = html.select(Css.form)
       form.attr("action") shouldBe "/agent-permissions/clients-selected"
-      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
-        .select("label[for=true]")
+        .select("label[for=answer]")
         .text() shouldBe "Yes, add or remove clients"
       answerRadios
-        .select("label[for=false]")
+        .select("label[for=answer-no]")
         .text() shouldBe "No, continue to next section"
     }
 
@@ -925,8 +925,8 @@ class CreateGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select an option"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select an option"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected clients"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected clients"
 
     }
   }
@@ -1350,12 +1350,12 @@ class CreateGroupControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(1).text() shouldBe "x5@xyz.com"
       trs.get(4).select("td").get(2).text() shouldBe "Administrator"
 
-      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
-        .select("label[for=true]")
+        .select("label[for=answer]")
         .text() shouldBe "Yes, add or remove team members"
       answerRadios
-        .select("label[for=false]")
+        .select("label[for=answer-no]")
         .text() shouldBe "No, continue to next section"
     }
 
@@ -1438,8 +1438,8 @@ class CreateGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 10 team members"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select an option"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select an option"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected team members"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected team members"
 
     }
   }

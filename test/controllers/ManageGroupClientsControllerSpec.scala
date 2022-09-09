@@ -570,12 +570,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
-      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
-        .select("label[for=true]")
+        .select("label[for=answer]")
         .text() shouldBe "Yes, add or remove clients"
       answerRadios
-        .select("label[for=false]")
+        .select("label[for=answer-no]")
         .text() shouldBe "No, continue to next section"
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 
@@ -650,8 +650,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select an option"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select an option"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected clients"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected clients"
 
     }
   }

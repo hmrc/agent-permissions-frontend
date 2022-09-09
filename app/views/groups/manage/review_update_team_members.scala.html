@@ -89,7 +89,7 @@
             field = form("answer"),
             items = Seq(
                 RadioData("true", "group.teamMembers.review.yes.label"),
-                RadioData("false", "group.teamMembers.review.no.label")
+                RadioData("false", "group.teamMembers.review.no.label", id = Some("answer-no"))
             ),
             legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
         )

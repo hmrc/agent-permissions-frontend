@@ -127,7 +127,7 @@ group.clients.review.title=Review selected clients
 group.clients.review.radio.legend=Do you need to add or remove selected clients?
 group.clients.review.yes.label=Yes, add or remove clients
 group.clients.review.no.label=No, continue to next section
-group.clients.review.error=Select an option
+group.clients.review.error=Select yes if you need to add or remove selected clients
 
 group.select.members.list.h1=Select team members
 group.update.members.list.h1=Update team members in this group
@@ -145,7 +145,7 @@ group.teamMembers.review.title=Review selected team members
 group.teamMembers.review.radio.legend=Do you need to add or remove selected team members?
 group.teamMembers.review.yes.label=Yes, add or remove team members
 group.teamMembers.review.no.label=No, continue to next section
-group.teamMembers.review.error=Select an option
+group.teamMembers.review.error=Select yes if you need to add or remove selected team members
 
 cya.h1=Check your selection
 cya.p=Confirm clients and team members selected for this access group

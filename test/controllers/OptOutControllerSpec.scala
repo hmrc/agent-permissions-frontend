@@ -112,12 +112,12 @@ class OptOutControllerSpec extends BaseSpec {
         .select(Css.form)
         .attr("action") shouldBe "/agent-permissions/confirm-turn-off"
 
-      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
-        .select("label[for=true]")
+        .select("label[for=answer]")
         .text() shouldBe "Yes, I want to turn access groups off"
       answerRadios
-        .select("label[for=false]")
+        .select("label[for=answer-no]")
         .text() shouldBe "No, I want to keep access groups turned on"
 
       html.select(Css.submitButton).text() shouldBe "Save and continue"

@@ -319,12 +319,12 @@ class UnassignedClientControllerSpec extends BaseSpec {
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/unassigned-clients"
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
-      val answerRadios = html.select(Css.radioButtonsField("answer"))
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
-        .select("label[for=true]")
+        .select("label[for=answer]")
         .text() shouldBe "Yes, add or remove clients"
       answerRadios
-        .select("label[for=false]")
+        .select("label[for=answer-no]")
         .text() shouldBe "No, continue to next section"
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 

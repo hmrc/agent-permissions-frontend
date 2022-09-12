@@ -30,7 +30,7 @@ object AddClientsToGroupForm {
          Form(addClientsToGroupMapping.verifying(emptyClientConstraint))
       case Filter =>
         Form(
-          addClientsToGroupMapping
+          addClientsToGroupFilterMapping
             .verifying(error = "error.search-filter.empty",
               form => form.filter.isDefined || form.search.isDefined)
         )
@@ -46,10 +46,18 @@ object AddClientsToGroupForm {
       else Valid
     }
 
+  private val addClientsToGroupFilterMapping = mapping(
+    "hasSelectedClients" -> boolean,
+    "search" -> optional(text.verifying("error.search.invalid", s => !(s.contains('<') || s.contains('>')))),
+    "filter" -> optional(text),
+    "clients" -> optional(list(text))
+  )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
+
   private val addClientsToGroupMapping = mapping(
     "hasSelectedClients" -> boolean,
     "search" -> optional(text),
     "filter" -> optional(text),
     "clients" -> optional(list(text))
   )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
+
 }

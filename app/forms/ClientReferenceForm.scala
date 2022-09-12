@@ -16,10 +16,13 @@
 
 package forms
 
+
 import play.api.data.Form
 import play.api.data.Forms._
 
 object ClientReferenceForm {
+
+  val friendlyNameRegex = "^[!%*^()_+\\\\\\-={}:;@~#,.?\\\\[\\\\]\\/A-Za-z0-9 ]{0,80}$"
 
   def form(): Form[String] = {
     Form(
@@ -28,6 +31,7 @@ object ClientReferenceForm {
           text
             .verifying("error.client-reference.required", _.trim.nonEmpty)
             .verifying("error.client-reference.max-length", _.trim.length < 80)
+            .verifying("error.client-reference.invalid", _.matches(friendlyNameRegex))
       )
     )
 

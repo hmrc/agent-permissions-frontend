@@ -32,8 +32,8 @@ class AddTeamMembersToGroupFormSpec
   val search = "search"
   val members = "members[]"
 
-  val member1 = TeamMember("Bob", "bob@builds.com", Some("user1"), None, selected = true)
-  val member2 = TeamMember("Steve", "steve@abc.com", Some("user2"), None)
+  val member1: TeamMember = TeamMember("Bob", "bob@builds.com", Some("user1"), None, selected = true)
+  val member2: TeamMember = TeamMember("Steve", "steve@abc.com", Some("user2"), None)
 
   "AddTeamMembersToGroup form binding" should {
 
@@ -102,6 +102,20 @@ class AddTeamMembersToGroupFormSpec
         AddTeamMembersToGroup(hasAlreadySelected = false,
                               Some("abc"),
                               Some(List(member1.id, member2.id))))
+    }
+
+    "have errors when button is Filter and search contains invalid characters" in {
+      val params = Map(
+        hasAlreadySelected -> List("false"),
+        search -> List("bad<search>"),
+        members -> List(member1.id, member2.id)
+      )
+      val boundForm = AddTeamMembersToGroupForm
+        .form(ButtonSelect.Filter)
+        .bindFromRequest(params)
+
+      boundForm.errors shouldBe List(
+        FormError("search", List("error.search.invalid")))
     }
 
     "have errors when button is Filter and search field is empty" in {

@@ -28,6 +28,7 @@ object GroupNameForm {
           text
             .verifying("group.name.required", _.trim.nonEmpty)
             .verifying("group.name.max.length", _.trim.length < 32)
+            .verifying("group.name.invalid", s => !(s.contains('<') || s.contains('>')))
       )
     )
 

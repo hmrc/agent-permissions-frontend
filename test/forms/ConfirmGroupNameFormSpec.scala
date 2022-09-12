@@ -55,6 +55,17 @@ class ConfirmGroupNameFormSpec
         .message shouldBe "group.name.max.length"
     }
 
+    "have errors when group name hidden input contains invalid characters" in {
+      val params = Map(groupNameField -> "invalid < chars>  ",
+        answerField -> "true")
+      val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
+      validatedForm.hasErrors shouldBe true
+      validatedForm
+        .error(groupNameField)
+        .get
+        .message shouldBe "group.name.invalid"
+    }
+
     "have errors when group name is empty" in {
       val params = Map(groupNameField -> "   ", answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)

@@ -21,48 +21,48 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class ClientReferenceFormSpec
+class FilterByGroupNameFormSpec
     extends AnyWordSpec
     with Matchers
     with GuiceOneAppPerSuite {
 
-  val clientReference = "clientRef"
+  val field = "searchGroupByName"
 
-  "ClientReferenceForm binding" should {
+  "FilterByGroupNameForm binding" should {
 
     "be successful when non-empty" in {
-      val params = Map(clientReference -> "XYZ")
-      ClientReferenceForm.form().bind(params).value shouldBe Some("XYZ")
+      val params = Map(field -> "XYZ")
+      FilterByGroupNameForm.form.bind(params).value shouldBe Some("XYZ")
     }
 
     "have errors when empty" in {
-      val params = Map(clientReference -> "   ")
-      val validatedForm = ClientReferenceForm.form().bind(params)
+      val params = Map(field -> "   ")
+      val validatedForm = FilterByGroupNameForm.form.bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm
-        .error(clientReference)
+        .error(field)
         .get
-        .message shouldBe "error.client-reference.required"
+        .message shouldBe "error.group.filter.required"
     }
 
     "have errors when length exceeds max allowed characters" in {
-      val params = Map(clientReference -> RandomStringUtils.random(81))
-      val validatedForm = ClientReferenceForm.form().bind(params)
+      val params = Map(field -> RandomStringUtils.random(33))
+      val validatedForm = FilterByGroupNameForm.form.bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm
-        .error(clientReference)
+        .error(field)
         .get
-        .message shouldBe "error.client-reference.max-length"
+        .message shouldBe "error.group.filter.max.length"
     }
 
-    "have errors when it does not match regex" in {
-      val params = Map(clientReference -> "   <invalid>")
-      val validatedForm = ClientReferenceForm.form().bind(params)
+    "have errors when invalid characters" in {
+      val params = Map(field -> " invalid <chars")
+      val validatedForm = FilterByGroupNameForm.form.bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm
-        .error(clientReference)
+        .error(field)
         .get
-        .message shouldBe "error.client-reference.invalid"
+        .message shouldBe "error.group.filter.invalid"
     }
   }
 

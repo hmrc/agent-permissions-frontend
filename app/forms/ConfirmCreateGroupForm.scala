@@ -27,7 +27,8 @@ object ConfirmCreateGroupForm {
       "name" ->
         text
           .verifying("group.name.required", s => s.trim.nonEmpty)
-          .verifying("group.name.max.length", s => s.trim.length < 32),
+          .verifying("group.name.max.length", s => s.trim.length < 32)
+          .verifying("group.name.invalid", s => !(s.contains('<') || s.contains('>'))),
       "answer" -> optional(boolean)
         .verifying(errorMessageKey, _.isDefined)
 //        .transform(_.get, (b: Boolean) => Option(b))

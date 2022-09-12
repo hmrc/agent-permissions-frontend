@@ -24,7 +24,7 @@ object SearchAndFilterForm {
 
   def form(): Form[SearchFilter] = Form(
     mapping(
-      "search" -> optional(text.verifying("error.search.invalid", s => !(s.contains('<') || s.contains('>')))),
+      "search" -> optional(text),
       "filter" -> optional(text),
       "submit" -> optional(text),
     )(SearchFilter.apply)(SearchFilter.unapply)

@@ -28,7 +28,7 @@ object AddTeamMembersToGroupForm {
     case Continue =>
       Form(addTeamMembersToGroupMapping.verifying(emptyTeamMemberConstraint))
     case Filter =>
-      Form(addTeamMembersToGroupMapping.verifying(emptySearchFieldConstraint))
+      Form(addTeamMembersToGroupFilterMapping.verifying(emptySearchFieldConstraint))
     case Clear =>
       Form(addTeamMembersToGroupMapping)
     case e => throw new RuntimeException(s"invalid button $e")
@@ -48,9 +48,15 @@ object AddTeamMembersToGroupForm {
       else Valid
     }
 
-  private val addTeamMembersToGroupMapping = mapping(
+  private val addTeamMembersToGroupFilterMapping = mapping(
     "hasAlreadySelected" -> boolean,
     "search" -> optional(text.verifying("error.search.invalid", s => !(s.contains('<') || s.contains('>')))),
+    "members" -> optional(list(text))
+  )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
+
+  private val addTeamMembersToGroupMapping = mapping(
+    "hasAlreadySelected" -> boolean,
+    "search" -> optional(text),
     "members" -> optional(list(text))
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
 

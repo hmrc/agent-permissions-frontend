@@ -115,7 +115,7 @@ class AddTeamMembersToGroupFormSpec
         .bindFromRequest(params)
 
       boundForm.errors shouldBe List(
-        FormError("search", List("error.search.invalid")))
+        FormError("search", List("error.search-members.invalid")))
     }
 
     "have errors when button is Filter and search field is empty" in {

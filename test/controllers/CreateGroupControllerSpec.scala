@@ -213,10 +213,10 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Create an access group - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
-        .text() shouldBe "Access group name must be 38 characters or fewer"
+        .text() shouldBe "Access group name must be 32 characters or fewer"
       html
         .select(Css.errorForField("name"))
-        .text() shouldBe "Error: Access group name must be 38 characters or fewer"
+        .text() shouldBe "Error: Access group name must be 32 characters or fewer"
     }
   }
 

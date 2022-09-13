@@ -134,7 +134,7 @@ class AddClientsToGroupFormSpec
       val boundForm =
         AddClientsToGroupForm.form(ButtonSelect.Filter).bindFromRequest(params)
       boundForm.errors shouldBe List(
-        FormError("search", List("error.search.invalid")))
+        FormError("search", List("error.search-filter.invalid")))
     }
 
     "throw exception for invalid Button Select" in {

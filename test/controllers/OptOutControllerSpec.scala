@@ -184,10 +184,10 @@ class OptOutControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Do you want to turn off access groups? - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
-        .text() shouldBe "Please select an option."
+        .text() shouldBe "Select yes if you want to turn access groups off"
       html
         .select(Css.errorForField("answer"))
-        .text() shouldBe "Error: Please select an option."
+        .text() shouldBe "Error: Select yes if you want to turn access groups off"
 
       html.select(Css.submitButton)
 

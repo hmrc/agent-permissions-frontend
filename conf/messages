@@ -71,7 +71,7 @@ opt-in-info.p4=Your organisation may have already created access groups and then
 
 do-you-want-to-opt-in.h1=Do you want to turn on access groups?
 do-you-want-to-opt-in.yes.label=Yes, I want to turn access groups on
-do-you-want-to-opt-in.yes.error=Please select an option.
+do-you-want-to-opt-in.yes.error=Select yes if you want to turn access groups on
 do-you-want-to-opt-in.no.label=No, I want to keep access groups turned off
 
 you-have-opted-in.h1.ready.true=You have turned on access groups
@@ -99,7 +99,7 @@ opt-out-info.p2=If you turn access groups back on your groups will be restored. 
 do-you-want-to-opt-out.h1=Do you want to turn off access groups?
 do-you-want-to-opt-out.yes.label=Yes, I want to turn access groups off
 do-you-want-to-opt-out.no.label=No, I want to keep access groups turned on
-do-you-want-to-opt-out.yes.error=Please select an option.
+do-you-want-to-opt-out.yes.error=Select yes if you want to turn access groups off
 
 you-have-opted-out.h1=You have turned off access groups
 you-have-opted-out.h2=What happens next

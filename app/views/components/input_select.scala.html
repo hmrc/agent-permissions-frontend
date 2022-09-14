@@ -30,7 +30,7 @@
     inputClass: Option[String] = None,
     labelClasses: Set[String] = Set("govuk-label--s"),
     selectAttribute: Map[String, String] = Map.empty,
-    firstItem: Seq[SelectItem] =  Seq(SelectItem(value = Some(""), text = ""))
+    emptyOptionText: String = "Choose an option"
 )(implicit msgs: Messages)
 
 @govukSelect(Select(
@@ -42,7 +42,7 @@
         content = Text(label)
         ),
     hint = if(hint.isDefined) Some(Hint(content = Text(hint.get))) else None,
-    items = firstItem ++
+    items = Seq(SelectItem(value = Some(""), text = emptyOptionText)) ++
             options.map(option =>
             SelectItem(
                 value = Some(option._1),

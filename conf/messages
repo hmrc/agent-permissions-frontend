@@ -117,9 +117,10 @@ group.confirm.name.label=Is the access group name correct?
 group.name.confirm.required.error=Select yes if the access group name is correct
 
 group.client.list.h1=Select clients
-group.client.list.p1=Select clients for this access group by ticking the boxes. You can also use the select all box or search. Then select the "Add clients" button.
+group.client.list.p1=Select clients for this access group by ticking the boxes. You can tick the check box in the header row to select all. You can also filter by tax reference, client reference or tax service.
 client-filter.text.label=Filter by tax reference or client reference
 client-filter.select.label=Filter by tax service
+client-filter.select.label.empty-option=Choose tax service
 
 group.client.list.table.checkbox=Checkboxes
 group.client.list.table.th1=Client reference

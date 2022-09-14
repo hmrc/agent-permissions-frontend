@@ -49,9 +49,9 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
   lazy val welshLanguageSupportEnabled: Boolean =
     servicesConfig.getBoolean("features.welsh-language-support")
   lazy val contactFrontendBaseUrl: String =
-    servicesConfig.baseUrl("contact-frontend")
+    servicesConfig.getString("microservice.services.contact-frontend.external-url")
   lazy val contactFrontendServiceId: String =
-    servicesConfig.getString("contact-frontend.serviceId")
+    servicesConfig.getString("microservice.services.contact-frontend.serviceId")
   lazy val betaFeedbackUrl: String =
     s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
   lazy val basGatewayUrl: String =

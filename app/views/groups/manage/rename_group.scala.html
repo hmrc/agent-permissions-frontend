@@ -32,13 +32,13 @@
 AppConfig)
 
 @layout(
-    title = msgs("group.rename.h1"),
+    title = msgs("group.manage.rename"),
     formErrors = form.errors,
     backLinkHref = Some(routes.ManageGroupController.showManageGroups.url)
 ) {
 
     @caption(msgs("common.caption.group.name", group.groupName))
-    @h1("group.rename.h1")
+    @h1("group.manage.rename")
 
     @formWithCSRF(action = routes.ManageGroupController.submitRenameGroup(groupId)) {
 

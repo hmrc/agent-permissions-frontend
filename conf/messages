@@ -71,25 +71,17 @@ opt-in-info.p4=Your organisation may have already created access groups and then
 
 do-you-want-to-opt-in.h1=Do you want to turn on access groups?
 do-you-want-to-opt-in.yes.label=Yes, I want to turn access groups on
-do-you-want-to-opt-in.yes.error=Select yes if you want to turn access groups on
+do-you-want-to-opt-in.yes.error=Select yes to turn on access groups
 do-you-want-to-opt-in.no.label=No, I want to keep access groups turned off
 
 you-have-opted-in.h1.ready.true=You have turned on access groups
 you-have-opted-in.h1.ready.false=You have turned on access groups but we need some time to gather the client data
-you-have-opted-in.h2=What happens next
 you-have-opted-in.p1.ready.true=You can now create access groups for your clients and assign your team members to each access group. Any access groups created in the past have been restored. 
 you-have-opted-in.p1.ready.false=Your client data is currently being processed.
 you-have-opted-in.p2.ready.true=Clients and team members can be in more than one access group and you can make changes to these assignments whenever you need to.
 you-have-opted-in.p2.ready.false=You will receive a confirmation email to let you know when this is done and what to do next.
 you-have-opted-in.button.ready.true=Create access group
-you-have-opted-in.link=Return to manage account
 you-have-opted-in.button.ready.false=Return to manage account
-
-you-have-not-opted-in.h1=You have not opted-in to use access groups
-you-have-not-opted-in.h2=What happens next
-you-have-not-opted-in.p=You can opt in at any time later
-you-have-not-opted-in.button=Back to manage groups page
-
 
 opt-out-info.h1=Turn off access groups
 opt-out-info.inset=If you turn off this feature any access groups you have created will be disabled. The groups can be turned on again at any time.
@@ -99,10 +91,9 @@ opt-out-info.p2=If you turn access groups back on your groups will be restored. 
 do-you-want-to-opt-out.h1=Do you want to turn off access groups?
 do-you-want-to-opt-out.yes.label=Yes, I want to turn access groups off
 do-you-want-to-opt-out.no.label=No, I want to keep access groups turned on
-do-you-want-to-opt-out.yes.error=Select yes if you want to turn access groups off
+do-you-want-to-opt-out.yes.error=Select yes to turn off access groups
 
 you-have-opted-out.h1=You have turned off access groups
-you-have-opted-out.h2=What happens next
 you-have-opted-out.p1=You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients.
 you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account‘ page.
 
@@ -170,7 +161,6 @@ group.manage.tabs.2.label=Unassigned clients
 group.manage.no.groups.h3=No groups found
 group.manage.no.groups.p=Update your filters and try again or clear your filters to see all your groups
 group.manage.no.groups.button=Create new access group
-group.manage.no.unassigned.clients.h3=No unassigned clients found
 group.manage.rename=Rename group
 group.manage.delete=Delete group
 group.manage.clients=Manage clients
@@ -182,14 +172,11 @@ group.existing.clients.button=Update clients
 group.client.list.update.h1=Update clients in this group
 group.client.list.update.p=Existing clients in this group are shown as selected. Select any new clients and click “Continue”.
 
-group.rename.h1=Rename group
-
 group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
 
-group.delete.h1=Delete group
 group.delete.name.label=Are you sure you want to delete {0} access group?
-group.delete.select.error=Select ‘yes’ if you would like to delete the group.
+group.delete.select.error=Select ‘yes’ if you would like to delete the group
 
 group.deleted.h1={0} access group deleted
 group.deleted.p=Clients from this group will now be visible to all team members, unless they are in other groups.
@@ -251,13 +238,12 @@ client.select.back=Back to {0}
 
 client.not.found.error.h1=Client not found
 client.not.found.error.p=Please check the url or return to the Manage groups page
-client.not.found.error.a=Back to manage clients page
+client.manage-clients.back=Back to manage clients page
 
 client.added.to.groups.title=Client {0} added to access groups {1}
 client.added.to.groups.h1=Client added to access groups
 client.added.to.groups.p1=You have added {0} to the following groups:
 client.added.to.groups.p2=The team members in these access groups can now view and manage the tax affairs of the client you added.
-client.added.to.groups.a=Back to manage clients page
 
 member.select.groups.h1=Which access groups would you like to add {0} to?
 member.select.groups.p1=Team member is currently in these access groups:
@@ -267,16 +253,15 @@ error.member.select.groups.empty=You must select at least one group
 
 member.not.found.error.h1=Team member not found
 member.not.found.error.p=Please check the url or return to the Manage team members page
-member.not.found.error.a=Back to manage team members page
+member.manage-team-members.back=Back to manage team members page
 
 member.added.to.groups.title=Team member {0} added to access groups {1}
 member.added.to.groups.h1=Team member added to access groups
 member.added.to.groups.p1=You have added {0} to the following groups:
 member.added.to.groups.p2={0} can now view and manage the tax affairs of the clients in these access groups.
-member.added.to.groups.a=Back to manage team members page
 
 signout.h1=You have signed out
 signout.signin.again.a=Sign in again
 signout.signin.again.p=to use this service.
-timeout.h1=You have been timed out
+timeout.h1=You have been signed out
 timeout.p=You have not done anything for 15 minutes, so we have signed you out to keep your account secure.

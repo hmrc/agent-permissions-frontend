@@ -237,10 +237,10 @@ class OptInControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Do you want to turn on access groups? - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
-        .text() shouldBe "Select yes if you want to turn access groups on"
+        .text() shouldBe "Select yes to turn on access groups"
       html
         .select(Css.errorForField("answer"))
-        .text() shouldBe "Error: Select yes if you want to turn access groups on"
+        .text() shouldBe "Error: Select yes to turn on access groups"
 
       html.select(Css.submitButton)
 

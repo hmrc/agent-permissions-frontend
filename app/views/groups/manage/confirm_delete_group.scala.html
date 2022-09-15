@@ -31,12 +31,12 @@
 @(form: Form[Boolean], group: AccessGroup)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("group.delete.h1", group.groupName),
+    title = msgs("group.manage.delete"),
     formErrors = form.errors,
     backLinkHref = Some(routes.ManageGroupController.showManageGroups.url)
 ) {
     @caption(msgs("common.caption.group.name", group.groupName))
-    @h1("group.delete.h1")
+    @h1("group.manage.delete")
 
     @formWithCSRF(action = routes.ManageGroupController.submitDeleteGroup(group._id.toString)) {
 

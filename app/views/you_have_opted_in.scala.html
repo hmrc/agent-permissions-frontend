@@ -26,14 +26,14 @@
 
 @ready = @{optinStatus == OptedInReady}
 
-@optionalA = @{if(ready){a(key = "you-have-opted-in.link",href= appConfig.agentServicesAccountManageAccountUrl, classes = Some("govuk-!-margin-left-3 govuk-!-margin-top-5"))} else {}}
+@optionalA = @{if(ready){a(key = "common.return.manage-account",href= appConfig.agentServicesAccountManageAccountUrl, classes = Some("govuk-!-margin-left-3 govuk-!-margin-top-5"))} else {}}
 
 @continueUrl = @{if(ready) {routes.CreateGroupController.start.url} else {appConfig.agentServicesAccountManageAccountUrl}}
 
 @layout(
     title = msgs(s"you-have-opted-in.h1.ready.$ready")) {
     @h1(s"you-have-opted-in.h1.ready.$ready")
-    @h2(s"you-have-opted-in.h2")
+    @h2(s"common.what.happens.next")
     @p(s"you-have-opted-in.p1.ready.$ready")
     @p(s"you-have-opted-in.p2.ready.$ready")
 

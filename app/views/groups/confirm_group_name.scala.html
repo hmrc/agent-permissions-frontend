@@ -35,7 +35,7 @@
     formErrors = form.errors,
     backLinkHref = Some(routes.CreateGroupController.showGroupName.url)
 ) {
-    @h1(msgs("group.confirm.h1", groupName))
+    @h1("group.confirm.h1")
 
     @formWithCSRF(action = routes.CreateGroupController.submitConfirmGroupName) {
 
@@ -45,7 +45,7 @@
                 RadioData("true", "common.yes.label"),
                 RadioData("false", "common.no.label", id = Some("answer-no"))
             ),
-            legend = Some(LegendData(msg = "group.confirm.name.label")),
+            legend = Some(LegendData(msg = msgs("group.confirm.name.label", groupName))),
             classes = "govuk-radios--inline"
         )
 

@@ -103,8 +103,8 @@ group.name.max.length=Access group name must be 32 characters or fewer
 group.name.required=Enter an access group name
 group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = { } : ; @ ~ # , . ? [ ]
 
-group.confirm.h1=Confirm group name for {0}
-group.confirm.name.label=Is the access group name correct?
+group.confirm.h1=Confirm group name
+group.confirm.name.label=Is the access group name ‘{0}’ correct?
 group.name.confirm.required.error=Select yes if the access group name is correct
 
 group.client.list.h1=Select clients

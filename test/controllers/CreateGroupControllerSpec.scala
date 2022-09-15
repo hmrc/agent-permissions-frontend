@@ -234,14 +234,14 @@ class CreateGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Confirm group name for " + groupName + " - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Confirm group name for " + groupName
+      html.title() shouldBe "Confirm group name - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Confirm group name"
       html
         .select(Css.form)
         .attr("action") shouldBe "/agent-permissions/confirm-access-group-name"
       html
         .select(Css.legend)
-        .text() shouldBe "Is the access group name correct?"
+        .text() shouldBe s"Is the access group name ‘${groupName}’ correct?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -280,7 +280,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Confirm group name for " + groupName + " - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Confirm group name - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
         .text() shouldBe "Select yes if the access group name is correct"

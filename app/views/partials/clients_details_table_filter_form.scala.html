@@ -127,7 +127,9 @@
         @p(msgs("common.total.clients", clients.get.length),
         id = Some("clients-in-group"))
     } else {
-        @h2("clients.not-found.heading")
-        @p("clients.not-found.p")
+        <div id="no-results">
+            @h2("clients.not-found.heading")
+            @p("clients.not-found.p")
+        </div>
     }
 }

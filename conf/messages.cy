@@ -108,7 +108,7 @@ group.name.required=Nodwch enw ar gyfer y grŵp mynediad
 #No welsh yet
 group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = { } : ; @ ~ # , . ? [ ]
 
-group.confirm.h1=Confirm group name
+group.confirm.h1=Confirm access group name
 group.confirm.name.label=A yw enw’r grŵp mynediad ar gyfer ‘{0}’ yn gywir?
 #Above may need updating
 group.name.confirm.required.error=Dewiswch ‘Iawn’ os yw enw’r grŵp mynediad yn gywir

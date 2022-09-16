@@ -199,6 +199,38 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(1).text() shouldBe "john2@abc.com"
       trs.get(0).select("td").get(2).text() shouldBe "Administrator"
     }
+
+    "render with filter that matches nothing" in {
+      //given
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+          "?submit=filter&search=hn2@ab"
+      ).withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = None)))
+      stubGetTeamMembersOk(arn)(userDetails)
+
+      //when
+      val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Manage team members"
+
+      val tableOfTeamMembers = html.select(Css.tableWithId("sortable-table"))
+      tableOfTeamMembers.isEmpty shouldBe true
+      val noClientsFound = html.select("div#no-results")
+      noClientsFound.isEmpty() shouldBe false
+      noClientsFound.select("h2").text shouldBe "No team members found"
+      noClientsFound.select("p").text shouldBe "Update your filters and try again or clear your filters to see all your team members"
+    }
   }
 
   s"GET ${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString)}" should {

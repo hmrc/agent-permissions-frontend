@@ -234,8 +234,8 @@ class CreateGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Confirm group name - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Confirm group name"
+      html.title() shouldBe "Confirm access group name - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Confirm access group name"
       html
         .select(Css.form)
         .attr("action") shouldBe "/agent-permissions/confirm-access-group-name"
@@ -280,7 +280,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Confirm group name - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Confirm access group name - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
         .text() shouldBe "Select yes if the access group name is correct"
@@ -327,7 +327,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showAccessGroupNameExists.url
     }
 
-    "redirect to add-clients page when confirm group name 'yes' selected" in {
+    "redirect to add-clients page when Confirm access group name 'yes' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       getGroupNameCheckReturns(ok = true)(arn, groupName)
@@ -347,7 +347,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         routes.CreateGroupController.showSelectClients.url)
     }
 
-    "redirect to /group/group-name when confirm group name 'no' selected" in {
+    "redirect to /group/group-name when Confirm access group name 'no' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 

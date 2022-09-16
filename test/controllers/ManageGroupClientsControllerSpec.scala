@@ -217,10 +217,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 3
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
-      trs.size() shouldBe 0
+      val tableOfClients = html.select(Css.tableWithId("sortable-table"))
+      tableOfClients.isEmpty shouldBe true
+      val noClientsFound = html.select("div#no-results")
+      noClientsFound.isEmpty() shouldBe false
+      noClientsFound.select("h2").text shouldBe "No clients found"
+      noClientsFound.select("p").text shouldBe "Update your filters and try again or clear your filters to see all your clients"
     }
 
     "redirect to baseUrl when CLEAR FILTER is clicked" in {

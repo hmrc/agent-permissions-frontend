@@ -108,8 +108,10 @@
             id = Some("team-members-in-group")
         )
     } else {
-        @h2("team-members.not-found.heading")
-        @p("team-members.not-found.p")
+        <div id="no-results">
+            @h2("team-members.not-found.heading")
+            @p("team-members.not-found.p")
+        </div>
     }
 
 }

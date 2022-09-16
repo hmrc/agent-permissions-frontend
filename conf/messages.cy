@@ -86,6 +86,7 @@ you-have-opted-in.p1.ready.false=Mae data’ch cleientiaid yn cael eu prosesu ar
 you-have-opted-in.p2.ready.true=Gall cleientiaid ac aelodau tîm fod yn rhan o fwy nag un grŵp mynediad a gallwch wneud newidiadau i’r neilltuadau hyn pryd bynnag y bydd angen.
 you-have-opted-in.p2.ready.false=Byddwch yn cael e-bost cadarnhau i roi gwybod i chi pan fydd hyn wedi’i wneud a beth i’w wneud nesaf.
 you-have-opted-in.button.ready.true=Creu grŵp mynediad
+you-have-opted-in.button.ready.false=Yn ôl i reoli’r cyfrif
 
 opt-out-info.h1=Analluogi grwpiau mynediad
 opt-out-info.inset=Os byddwch yn analluogi’r nodwedd hon, ni fydd unrhyw grwpiau mynediad rydych wedi’u creu yn gallu cael eu defnyddio. Gellir galluogi’r grwpiau eto ar unrhyw adeg.

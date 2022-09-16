@@ -32,7 +32,7 @@ class ConfirmGroupNameFormSpec
   "CreateGroupFrom binding" should {
 
     "be successful when non-empty" in {
-      val params = Map(groupNameField -> "XYZ", answerField -> "true")
+      val params = Map(groupNameField -> "XYZ VALID", answerField -> "true")
       ConfirmCreateGroupForm.form("").bind(params).hasErrors shouldBe false
     }
 
@@ -41,14 +41,16 @@ class ConfirmGroupNameFormSpec
       val validatedForm =
         ConfirmCreateGroupForm.form("answer.not.given").bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm.error(answerField).get.message shouldBe "answer.not.given"
     }
 
     "have errors when group name hidden input exceeds max allowed characters" in {
-      val params = Map(groupNameField -> RandomStringUtils.random(33),
+      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(33),
                        answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(groupNameField)
         .get
@@ -60,6 +62,7 @@ class ConfirmGroupNameFormSpec
         answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(groupNameField)
         .get
@@ -70,6 +73,7 @@ class ConfirmGroupNameFormSpec
       val params = Map(groupNameField -> "   ", answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(groupNameField)
         .get

@@ -21,6 +21,8 @@ import play.api.data.Forms._
 
 object GroupNameForm {
 
+  val groupNameRegex = "^[!%*^()_+\\\\\\-={}:;@~#,.?\\[\\]\\\\/A-Za-z0-9 ]{0,}$"
+
   def form(): Form[String] = {
     Form(
       single(
@@ -28,7 +30,7 @@ object GroupNameForm {
           text
             .verifying("group.name.required", _.trim.nonEmpty)
             .verifying("group.name.max.length", _.trim.length < 32)
-            .verifying("group.name.invalid", s => !(s.contains('<') || s.contains('>')))
+            .verifying("group.name.invalid", _.matches(groupNameRegex))
       )
     )
 

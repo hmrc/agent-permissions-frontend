@@ -31,8 +31,8 @@ class FilterByGroupNameFormSpec
   "FilterByGroupNameForm binding" should {
 
     "be successful when non-empty" in {
-      val params = Map(field -> "XYZ")
-      FilterByGroupNameForm.form.bind(params).value shouldBe Some("XYZ")
+      val params = Map(field -> "XYZ V@L!D")
+      FilterByGroupNameForm.form.bind(params).value shouldBe Some("XYZ V@L!D")
     }
 
     "have errors when empty" in {
@@ -46,7 +46,7 @@ class FilterByGroupNameFormSpec
     }
 
     "have errors when length exceeds max allowed characters" in {
-      val params = Map(field -> RandomStringUtils.random(33))
+      val params = Map(field -> RandomStringUtils.randomAlphanumeric(33))
       val validatedForm = FilterByGroupNameForm.form.bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm

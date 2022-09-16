@@ -31,14 +31,15 @@ class ClientReferenceFormSpec
   "ClientReferenceForm binding" should {
 
     "be successful when non-empty" in {
-      val params = Map(clientReference -> "XYZ")
-      ClientReferenceForm.form().bind(params).value shouldBe Some("XYZ")
+      val params = Map(clientReference -> "XYZ@42")
+      ClientReferenceForm.form().bind(params).value shouldBe Some("XYZ@42")
     }
 
     "have errors when empty" in {
-      val params = Map(clientReference -> "   ")
+      val params = Map(clientReference -> "")
       val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(clientReference)
         .get
@@ -46,19 +47,32 @@ class ClientReferenceFormSpec
     }
 
     "have errors when length exceeds max allowed characters" in {
-      val params = Map(clientReference -> RandomStringUtils.random(81))
+      val params = Map(clientReference -> RandomStringUtils.randomAlphanumeric(81))
       val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(clientReference)
         .get
         .message shouldBe "error.client-reference.max-length"
     }
 
+    "have errors with spaces" in {
+      val params = Map(clientReference -> "123 invalid")
+      val validatedForm = ClientReferenceForm.form().bind(params)
+      validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
+      validatedForm
+        .error(clientReference)
+        .get
+        .message shouldBe "error.client-reference.invalid"
+    }
+
     "have errors when it does not match regex" in {
       val params = Map(clientReference -> "   <invalid>")
       val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(clientReference)
         .get

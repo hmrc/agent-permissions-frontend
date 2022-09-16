@@ -107,7 +107,7 @@ group.create.name.label=Beth hoffech alw’r grŵp mynediad hwn?
 group.name.max.length=Mae’n rhaid i enw’r grŵp mynediad fod yn 32 o gymeriadau neu lai
 group.name.required=Nodwch enw ar gyfer y grŵp mynediad
 #No welsh yet
-group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = { } : ; @ ~ # , . ? [ ]
+group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
 
 group.confirm.h1=Confirm access group name
 group.confirm.name.label=A yw enw’r grŵp mynediad ar gyfer ‘{0}’ yn gywir?
@@ -233,7 +233,7 @@ update-client-reference.text=Sylwer – nid yw ychwanegu cyfeirnod cleient yn y 
 error.client-reference.required=Nodwch y cyfeirnod cleient
 error.client-reference.max-length=Mae’n rhaid i’r cyfeirnod cleient fod yn 80 o gymeriadau neu lai
 #No welsh
-error.client-reference.invalid=Client reference must only include letters a to z, numbers and these characters: ! % * ^ ( ) _ + - = { } : ; @ ~ # , . ? [ ]
+error.client-reference.invalid=Client reference must only include letters a to z, numbers and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
 
 client-reference.updated.title=Cyfeirnod cleient wedi’i ddiweddaru
 client-reference.updated.panel=Cyfeirnod cleient wedi’i ddiweddaru i {0}

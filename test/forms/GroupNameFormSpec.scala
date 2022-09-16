@@ -31,14 +31,15 @@ class GroupNameFormSpec
   "CreateGroupFrom binding" should {
 
     "be successful when non-empty" in {
-      val params = Map(groupNameField -> "XYZ")
-      GroupNameForm.form().bind(params).value shouldBe Some("XYZ")
+      val params = Map(groupNameField -> "XYZ V@L!D")
+      GroupNameForm.form().bind(params).value shouldBe Some("XYZ V@L!D")
     }
 
     "have errors when empty" in {
       val params = Map(groupNameField -> "   ")
       val validatedForm = GroupNameForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(groupNameField)
         .get
@@ -46,9 +47,10 @@ class GroupNameFormSpec
     }
 
     "have errors when length exceeds max allowed characters" in {
-      val params = Map(groupNameField -> RandomStringUtils.random(33))
+      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(33))
       val validatedForm = GroupNameForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(groupNameField)
         .get
@@ -59,6 +61,7 @@ class GroupNameFormSpec
       val params = Map(groupNameField -> " invalid <chars")
       val validatedForm = GroupNameForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(groupNameField)
         .get

@@ -25,6 +25,7 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.{FakeRequest, Helpers}
 import repository.SessionCacheRepository
@@ -104,7 +105,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
   s"GET /" should {
 
-    s"redirect to ${controller.showGroupName}" in {
+    s"redirect to ${routes.CreateGroupController.showGroupName.url}" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -117,7 +118,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${controller.showGroupName}" should {
+  s"GET ${routes.CreateGroupController.showGroupName.url}" should {
 
     "have correct layout and content" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -146,13 +147,13 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${controller.showGroupName}" should {
+  s"POST ${routes.CreateGroupController.showGroupName.url}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.CreateGroupController.submitGroupName.url)
           .withFormUrlEncodedBody("name" -> "My Group Name")
           .withHeaders("Authorization" -> s"Bearer $groupName")
@@ -170,7 +171,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.CreateGroupController.submitGroupName.url)
           .withFormUrlEncodedBody("name" -> "")
           .withHeaders("Authorization" -> s"Bearer $groupName")
@@ -197,9 +198,9 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.CreateGroupController.submitGroupName.url)
-          .withFormUrlEncodedBody("name" -> RandomStringUtils.random(33))
+          .withFormUrlEncodedBody("name" -> RandomStringUtils.randomAlphanumeric(33))
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -367,7 +368,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${controller.showAccessGroupNameExists}" should {
+  s"GET ${routes.CreateGroupController.showAccessGroupNameExists.url}" should {
 
     "display content" in {
 

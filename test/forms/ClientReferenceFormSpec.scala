@@ -39,6 +39,7 @@ class ClientReferenceFormSpec
       val params = Map(clientReference -> "   ")
       val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(clientReference)
         .get
@@ -46,9 +47,10 @@ class ClientReferenceFormSpec
     }
 
     "have errors when length exceeds max allowed characters" in {
-      val params = Map(clientReference -> RandomStringUtils.random(81))
+      val params = Map(clientReference -> RandomStringUtils.randomAlphanumeric(81))
       val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(clientReference)
         .get
@@ -59,6 +61,7 @@ class ClientReferenceFormSpec
       val params = Map(clientReference -> "   <invalid>")
       val validatedForm = ClientReferenceForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
       validatedForm
         .error(clientReference)
         .get

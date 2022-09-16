@@ -22,13 +22,15 @@ import play.api.data.Forms._
 
 object ConfirmCreateGroupForm {
 
+  val groupNameRegex = "^[!%*^()_+\\-={}:;@~#,.?\\[\\]/A-Za-z0-9 ]$"
+
   def form(errorMessageKey: String): Form[ConfirmGroup] = Form(
     mapping(
       "name" ->
         text
           .verifying("group.name.required", s => s.trim.nonEmpty)
           .verifying("group.name.max.length", s => s.trim.length < 32)
-          .verifying("group.name.invalid", s => !(s.contains('<') || s.contains('>'))),
+          .verifying("group.name.invalid", _.matches(groupNameRegex)),
       "answer" -> optional(boolean)
         .verifying(errorMessageKey, _.isDefined)
 //        .transform(_.get, (b: Boolean) => Option(b))

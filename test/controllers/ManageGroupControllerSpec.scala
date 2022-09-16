@@ -263,7 +263,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showRenameGroup(groupId)}" should {
+  s"GET ${routes.ManageGroupController.showRenameGroup(groupId).url}" should {
 
     "render correctly the manage groups page" in {
       //given
@@ -318,9 +318,9 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupController.submitFilterByGroupName}" should {
+  s"POST ${routes.ManageGroupController.submitFilterByGroupName.url}" should {
 
-    s"redirect to ${routes.ManageGroupController.showManageGroups} when search term submitted" in {
+    s"redirect to ${routes.ManageGroupController.showManageGroups.url} when search term submitted" in {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -356,7 +356,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     }
 
-    s"redirect to ${routes.ManageGroupController.showManageGroups} when clear button submitted" in {
+    s"redirect to ${routes.ManageGroupController.showManageGroups.url} when clear button submitted" in {
 
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -429,7 +429,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupController.submitRenameGroup(groupId)}" should {
+  s"POST ${routes.ManageGroupController.submitRenameGroup(groupId).url}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
 
@@ -512,7 +512,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showGroupRenamed(groupId)}" should {
+  s"GET ${routes.ManageGroupController.showGroupRenamed(groupId).url}" should {
 
     "render correctly the manage groups page" in {
       //given
@@ -548,7 +548,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showDeleteGroup(groupId)}" should {
+  s"GET ${routes.ManageGroupController.showDeleteGroup(groupId).url}" should {
 
     "render correctly the DELETE group page" in {
       //given

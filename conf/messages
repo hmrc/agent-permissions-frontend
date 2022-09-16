@@ -101,7 +101,7 @@ group.create.h1=Create an access group
 group.create.name.label=What do you want to call this access group?
 group.name.max.length=Access group name must be 32 characters or fewer
 group.name.required=Enter an access group name
-group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = { } : ; @ ~ # , . ? [ ]
+group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
 
 group.confirm.h1=Confirm group name
 group.confirm.name.label=Is the access group name ‘{0}’ correct?
@@ -219,7 +219,7 @@ update-client-reference.caption=Tax reference: {0}
 update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
 error.client-reference.required=Enter client reference
 error.client-reference.max-length=Client reference must be 80 characters or fewer
-error.client-reference.invalid=Client reference must only include letters a to z, numbers and these characters: ! % * ^ ( ) _ + - = { } : ; @ ~ # , . ? [ ]
+error.client-reference.invalid=Client reference must only include letters a to z, numbers and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
 
 client-reference.updated.title=Client reference updated
 client-reference.updated.panel=Client reference updated to {0}

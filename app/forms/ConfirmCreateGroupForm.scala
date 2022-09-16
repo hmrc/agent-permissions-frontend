@@ -22,7 +22,7 @@ import play.api.data.Forms._
 
 object ConfirmCreateGroupForm {
 
-  val groupNameRegex = "^[!%*^()_+\\-={}:;@~#,.?\\[\\]/A-Za-z0-9 ]$"
+  val groupNameRegex = "^[!%*^()_+\\\\\\-={}:;@~#,.?\\[\\]\\\\/A-Za-z0-9 ]{0,}$"
 
   def form(errorMessageKey: String): Form[ConfirmGroup] = Form(
     mapping(

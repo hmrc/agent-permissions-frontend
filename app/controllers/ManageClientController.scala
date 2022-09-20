@@ -59,7 +59,7 @@ class ManageClientController @Inject()(
   def showAllClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.getClients(arn).flatMap { maybeClients =>
+        clientService.getAllClients(arn).flatMap { maybeClients =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold(
             //no filter/clear was applied

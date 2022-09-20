@@ -33,6 +33,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[ClientServiceImpl])
 trait ClientService {
 
+  def getAllClients(arn: Arn)
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
+
   def getClients(arn: Arn)
                 (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
 
@@ -63,6 +66,27 @@ class ClientServiceImpl @Inject()(
                                    val sessionCacheRepository: SessionCacheRepository
                                  ) extends ClientService with GroupMemberOps {
 
+  // returns the es3 list sorted by name, selecting previously selected clients
+  def getAllClients(arn: Arn)
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
+    for {
+      es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
+      maybeSelectedClients <- sessionCacheRepository
+        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
+      es3WithoutPreSelected = es3AsDisplayClients.map(
+        _.filterNot(
+          dc =>
+            maybeSelectedClients.fold(false)(
+              _.map(_.hmrcRef).contains(dc.hmrcRef)))
+      )
+      mergedWithPreselected = es3WithoutPreSelected.map(
+        _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
+      sorted = mergedWithPreselected.map(_.sortBy(_.name))
+    } yield sorted
+
+  }
+
+  // returns clients from es3 OR a filtered list, selecting previously selected clients
   def getClients(arn: Arn)
                 (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     val fromEs3 = for {

@@ -219,7 +219,7 @@ update-client-reference.caption=Tax reference: {0}
 update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
 error.client-reference.required=Enter client reference
 error.client-reference.max-length=Client reference must be 80 characters or fewer
-error.client-reference.invalid=Client reference must only include letters a to z, numbers and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
+error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
 
 client-reference.updated.title=Client reference updated
 client-reference.updated.panel=Client reference updated to {0}

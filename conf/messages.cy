@@ -233,7 +233,7 @@ update-client-reference.text=Sylwer – nid yw ychwanegu cyfeirnod cleient yn y 
 error.client-reference.required=Nodwch y cyfeirnod cleient
 error.client-reference.max-length=Mae’n rhaid i’r cyfeirnod cleient fod yn 80 o gymeriadau neu lai
 #No welsh
-error.client-reference.invalid=Client reference must only include letters a to z, numbers and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
+error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
 
 client-reference.updated.title=Cyfeirnod cleient wedi’i ddiweddaru
 client-reference.updated.panel=Cyfeirnod cleient wedi’i ddiweddaru i {0}

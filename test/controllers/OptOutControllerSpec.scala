@@ -21,6 +21,7 @@ import connectors.AgentPermissionsConnector
 import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
 import play.api.Application
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
@@ -34,7 +35,7 @@ class OptOutControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
@@ -50,14 +51,14 @@ class OptOutControllerSpec extends BaseSpec {
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val controller = fakeApplication.injector.instanceOf[OptOutController]
+  val controller: OptOutController = fakeApplication.injector.instanceOf[OptOutController]
 
   s"GET ${routes.OptOutController.start}" should {
 
     "display content for start" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
 
@@ -95,7 +96,7 @@ class OptOutControllerSpec extends BaseSpec {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
 
@@ -129,10 +130,10 @@ class OptOutControllerSpec extends BaseSpec {
     s"redirect to ${routes.OptOutController.showYouHaveOptedOut} page with answer 'true'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedOutEligible)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -149,9 +150,9 @@ class OptOutControllerSpec extends BaseSpec {
     "redirect to 'manage dashboard' page when user decides not to opt out" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -168,8 +169,8 @@ class OptOutControllerSpec extends BaseSpec {
     "render correct error messages when form not filled in" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      implicit val request =
+      expectIsArnAllowed(allowed = true)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut}")
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -198,7 +199,7 @@ class OptOutControllerSpec extends BaseSpec {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedOutEligible))
 
       val result = controller.showYouHaveOptedOut()(request)

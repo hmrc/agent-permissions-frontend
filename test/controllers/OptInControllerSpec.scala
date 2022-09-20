@@ -21,10 +21,11 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
 import play.api.Application
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptinStatus, OptedOutSingleUser}
+import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInNotReady, OptedInReady, OptedOutEligible, OptedOutSingleUser, OptinStatus}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
@@ -182,7 +183,7 @@ class OptInControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -203,7 +204,7 @@ class OptInControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -222,7 +223,7 @@ class OptInControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -252,7 +253,7 @@ class OptInControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       stubPostOptInError(arn)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")

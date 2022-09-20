@@ -57,7 +57,7 @@ class GroupNameFormSpec
         .message shouldBe "group.name.max.length"
     }
 
-    "have errors when invalid characters" in {
+    "have errors when invalid characters < present" in {
       val params = Map(groupNameField -> " invalid <chars")
       val validatedForm = GroupNameForm.form().bind(params)
       validatedForm.hasErrors shouldBe true
@@ -67,6 +67,18 @@ class GroupNameFormSpec
         .get
         .message shouldBe "group.name.invalid"
     }
+
+    "have errors when invalid character \\ present" in {
+      val params = Map(groupNameField -> " invalid \\chars")
+      val validatedForm = GroupNameForm.form().bind(params)
+      validatedForm.hasErrors shouldBe true
+      validatedForm.errors.length shouldBe 1
+      validatedForm
+        .error(groupNameField)
+        .get
+        .message shouldBe "group.name.invalid"
+    }
+
   }
 
 }

@@ -105,7 +105,5 @@ class ClientServiceSpec extends BaseSpec {
   }
 
   // TODO implement tests for addClient/addTeamMember, refactor processFormData?
-  "filterClients" should {}
-
 
 }

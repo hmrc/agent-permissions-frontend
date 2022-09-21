@@ -110,7 +110,6 @@ class UnassignedClientController @Inject()(
                   } yield result
                 },
                 formData => {
-                  // TODO update the filter here, currently filters from a list of ALL clients rather than just unassigned clients
                   clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getUnassignedClients).map(_ =>
                     if(buttonSelection == ButtonSelect.Continue)
                       Redirect(controller.showSelectedUnassignedClients)

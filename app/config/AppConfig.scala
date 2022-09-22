@@ -52,8 +52,7 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
     servicesConfig.getString("microservice.services.contact-frontend.external-url")
   lazy val contactFrontendServiceId: String =
     servicesConfig.getString("microservice.services.contact-frontend.serviceId")
-  lazy val betaFeedbackUrl: String =
-    s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
+  lazy val betaFeedbackUrl: String = s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
   lazy val basGatewayUrl: String =
     servicesConfig.getString("microservice.services.bas-gateway.external-url")
   lazy val loginContinueUrl: String =

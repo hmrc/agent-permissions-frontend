@@ -73,6 +73,12 @@ class OptInControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Turn on access groups - Agent services account - GOV.UK"
+
+      val phaseBanner = html.select("div.govuk-phase-banner")
+      phaseBanner.isEmpty() shouldBe false
+      phaseBanner.select("a").text shouldBe "feedback"
+      phaseBanner.select("a").attr("href") shouldBe "http://localhost:9250/contact/beta-feedback?service=AOSS"
+
       html.select(Css.H1).text() shouldBe "Turn on access groups"
       html
         .select(Css.insetText)

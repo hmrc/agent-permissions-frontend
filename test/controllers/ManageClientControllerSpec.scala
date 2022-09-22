@@ -317,7 +317,6 @@ class ManageClientControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
 
     }
 

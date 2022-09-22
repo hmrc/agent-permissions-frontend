@@ -46,15 +46,15 @@ team-members.not-found.heading=Ni chanfuwyd unrhyw aelodau tîm
 
 error.select-clients.empty=Mae’n rhaid i chi ddewis o leiaf un cleient
 error.search-filter.empty=Mae’n rhaid i chi nodi cyfeirnod treth, cyfeirnod cleient neu ddewis gwasanaeth treth i roi hidlyddion ar waith
-#No welsh yet
-error.search-filter.invalid=Tax reference or client reference must not include the characters < or >
+
+error.search-filter.invalid=Mae’n rhaid i’r cyfeirnod treth neu gyfeirnod y cleient beidio â chynnwys y cymeriadau < neu >
 
 error.select-members.empty=Mae’n rhaid i chi ddewis o leiaf un aelod tîm
 error.search-members.empty=Mae’n rhaid i chi nodi enw neu e-bost i roi hidlyddion ar waith
-#No welsh yet
-error.search-members.invalid=Name or email must not include the characters < or >
 
-error.search.invalid=Filter term must not include the characters < or >
+error.search-members.invalid=Mae’n rhaid i’r enw neu’r e-bost beidio â chynnwys y cymeriadau < neu >
+
+error.search.invalid=Mae’n rhaid i’r term hidlo beidio â chynnwys y cymeriadau < neu >
 
 tax-service.mdt-it=Troi Treth yn Ddigidol ar gyfer Treth Incwm
 tax-service.vat=TAW
@@ -64,8 +64,8 @@ tax-service.trusts=Cynnal Ymddiriedolaeth neu Ystâd
 
 group.not.found.error.h1=Heb ddod o hyd i grŵp mynediad
 group.not.found.error.p=Gwiriwch yr URL neu ewch yn ôl i’r dudalen Rheoli grwpiau
-#No welsh yet
-group.not.found.error.a=Back to manage groups page
+
+group.not.found.error.a=Yn ôl i’r dudalen rheoli grwpiau
 
 opt-in-info.h1=Galluogi grwpiau mynediad
 opt-in-info.inset=Yn ddiofyn, mae cyfrifon gwasanaethau asiant yn caniatáu i bob aelod o’r tîm weld a rheoli materion treth pob cleient gan ddefnyddio manylion mewngofnodi a rennir.
@@ -106,35 +106,34 @@ group.create.h1=Creu grŵp mynediad
 group.create.name.label=Beth hoffech alw’r grŵp mynediad hwn?
 group.name.max.length=Mae’n rhaid i enw’r grŵp mynediad fod yn 32 o gymeriadau neu lai
 group.name.required=Nodwch enw ar gyfer y grŵp mynediad
-#No welsh yet
-group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
 
-group.confirm.h1=Confirm access group name
-group.confirm.name.label=A yw enw’r grŵp mynediad ar gyfer ‘{0}’ yn gywir?
-#Above may need updating
+group.name.invalid=Mae’n rhaid i enw’r grŵp mynediad gynnwys y llythrennau a i z, rhifau, bylchau a’r cymeriadau hyn yn unig: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
+
+group.confirm.h1=Cadarnhau enw’r grŵp
+group.confirm.name.label=Ydy enw’r grŵp mynediad ‘{0}’ yn gywir?
+
 group.name.confirm.required.error=Dewiswch ‘Iawn’ os yw enw’r grŵp mynediad yn gywir
 
 group.client.list.h1=Dewiswch gleientiaid
 group.client.list.p1=Dewiswch gleientiaid ar gyfer y grŵp mynediad hwn drwy dicio’r blychau. Gallwch dicio’r blwch yn rhes y pennyn i ddewis pob un. Gallwch hefyd hidlo yn ôl y cyfeirnod treth, y cyfeirnod cleient neu’r gwasanaeth treth.
 client-filter.text.label=Hidlo yn ôl y cyfeirnod treth neu’r cyfeirnod cleient
 client-filter.select.label=Hidlo yn ôl y gwasanaeth treth
-#No welsh yet
-client-filter.select.label.empty-option=Choose tax service
 
-group.client.list.table.checkbox=Checkboxes
+client-filter.select.label.empty-option=Dewis gwasanaeth treth
+
+group.client.list.table.checkbox=Blychau dewis
 group.client.list.table.th1=Cyfeirnod cleient
 group.client.list.table.th2=Cyfeirnod treth
 group.client.list.table.th3=Gwasanaeth treth
 error.client.list.empty=Mae’n rhaid i chi ddewis o leiaf un cleient
 
 group.clients.review.h1=Rydych wedi dewis {0} o gleientiaid
-#No welsh yet
-group.clients.review.title=Review selected clients
+group.clients.review.title=Adolygu’r cleientiaid sydd wedi’u dewis
 group.clients.review.radio.legend=A oes angen i chi ychwanegu neu dynnu’r cleientiaid sydd wedi’u dewis?
 group.clients.review.yes.label=Iawn, ychwanegu neu dynnu cleientiaid
 group.clients.review.no.label=Na, ymlaen i’r adran nesaf
-#No welsh yet
-group.clients.review.error=Select yes if you need to add or remove selected clients
+
+group.clients.review.error=Dewiswch iawn os oes angen i chi ychwanegu neu ddileu cleientiaid sydd wedi’u dewis
 
 group.select.members.list.h1=Dewiswch aelodau tîm
 group.update.members.list.h1=Diweddaru aelodau tîm yn y grŵp hwn
@@ -148,13 +147,13 @@ error.members.list.empty=Mae’n rhaid i chi ddewis o leiaf un aelod tîm
 
 group.teamMembers.review.h1=Rydych wedi dewis {0} aelod tîm
 group.selected.teamMembers.change=Diweddaru aelodau tîm
-#No welsh
-group.teamMembers.review.title=Review selected team members
+
+group.teamMembers.review.title=Adolygu aelodau’r tîm sydd wedi’u dewis
 group.teamMembers.review.radio.legend=A oes angen i chi ychwanegu neu dynnu’r aelodau tîm sydd wedi’u dewis?
 group.teamMembers.review.yes.label=Iawn, ychwanegu neu ddileu aelodau tîm
 group.teamMembers.review.no.label=Na, ymlaen i’r adran nesaf
-#No welsh
-group.teamMembers.review.error=Select yes if you need to add or remove selected team members
+
+group.teamMembers.review.error=Dewiswch iawn os oes angen i chi ychwanegu neu ddileu aelodau’r tîm sydd wedi’u dewis
 
 cya.h1=Gwiriwch eich dewis
 cya.p=Cadarnhau cleientiaid ac aelodau tîm a ddewiswyd ar gyfer y grŵp mynediad hwn
@@ -197,11 +196,11 @@ access-group-name-exists.title=Mae enw’r grŵp mynediad eisoes yn bodoli
 access-group-name-exists.p=Mae eisoes gennych grŵp mynediad o’r enw {0}. Nodwch enw newydd ar gyfer y grŵp mynediad.
 access-group-name-exists.button=Nodwch enw newydd ar gyfer y grŵp mynediad
 
-#No welsh?
-group.manage.confirm.updated.clients.h1={0} access group clients updated
+
+group.manage.confirm.updated.clients.h1=Mae {0} cleient grŵp mynediad wedi’u diweddaru
 group.manage.confirm.updated.clients.p=Rydych wedi newid y cleientiaid y gall aelodau tîm yn y grŵp mynediad hwn eu rheoli.
-#No welsh?
-group.manage.confirm.updated.team-members.h1={0} access group team members updated
+
+group.manage.confirm.updated.team-members.h1=Mae {0} aelod o dîm y grŵp mynediad wedi’u diweddaru
 group.manage.confirm.updated.team-members.p=Gall yr aelodau tîm a ddewiswyd gennych weld a rheoli materion treth yr holl gleientiaid yn y grŵp mynediad hwn.
 
 unassigned.client.list.p=Mae’r cleientiaid hyn yn weladwy i bob aelod tîm.
@@ -216,7 +215,7 @@ clients.assigned.complete.p=Rydych wedi ychwanegu’r cleientiaid hyn at y grwpi
 details.no-data=Nid oeddem yn gallu adalw hyn
 details.clients=Manylion cleient
 details.team-members=Manylion aelodau tîm
-details.link-hidden= for {0}
+details.link-hidden= ar gyfer {0}
 
 role.standard=Safonol
 role.admin=Gweinyddwr
@@ -232,8 +231,8 @@ update-client-reference.caption=Cyfeirnod treth: {0}
 update-client-reference.text=Sylwer – nid yw ychwanegu cyfeirnod cleient yn y fan hon yn diweddaru manylion y cleient yng nghyfrif Porth y Llywodraeth. Mae’n effeithio ar y cyfeirnod cleient yn eich grwpiau mynediad yn unig.
 error.client-reference.required=Nodwch y cyfeirnod cleient
 error.client-reference.max-length=Mae’n rhaid i’r cyfeirnod cleient fod yn 80 o gymeriadau neu lai
-#No welsh
-error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ]
+
+error.client-reference.invalid=Mae’n rhaid i gyfeirnod y cleient gynnwys y llythrennau a i z, rhifau, bylchau a’r cymeriadau hyn yn unig: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 
 client-reference.updated.title=Cyfeirnod cleient wedi’i ddiweddaru
 client-reference.updated.panel=Cyfeirnod cleient wedi’i ddiweddaru i {0}
@@ -241,40 +240,39 @@ client-reference.updated.p=Rydych wedi diweddaru’r cyfeirnod cleient hwn yn ei
 
 error.group.filter.max.length=Gallwch ond nodi 32 o gymeriadau neu lai
 error.group.filter.required=Mae’n rhaid i chi nodi enw grŵp neu ran ohono
-#No welsh
-error.group.filter.invalid=Group name must not include the characters < or >
+
+error.group.filter.invalid=Mae’n rhaid i enw’r grŵp beidio â chynnwys y cymeriadau < neu >
 group-name-filter.text.label=Hidlo yn ôl enw’r grŵp
 
 client.select.groups.h1=At ba grwpiau mynediad yr ydych am ychwanegu {0}?
 client.select.groups.p1=Mae’r cleient yn aelod o’r grwpiau mynediad hyn ar hyn o bryd:
-#No welsh below - check content
-error.client.select.groups.empty=You must select at least one group
-client.select.groups.none.h1=There are no available groups to add {0} to
-client.select.back=Back to {0}
 
-client.not.found.error.h1=Client not found
-client.not.found.error.p=Please check the url or return to the Manage groups page
-client.manage-clients.back=Back to manage clients page
+error.client.select.groups.empty=Mae’n rhaid i chi ddewis o leiaf un grŵp
+client.select.groups.none.h1=Does dim grwpiau ar gael i ychwanegu {0} atynt
+client.select.back=Yn ôl i {0}
 
-client.added.to.groups.title=Client {0} added to access groups {1}
-#No welsh above - check content
+client.not.found.error.h1=Heb ganfod y cleient
+client.not.found.error.p=Gwiriwch yr URL neu ewch yn ôl i’r dudalen Rheoli grwpiau
+client.manage-clients.back=Yn ôl i’r dudalen rheoli cleientiaid
+
+client.added.to.groups.title=Cleient {0} wedi’i ychwanegu at grwpiau mynediad {1}
 client.added.to.groups.h1=Cleient wedi’i ychwanegu at grwpiau mynediad
 client.added.to.groups.p1=Rydych wedi ychwanegu {0} at y grwpiau canlynol:
 client.added.to.groups.p2=Gall yr aelodau tîm yn y grwpiau mynediad hyn bellach weld a rheoli materion treth y cleient yr ydych wedi’i ychwanegu.
 
 member.select.groups.h1=At ba grwpiau mynediad yr ydych am ychwanegu {0}?
 member.select.groups.p1=Aelod tîm yn aelod o’r grwpiau mynediad hyn ar hyn o bryd:
-#No welsh below
-member.select.groups.none.h1=There are no available groups to add {0} to
-member.select.back=Back to {0}
-error.member.select.groups.empty=You must select at least one group
 
-member.not.found.error.h1=Team member not found
-member.not.found.error.p=Please check the url or return to the Manage team members page
-member.manage-team-members.back=Back to manage team members page
+member.select.groups.none.h1=Does dim grwpiau ar gael i ychwanegu {0} atynt
+member.select.back=Yn ôl i {0}
+error.member.select.groups.empty=Mae’n rhaid i chi ddewis o leiaf un grŵp
 
-member.added.to.groups.title=Team member {0} added to access groups {1}
-#No welsh above
+member.not.found.error.h1=Heb ganfod aelod y tîm
+member.not.found.error.p=Gwiriwch yr URL neu ewch yn ôl i’r dudalen Rheoli aelodau’r tîm
+member.manage-team-members.back=Yn ôl i’r dudalen rheoli aelodau’r tîm
+
+member.added.to.groups.title=Aelod y tîm {0} wedi’i ychwanegu at grwpiau mynediad {1}
+
 member.added.to.groups.h1=Aelod tîm wedi’i ychwanegu at grwpiau mynediad
 member.added.to.groups.p1=Rydych wedi ychwanegu {0} at y grwpiau canlynol:
 member.added.to.groups.p2=Erbyn hyn, gall {0} weld a rheoli materion treth y cleientiaid yn y grwpiau mynediad hyn.

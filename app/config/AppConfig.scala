@@ -17,6 +17,7 @@
 package config
 
 import com.google.inject.ImplementedBy
+import play.api.{Environment, Mode}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
@@ -40,11 +41,13 @@ trait AppConfig {
   def sessionCacheExpiryDuration: Duration
   def userTimeoutCountdown: Int
   def userTimeout: Int
+  def isTest: Boolean
 }
 
 @Singleton
-class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig)
+class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: Environment)
     extends AppConfig {
+  def isTest = environment.mode == Mode.Test
   lazy val appName: String = servicesConfig.getString("appName")
   lazy val welshLanguageSupportEnabled: Boolean =
     servicesConfig.getBoolean("features.welsh-language-support")

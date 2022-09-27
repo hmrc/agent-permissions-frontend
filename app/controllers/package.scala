@@ -16,6 +16,7 @@
 
 import connectors.GroupSummary
 import models.{DisplayClient, TeamMember}
+import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -25,6 +26,13 @@ package object controllers {
 
   implicit class ToFuture[T](t: T) {
     def toFuture: Future[T] = Future successful t
+  }
+
+  implicit class EnvironmentOps(private val env: Environment) extends AnyVal {
+
+    def isLocal(implicit config: Configuration): Boolean = {
+      env.mode == Mode.Test
+    }
   }
 
   val isEligibleToOptIn: OptinStatus => Boolean = status =>

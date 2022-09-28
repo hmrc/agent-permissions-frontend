@@ -68,7 +68,41 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
                     }
                   }
                 case _ =>
-                  logger.warn("Invalid credential role")
+                  logger.warn(s"Invalid credential role $credRole")
+                  Future.successful(Forbidden)
+              }
+            case None =>
+              logger.warn(s"No $agentReferenceNumberIdentifier in enrolment")
+              Future.successful(Forbidden)
+          }
+      }
+      .recover(handleFailure)
+  }
+
+  def isAuthorisedAssistant(body: Arn => Future[Result])(
+    implicit ec: ExecutionContext,
+    request: RequestHeader,
+    appConfig: AppConfig): Future[Result] = {
+
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+
+    authorised(AuthProviders(GovernmentGateway) and Enrolment(agentEnrolment))
+      .retrieve(allEnrolments and credentialRole) {
+        case enrols ~ credRole =>
+          getArn(enrols) match {
+            case Some(arn) =>
+              credRole match {
+                case Some(Assistant) =>
+                  agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
+                    if (isArnAllowed) {
+                      body(arn)
+                    } else {
+                      logger.warn("ARN is not on allowed list")
+                      Future.successful(Forbidden)
+                    }
+                  }
+                case _ =>
+                  logger.warn(s"Invalid credential role $credRole - assistant only")
                   Future.successful(Forbidden)
               }
             case None =>

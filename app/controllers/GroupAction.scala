@@ -57,6 +57,21 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
     }
   }
 
+  def withGroupForAuthorisedOptedAssistant(groupId: String)
+                                      (body: AccessGroup => Future[Result])
+                                      (implicit ec: ExecutionContext,
+                                       hc: HeaderCarrier,
+                                       request: MessagesRequest[AnyContent],
+                                       appConfig: AppConfig)
+  : Future[Result] = {
+    authAction.isAuthorisedAssistant { arn =>
+      isOptedIn(arn) { _ =>
+        agentPermissionsConnector.getGroup(groupId).flatMap(
+          _.fold(groupNotFound)(body(_)))
+      }
+    }
+  }
+
   def groupNotFound(implicit request: MessagesRequest[AnyContent], ec: ExecutionContext, appConfig: AppConfig): Future[Result] = {
     NotFound(group_not_found()).toFuture
   }

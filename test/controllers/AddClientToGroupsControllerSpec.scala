@@ -118,6 +118,53 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
+    "render correctly when client not in any groups yet" in {
+      //given
+      val groupSummaries = (1 to 5)
+        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+      val summaries = (groupSummaries, Seq.empty)
+      val groupsAlreadyAssociatedToClient = Seq.empty
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      (mockClientService
+        .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, client.id, *, *)
+        .returning(Future successful Some(client))
+
+      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
+        .expects(arn, *, *, *)
+        .returning(Future.successful(summaries))
+
+      (mockGroupService
+        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
+        .expects(arn, client, *, *, *)
+        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+
+      //when
+      val result = controller.showSelectGroupsForClient(client.id)(request)
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently not in any access groups"
+      html.select(Css.li("already-in-groups")).isEmpty shouldBe true
+      val form = html.select(Css.form)
+      form.attr("action").shouldBe(submitUrl)
+      val checkboxes = form.select(".govuk-checkboxes#groups input[name=groups[]]")
+      checkboxes size() shouldBe 5
+      val checkboxLabels = form.select("label.govuk-checkboxes__label")
+      checkboxLabels.get(0).text() shouldBe "Group 1"
+      checkboxLabels.get(1).text() shouldBe "Group 2"
+      checkboxLabels.get(2).text() shouldBe "Group 3"
+      html.select(Css.linkStyledAsButton).text() shouldBe "Cancel"
+      html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
+      html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+    }
+
     "render correctly when no available groups" in {
       //given
       val groupSummaries = (1 to 2)

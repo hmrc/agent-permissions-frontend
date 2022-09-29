@@ -21,12 +21,12 @@
 @import views.html.main_layout
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1, h3: h3, a: a, ul: ul,
-        formWithCSRF: FormWithCSRF,
-        caption: caption, table: table,
-        submit_button: submit_button, a_button: link_as_button,
-        checkboxes: checkboxes,
+    layout: main_layout,
+    p: p, h1: h1, h3: h3, a: a, ul: ul,
+    formWithCSRF: FormWithCSRF,
+    caption: caption, table: table,
+    submit_button: submit_button, a_button: link_as_button,
+    checkboxes: checkboxes,
 )
 
 @(
@@ -37,58 +37,57 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @h1Text = @{msgs(if(availableGroups.isEmpty) "client.select.groups.none.h1" else "client.select.groups.h1", client.name)}
+@backLink = @{Some(routes.ManageClientController.showClientDetails(client.id).url)}
 
-    @layout(
-        title = h1Text,
-        backLinkHref = Some(routes.ManageClientController.showClientDetails(client.id).url),
-        fullWidth = true,
-        formErrors = form.errors
-    ) {
+@layout(title = h1Text, fullWidth = true, formErrors = form.errors, backLinkHref = backLink) {
 
-        <div class="govuk-!-width-two-thirds">
-            @h1(h1Text)
-        </div>
+    <div class="govuk-!-width-two-thirds">
+    @h1(h1Text)
+    </div>
 
+    @if(groupsForClient.isEmpty) {
+        @p("client.select.groups.none")
+    } else {
         @p("client.select.groups.p1")
-
         @ul(
             items = groupsForClient.map(_.groupName),
             id = Some("already-in-groups")
         )
-
-        @if(!availableGroups.isEmpty) {
-
-            @formWithCSRF(action = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id)) {
-
-                @checkboxes(
-                    id = Some("groups"),
-                    hint = Some("Select all that apply"),
-                    field = form("groups"),
-                    name = "groups[]",
-                    items = availableGroups.map { g =>
-                        CheckboxData(
-                            id = g.groupId,
-                            label = g.groupName,
-                            value = g.groupId
-                        )
-                    }
-                )
-
-                @a_button(
-                    routes.ManageClientController.showClientDetails(client.id).url,
-                    key = "common.cancel",
-                    classes = Some("govuk-button--secondary govuk-!-margin-right-3")
-                )
-                @submit_button(messageKey = "save.and.continue.button")
-            }
-        } else{
-            <div class="govuk-!-margin-top-8">
-                @a(
-                    href = routes.ManageClientController.showClientDetails(client.id).url,
-                    id = Some("back-to-client-details"),
-                    key = msgs("client.select.back", client.name)
-                )
-            </div>
-        }
     }
+
+    @if(!availableGroups.isEmpty) {
+
+        @formWithCSRF(action = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id)) {
+
+            @checkboxes(
+                id = Some("groups"),
+                hint = Some("Select all that apply"),
+                field = form("groups"),
+                name = "groups[]",
+                items = availableGroups.map { g =>
+                    CheckboxData(
+                        id = g.groupId,
+                        label = g.groupName,
+                        value = g.groupId
+                    )
+                }
+            )
+
+            @a_button(
+                routes.ManageClientController.showClientDetails(client.id).url,
+                key = "common.cancel",
+                classes = Some("govuk-button--secondary govuk-!-margin-right-3")
+            )
+            @submit_button(messageKey = "save.and.continue.button")
+        }
+    } else {
+        <div class="govuk-!-margin-top-8">
+        @a(
+            href = routes.ManageClientController.showClientDetails(client.id).url,
+            id = Some("back-to-client-details"),
+            key = msgs("client.select.back", client.name)
+        )
+        </div>
+    }
+}
 

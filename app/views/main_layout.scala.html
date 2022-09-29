@@ -41,8 +41,13 @@
     fullWidth: Boolean = false,
 )(mainContent: Html)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@gtmUrl = @{"https://www.googletagmanager.com/ns.html?id=GTM-P39VTVL"}
+@gtmNoScript = {
+    <noscript><iframe src="@gtmUrl" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+}
 
 @mainContentWithTechIssueHelper = {
+    @if(!appConfig.isTest) { @gtmNoScript }
     <div class="govuk-grid-row">
         <div class="@if(fullWidth) {govuk-grid-column-full-width} else {govuk-grid-column-two-thirds}">
             @summaryErrors(formErrors, customError)
@@ -65,11 +70,6 @@
 <script @{CSPNonce.attr} src='@controllers.routes.Assets.versioned("javascripts/agent-permissions.js")'> </script>
 }
 
-@gtmUrl = @{"https://www.googletagmanager.com/ns.html?id=GTM-P39VTVL"}
-@gtmNoScript = {
-<noscript><iframe src="@gtmUrl" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-}
-
 @hmrcLayout(
     pageTitle = pageTitle,
     serviceName = Some(msgs("service.name")),
@@ -81,6 +81,5 @@
     nonce = CSPNonce.get,
     mainContentLayout = None,
     additionalHeadBlock = Some(head(hasTimeout)),
-    additionalScriptsBlock = Some(scripts),
-    beforeContentBlock = if(appConfig.isTest) None else Some(gtmNoScript)
+    additionalScriptsBlock = Some(scripts)
 )(mainContentWithTechIssueHelper)

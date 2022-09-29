@@ -22,6 +22,7 @@
 @this(
         p: p, h1: h1, h2: h2, span: span, a: a,
         caption: caption,
+        govukSkipLink: GovukSkipLink,
         table: table,
         submit_button_group: submit_button_group,
         textbox: textbox,
@@ -52,6 +53,11 @@
     ))
 }
 
+@govukSkipLink(SkipLink(
+href = "#members",
+content = Text(msgs("common.skip-to-team-members"))
+))
+
 @views.html.helper.form(action = formAction) {
 
     <div class="govuk-grid-row">
@@ -77,7 +83,7 @@
     </div>
 
     @if(teamMembers.getOrElse(Seq.empty).nonEmpty) {
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
+        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
 
         @table(
             id = Some("sortable-table"),
@@ -108,7 +114,7 @@
             id = Some("team-members-in-group")
         )
     } else {
-        <div id="no-results">
+        <div id="members">
             @h2("team-members.not-found.heading")
             @p("team-members.not-found.p")
         </div>

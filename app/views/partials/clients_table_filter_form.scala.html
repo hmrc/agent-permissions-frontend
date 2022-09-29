@@ -21,6 +21,7 @@
 @this(
         p: p, h1: h1, h2: h2, span: span, a: a,
         caption: caption,
+        govukSkipLink: GovukSkipLink,
         table: table,
         submit_button_group: submit_button_group,
         textbox: textbox,
@@ -43,6 +44,11 @@
     )
     )
 }
+
+@govukSkipLink(SkipLink(
+href = "#clients",
+content = Text(msgs("common.skip-to-clients"))
+))
 
 @views.html.helper.form(action = formAction) {
 
@@ -116,7 +122,7 @@
         @p(msgs("common.total.clients", clients.get.length),
         id = Some("clients-in-group"))
     } else {
-        <div id="no-results">
+        <div id="clients">
             @h2("clients.not-found.heading")
             @p("clients.not-found.p")
         </div>

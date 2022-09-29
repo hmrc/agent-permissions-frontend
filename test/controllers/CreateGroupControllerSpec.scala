@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest}
-import helpers.Css.H1
+import helpers.Css.{H1, paragraphs}
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
@@ -242,7 +242,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         .attr("action") shouldBe "/agent-permissions/confirm-access-group-name"
       html
         .select(Css.legend)
-        .text() shouldBe s"Is the access group name ‘${groupName}’ correct?"
+        .text() shouldBe s"Is the access group name ‘$groupName’ correct?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -579,7 +579,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       s"button is Filter and redirect to ${routes.CreateGroupController.showSelectClients.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectIsArnAllowed(allowed = true)
         stubGetClientsOk(arn)(fakeClients)
         stubGetClientsOk(arn)(fakeClients)
 
@@ -618,7 +618,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       s"button is Clear and redirect to ${routes.CreateGroupController.showSelectClients.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectIsArnAllowed(allowed = true)
         stubGetClientsOk(arn)(fakeClients)
 
         implicit val request =
@@ -1047,22 +1047,24 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 4
-      th.get(1).text() shouldBe "Name"
-      th.get(2).text() shouldBe "Email"
-      th.get(3).text() shouldBe "Role"
 
+      // No table
+      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      th.size() shouldBe 0
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       trs.size() shouldBe 0
+
+      // Not found content
+      html.select(Css.H2).text() shouldBe "No team members found"
+      html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
 
     }
 
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val result = controller.showSelectTeamMembers()(request)
@@ -1153,7 +1155,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       s"button is Clear and redirect to ${routes.CreateGroupController.showSelectTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectIsArnAllowed(allowed = true)
         stubGetTeamMembersOk(arn)(users)
 
         implicit val request =
@@ -1192,7 +1194,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       stubGetTeamMembersOk(arn)(users)
 
       implicit val request = FakeRequest(
@@ -1388,7 +1390,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
@@ -1410,7 +1412,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 

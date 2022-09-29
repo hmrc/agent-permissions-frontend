@@ -16,6 +16,9 @@ common.update=Diweddaru
 common.clients=Cleientiaid
 common.teamMembers=Aelodau tîm
 common.cancel=Canslo
+common.skip-to-results=Skip to results
+common.skip-to-clients=Skip to client list
+common.skip-to-team-members=Skip to team member list
 
 save.and.continue.button=Cadw ac yn eich blaen
 submit.button=Cyflwyno

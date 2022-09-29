@@ -17,18 +17,13 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import views.html.partials.selectable_team_members_table_form
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, span: span,
-    caption: caption,
-    table: table,
-    submit_button_group: submit_button_group,
-    textbox: textbox,
-    submit_button: submit_button,
-    checkbox: checkbox,
+    caption: caption, h1: h1, p: p,
     summaryErrors: SummaryErrors,
-    formWithCSRF: FormWithCSRF
+    selectable_team_members_table_form: selectable_team_members_table_form
 )
 
 @(
@@ -41,23 +36,6 @@
     backUrl: Option[String] = Some(routes.CreateGroupController.showReviewSelectedClients.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @tableRows = @{
-        maybeTeamMembers.fold(Seq.empty[Seq[Html]])( _.zipWithIndex.map( member =>
-            Seq(
-                Html(checkbox(
-                    name = Some("members[]"),
-                    id = Some(s"add-member-${member._2}"),
-                    value = Some(member._1.id),
-                    label = member._1.name,
-                    checked = member._1.selected).toString),
-                Html(member._1.name),
-                Html(member._1.email),
-                Html(displayTeamMemberRole(member._1.credentialRole.getOrElse("")))
-            )
-        )
-        )
-    }
-
 
 @errorHref = @{
     if(form.errors.map(error => error.message).contains("error.select-members.empty"))
@@ -66,89 +44,26 @@
 }
 
 @pageTitle = @{
-val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
-errorPrefix.concat(msgs(s"group.${msgKey}.members.list.h1", groupName))
+    val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
+    errorPrefix.concat(msgs(s"group.${msgKey}.members.list.h1", groupName))
 }
 
-    @layout(
-        title = pageTitle,
-        backLinkHref = backUrl,
-        formErrors = Seq.empty,
-        fullWidth = true,
-    ) {
+@layout(
+    title = pageTitle,
+    backLinkHref = backUrl,
+    formErrors = Seq.empty,
+    fullWidth = true,
+) {
 
-        @summaryErrors(form.errors, Some(errorHref.toString))
+    @summaryErrors(form.errors, Some(errorHref.toString))
 
-        <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName))
-            @h1(msgs(s"group.${msgKey}.members.list.h1",groupName))
-            @p(s"group.${msgKey}.members.list.p1")
-        </div>
+    <div class="govuk-!-width-two-thirds">
+        @caption(msgs("common.caption.group.name", groupName))
+        @h1(msgs(s"group.${msgKey}.members.list.h1",groupName))
+        @p(s"group.${msgKey}.members.list.p1")
+    </div>
 
-        @formWithCSRF(action = formAction) {
+    @selectable_team_members_table_form(maybeTeamMembers, hiddenTeamMembersExist, form, formAction)
 
-        <input type="hidden" name="hasAlreadySelected" value=@hiddenTeamMembersExist.getOrElse(false)>
-
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-one-third">
-                    @textbox(
-                        field = form("search"),
-                        label = "group.members.list.filter.label",
-                        labelClasses = "govuk-label--s",
-                        classes = "govuk-input--width-20",
-                        errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {Some(msgs("error.search-members.empty"))} else {None}
-                    )
-                </div>
-
-                <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
-                    @submit_button_group(additionalClasses = "govuk-!-margin-bottom-7")
-                </div>
-            </div>
-
-
-            @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-                <p id="clients-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span>
-                    @msgs("error.select-members.empty")
-                </p>
-                }
-
-            <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
-
-            @table(
-                id = Some("sortable-table"),
-                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-                headings = Seq(
-                (
-                    span(id=Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
-                    Map("id" -> "select-all")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th1")),
-                    Map("aria-sort" -> "ascending")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                )
-                ),
-                rows = tableRows,
-            )
-            </div>
-                @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
-
-            @p(key = msgs("common.total.team-members.selected",
-                maybeTeamMembers.get.count(_.selected),
-                maybeTeamMembers.get.length),
-                id = Some("member-count-text")
-            )
-
-            @submit_button()
-        }
-    }
+}
 

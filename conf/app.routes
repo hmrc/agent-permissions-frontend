@@ -106,6 +106,10 @@ GET     /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMembe
 POST    /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMemberToGroupsController.submitSelectGroupsForTeamMember(id: String)
 GET     /manage-team-members/assigned-to-groups/:id     controllers.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id: String)
 
+# Assistant / 'Standard' user views
+GET     /your-account/group-clients/:groupId     controllers.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId: String)
+GET     /your-account/other-clients              controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly
+
 GET     /you-have-been-timed-out    controllers.TimeoutController.timedOut
 GET     /keep-alive                 controllers.TimeoutController.keepAlive
 GET     /sign-out                   controllers.TimeoutController.signOut

@@ -73,6 +73,11 @@ abstract class BaseSpec
                                                     "Activated"))) and Some(
     User)
 
+  val mockedAssistantAuthResponse = Enrolments(Set(Enrolment(agentEnrolment,
+    agentEnrolmentIdentifiers,
+    "Activated"))) and Some(
+    Assistant)
+
   lazy val conf: Configuration = GuiceApplicationBuilder().configuration
   lazy val env: Environment = GuiceApplicationBuilder().environment
 

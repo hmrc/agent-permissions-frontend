@@ -36,6 +36,7 @@ trait AppConfig {
   def agentServicesAccountExternalUrl: String
   def agentServicesAccountManageAccountPath: String
   def agentServicesAccountManageAccountUrl: String
+  def agentServicesAccountYourAssistantAccountUrl: String
   def agentPermissionsBaseUrl: String
   def agentUserClientDetailsBaseUrl: String
   def sessionCacheExpiryDuration: Duration
@@ -47,7 +48,7 @@ trait AppConfig {
 @Singleton
 class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: Environment)
     extends AppConfig {
-  def isTest = environment.mode == Mode.Test
+  def isTest: Boolean = environment.mode == Mode.Test
   lazy val appName: String = servicesConfig.getString("appName")
   lazy val welshLanguageSupportEnabled: Boolean =
     servicesConfig.getBoolean("features.welsh-language-support")
@@ -64,7 +65,10 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: E
     "microservice.services.agent-services-account-frontend.external-url")
   lazy val agentServicesAccountManageAccountPath: String = servicesConfig.getString(
     "microservice.services.agent-services-account-frontend.manage-account-path")
+  lazy val agentServicesAccountYourAccountPath: String = servicesConfig.getString(
+    "microservice.services.agent-services-account-frontend.your-account-path")
   lazy val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
+  lazy val agentServicesAccountYourAssistantAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountYourAccountPath
   lazy val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
   lazy val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
   lazy val sessionCacheExpiryDuration: Duration = servicesConfig.getDuration("mongodb.cache.expiry")

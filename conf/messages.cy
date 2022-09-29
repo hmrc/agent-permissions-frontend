@@ -277,6 +277,11 @@ member.added.to.groups.h1=Aelod tîm wedi’i ychwanegu at grwpiau mynediad
 member.added.to.groups.p1=Rydych wedi ychwanegu {0} at y grwpiau canlynol:
 member.added.to.groups.p2=Erbyn hyn, gall {0} weld a rheoli materion treth y cleientiaid yn y grwpiau mynediad hyn.
 
+assistant.clients.group.h1={0} cleientiaid
+assistant.clients.group.p=Mae gennych fynediad at y cleientiaid hyn am eich bod hefyd yn rhan o’r grŵp mynediad hwn.
+assistant.clients.unassigned.h1=Gallwch gael mynediad at y cleientiaid eraill hyn
+assistant.clients.unassigned.p=Mae gennych fynediad at y cleientiaid hyn am nad ydynt yn rhan o unrhyw grŵp mynediad.
+
 signout.h1=Rydych wedi eich allgofnodi
 signout.signin.again.a=Mewngofnodwch eto
 signout.signin.again.p= i ddefnyddio’r gwasanaeth hwn.

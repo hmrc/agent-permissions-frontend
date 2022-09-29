@@ -33,6 +33,7 @@
         input_select: input_select,
         checkbox: checkbox,
         summaryErrors: SummaryErrors,
+        govukSkipLink: GovukSkipLink,
         formWithCSRF: FormWithCSRF
 )
 
@@ -68,6 +69,12 @@
     <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
 
     <div class="govuk-grid-row">
+
+        @govukSkipLink(SkipLink(
+        href = "#clients",
+        content = Text(msgs("common.skip-to-clients"))
+        ))
+
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
             }
@@ -156,8 +163,10 @@
             id = Some("member-count-text")
         )
     } else {
-        @h2("clients.not-found.heading")
-        @p("clients.not-found.p")
+        <div id="clients">
+            @h2("clients.not-found.heading")
+            @p("clients.not-found.p")
+        </div>
     }
 
     @submit_button()

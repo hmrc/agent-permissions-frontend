@@ -15,6 +15,9 @@ common.update=Update
 common.clients=Clients
 common.teamMembers=Team members
 common.cancel=Cancel
+common.skip-to-results=Skip to results
+common.skip-to-clients=Skip to client list
+common.skip-to-team-members=Skip to team member list
 
 save.and.continue.button=Save and continue
 submit.button=Submit

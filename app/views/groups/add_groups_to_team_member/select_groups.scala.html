@@ -30,7 +30,7 @@
 )
 
 @(
-    groupsForClient: Seq[GroupSummary],
+    groupsForMember: Seq[GroupSummary],
     availableGroups: Seq[GroupSummary] = Seq.empty,
     teamMember: TeamMember,
     form: Form[_]
@@ -49,12 +49,15 @@
             @h1(h1Text)
         </div>
 
+    @if(groupsForMember.isEmpty) {
+        @p("member.select.groups.none")
+    } else {
         @p("member.select.groups.p1")
-
         @ul(
-            items = groupsForClient.map(_.groupName),
+            items = groupsForMember.map(_.groupName),
             id = Some("already-in-groups")
         )
+    }
 
         @if(!availableGroups.isEmpty) {
 

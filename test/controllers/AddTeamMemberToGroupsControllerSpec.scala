@@ -39,7 +39,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentUserMemberDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
   lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -49,7 +49,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     override def configure(): Unit = {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
-      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserMemberDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[GroupService]).toInstance(mockGroupService)
       bind(classOf[TeamMemberService]).toInstance(mockTeamMemberService)
@@ -81,7 +81,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val summaries = (groupSummaries, Seq.empty)
-      val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
+      val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -99,7 +99,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       (mockGroupService
         .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
         .expects(arn, teamMember, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+        .returning(Future.successful(groupsAlreadyAssociatedToMember))
 
       //when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
@@ -124,12 +124,12 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
-    "render correctly when no available groups" in {
+    "render correctly when member is not in any groups yet" in {
       //given
-      val groupSummaries = (1 to 2)
+      val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val summaries = (groupSummaries, Seq.empty)
-      val groupsAlreadyAssociatedToClient = groupSummaries
+      val groupsAlreadyAssociatedToMember = Seq.empty
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -147,7 +147,55 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       (mockGroupService
         .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
         .expects(arn, teamMember, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+        .returning(Future.successful(groupsAlreadyAssociatedToMember))
+
+      //when
+      val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
+      html.select(Css.paragraphs).get(0).text() shouldBe "Team member is currently not in any access groups"
+      html.select(Css.li("already-in-groups")).isEmpty shouldBe true
+      val form = html.select(Css.form)
+      form.attr("action").shouldBe(submitUrl)
+      val checkboxes = form.select(".govuk-checkboxes#groups input[name=groups[]]")
+      checkboxes size() shouldBe 5
+      val checkboxLabels = form.select("label.govuk-checkboxes__label")
+      checkboxLabels.get(0).text() shouldBe "Group 1"
+      checkboxLabels.get(1).text() shouldBe "Group 2"
+      checkboxLabels.get(2).text() shouldBe "Group 3"
+      checkboxLabels.get(4).text() shouldBe "Group 5"
+      html.select(Css.linkStyledAsButton).text() shouldBe "Cancel"
+      html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
+      html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+    }
+
+    "render correctly when no available groups" in {
+      //given
+      val groupSummaries = (1 to 2)
+        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+      val summaries = (groupSummaries, Seq.empty)
+      val groupsAlreadyAssociatedToMember = groupSummaries
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+
+      (mockTeamMemberService
+        .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, teamMember.id, *, *)
+        .returning(Future successful Some(teamMember))
+
+      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
+        .expects(arn, *, *, *)
+        .returning(Future.successful(summaries))
+
+      (mockGroupService
+        .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
+        .expects(arn, teamMember, *, *, *)
+        .returning(Future.successful(groupsAlreadyAssociatedToMember))
 
       //when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
@@ -171,7 +219,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   s"POST to $submitUrl" should {
 
-    "add client to the selected groups and redirect" when {
+    "add team member to the selected groups and redirect" when {
 
       s"At least 1 checkbox is checked for the group to add to" in {
         //given
@@ -224,7 +272,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val summaries = (groupSummaries, Seq.empty)
-      val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
+      val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -241,7 +289,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       (mockGroupService
         .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
         .expects(arn, teamMember, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+        .returning(Future.successful(groupsAlreadyAssociatedToMember))
 
       implicit val request =
         FakeRequest("POST", submitUrl)

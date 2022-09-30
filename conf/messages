@@ -36,6 +36,8 @@ common.total.clients=Showing total of <strong>{0}</strong> clients
 common.total.team-members=Showing total of <strong>{0}</strong> team members
 common.total.team-members.selected=Selected <strong>{0}</strong> team members of <strong>{1}</strong>
 common.total.clients.selected=Selected <strong>{0}</strong> clients of <strong>{1}</strong>
+already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients of <strong>{1}</strong> in your group
+already.selected.members.nonjs=You currently have <strong>{0}</strong> team members of <strong>{1}</strong> in your group
 
 
 unassigned-clients.not-found.heading=No unassigned clients found

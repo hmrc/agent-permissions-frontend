@@ -37,7 +37,8 @@ common.total.team-members=Yn dangos cyfanswm o <strong>{0}</strong> aelod o’r 
 
 common.total.team-members.selected=Dewiswyd <strong>{0}</strong> aelod tîm allan o <strong>{1}</strong>
 common.total.clients.selected=Dewiswyd <strong>{0}</strong> o gleientiaid allan o <strong>{1}</strong>
-
+already.selected.clients.nonjs=Ar hyn o bryd mae gennych <strong>{0}</strong> cleient o <strong>{1}</strong> yn eich grŵp
+already.selected.members.nonjs=Ar hyn o bryd mae gennych <strong>{0}</strong> aelod tîm o <strong>{1}</strong> yn eich grŵp
 
 unassigned-clients.not-found.heading=Ni chanfuwyd unrhyw gleientiaid sydd heb eu neilltuo
 unassigned-clients.not-found.p=Diweddarwch eich hidlyddion a rhowch gynnig arall arni. Fel arall, cliriwch eich hidlyddion i weld pob un o’ch cleientiaid sydd heb eu neilltuo

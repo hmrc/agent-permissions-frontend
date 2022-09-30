@@ -64,16 +64,16 @@
     )
 }
 
+@govukSkipLink(SkipLink(
+    href = "#clients",
+    content = Text(msgs("common.skip-to-clients"))
+))
+
 @formWithCSRF(action = formAction) {
 
     <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
 
-    <div class="govuk-grid-row">
-
-        @govukSkipLink(SkipLink(
-        href = "#clients",
-        content = Text(msgs("common.skip-to-clients"))
-        ))
+    <div class="govuk-grid-row" role="search">
 
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
             <div class="govuk-form-group govuk-form-group--error">

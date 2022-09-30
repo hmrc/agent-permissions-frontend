@@ -54,13 +54,13 @@
 
 
 @govukSkipLink(SkipLink(
-href = "#clients",
-content = Text(msgs("common.skip-to-clients"))
+    href = "#clients",
+    content = Text(msgs("common.skip-to-clients"))
 ))
 
 @views.html.helper.form(action = formAction) {
 
-    <div class="govuk-grid-row">
+    <div class="govuk-grid-row" role="search">
         @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
          }

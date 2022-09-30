@@ -64,16 +64,16 @@
     )
 }
 
+@govukSkipLink(SkipLink(
+    href = "#members",
+    content = Text(msgs("common.skip-to-team-members"))
+))
+
 @formWithCSRF(action = formAction) {
 
 <input type="hidden" name="hasAlreadySelected" value=@hiddenTeamMembersExist.getOrElse(false)>
 
-    @govukSkipLink(SkipLink(
-    href = "#members",
-    content = Text(msgs("common.skip-to-team-members"))
-    ))
-
-    <div class="govuk-grid-row">
+    <div class="govuk-grid-row" role="search">
         <div class="govuk-grid-column-one-third">
             @textbox(
             field = form("search"),

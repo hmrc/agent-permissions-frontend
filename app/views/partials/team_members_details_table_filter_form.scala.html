@@ -54,13 +54,13 @@
 }
 
 @govukSkipLink(SkipLink(
-href = "#members",
-content = Text(msgs("common.skip-to-team-members"))
+    href = "#members",
+    content = Text(msgs("common.skip-to-team-members"))
 ))
 
 @views.html.helper.form(action = formAction) {
 
-    <div class="govuk-grid-row">
+    <div class="govuk-grid-row" role="search">
         <fieldset class="govuk-fieldset">
             <legend class="govuk-fieldset__legend govuk-visually-hidden">
                 @msgs("filter.legend")

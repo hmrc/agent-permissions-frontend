@@ -56,14 +56,14 @@
         </div>
 
         @govukSkipLink(SkipLink(
-        href = "#members",
-        content = Text(msgs("common.skip-to-team-members"))
+            href = "#members",
+            content = Text(msgs("common.skip-to-team-members"))
         ))
 
         @views.html.helper.form(
             action = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString)) {
 
-            <div class="govuk-grid-row">
+            <div class="govuk-grid-row" role="search">
                 <div class="govuk-grid-column-one-third">
                 @textbox(
                     field = form("search"),

@@ -263,8 +263,8 @@ client.added.to.groups.p1=Rydych wedi ychwanegu {0} at y grwpiau canlynol:
 client.added.to.groups.p2=Gall yr aelodau tîm yn y grwpiau mynediad hyn bellach weld a rheoli materion treth y cleient yr ydych wedi’i ychwanegu.
 
 member.select.groups.h1=At ba grwpiau mynediad yr ydych am ychwanegu {0}?
+member.select.groups.none=Nid yw aelod o'r tîm mewn unrhyw grwpiau mynediad ar hyn o bryd
 member.select.groups.p1=Aelod tîm yn aelod o’r grwpiau mynediad hyn ar hyn o bryd:
-
 member.select.groups.none.h1=Does dim grwpiau ar gael i ychwanegu {0} atynt
 member.select.back=Yn ôl i {0}
 error.member.select.groups.empty=Mae’n rhaid i chi ddewis o leiaf un grŵp

@@ -249,6 +249,7 @@ client.added.to.groups.p1=You have added {0} to the following groups:
 client.added.to.groups.p2=The team members in these access groups can now view and manage the tax affairs of the client you added.
 
 member.select.groups.h1=Which access groups would you like to add {0} to?
+member.select.groups.none=Team member is currently not in any access groups
 member.select.groups.p1=Team member is currently in these access groups:
 member.select.groups.none.h1=There are no available groups to add {0} to
 member.select.back=Back to {0}

@@ -62,7 +62,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
                                 None,
                                 None)
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
@@ -103,7 +103,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
-  val controller = fakeApplication.injector.instanceOf[ManageGroupClientsController]
+  val controller: ManageGroupClientsController = fakeApplication.injector.instanceOf[ManageGroupClientsController]
 
   s"GET ${routes.ManageGroupClientsController.showExistingGroupClients(accessGroup._id.toString)}" should {
 
@@ -113,7 +113,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
 
@@ -160,7 +160,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
 
@@ -194,7 +194,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
 
@@ -217,10 +217,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
-      val tableOfClients = html.select(Css.tableWithId("sortable-table"))
+      val tableOfClients = html.select(Css.tableWithId("clients"))
       tableOfClients.isEmpty shouldBe true
-      val noClientsFound = html.select("div#no-results")
-      noClientsFound.isEmpty() shouldBe false
+      val noClientsFound = html.select("div#clients")
+      noClientsFound.isEmpty shouldBe false
       noClientsFound.select("h2").text shouldBe "No clients found"
       noClientsFound.select("p").text shouldBe "Update your filters and try again or clear your filters to see all your clients"
     }
@@ -231,7 +231,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
 
@@ -260,7 +260,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
       stubGetClientsOk(arn)(fakeClients)
 
@@ -301,7 +301,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
       stubGetClientsAccepted(arn)
 
@@ -329,7 +329,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val groupWithClients = accessGroup.copy(clients = Some(clients))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
 
       expectGetGroupSuccess(groupWithClients._id.toString, Some(groupWithClients))
 
@@ -374,7 +374,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(
         sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       stubGetClientsOk(arn)(fakeClients)
@@ -421,7 +421,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectIsArnAllowed(allowed = true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         stubGetClientsOk(arn)(fakeClients)
 
@@ -454,7 +454,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectIsArnAllowed(allowed = true)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         stubGetClientsOk(arn)(fakeClients)
@@ -489,7 +489,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectIsArnAllowed(allowed = true)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
@@ -525,7 +525,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectIsArnAllowed(allowed = true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         stubGetClientsOk(arn)(fakeClients)
 
@@ -543,7 +543,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
@@ -559,7 +559,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
@@ -665,7 +665,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when
@@ -700,7 +700,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       //when

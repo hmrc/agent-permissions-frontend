@@ -22,6 +22,7 @@
 @this(
     layout: main_layout,table: table,
     p: p, h1: h1, h2: h2, a: a, caption: caption,
+    govukSkipLink: GovukSkipLink,
     link_as_button: link_as_button,
     submit_button: submit_button,
     textbox: textbox, checkbox: checkbox,
@@ -54,6 +55,11 @@
             @h1(msgs("group.manage.members"))
         </div>
 
+        @govukSkipLink(SkipLink(
+        href = "#members",
+        content = Text(msgs("common.skip-to-team-members"))
+        ))
+
         @views.html.helper.form(
             action = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString)) {
 
@@ -85,7 +91,7 @@
 
     @if(teamMembers.nonEmpty) {
 
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
+        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
         @table(
             id = Some("sortable-table"),
             headings = Seq(
@@ -106,7 +112,7 @@
             id = "update-team-members-button")
 
     } else {
-        <div id="no-results">
+        <div id="members">
             @h2("team-members.not-found.heading")
             @p("team-members.not-found.p")
         </div>

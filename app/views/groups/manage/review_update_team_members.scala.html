@@ -52,10 +52,10 @@
     @layout(
         title = msgs("group.teamMembers.review.title", group.groupName),
         backLinkHref = Some(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString).url),
-        fullWidth = true
+        fullWidth = true,
+        formErrors = form.errors
     ) {
 
-        @summaryErrors(form.errors)
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", group.groupName))

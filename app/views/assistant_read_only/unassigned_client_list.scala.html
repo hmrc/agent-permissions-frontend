@@ -49,13 +49,13 @@
         @clients_table_filter_form(
             Some(unassignedClients),
             filterForm,
-            routes.UnassignedClientController.submitAddUnassignedClients
+            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly
         )
     } else {
         @clients_table_filter_form(
             None,
             filterForm,
-            routes.UnassignedClientController.submitAddUnassignedClients
+            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly
         )
     }
 

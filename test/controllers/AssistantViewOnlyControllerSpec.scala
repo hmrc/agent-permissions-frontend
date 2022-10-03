@@ -267,6 +267,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.title() shouldBe s"${accessGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${accessGroup.groupName} clients"
 
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")

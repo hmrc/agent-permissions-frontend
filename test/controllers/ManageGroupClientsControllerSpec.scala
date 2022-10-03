@@ -650,7 +650,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected clients"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected clients"

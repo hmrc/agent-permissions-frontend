@@ -52,12 +52,10 @@
 @layout(
     title = msgs("group.teamMembers.review.title", groupName),
     backLinkHref = backUrl,
-    fullWidth = true
+    fullWidth = true,
+    formErrors = form.errors
 ) {
-
-    @summaryErrors(form.errors)
-
-
+    
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", groupName))
         @h1(msgs("group.teamMembers.review.h1", teamMembers.size))

@@ -32,6 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[TeamMemberServiceImpl])
 trait TeamMemberService {
 
+  def getAllTeamMembers(arn: Arn)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
+
   def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier,
     ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
 

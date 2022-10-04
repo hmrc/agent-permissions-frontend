@@ -1488,7 +1488,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Check your selection"
       html.select(Css.caption).text() shouldBe "XYZ access group"
       html
-        .select(Css.H2)
+        .select(Css.paragraphs)
         .text() shouldBe "Confirm clients and team members selected for this access group"
       html
         .select(Css.backLink)

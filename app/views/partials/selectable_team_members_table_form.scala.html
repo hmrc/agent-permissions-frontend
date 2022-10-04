@@ -100,9 +100,15 @@
             </p>
         }
 
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                @msgs("group.select.members.list.h1")
+            </legend>
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
 
             @table(
+                caption = Some("common.teamMembers"),
+                captionClasses = "govuk-visually-hidden",
                 id = Some("sortable-table"),
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
@@ -126,6 +132,7 @@
                 rows = tableRows,
             )
         </div>
+        </fieldset>
         @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
 
         @* the following 2 paragraphs are dependent on whether js enabled or not*@

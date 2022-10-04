@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
 import models.DisplayClient.format
-import models.{ButtonSelect, DisplayClient, DisplayGroup, SearchFilter}
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient, DisplayGroup, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -28,7 +28,6 @@ import repository.SessionCacheRepository
 import services.{ClientService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups._
 import views.html.groups.manage._
 
 import javax.inject.{Inject, Singleton}
@@ -92,23 +91,32 @@ class ManageGroupClientsController @Inject()(
 
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group =>
-      for {
-        _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS,
-          group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true)))
-        maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
-        clients <- clientService.getClients(group.arn)
-      } yield Ok(
-        update_client_group_list(
-          clients,
-          group.groupName,
-          maybeHiddenClients,
-          AddClientsToGroupForm.form(),
-          formAction = controller.submitManageGroupClients(groupId),
-          backUrl = Some(controller.showExistingGroupClients(groupId).url)
-        )
-      )
+      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+          for {
+            _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS,
+              group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true)))
+            maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
+            clients <- clientService.getClients(group.arn)
+          } yield Ok(
+            update_client_group_list(
+              clients,
+              group.groupName,
+              maybeHiddenClients,
+              AddClientsToGroupForm.form().fill(
+                AddClientsToGroup(
+                  maybeHiddenClients.getOrElse(false),
+                  search = clientSearchTerm,
+                  filter = clientFilterTerm,
+                  clients = None)),
+              formAction = controller.submitManageGroupClients(groupId),
+              backUrl = Some(controller.showExistingGroupClients(groupId).url)
+            )
+          )
+        }
       }
     }
+  }
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
 
@@ -140,7 +148,7 @@ class ManageGroupClientsController @Inject()(
                 }
               },
               formData => {
-                clientService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData)(clientService.getClients).flatMap(_ =>
+                clientService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData)(clientService.getAllClients).flatMap(_ =>
                   if (buttonSelection == ButtonSelect.Continue) {
                     for {
                       enrolments <- sessionCacheRepository

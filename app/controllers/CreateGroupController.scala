@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
-import models.{ButtonSelect, DisplayClient, TeamMember}
+import models.{AddClientsToGroup, ButtonSelect, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -139,14 +139,25 @@ class CreateGroupController @Inject()(
 
   def showSelectClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-        clientService.getClients(arn).map { maybeClients =>
-          Ok(
-            client_group_list(
-              maybeClients,
-              groupName,
-              maybeHiddenClients,
-              AddClientsToGroupForm.form()))
+      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+            clientService.getClients(arn).map { maybeClients =>
+              Ok(
+                client_group_list(
+                  maybeClients,
+                  groupName,
+                  maybeHiddenClients,
+                  AddClientsToGroupForm.form().fill(
+                    AddClientsToGroup(
+                      maybeHiddenClients.getOrElse(false),
+                      search = clientSearchTerm,
+                      filter = clientFilterTerm,
+                      clients = None))
+                )
+              )
+            }
+          }
         }
       }
     }
@@ -176,7 +187,7 @@ class CreateGroupController @Inject()(
 
             },
             formData => {
-              clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getClients)
+              clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getAllClients)
                 .map(_ =>
                   if (buttonSelection == ButtonSelect.Continue)
                     Redirect(controller.showReviewSelectedClients)
@@ -222,6 +233,7 @@ class CreateGroupController @Inject()(
       }
     }
 
+  // TODO need form to be filled
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
           withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>

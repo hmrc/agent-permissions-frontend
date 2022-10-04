@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
-import models.{AddClientsToGroup, ButtonSelect, DisplayClient, TeamMember}
+import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -233,19 +233,25 @@ class CreateGroupController @Inject()(
       }
     }
 
-  // TODO need form to be filled
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-          withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
-            teamMemberService.getTeamMembers(arn).map { maybeTeamMembers =>
-              Ok(
-                team_members_list(
-                  maybeTeamMembers,
-                  groupName,
-                  maybeHiddenTeamMembers,
-                  AddTeamMembersToGroupForm.form()))
-            }
+      withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
+        withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
+          teamMemberService.getTeamMembers(arn).map { maybeTeamMembers =>
+            Ok(
+              team_members_list(
+                maybeTeamMembers,
+                groupName,
+                maybeHiddenTeamMembers,
+                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
+                  hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
+                  search = teamMemberSearchTerm,
+                  members = None
+                ))
+              ))
           }
+        }
+      }
     }
   }
 

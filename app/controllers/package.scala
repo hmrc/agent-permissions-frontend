@@ -61,6 +61,7 @@ package object controllers {
   val HIDDEN_TEAM_MEMBERS_EXIST: DataKey[Boolean] = DataKey("hiddenTeamMembers")
   val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
     "groupTeamMembersSelected")
+  val TEAM_MEMBER_SEARCH_INPUT: DataKey[String] = DataKey("TeamMemberSearchInputValue")
 
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
 
@@ -88,7 +89,8 @@ package object controllers {
   val selectingTeamMemberKeys =
     List(
       FILTERED_TEAM_MEMBERS,
-      HIDDEN_TEAM_MEMBERS_EXIST
+      HIDDEN_TEAM_MEMBERS_EXIST,
+      TEAM_MEMBER_SEARCH_INPUT
     )
 
   val creatingGroupKeys =
@@ -118,7 +120,8 @@ package object controllers {
       FILTERED_GROUP_SUMMARIES,
       CLIENT_REFERENCE,
       CLIENT_FILTER_INPUT,
-      CLIENT_SEARCH_INPUT
+      CLIENT_SEARCH_INPUT,
+      TEAM_MEMBER_SEARCH_INPUT
     )
 
 }

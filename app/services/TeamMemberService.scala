@@ -17,8 +17,8 @@
 package services
 
 import com.google.inject.ImplementedBy
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{FILTERED_TEAM_MEMBERS, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_TEAM_MEMBERS, ToFuture, selectingTeamMemberKeys}
+import connectors.AgentUserClientDetailsConnector
+import controllers.{FILTERED_TEAM_MEMBERS, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, selectingTeamMemberKeys}
 import models.ButtonSelect.{Clear, Continue, Filter}
 import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
 import play.api.mvc.Request
@@ -52,11 +52,29 @@ trait TeamMemberService {
 
 @Singleton
 class TeamMemberServiceImpl @Inject()(
-    agentPermissionsConnector: AgentPermissionsConnector,
     agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
     val sessionCacheRepository: SessionCacheRepository
 ) extends TeamMemberService with GroupMemberOps {
 
+  // returns team members from agent-user-client-details, selecting previously selected team members
+  def getAllTeamMembers(arn: Arn)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
+    for {
+      ugsAsTeamMembers <- getFromUgsAsTeamMember(arn)
+      maybeSelectedTeamMembers <- sessionCacheRepository
+        .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
+      ugsWithoutPreSelected = ugsAsTeamMembers.map(
+        teamMembers =>
+          teamMembers.filterNot(teamMember =>
+            maybeSelectedTeamMembers.fold(false)(
+              _.map(_.userId).contains(teamMember.userId))))
+      mergedWithPreselected = ugsWithoutPreSelected
+        .map(_.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
+        .map(_.sortBy(_.name))
+    } yield mergedWithPreselected
+  }
+
+  // returns team members from agent-user-client-details OR a filtered list, selecting previously selected team members
   def getTeamMembers(arn: Arn)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
     val fromUgs = for {
@@ -133,6 +151,7 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
+          _ <- sessionCacheRepository.putSession(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
           _ <- filterTeamMembers(arn)(formData)
         } yield ()
     }
@@ -144,9 +163,7 @@ class TeamMemberServiceImpl @Inject()(
     request: Request[Any],
     ec: ExecutionContext): Future[Option[Seq[TeamMember]]] =
     for {
-      selectedTeamMembers <- sessionCacheRepository.getFromSession(
-        SELECTED_TEAM_MEMBERS)
-      teamMembers <- getTeamMembers(arn)
+      teamMembers <- getAllTeamMembers(arn)
         .map(_.map(_.toVector))
       maybeNameOrEmail = formData.search
       resultByName = maybeNameOrEmail.fold(teamMembers)(

@@ -97,6 +97,7 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
+  // TODO need form to be filled
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
       val teamMembers = teamMembersInGroup(group)
@@ -180,6 +181,7 @@ class ManageGroupTeamMembersController @Inject()(
                 } yield result
               },
               formData => {
+                // TODO check if changes affect here too
                 teamMemberService.saveSelectedOrFilteredTeamMembers(buttonSelection)(group.arn)(formData).map(_ =>
                   if (buttonSelection == ButtonSelect.Continue) {
                     for {

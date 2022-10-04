@@ -86,6 +86,8 @@
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
 
         @table(
+            caption = Some("common.teamMembers"),
+            captionClasses = "govuk-visually-hidden",
             id = Some("sortable-table"),
             attrs = Map.empty,
             headings = Seq(

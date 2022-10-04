@@ -16,8 +16,8 @@ common.clients=Cleientiaid
 common.teamMembers=Aelodau tîm
 common.cancel=Canslo
 common.skip-to-results=Skip to results
-common.skip-to-clients=Skip to client list
-common.skip-to-team-members=Skip to team member list
+common.skip-to-clients=Ewch yn syth iír rhestr o gleientiaid
+common.skip-to-team-members=Ewch yn syth iír rhestr o aelodauír tÓm
 
 save.and.continue.button=Cadw ac yn eich blaen
 submit.button=Cyflwyno

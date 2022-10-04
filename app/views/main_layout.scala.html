@@ -49,7 +49,7 @@
 @mainContentWithTechIssueHelper = {
     @if(!appConfig.isTest) { @gtmNoScript }
     <div class="govuk-grid-row">
-        <div class="@if(fullWidth) {govuk-grid-column-full-width} else {govuk-grid-column-two-thirds}">
+        <div class="@if(fullWidth) {govuk-grid-column-full} else {govuk-grid-column-two-thirds}">
             @summaryErrors(formErrors, customError)
             @mainContent
             <div class="govuk-!-margin-bottom-9 govuk-!-margin-top-9">

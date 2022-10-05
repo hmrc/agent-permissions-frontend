@@ -132,6 +132,8 @@
             <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
 
             @table(
+                caption = Some("common.clients"),
+                captionClasses = "govuk-visually-hidden",
                 id = Some("sortable-table"),
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(

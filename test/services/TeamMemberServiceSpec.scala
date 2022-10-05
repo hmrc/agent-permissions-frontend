@@ -16,7 +16,7 @@
 
 package services
 
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.AgentUserClientDetailsConnector
 import helpers.BaseSpec
 import models.TeamMember
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -30,10 +30,7 @@ class TeamMemberServiceSpec extends BaseSpec {
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  val mockAgentPermissionsConnector: AgentPermissionsConnector =
-    mock[AgentPermissionsConnector]
-
-  val service = new TeamMemberServiceImpl(mockAgentPermissionsConnector,mockAgentUserClientDetailsConnector,sessionCacheRepo)
+  val service = new TeamMemberServiceImpl(mockAgentUserClientDetailsConnector,sessionCacheRepo)
 
   val users: Seq[UserDetails] = (1 to 3)
     .map(

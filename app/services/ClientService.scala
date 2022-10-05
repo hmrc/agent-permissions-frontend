@@ -146,6 +146,7 @@ class ClientServiceImpl @Inject()(
   private def clearSessionForSelectingClients()(implicit Request: Request[_], ec: ExecutionContext): Future[Unit] =
     Future.traverse(selectingClientsKeys)(key => sessionCacheRepository.deleteFromSession(key)).map(_ => ())
 
+  // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
   def saveSelectedOrFilteredClients(buttonSelect: ButtonSelect)
                                    (arn: Arn)
                                    (formData: AddClientsToGroup

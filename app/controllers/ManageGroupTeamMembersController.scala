@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
 import models.TeamMember.toAgentUser
-import models.{ButtonSelect, SearchFilter, TeamMember}
+import models.{AddTeamMembersToGroup, ButtonSelect, SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -105,12 +105,14 @@ class ManageGroupTeamMembersController @Inject()(
         _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers.get)
         filteredTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
         maybeHiddenTeamMembers <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)
-        teamMembersForArn <- teamMemberService.getTeamMembers(group.arn)
-      } yield (filteredTeamMembers, maybeHiddenTeamMembers, teamMembersForArn)
+        maybeFilterTerm <- sessionCacheRepository.getFromSession[String](TEAM_MEMBER_SEARCH_INPUT)
+        teamMembersForArn <- teamMemberService.getAllTeamMembers(group.arn)
+      } yield (filteredTeamMembers, maybeHiddenTeamMembers, teamMembersForArn, maybeFilterTerm)
       result.map {
         result =>
           val filteredTeamMembers = result._1
           val maybeHiddenTeamMembers = result._2
+          val teamMembersSearchTerm = result._4
           val backUrl = Some(routes.ManageGroupClientsController.showExistingGroupClients(groupId).url)
           if (filteredTeamMembers.isDefined)
             Ok(
@@ -118,7 +120,11 @@ class ManageGroupTeamMembersController @Inject()(
                 filteredTeamMembers,
                 group.groupName,
                 maybeHiddenTeamMembers,
-                AddTeamMembersToGroupForm.form(),
+                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
+                  hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
+                  search = teamMembersSearchTerm,
+                  members = None
+                )),
                 msgKey = "update",
                 formAction = controller.submitManageGroupTeamMembers(groupId),
                 backUrl = backUrl
@@ -130,7 +136,11 @@ class ManageGroupTeamMembersController @Inject()(
                 result._3,
                 group.groupName,
                 maybeHiddenTeamMembers,
-                AddTeamMembersToGroupForm.form(),
+                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
+                  hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
+                  search = teamMembersSearchTerm,
+                  members = None
+                )),
                 msgKey = "update",
                 formAction = controller.submitManageGroupTeamMembers(groupId),
                 backUrl = backUrl

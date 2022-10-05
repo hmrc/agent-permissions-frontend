@@ -525,6 +525,28 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
     }
 
+    "render correct backling when navigating from check your answers page" in {
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubGetClientsOk(arn)(List.empty)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+      await(sessionCacheRepo.putSession(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url))
+
+      val result = controller.showSelectClients()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Select clients - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupController.showCheckYourAnswers.url
+
+    }
+
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -860,7 +882,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${controller.submitReviewSelectedClients()}" should {
+  s"POST ${routes.CreateGroupController.submitReviewSelectedClients}" should {
 
     s"redirect to '${controller.showSelectTeamMembers}' page with answer 'false'" in {
 
@@ -946,7 +968,6 @@ class CreateGroupControllerSpec extends BaseSpec {
 
     val teamMembers = fakeTeamMembers.map(TeamMember.fromUserDetails)
 
-    // TODO move all reused local vars to the top
     "render team members when filter is not applied" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -1058,6 +1079,28 @@ class CreateGroupControllerSpec extends BaseSpec {
       // Not found content
       html.select(Css.H2).text() shouldBe "No team members found"
       html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
+
+    }
+
+    "render correct back link when coming from check you answers page" in {
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubGetTeamMembersOk(arn)(Seq.empty)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+      await(sessionCacheRepo.putSession(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url))
+
+      val result = controller.showSelectTeamMembers()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupController.showCheckYourAnswers.url
 
     }
 
@@ -1300,7 +1343,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${controller.showReviewSelectedTeamMembers}" should {
+  s"GET ${routes.CreateGroupController.showReviewSelectedTeamMembers}" should {
 
     "render with selected team members" in {
 
@@ -1527,7 +1570,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${routes.CreateGroupController.showCheckYourAnswers.url}" should {
+  s"POST to ${routes.CreateGroupController.submitCheckYourAnswers.url}" should {
 
     "redirect to Group Name page if no group name in session" in {
 

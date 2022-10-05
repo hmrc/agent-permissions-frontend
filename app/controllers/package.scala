@@ -16,6 +16,7 @@
 
 import connectors.GroupSummary
 import models.{DisplayClient, TeamMember}
+import play.api.mvc.Call
 import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.mongo.cache.DataKey
@@ -68,6 +69,7 @@ package object controllers {
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
   val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
   val GROUP_DELETED_NAME: DataKey[String] = DataKey("groupDeletedName")
+  val RETURN_URL: DataKey[String] = DataKey("returnUrl")
 
   val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]]
     = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")

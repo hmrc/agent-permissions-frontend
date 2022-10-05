@@ -142,13 +142,15 @@ class CreateGroupController @Inject()(
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+          withSessionItem[String](RETURN_URL) { returnUrl =>
             clientService.getClients(arn).map { maybeClients =>
               Ok(
                 client_group_list(
                   maybeClients,
                   groupName,
                   maybeHiddenClients,
-                  AddClientsToGroupForm.form().fill(
+                  backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
+                  form = AddClientsToGroupForm.form().fill(
                     AddClientsToGroup(
                       maybeHiddenClients.getOrElse(false),
                       search = clientSearchTerm,
@@ -156,6 +158,7 @@ class CreateGroupController @Inject()(
                       clients = None))
                 )
               )
+            }
             }
           }
         }
@@ -204,51 +207,61 @@ class CreateGroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
-          clients => Ok(review_clients_to_add(clients, groupName,YesNoForm.form())).toFuture)
+          clients => Ok(review_clients_to_add(clients, groupName, YesNoForm.form())).toFuture)
       }
     }
   }
 
   def submitReviewSelectedClients(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent{ (groupName, arn) =>
+    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
           maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
-            clients  =>
-            YesNoForm
-              .form("group.clients.review.error")
-              .bindFromRequest
-              .fold(
-                formWithErrors =>{
-                  Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
-                }, (yes: Boolean) => {
-                  if (yes)
-                    Redirect(controller.showSelectClients).toFuture
-                  else
-                    Redirect(controller.showSelectTeamMembers).toFuture
-                }
-              )
+            clients =>
+              YesNoForm
+                .form("group.clients.review.error")
+                .bindFromRequest
+                .fold(
+                  formWithErrors => {
+                    Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
+                  }, (yes: Boolean) => {
+                    if (yes)
+                      Redirect(controller.showSelectClients).toFuture
+                    else {
+                      sessionCacheRepository.getFromSession(RETURN_URL)
+                        .map(returnUrl =>
+                          returnUrl.fold(Redirect(controller.showSelectTeamMembers))(url => {
+                            sessionCacheRepository.deleteFromSession(RETURN_URL)
+                            Redirect(url)
+                          })
+                        )
+                    }
+                  }
+                )
           )
-          }
       }
     }
+  }
 
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
         withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
+          withSessionItem[String](RETURN_URL) { returnUrl =>
           teamMemberService.getTeamMembers(arn).map { maybeTeamMembers =>
             Ok(
               team_members_list(
                 maybeTeamMembers,
                 groupName,
                 maybeHiddenTeamMembers,
-                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
+                backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showReviewSelectedClients.url)),
+                form = AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
                   hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
                   search = teamMemberSearchTerm,
                   members = None
                 ))
               ))
+          }
           }
         }
       }
@@ -257,41 +270,41 @@ class CreateGroupController @Inject()(
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-            withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
+      withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
 
-              val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
+        val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
 
-              AddTeamMembersToGroupForm
-                .form(buttonSelection)
-                .bindFromRequest()
-                .fold(
-                  formWithErrors => {
-                    for {
-                      _ <- if (buttonSelection == ButtonSelect.Continue)
-                        sessionCacheService
-                          .clearSelectedTeamMembers()
-                      else ().toFuture
-                      teamMembers <- teamMemberService.getTeamMembers(arn)
-                    } yield
-                        Ok(
-                          team_members_list(
-                            teamMembers,
-                            groupName,
-                            maybeHiddenTeamMembers,
-                            formWithErrors))
-                  },
-                  formData => {
-                    teamMemberService
-                      .saveSelectedOrFilteredTeamMembers(
-                        buttonSelection)(arn)(formData)
-                      .map(_ =>
-                        if (buttonSelection == ButtonSelect.Continue)
-                          Redirect(controller.showReviewSelectedTeamMembers)
-                        else Redirect(controller.showSelectTeamMembers))
-                  }
-                )
-        }
+        AddTeamMembersToGroupForm
+          .form(buttonSelection)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              for {
+                _ <- if (buttonSelection == ButtonSelect.Continue)
+                  sessionCacheService
+                    .clearSelectedTeamMembers()
+                else ().toFuture
+                teamMembers <- teamMemberService.getTeamMembers(arn)
+              } yield
+                Ok(
+                  team_members_list(
+                    teamMembers,
+                    groupName,
+                    maybeHiddenTeamMembers,
+                    formWithErrors))
+            },
+            formData => {
+              teamMemberService
+                .saveSelectedOrFilteredTeamMembers(
+                  buttonSelection)(arn)(formData)
+                .map(_ =>
+                  if (buttonSelection == ButtonSelect.Continue)
+                    Redirect(controller.showReviewSelectedTeamMembers)
+                  else Redirect(controller.showSelectTeamMembers))
+            }
+          )
       }
+    }
   }
 
   def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
@@ -307,17 +320,17 @@ class CreateGroupController @Inject()(
   }
 
   def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent{ (groupName, arn) =>
+    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
             Redirect(controller.showSelectTeamMembers).toFuture
-          ){ members =>
+          ) { members =>
             YesNoForm
               .form("group.teamMembers.review.error")
               .bindFromRequest
               .fold(
-                formWithErrors =>{
+                formWithErrors => {
                   Ok(review_team_members_to_add(members, groupName, formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
@@ -335,10 +348,11 @@ class CreateGroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
-          Ok(
-            check_your_answers(groupName,
-              maybeTeamMembers.map(_.length),
-              maybeClients.map(_.length))).toFuture
+          sessionCacheRepository
+            .putSession(RETURN_URL, controllers.routes.CreateGroupController.showCheckYourAnswers.url)
+            .map(_ =>
+              Ok(check_your_answers(groupName, maybeTeamMembers.map(_.length), maybeClients.map(_.length)))
+            )
         }
       }
     }
@@ -347,7 +361,7 @@ class CreateGroupController @Inject()(
   def submitCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       groupService.createGroup(arn, groupName).map(_ =>
-      Redirect(controller.showGroupCreated))
+        Redirect(controller.showGroupCreated))
     }
   }
 

@@ -39,7 +39,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
 
   lazy val sessionCacheRepo: SessionCacheRepository =
@@ -299,7 +299,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.UnassignedClientController.showUnassignedClients.url
     }
 
-    "render correctly the selected unassigned clients page" in {
+    "render html when there are groups" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
@@ -417,10 +417,9 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
   }
 
-
   s"GET ${routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients}" should {
 
-    "render correctly the select groups for unassigned clients page" in {
+    "render html with the available groups for these unassigned clients" in {
       //given
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
@@ -442,10 +441,71 @@ class UnassignedClientControllerSpec extends BaseSpec {
       //and the back link should go to the unassigned clients tab
       html.select(Css.backLink).attr("href") shouldBe routes.UnassignedClientController.showSelectedUnassignedClients.url
 
+      //checkboxes
+
+      val form = html.select("main form")
+      val checkboxes = form.select("#available-groups .govuk-checkboxes__item")
+      val checkboxLabels = checkboxes.select("label")
+      val checkboxInputs = checkboxes.select("input[type='checkbox']")
+
+      form.attr("action") shouldBe routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url
+      checkboxes.size shouldBe 3
+      checkboxLabels.get(0).text shouldBe "name 1"
+      checkboxLabels.get(1).text shouldBe "name 2"
+      checkboxLabels.get(2).text shouldBe "name 3"
+
+      checkboxInputs.get(0).attr("name") shouldBe "groups[]"
+      checkboxInputs.get(0).attr("value") shouldBe "groupId1"
+      checkboxInputs.get(1).attr("name") shouldBe "groups[]"
+      checkboxInputs.get(1).attr("value") shouldBe "groupId2"
+      checkboxInputs.get(2).attr("name") shouldBe "groups[]"
+      checkboxInputs.get(2).attr("value") shouldBe "groupId3"
+
+      form.select("#createNew-hint").text shouldBe "or"
+      val createNewCheckboxes  = form.select("div#createNew .govuk-checkboxes__item")
+      createNewCheckboxes.select("label").text shouldBe "Add to a new access group"
+      createNewCheckboxes.select("input[type='checkbox']").attr("name") shouldBe "createNew"
+      createNewCheckboxes.select("input[type='checkbox']").attr("value") shouldBe "true"
+
+      form.select("button#continue[type=submit]").text shouldBe "Continue"
+
+    }
+
+
+    "render html when there are no available groups for these unassigned clients" in {
+      //given
+      val groupSummaries = Seq.empty
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+
+      //when
+      val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      val pageHeading = "You do not have any access groups. Add these clients to a new access group"
+      html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe pageHeading
+      //and the back link should go to the unassigned clients tab
+      html.select(Css.backLink).attr("href") shouldBe routes.UnassignedClientController.showSelectedUnassignedClients.url
+
+      //checkboxes
+
+      val form = html.select("main form")
+      //shouldn't be anything in the form except the button hence checking the full html
+      form.html() shouldBe "<button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
+        "id=\"continue\" name=\"createNew\" value=\"true\"> Add to a new access group </button>"
+
+
     }
   }
 
-  s"POST ${routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients}" should{
+  s"POST ${routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients}" should {
 
     "redirect to create group if CREATE NEW is selected" in {
       //given
@@ -528,7 +588,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url)
-          .withFormUrlEncodedBody("createNew" -> "true","groups[0]" -> "12412312")
+          .withFormUrlEncodedBody("createNew" -> "true", "groups[0]" -> "12412312")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

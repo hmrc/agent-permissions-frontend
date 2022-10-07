@@ -101,7 +101,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
 
-  s"GET ${routes.ManageGroupController.showManageGroups}" should {
+  s"GET ${routes.ManageGroupController.showManageGroups.url}" should {
 
     "render correctly the manage groups page" in {
 
@@ -578,7 +578,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString)}" should {
+  s"POST ${routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString).url}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
@@ -658,7 +658,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showGroupDeleted}" should {
+  s"GET ${routes.ManageGroupController.showGroupDeleted.url}" should {
 
     "render correctly" in {
       //given

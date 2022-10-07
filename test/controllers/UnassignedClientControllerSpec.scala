@@ -74,7 +74,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
 
-  s"GET ${routes.UnassignedClientController.showUnassignedClients}" should {
+  s"GET ${routes.UnassignedClientController.showUnassignedClients.url}" should {
 
     "render unassigned clients list" in {
       // given
@@ -164,7 +164,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
   }
 
-  s"POST ${routes.UnassignedClientController.submitAddUnassignedClients}" should {
+  s"POST ${routes.UnassignedClientController.submitAddUnassignedClients.url}" should {
     s"save selected unassigned clients and redirect to ${routes.UnassignedClientController.showSelectedUnassignedClients} " +
       s"when button is Continue" in {
 
@@ -283,7 +283,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.UnassignedClientController.showSelectedUnassignedClients}" should {
+  s"GET ${routes.UnassignedClientController.showSelectedUnassignedClients.url}" should {
 
     "redirect if no clients selected are in session" in {
       //given
@@ -331,7 +331,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.UnassignedClientController.submitSelectedUnassignedClients}" should {
+  s"POST ${routes.UnassignedClientController.submitSelectedUnassignedClients.url}" should {
 
     "redirect if no selected clients in session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -417,7 +417,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients}" should {
+  s"GET ${routes.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients.url}" should {
 
     "render html with the available groups for these unassigned clients" in {
       //given
@@ -505,7 +505,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients}" should {
+  s"POST ${routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url}" should {
 
     "redirect to create group if CREATE NEW is selected" in {
       //given
@@ -611,7 +611,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.UnassignedClientController.showConfirmClientsAddedToGroups}" should {
+  s"GET ${routes.UnassignedClientController.showConfirmClientsAddedToGroups.url}" should {
 
     "render correctly the select groups for unassigned clients page" in {
       //given

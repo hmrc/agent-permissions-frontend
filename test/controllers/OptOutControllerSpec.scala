@@ -53,7 +53,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   val controller: OptOutController = fakeApplication.injector.instanceOf[OptOutController]
 
-  s"GET ${routes.OptOutController.start}" should {
+  s"GET ${routes.OptOutController.start.url}" should {
 
     "display content for start" in {
 
@@ -92,7 +92,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.OptOutController.showDoYouWantToOptOut}" should {
+  s"GET ${routes.OptOutController.showDoYouWantToOptOut.url}" should {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -125,7 +125,7 @@ class OptOutControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.OptOutController.submitDoYouWantToOptOut}" should {
+  s"POST ${routes.OptOutController.submitDoYouWantToOptOut.url}" should {
 
     s"redirect to ${routes.OptOutController.showYouHaveOptedOut} page with answer 'true'" in {
 
@@ -195,7 +195,7 @@ class OptOutControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.OptOutController.showYouHaveOptedOut}" should {
+  s"GET ${routes.OptOutController.showYouHaveOptedOut.url}" should {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)

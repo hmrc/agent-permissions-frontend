@@ -68,7 +68,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   private val client: DisplayClient = displayClients(0)
 
 
-  s"GET ${routes.AddClientToGroupsController.showSelectGroupsForClient(client.id)}" should {
+  s"GET ${routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url}" should {
 
     "render correctly the html" in {
       //given
@@ -304,7 +304,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.AddClientToGroupsController.showConfirmClientAddedToGroups(client.id)}" should {
+  s"GET ${routes.AddClientToGroupsController.showConfirmClientAddedToGroups(client.id).url}" should {
 
     "render correctly the html" in {
       //given

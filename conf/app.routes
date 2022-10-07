@@ -44,6 +44,7 @@ POST    /team-members-selected                controllers.CreateGroupController.
 
 GET     /confirm-clients-team-members         controllers.CreateGroupController.showCheckYourAnswers
 POST    /confirm-clients-team-members         controllers.CreateGroupController.submitCheckYourAnswers
+GET     /reselect-clients                     controllers.CreateGroupController.redirectToEditClients
 
 GET     /group-created                        controllers.CreateGroupController.showGroupCreated
 

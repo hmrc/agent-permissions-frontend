@@ -882,7 +882,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.submitReviewSelectedClients}" should {
+  s"POST ${routes.CreateGroupController.submitReviewSelectedClients.url}" should {
 
     s"redirect to '${controller.showSelectTeamMembers}' page with answer 'false'" in {
 
@@ -905,8 +905,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showSelectTeamMembers.url
     }
 
-    s"redirect to '${routes.CreateGroupController.showSelectClients}'" +
-      s" page with answer 'true'" in {
+    s"redirect to '${routes.CreateGroupController.showSelectClients.url}' page with answer 'true'" in {
 
       implicit val request =
         FakeRequest(
@@ -1343,7 +1342,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.showReviewSelectedTeamMembers}" should {
+  s"GET ${routes.CreateGroupController.showReviewSelectedTeamMembers.url}" should {
 
     "render with selected team members" in {
 
@@ -1418,7 +1417,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers}" should {
+  s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers.url}" should {
 
     s"redirect to '${controller.showCheckYourAnswers}' page with answer 'false'" in {
 
@@ -1663,6 +1662,21 @@ class CreateGroupControllerSpec extends BaseSpec {
         await(controller.submitCheckYourAnswers()(request))
       }
       caught.statusCode shouldBe BAD_REQUEST
+    }
+  }
+
+  s"GET ${routes.CreateGroupController.redirectToEditClients.url}" should {
+
+    "redirect to select-clients" in {
+
+      val result = controller.redirectToEditClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.CreateGroupController.showSelectClients.url
+      val item = await(sessionCacheRepo.getFromSession(RETURN_URL))
+      item.isDefined shouldBe true
+      item.get shouldBe routes.CreateGroupController.showCheckYourAnswers.url
+
     }
   }
 

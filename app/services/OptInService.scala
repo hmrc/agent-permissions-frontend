@@ -32,11 +32,11 @@ import scala.concurrent.{ExecutionContext, Future}
 trait OptinService {
   def optIn(arn: Arn, lang: Option[String])(implicit request: Request[_],
                       hc: HeaderCarrier,
-                      ec: ExecutionContext): Future[Done]
+                      ec: ExecutionContext): Future[Option[Done]]
 
   def optOut(arn: Arn)(implicit request: Request[_],
                        hc: HeaderCarrier,
-                       ec: ExecutionContext): Future[Done]
+                       ec: ExecutionContext): Future[Option[Done]]
 
 }
 
@@ -49,26 +49,28 @@ class OptInServiceImpl @Inject()(
 
   def optIn(arn: Arn, lang: Option[String])(implicit request: Request[_],
                       hc: HeaderCarrier,
-                      ec: ExecutionContext): Future[Done] = {
+                      ec: ExecutionContext): Future[Option[Done]] = {
     optingTo(agentPermissionsConnector.optIn(_, lang))(arn)(request, hc, ec)
   }
 
   def optOut(arn: Arn)(implicit request: Request[_],
                        hc: HeaderCarrier,
-                       ec: ExecutionContext): Future[Done] =
+                       ec: ExecutionContext): Future[Option[Done]] =
     optingTo(agentPermissionsConnector.optOut)(arn)(request, hc, ec)
 
-  private def optingTo(func: Arn => Future[Done])(arn: Arn)(
+  private def optingTo(func: Arn => Future[Option[Done]])(arn: Arn)(
       implicit request: Request[_],
       hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Done] = {
+      ec: ExecutionContext): Future[Option[Done]] = {
     for {
-      _ <- func(arn)
-      maybeStatus <- agentPermissionsConnector.getOptInStatus(arn)
-      status = maybeStatus.getOrElse(
-        throw new RuntimeException(s"could not get optin-status from backend"))
-      _ <- sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
-    } yield Done
+      maybeDone <- func(arn)
+      maybeStatus <- maybeDone.fold(Future successful Option.empty[OptinStatus])(_ => agentPermissionsConnector.getOptInStatus(arn))
+    } yield {
+      maybeStatus.map { status =>
+        sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
+        Done
+      }
+    }
   }
 
 }

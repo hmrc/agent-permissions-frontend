@@ -78,7 +78,7 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory {
                                       (implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector.updateClientReference(_: Arn, _:Client)(_: HeaderCarrier, _: ExecutionContext))
     .expects(*, *,*,*)
-    .returning(Future successful Done)
+    .returning(Future successful Some(Done))
 
 
 }

@@ -53,7 +53,7 @@ trait ClientService {
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
-                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Done]]
 
   def getNewNameFromSession()(implicit request: Request[_], ec: ExecutionContext): Future[Option[String]]
 
@@ -227,7 +227,7 @@ class ClientServiceImpl @Inject()(
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit request: Request[_],
                                                                                      hc: HeaderCarrier,
-                                                                                     ec: ExecutionContext): Future[Done] = {
+                                                                                     ec: ExecutionContext): Future[Option[Done]] = {
     val client = Client(displayClient.enrolmentKey, newName)
     agentUserClientDetailsConnector.updateClientReference(arn, client)
   }

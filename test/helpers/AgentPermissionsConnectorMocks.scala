@@ -47,7 +47,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector
       .optIn(_: Arn, _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful Done)
+      .returning(Future successful Some(Done))
 
   def stubPostOptInError(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
@@ -61,7 +61,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector
       .optOut(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful Done)
+      .returning(Future successful Some(Done))
 
   def expectCreateGroupSuccess(arn: Arn, groupRequest: GroupRequest)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
@@ -69,7 +69,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier,
                                             _: ExecutionContext))
       .expects(arn, groupRequest, *, *)
-      .returning(Future successful Done)
+      .returning(Future successful Some(Done))
 
   def expectCreateGroupFails(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
@@ -133,11 +133,11 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     implicit agentPermissionsConnector: AgentPermissionsConnector)=
     (agentPermissionsConnector.updateGroup(_: String, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, updateGroupRequest, *, *)
-      .returning(Future successful Done)
+      .returning(Future successful Some(Done))
 
   def expectDeleteGroupSuccess(id: String)(
     implicit agentPermissionsConnector: AgentPermissionsConnector)=
     (agentPermissionsConnector.deleteGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
-      .returning(Future successful Done)
+      .returning(Future successful Some(Done))
 }

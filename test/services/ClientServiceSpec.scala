@@ -56,7 +56,7 @@ class ClientServiceSpec extends BaseSpec {
       val updateRef = await(service.updateClientReference(arn, displayClients.head, newName))
 
       //then
-      updateRef shouldBe Done
+      updateRef shouldBe Some(Done)
     }
   }
 

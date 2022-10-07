@@ -21,9 +21,8 @@ import com.google.inject.AbstractModule
 import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
-import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
-import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HttpClient, HttpResponse}
 
 class AgentUserClientDetailsConnectorSpec
     extends BaseSpec
@@ -71,13 +70,11 @@ class AgentUserClientDetailsConnectorSpec
       connector.getClients(arn).futureValue shouldBe None
     }
 
-    "throw error when status response is 5xx" in {
+    "return None when status response is 5xx" in {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(503, ""))
 
-      intercept[UpstreamErrorResponse] {
-        await(connector.getClients(arn))
-      }
+      connector.getClients(arn).futureValue shouldBe None
     }
   }
 
@@ -115,20 +112,18 @@ class AgentUserClientDetailsConnectorSpec
       connector.getTeamMembers(arn).futureValue shouldBe None
     }
 
-    "throw error when status response is 5xx" in {
+    "return None when status response is 5xx" in {
 
       mockHttpGet[HttpResponse](HttpResponse.apply(503, ""))
 
-      intercept[UpstreamErrorResponse] {
-        await(connector.getTeamMembers(arn))
-      }
+      connector.getTeamMembers(arn).futureValue shouldBe None
     }
   }
 
 
   "updateClientReference" should {
 
-    "return Future[Done] when response code is NO_CONTENT" in {
+    "return Some[Done] when response code is NO_CONTENT" in {
 
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
@@ -136,10 +131,10 @@ class AgentUserClientDetailsConnectorSpec
       mockHttpPUT[Client, HttpResponse](url,
         clientRequest,
         mockResponse)
-      connector.updateClientReference(arn, clientRequest).futureValue shouldBe Done
+      connector.updateClientReference(arn, clientRequest).futureValue shouldBe Some(Done)
     }
 
-    "throw exception when it fails" in {
+    "return None when it fails" in {
 
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
@@ -148,11 +143,7 @@ class AgentUserClientDetailsConnectorSpec
         clientRequest,
         mockResponse)
 
-      //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.updateClientReference(arn, clientRequest))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector.updateClientReference(arn, clientRequest).futureValue shouldBe None
     }
 
 

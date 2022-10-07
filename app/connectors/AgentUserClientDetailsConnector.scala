@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.http.Status.{ACCEPTED, NO_CONTENT, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,7 +43,7 @@ trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
 
   def updateClientReference(arn: Arn, client: Client)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Done]
+    ec: ExecutionContext): Future[Option[Done]]
 
 }
 
@@ -69,8 +69,9 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
           case ACCEPTED => None
           case OK       => response.json.asOpt[Seq[Client]]
           case e =>
-            throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
-                                        e)
+            logger.warn(
+              s"Got $e when fetching clients for ${arn.value}. Response message: '${response.body}''")
+            None
         }
       }
     }
@@ -87,8 +88,9 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
           case ACCEPTED => None
           case OK       => response.json.asOpt[Seq[UserDetails]]
           case e =>
-            throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}",
-                                        e)
+            logger.warn(
+              s"Got $e when fetching team members for ${arn.value}. Response message: '${response.body}''")
+            None
         }
       }
     }
@@ -97,7 +99,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
 
   override def updateClientReference(arn: Arn, client: Client)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Done] = {
+    ec: ExecutionContext): Future[Option[Done]] = {
     val url =
       s"$baseUrl/agent-user-client-details/arn/${arn.value}/update-friendly-name"
 
@@ -105,10 +107,11 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
       http
         .PUT[Client, HttpResponse](url, client).map { response =>
         response.status match {
-          case NO_CONTENT => Done
+          case NO_CONTENT => Some(Done)
           case e =>
-            throw UpstreamErrorResponse(s"error PUTing friendlyName for $client with agent ${arn.value}",
-              e)
+            logger.warn(
+              s"Got $e when PUTing friendlyName for $client with agent ${arn.value}. Response message: '${response.body}''")
+            None
         }
       }
     }

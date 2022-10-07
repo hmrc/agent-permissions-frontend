@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageClientController @Inject()(
@@ -125,13 +125,13 @@ class ManageClientController @Inject()(
   def submitUpdateClientReference(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).map {
+        clientService.lookupClient(arn)(clientId).flatMap {
           case Some(client) =>
             ClientReferenceForm.form()
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  Ok(
+                  Future successful Ok(
                     update_client_reference(
                       client,
                       formWithErrors))
@@ -140,7 +140,7 @@ class ManageClientController @Inject()(
                   for {
                     _ <- sessionCacheRepository.putSession[String](CLIENT_REFERENCE, newName)
                     _ <- clientService.updateClientReference(arn, client, newName)
-                  } yield ()
+                  } yield
                   Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId))
                 }
               )

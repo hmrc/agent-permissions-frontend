@@ -23,9 +23,8 @@ import models.DisplayClient
 import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
-import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady}
-import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HttpClient, HttpResponse}
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
@@ -70,14 +69,12 @@ class AgentPermissionsConnectorSpec
     "return Done when successful" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
-      connector.optIn(arn, None).futureValue shouldBe Done
+      connector.optIn(arn, None).futureValue shouldBe Some(Done)
     }
-    "throw an exception when there was a problem" in {
+    "return None when there was a problem" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
-      intercept[UpstreamErrorResponse] {
-        await(connector.optIn(arn, None))
-      }
+      connector.optIn(arn, None).futureValue shouldBe None
     }
   }
 
@@ -85,15 +82,13 @@ class AgentPermissionsConnectorSpec
     "return Done when successful" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
-      connector.optOut(arn).futureValue shouldBe Done
+      connector.optOut(arn).futureValue shouldBe Some(Done)
     }
 
-    "throw an exception when there was a problem" in {
+    "return None when there was a problem" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
-      intercept[UpstreamErrorResponse] {
-        await(connector.optOut(arn))
-      }
+      connector.optOut(arn).futureValue shouldBe None
     }
   }
 
@@ -106,20 +101,17 @@ class AgentPermissionsConnectorSpec
         s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
       val mockResponse = HttpResponse.apply(CREATED, "response Body")
       mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
-      connector.createGroup(arn)(groupRequest).futureValue shouldBe Done
+      connector.createGroup(arn)(groupRequest).futureValue shouldBe Some(Done)
     }
 
-    "throw an exception for any other HTTP response code" in {
+    "return None for any other HTTP response code" in {
 
       val groupRequest = GroupRequest("name of group", None, None)
       val url =
         s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.createGroup(arn)(groupRequest))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector.createGroup(arn)(groupRequest).futureValue shouldBe None
     }
   }
 
@@ -153,17 +145,16 @@ class AgentPermissionsConnectorSpec
         .futureValue shouldBe expectedTransformedResponse
     }
 
-    "throw an exception for any other HTTP response code" in {
+    "return None for any other HTTP response code" in {
 
       //given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpGet[HttpResponse](mockResponse)
 
       //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.groupsSummaries(arn))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector
+        .groupsSummaries(arn)
+        .futureValue shouldBe None
     }
   }
 
@@ -206,16 +197,15 @@ class AgentPermissionsConnectorSpec
         .futureValue shouldBe None
     }
 
-    "throw an exception for any other HTTP response code" in {
+    "return None for any other HTTP response code" in {
       //given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpGet[HttpResponse](mockResponse)
 
       //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.getGroupsForClient(arn, client.enrolmentKey))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector
+        .getGroupsForClient(arn, client.enrolmentKey)
+        .futureValue shouldBe None
     }
   }
 
@@ -260,16 +250,15 @@ class AgentPermissionsConnectorSpec
         .futureValue shouldBe None
     }
 
-    "throw an exception for any other HTTP response code" in {
+    "return None for any other HTTP response code" in {
       //given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       mockHttpGet[HttpResponse](mockResponse)
 
       //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.getGroupsForTeamMember(arn, agentUser))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector
+        .getGroupsForTeamMember(arn, agentUser)
+        .futureValue shouldBe None
     }
   }
 
@@ -307,7 +296,7 @@ class AgentPermissionsConnectorSpec
         .futureValue shouldBe expectedTransformedResponse
     }
 
-    "throw an exception for any other HTTP response code" in {
+    "return None for any other HTTP response code" in {
 
       //given
       val groupId = "234234"
@@ -315,10 +304,9 @@ class AgentPermissionsConnectorSpec
       mockHttpGet[HttpResponse](mockResponse)
 
       //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.getGroup(groupId))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector
+        .getGroup(groupId.toString)
+        .futureValue shouldBe None
     }
   }
 
@@ -333,10 +321,10 @@ class AgentPermissionsConnectorSpec
       mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url,
                                                             groupRequest,
                                                             mockResponse)
-      connector.updateGroup(groupId, groupRequest).futureValue shouldBe Done
+      connector.updateGroup(groupId, groupRequest).futureValue shouldBe Some(Done)
     }
 
-    "throw exception when it fails" in {
+    "return None when it fails" in {
 
       val groupId = "234234"
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
@@ -347,10 +335,7 @@ class AgentPermissionsConnectorSpec
                                                             mockResponse)
 
       //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.updateGroup(groupId, groupRequest))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector.updateGroup(groupId, groupRequest).futureValue shouldBe None
     }
 
   }
@@ -363,10 +348,10 @@ class AgentPermissionsConnectorSpec
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
       mockHttpDELETE[HttpResponse](url, mockResponse)
-      connector.deleteGroup(groupId).futureValue shouldBe Done
+      connector.deleteGroup(groupId).futureValue shouldBe Some(Done)
     }
 
-    "throw exception when it fails" in {
+    "return None when it fails" in {
 
       val groupId = "234234"
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
@@ -374,10 +359,7 @@ class AgentPermissionsConnectorSpec
       mockHttpDELETE[HttpResponse](url, mockResponse)
 
       //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.deleteGroup(groupId))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector.deleteGroup(groupId).futureValue shouldBe None
     }
 
   }
@@ -409,7 +391,7 @@ class AgentPermissionsConnectorSpec
       connector.groupNameCheck(arn, groupName).futureValue shouldBe false
     }
 
-    "throw exception when it fails" in {
+    "return false when it fails" in {
 
       val groupName = URLEncoder.encode("my fav%& clients", UTF_8.name)
       val expectedUrl =
@@ -420,10 +402,7 @@ class AgentPermissionsConnectorSpec
       mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.groupNameCheck(arn, groupName))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+      connector.groupNameCheck(arn, groupName).futureValue shouldBe false
     }
   }
 

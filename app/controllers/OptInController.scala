@@ -22,7 +22,7 @@ import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
-import services.OptInServiceImpl
+import services.OptinService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -35,7 +35,7 @@ class OptInController @Inject()(
                                  mcc: MessagesControllerComponents,
                                  val agentPermissionsConnector: AgentPermissionsConnector,
                                  val sessionCacheRepository: SessionCacheRepository,
-                                 optInService: OptInServiceImpl,
+                                 optInService: OptinService,
                                  start_optIn: start,
                                  want_to_opt_in: want_to_opt_in,
                                  you_have_opted_in: you_have_opted_in

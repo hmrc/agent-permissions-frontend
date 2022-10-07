@@ -239,13 +239,13 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         (mockAgentPermissionsConnector
           .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
           .expects(groupSummaries(3).groupId, expectedAddRequest1, *, *)
-          .returning(Future successful Done)
+          .returning(Future successful Some(Done))
 
         val expectedAddRequest2 = AddMembersToAccessGroupRequest(teamMembers = Some(Set(TeamMember.toAgentUser(teamMember))))
         (mockAgentPermissionsConnector
           .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
           .expects(groupSummaries(4).groupId, expectedAddRequest2, *, *)
-          .returning(Future successful Done)
+          .returning(Future successful Some(Done))
 
         implicit val request =
           FakeRequest("POST", submitUrl)

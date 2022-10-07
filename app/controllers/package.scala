@@ -85,7 +85,8 @@ package object controllers {
       FILTERED_CLIENTS,
       HIDDEN_CLIENTS_EXIST,
       CLIENT_FILTER_INPUT,
-      CLIENT_SEARCH_INPUT
+      CLIENT_SEARCH_INPUT,
+      RETURN_URL,
   )
 
   val selectingTeamMemberKeys =
@@ -123,7 +124,8 @@ package object controllers {
       CLIENT_REFERENCE,
       CLIENT_FILTER_INPUT,
       CLIENT_SEARCH_INPUT,
-      TEAM_MEMBER_SEARCH_INPUT
+      TEAM_MEMBER_SEARCH_INPUT,
+      RETURN_URL,
     )
 
 }

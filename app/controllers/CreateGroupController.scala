@@ -75,7 +75,7 @@ class CreateGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[String](GROUP_NAME) { maybeName =>
-          sessionCacheRepository.deleteFromSession(RETURN_URL).map( _ =>
+          sessionCacheService.clearCreateGroupSession().map( _ =>
             Ok(create(GroupNameForm.form().fill(maybeName.getOrElse(""))))
           )
         }

@@ -16,22 +16,23 @@
 
 package services
 
-import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS}
+import controllers.{CLIENT_FILTER_INPUT, GROUP_NAME, GROUP_NAME_CONFIRMED, HIDDEN_CLIENTS_EXIST, RETURN_URL, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys, selectingClientsKeys, selectingTeamMemberKeys}
 import models.{DisplayClient, TeamMember}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request, Result}
 import repository.SessionCacheRepository
+import uk.gov.hmrc.mongo.cache.DataKey
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SessionCacheService @Inject()(
-    sessionCacheRepository: SessionCacheRepository) {
+                                     sessionCacheRepository: SessionCacheRepository) {
 
   def writeGroupNameAndRedirect(name: String)(call: Call)(
-      implicit request: Request[_],
-      ec: ExecutionContext): Future[Result] = {
+    implicit request: Request[_],
+    ec: ExecutionContext): Future[Result] = {
     for {
       _ <- sessionCacheRepository.putSession[String](GROUP_NAME, name)
       _ <- sessionCacheRepository
@@ -48,8 +49,8 @@ class SessionCacheService @Inject()(
   }
 
   def saveSelectedClients(clients: Seq[DisplayClient])(
-      implicit request: Request[_],
-      ec: ExecutionContext): Future[(String, String)] = {
+    implicit request: Request[_],
+    ec: ExecutionContext): Future[(String, String)] = {
     sessionCacheRepository.putSession[Seq[DisplayClient]](
       SELECTED_CLIENTS,
       clients.map(dc => dc.copy(selected = true))
@@ -60,9 +61,19 @@ class SessionCacheService @Inject()(
     sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS)
   }
 
+  def clearCreateGroupSession()(implicit r: Request[_], ec: ExecutionContext): Future[Unit] = {
+    val sessionKeys: Seq[DataKey[_]] = selectingClientsKeys ++ selectingTeamMemberKeys ++ creatingGroupKeys
+    //defining these futures outside the for comprehension makes them truly async apparently.
+    val eventualUnits = sessionKeys.map(key => sessionCacheRepository.deleteFromSession(key))
+    for {
+      _ <- Future.sequence(eventualUnits)
+    } yield ()
+
+  }
+
   def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])(
-      implicit request: Request[_],
-      ec: ExecutionContext): Future[(String, String)] = {
+    implicit request: Request[_],
+    ec: ExecutionContext): Future[(String, String)] = {
 
     sessionCacheRepository.putSession[Seq[TeamMember]](
       SELECTED_TEAM_MEMBERS,

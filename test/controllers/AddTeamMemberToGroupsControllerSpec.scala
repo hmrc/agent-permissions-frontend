@@ -74,7 +74,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
   val teamMember = teamMembers(0)
 
-  s"GET ${routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id)}" should {
+  s"GET ${routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id).url}" should {
 
     "render correctly the html" in {
       //given
@@ -312,7 +312,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(teamMember.id)}" should {
+  s"GET ${routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(teamMember.id).url}" should {
 
     "render correctly the html" in {
       //given

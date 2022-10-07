@@ -105,7 +105,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   val controller: ManageGroupClientsController = fakeApplication.injector.instanceOf[ManageGroupClientsController]
 
-  s"GET ${routes.ManageGroupClientsController.showExistingGroupClients(accessGroup._id.toString)}" should {
+  s"GET ${routes.ManageGroupClientsController.showExistingGroupClients(accessGroup._id.toString).url}" should {
 
     "render correctly the EXISTING CLIENTS page with no query params" in {
       //given
@@ -254,7 +254,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString)}" should {
+  s"GET ${routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url}" should {
 
     "render correctly the manage group CLIENTS page" in {
       //given
@@ -536,7 +536,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupClientsController.showReviewSelectedClients(accessGroup._id.toString)}" should {
+  s"GET ${routes.ManageGroupClientsController.showReviewSelectedClients(accessGroup._id.toString).url}" should {
 
 
     "redirect if no clients selected are in session" in {
@@ -584,7 +584,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupClientsController.submitReviewSelectedClients(accessGroup._id.toString)}" should {
+  s"POST ${routes.ManageGroupClientsController.submitReviewSelectedClients(accessGroup._id.toString).url}" should {
 
     s"redirect to '${routes.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
 

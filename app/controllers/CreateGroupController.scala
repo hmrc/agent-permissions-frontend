@@ -75,7 +75,9 @@ class CreateGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[String](GROUP_NAME) { maybeName =>
-          Ok(create(GroupNameForm.form().fill(maybeName.getOrElse("")))).toFuture
+          sessionCacheRepository.deleteFromSession(RETURN_URL).map( _ =>
+            Ok(create(GroupNameForm.form().fill(maybeName.getOrElse(""))))
+          )
         }
       }
     }
@@ -90,8 +92,7 @@ class CreateGroupController @Inject()(
           .fold(
             formWithErrors => Ok(create(formWithErrors)).toFuture,
             (name: String) =>
-              sessionCacheService.writeGroupNameAndRedirect(name)(
-                controller.showConfirmGroupName)
+              sessionCacheService.writeGroupNameAndRedirect(name)(controller.showConfirmGroupName)
           )
       }
     }
@@ -348,14 +349,17 @@ class CreateGroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
-          sessionCacheRepository
-            .putSession(RETURN_URL, controllers.routes.CreateGroupController.showCheckYourAnswers.url)
-            .map(_ =>
-              Ok(check_your_answers(groupName, maybeTeamMembers.map(_.length), maybeClients.map(_.length)))
-            )
+          Ok(check_your_answers(groupName, maybeTeamMembers.map(_.length), maybeClients.map(_.length))).toFuture
         }
       }
     }
+  }
+
+  def redirectToEditClients: Action[AnyContent] = Action.async { implicit request =>
+    sessionCacheRepository.putSession(RETURN_URL,
+      controllers.routes.CreateGroupController.showCheckYourAnswers.url)
+      .map(_=> Redirect(controllers.routes.CreateGroupController.showSelectClients))
+
   }
 
   def submitCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>

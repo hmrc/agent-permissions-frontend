@@ -43,8 +43,7 @@
 }
 
 @pageTitle = @{
-    val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
-    errorPrefix.concat(msgs("group.client.list.h1", groupName))
+ withErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1", groupName)),
 }
 
 @layout(title = pageTitle, backLinkHref = backUrl, formErrors = Seq.empty, fullWidth = true) {

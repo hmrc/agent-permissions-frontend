@@ -38,7 +38,7 @@ object ViewUtils {
       case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
       case "HMRC-TERS-ORG"   => mgs("tax-service.trusts")
       case "HMRC-TERSNT-ORG" => mgs("tax-service.trusts")
-      case s                 => throw new Exception(s"$s is not a service key")
+      case s                 => throw new Exception(s"str: '$s' is not a service key")
     }
   }
 
@@ -71,4 +71,48 @@ object ViewUtils {
     }
   }
 
+  def withErrorPrefix(hasFormErrors: Boolean, str: String)(implicit mgs: Messages): String = {
+    val errorPrefix = if(hasFormErrors) { mgs("error-prefix") + " "} else {""}
+    errorPrefix.concat(mgs(str))
+  }
+
+
+  def withSearchPrefix( str: String,
+                        formFilter: Option[String],
+                        formSearch: Option[String]
+                       )(implicit mgs: Messages): String = {
+
+    val hasOneInput = if(formFilter.isDefined && formSearch.isDefined) {
+      Some(false)
+    } else {
+      if(formFilter.isDefined || formSearch.isDefined) {
+        Some(true)
+      } else {
+        None
+      }
+    }
+
+    val filterOrSearch = formFilter.getOrElse("").concat(formSearch.getOrElse(""))
+
+    if (hasOneInput.isDefined) {
+      if (hasOneInput.get) {
+        val prefix = mgs("common.results-for1", filterOrSearch)
+        prefix.concat(" " + mgs(str))
+      } else {
+        val prefix = mgs("common.results-for2", formSearch.get, formFilter.get)
+        prefix.concat(" " + mgs(str))
+      }
+    } else {
+      mgs(str)
+    }
+
+  }
+
+  def withSearchAndErrorPrefix(hasFormErrors: Boolean,
+                               str: String,
+                               formFilter: Option[String],
+                               formSearch: Option[String]
+                              )(implicit mgs: Messages): String = {
+    withErrorPrefix(hasFormErrors, withSearchPrefix(str, formFilter, formSearch))
+  }
 }

@@ -18,6 +18,8 @@ common.cancel=Cancel
 common.skip-to-results=Skip to results
 common.skip-to-clients=Skip to client list
 common.skip-to-team-members=Skip to team member list
+common.results-for1=Filter results for ''{0}''
+common.results-for2=Filter results for ''{0}'' or ''{1}''
 
 save.and.continue.button=Save and continue
 submit.button=Submit

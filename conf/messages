@@ -202,6 +202,8 @@ unassigned.client.assign.hint=Select all that apply
 unassigned.client.assign.h1=Which access groups would you like to add the selected clients to?
 unassigned.client.assign.existing.or.new.error=You cannot add to existing groups at the same time as creating a new group
 unassigned.client.assign.nothing.selected.error=You must select an access group or add a new group
+unassigned.client.no.groups.h1=You do not have any access groups. Add these clients to a new access group
+unassigned.client.no.groups.button=Add to a new access group
 
 clients.assigned.complete.h1=Clients added to access groups
 clients.assigned.complete.p=You have added these clients to the following groups:

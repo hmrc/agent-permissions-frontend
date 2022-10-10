@@ -33,6 +33,7 @@ import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
+import uk.gov.hmrc.mongo.cache.DataKey
 
 class CreateGroupControllerSpec extends BaseSpec {
 
@@ -144,6 +145,38 @@ class CreateGroupControllerSpec extends BaseSpec {
         .text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
       html.select(Css.submitButton).text() shouldBe "Continue"
+    }
+
+    "has a cleared session" in {
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(RETURN_URL, "WHATEVER"))
+      await(sessionCacheRepo.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true))
+      await(sessionCacheRepo.putSession(HIDDEN_CLIENTS_EXIST, true))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq.empty))
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, Seq.empty))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "dont care"))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+
+      await(sessionCacheRepo.getFromSession(RETURN_URL)) shouldBe Some("WHATEVER")
+      await(sessionCacheRepo.getFromSession(GROUP_NAME)) shouldBe Some("dont care")
+
+      val result = controller.showGroupName()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Create an access group - Agent services account - GOV.UK"
+
+      await(sessionCacheRepo.getFromSession(RETURN_URL)) shouldBe None
+      await(sessionCacheRepo.getFromSession(GROUP_NAME)) shouldBe None
+      await(sessionCacheRepo.getFromSession(GROUP_NAME_CONFIRMED)) shouldBe None
+      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)) shouldBe None
+      await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)) shouldBe None
+      await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST)) shouldBe None
+      await(sessionCacheRepo.getFromSession(HIDDEN_CLIENTS_EXIST)) shouldBe None
+
     }
   }
 
@@ -525,6 +558,28 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
     }
 
+    "render correct backling when navigating from check your answers page" in {
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubGetClientsOk(arn)(List.empty)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+      await(sessionCacheRepo.putSession(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url))
+
+      val result = controller.showSelectClients()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Select clients - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupController.showCheckYourAnswers.url
+
+    }
+
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -860,7 +915,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${controller.submitReviewSelectedClients()}" should {
+  s"POST ${routes.CreateGroupController.submitReviewSelectedClients.url}" should {
 
     s"redirect to '${controller.showSelectTeamMembers}' page with answer 'false'" in {
 
@@ -883,8 +938,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showSelectTeamMembers.url
     }
 
-    s"redirect to '${routes.CreateGroupController.showSelectClients}'" +
-      s" page with answer 'true'" in {
+    s"redirect to '${routes.CreateGroupController.showSelectClients.url}' page with answer 'true'" in {
 
       implicit val request =
         FakeRequest(
@@ -946,7 +1000,6 @@ class CreateGroupControllerSpec extends BaseSpec {
 
     val teamMembers = fakeTeamMembers.map(TeamMember.fromUserDetails)
 
-    // TODO move all reused local vars to the top
     "render team members when filter is not applied" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -1058,6 +1111,28 @@ class CreateGroupControllerSpec extends BaseSpec {
       // Not found content
       html.select(Css.H2).text() shouldBe "No team members found"
       html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
+
+    }
+
+    "render correct back link when coming from check you answers page" in {
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      stubGetTeamMembersOk(arn)(Seq.empty)
+
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+      await(sessionCacheRepo.putSession(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url))
+
+      val result = controller.showSelectTeamMembers()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupController.showCheckYourAnswers.url
 
     }
 
@@ -1300,7 +1375,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${controller.showReviewSelectedTeamMembers}" should {
+  s"GET ${routes.CreateGroupController.showReviewSelectedTeamMembers.url}" should {
 
     "render with selected team members" in {
 
@@ -1375,7 +1450,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers}" should {
+  s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers.url}" should {
 
     s"redirect to '${controller.showCheckYourAnswers}' page with answer 'false'" in {
 
@@ -1527,7 +1602,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${routes.CreateGroupController.showCheckYourAnswers.url}" should {
+  s"POST to ${routes.CreateGroupController.submitCheckYourAnswers.url}" should {
 
     "redirect to Group Name page if no group name in session" in {
 
@@ -1620,6 +1695,21 @@ class CreateGroupControllerSpec extends BaseSpec {
         await(controller.submitCheckYourAnswers()(request))
       }
       caught.statusCode shouldBe BAD_REQUEST
+    }
+  }
+
+  s"GET ${routes.CreateGroupController.redirectToEditClients.url}" should {
+
+    "redirect to select-clients" in {
+
+      val result = controller.redirectToEditClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.CreateGroupController.showSelectClients.url
+      val item = await(sessionCacheRepo.getFromSession(RETURN_URL))
+      item.isDefined shouldBe true
+      item.get shouldBe routes.CreateGroupController.showCheckYourAnswers.url
+
     }
   }
 

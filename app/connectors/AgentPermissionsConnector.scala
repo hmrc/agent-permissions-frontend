@@ -118,6 +118,9 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
       http.POSTEmpty[HttpResponse](url).map { response =>
         response.status match {
           case CREATED => Done
+          case CONFLICT =>
+            logger.warn(s"Tried to optin $arn when already opted in")
+            Done
           case e =>
             throw UpstreamErrorResponse(
               s"error sending opt-in request for ${arn.value}",
@@ -134,6 +137,9 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
       http.POSTEmpty[HttpResponse](url).map { response =>
         response.status match {
           case CREATED => Done
+          case CONFLICT =>
+            logger.warn(s"Tried to optout $arn when already opted out")
+            Done
           case e =>
             throw UpstreamErrorResponse(s"error sending opt out request", e)
         }

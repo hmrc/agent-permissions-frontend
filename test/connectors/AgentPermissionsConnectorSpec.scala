@@ -72,6 +72,12 @@ class AgentPermissionsConnectorSpec
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
       connector.optIn(arn, None).futureValue shouldBe Done
     }
+
+    "return Done when already opted in" in {
+      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CONFLICT, ""))
+      connector.optIn(arn, None).futureValue shouldBe Done
+    }
+
     "throw an exception when there was a problem" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
@@ -85,6 +91,11 @@ class AgentPermissionsConnectorSpec
     "return Done when successful" in {
 
       mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
+      connector.optOut(arn).futureValue shouldBe Done
+    }
+
+    "return Done when already opted out" in {
+      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CONFLICT, ""))
       connector.optOut(arn).futureValue shouldBe Done
     }
 

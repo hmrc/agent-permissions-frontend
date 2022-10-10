@@ -68,9 +68,10 @@ package object controllers {
   val NAME_OF_GROUP_CREATED: DataKey[String] = DataKey("nameOfGroupCreated")
   val GROUP_RENAMED_FROM: DataKey[String] = DataKey("groupRenamedFrom")
   val GROUP_DELETED_NAME: DataKey[String] = DataKey("groupDeletedName")
+  val RETURN_URL: DataKey[String] = DataKey("returnUrl")
 
   val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]]
-    = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
+  = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
 
   val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]] = DataKey("filteredGroupSummaries")
   val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
@@ -83,8 +84,8 @@ package object controllers {
       FILTERED_CLIENTS,
       HIDDEN_CLIENTS_EXIST,
       CLIENT_FILTER_INPUT,
-      CLIENT_SEARCH_INPUT
-  )
+      CLIENT_SEARCH_INPUT,
+    )
 
   val selectingTeamMemberKeys =
     List(
@@ -98,30 +99,29 @@ package object controllers {
       GROUP_NAME,
       GROUP_NAME_CONFIRMED,
       SELECTED_CLIENTS,
-      SELECTED_TEAM_MEMBERS
+      SELECTED_TEAM_MEMBERS,
+      RETURN_URL,
     )
 
-  val sessionKeys =
-    List(
-      OPTIN_STATUS,
-      GROUP_NAME,
-      GROUP_NAME_CONFIRMED,
-      SELECTED_CLIENTS,
-      GROUP_CLIENTS,
-      NAME_OF_GROUP_CREATED,
-      GROUP_RENAMED_FROM,
-      GROUP_DELETED_NAME,
-      FILTERED_CLIENTS,
-      HIDDEN_CLIENTS_EXIST,
-      FILTERED_TEAM_MEMBERS,
-      HIDDEN_TEAM_MEMBERS_EXIST,
-      SELECTED_TEAM_MEMBERS,
-      GROUPS_FOR_UNASSIGNED_CLIENTS,
-      FILTERED_GROUP_SUMMARIES,
-      CLIENT_REFERENCE,
-      CLIENT_FILTER_INPUT,
-      CLIENT_SEARCH_INPUT,
-      TEAM_MEMBER_SEARCH_INPUT
-    )
+  val sessionKeys = (
+    selectingClientsKeys ++
+      selectingTeamMemberKeys ++
+      creatingGroupKeys ++
+      List(
+        OPTIN_STATUS,
+        GROUP_NAME,
+        GROUP_NAME_CONFIRMED,
+        GROUP_CLIENTS,
+        NAME_OF_GROUP_CREATED,
+        GROUP_RENAMED_FROM,
+        GROUP_DELETED_NAME,
+        GROUPS_FOR_UNASSIGNED_CLIENTS,
+        FILTERED_GROUP_SUMMARIES,
+        CLIENT_REFERENCE,
+        CLIENT_FILTER_INPUT,
+        CLIENT_SEARCH_INPUT,
+        TEAM_MEMBER_SEARCH_INPUT,
+        RETURN_URL,
+      )).distinct
 
 }

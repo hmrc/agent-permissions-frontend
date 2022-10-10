@@ -60,7 +60,7 @@ class OptInControllerSpec extends BaseSpec {
 
   val controller: OptInController = fakeApplication.injector.instanceOf[OptInController]
 
-  s"GET ${routes.OptInController.start}" should {
+  s"GET ${routes.OptInController.start.url}" should {
 
     "display content for start" in {
 
@@ -150,7 +150,7 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.OptInController.showDoYouWantToOptIn}" should {
+  s"GET ${routes.OptInController.showDoYouWantToOptIn.url}" should {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -182,7 +182,7 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.OptInController.submitDoYouWantToOptIn}" should {
+  s"POST ${routes.OptInController.submitDoYouWantToOptIn.url}" should {
 
     s"redirect to '${routes.OptInController.showYouHaveOptedIn}' page with answer 'true'" in {
 
@@ -272,7 +272,7 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.OptInController.showYouHaveOptedIn}" should {
+  s"GET ${routes.OptInController.showYouHaveOptedIn.url}" should {
     "display expected content when client list not available yet" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)

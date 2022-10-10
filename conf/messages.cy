@@ -213,6 +213,8 @@ unassigned.client.assign.hint=Dewiswch bob un sy’n berthnasol
 unassigned.client.assign.h1=At ba grwpiau mynediad yr ydych am ychwanegu’r cleientiaid sydd wedi’u dewis?
 unassigned.client.assign.existing.or.new.error=Ni allwch ychwanegu at grwpiau presennol ar yr un pryd â chreu grŵp newydd
 unassigned.client.assign.nothing.selected.error=Mae’n rhaid i chi ddewis grŵp mynediad neu ychwanegu grŵp newydd
+unassigned.client.no.groups.h1=Nid oes gennych unrhyw grwpiau mynediad. Ychwanegu'r cleientiaid hyn at grŵp mynediad newydd
+unassigned.client.no.groups.button=Ychwanegu at grŵp mynediad newydd
 
 clients.assigned.complete.h1=Cleientiaid wedi’u hychwanegu at grwpiau mynediad
 clients.assigned.complete.p=Rydych wedi ychwanegu’r cleientiaid hyn at y grwpiau canlynol:

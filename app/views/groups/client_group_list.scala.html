@@ -43,7 +43,9 @@
 }
 
 @pageTitle = @{
- withErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1", groupName)),
+    withSearchAndErrorPrefix(!form.errors.isEmpty,
+                              msgs("group.client.list.h1", groupName),
+                              form("filter").value, form("search").value)
 }
 
 @layout(title = pageTitle, backLinkHref = backUrl, formErrors = Seq.empty, fullWidth = true) {

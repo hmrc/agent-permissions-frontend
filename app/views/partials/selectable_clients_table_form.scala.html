@@ -118,6 +118,10 @@
 
     @if(clients.getOrElse(Seq.empty).nonEmpty) {
 
+        @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
+            @h2(withSearchPrefix("", form("filter").value, form("search").value))
+        }
+
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
                 <p id="clients-error" class="govuk-error-message">

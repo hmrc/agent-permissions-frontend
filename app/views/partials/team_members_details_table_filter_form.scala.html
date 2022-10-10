@@ -83,6 +83,11 @@
     </div>
 
     @if(teamMembers.getOrElse(Seq.empty).nonEmpty) {
+
+        @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
+                @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
+        }
+
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
 
         @table(

@@ -82,24 +82,29 @@ object ViewUtils {
                         formSearch: Option[String]
                        )(implicit mgs: Messages): String = {
 
-    val hasOneInput = if(formFilter.isDefined && formSearch.isDefined) {
+    // it's a bit annoying that the form makes it an option but an empty term is usually "" so .isDefined or .nonEmpty are both unhelpful here
+    val hasOneInput = if(formFilter.getOrElse("") != "" && formSearch.getOrElse("") != "") {
       Some(false)
     } else {
-      if(formFilter.isDefined || formSearch.isDefined) {
+      if(formFilter.getOrElse("") != "" || formSearch.getOrElse("") != "") {
         Some(true)
       } else {
         None
       }
     }
 
-    val filterOrSearch = formFilter.getOrElse("").concat(formSearch.getOrElse(""))
+    val filterOrSearch = if (formFilter.getOrElse("") != "") {
+      displayTaxServiceFromServiceKey(formFilter.get)
+    } else {
+      formSearch.getOrElse("")
+    }
 
     if (hasOneInput.isDefined) {
       if (hasOneInput.get) {
         val prefix = mgs("common.results-for1", filterOrSearch)
         prefix.concat(" " + mgs(str))
       } else {
-        val prefix = mgs("common.results-for2", formSearch.get, formFilter.get)
+        val prefix = mgs("common.results-for2", formSearch.get, displayTaxServiceFromServiceKey(formFilter.get))
         prefix.concat(" " + mgs(str))
       }
     } else {
@@ -108,11 +113,17 @@ object ViewUtils {
 
   }
 
+  // prioritises Error prefix (error state clears any filter) - useful for page titles
   def withSearchAndErrorPrefix(hasFormErrors: Boolean,
                                str: String,
                                formFilter: Option[String],
                                formSearch: Option[String]
                               )(implicit mgs: Messages): String = {
-    withErrorPrefix(hasFormErrors, withSearchPrefix(str, formFilter, formSearch))
+    if (hasFormErrors) {
+      withErrorPrefix(hasFormErrors, str)
+    } else {
+      withSearchPrefix(str, formFilter, formSearch)
+    }
+
   }
 }

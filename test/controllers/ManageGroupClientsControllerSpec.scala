@@ -300,6 +300,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "render correctly the manage group CLIENTS page when there are no clients" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT"))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
@@ -312,7 +313,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Update clients in this group - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for 'VAT' Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Update clients in this group"
 
@@ -371,8 +372,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "render with clients held in session when a filter was applied" in {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(
-        sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
+      await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients.take(1)))
+      await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "blah"))
+      await(sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT"))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
@@ -386,8 +388,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Update clients in this group - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'blah' or 'VAT' Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Update clients in this group"
+      html.select(H2).text() shouldBe "Filter results for 'blah' or 'VAT'"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")

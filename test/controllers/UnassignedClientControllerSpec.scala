@@ -121,8 +121,10 @@ class UnassignedClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Unassigned clients - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'friendly1' Unassigned clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Unassigned clients"
+
+      html.select(H2).text() shouldBe "Filter results for 'friendly1'"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4

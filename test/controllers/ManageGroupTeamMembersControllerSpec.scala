@@ -273,6 +273,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers ))
+      await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
@@ -285,8 +286,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'John' Update team members in this group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Update team members in this group"
+
+      html.select(H2).text() shouldBe "Filter results for 'John'"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")

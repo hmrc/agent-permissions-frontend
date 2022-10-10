@@ -33,6 +33,7 @@ import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
+import uk.gov.hmrc.mongo.cache.DataKey
 
 class CreateGroupControllerSpec extends BaseSpec {
 
@@ -144,6 +145,38 @@ class CreateGroupControllerSpec extends BaseSpec {
         .text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
       html.select(Css.submitButton).text() shouldBe "Continue"
+    }
+
+    "has a cleared session" in {
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(RETURN_URL, "WHATEVER"))
+      await(sessionCacheRepo.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true))
+      await(sessionCacheRepo.putSession(HIDDEN_CLIENTS_EXIST, true))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq.empty))
+      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, Seq.empty))
+      await(sessionCacheRepo.putSession(GROUP_NAME, "dont care"))
+      await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+
+      await(sessionCacheRepo.getFromSession(RETURN_URL)) shouldBe Some("WHATEVER")
+      await(sessionCacheRepo.getFromSession(GROUP_NAME)) shouldBe Some("dont care")
+
+      val result = controller.showGroupName()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Create an access group - Agent services account - GOV.UK"
+
+      await(sessionCacheRepo.getFromSession(RETURN_URL)) shouldBe None
+      await(sessionCacheRepo.getFromSession(GROUP_NAME)) shouldBe None
+      await(sessionCacheRepo.getFromSession(GROUP_NAME_CONFIRMED)) shouldBe None
+      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)) shouldBe None
+      await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)) shouldBe None
+      await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST)) shouldBe None
+      await(sessionCacheRepo.getFromSession(HIDDEN_CLIENTS_EXIST)) shouldBe None
+
     }
   }
 

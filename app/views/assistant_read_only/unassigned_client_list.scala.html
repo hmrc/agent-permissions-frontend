@@ -35,7 +35,9 @@
 
 
 @layout(
-    title = msgs("assistant.clients.unassigned.h1"),
+    title = withSearchAndErrorPrefix(!filterForm.errors.isEmpty,
+                                     msgs("assistant.clients.unassigned.h1"),
+                                     filterForm("filter").value, filterForm("search").value),
     backLinkHref = Some(appConfig.agentServicesAccountYourAssistantAccountUrl),
     fullWidth = true
 ) {

@@ -31,7 +31,11 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("assistant.clients.group.h1", group.name),
+    title = withSearchAndErrorPrefix(!filterForm.errors.isEmpty,
+                                     msgs("assistant.clients.group.h1", group.name),
+                                     filterForm("filter").value,
+                                     filterForm("search").value
+    ),
     backLinkHref = Some(appConfig.agentServicesAccountYourAssistantAccountUrl),
     fullWidth = true
 ) {

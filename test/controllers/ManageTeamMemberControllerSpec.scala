@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
-import helpers.Css.H1
+import helpers.Css.{H1, H2}
 import helpers.{BaseSpec, Css}
 import models.TeamMember
 import org.jsoup.Jsoup
@@ -94,7 +94,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     "render the manage team members list" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedInReady)
       stubGetTeamMembersOk(arn)(userDetails)
 
@@ -140,8 +140,9 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'john1' Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
+      html.select(H2).text shouldBe "Filter results for 'john1'"
 
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       trs.size() shouldBe 1

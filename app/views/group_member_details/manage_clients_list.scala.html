@@ -35,13 +35,12 @@
     backUrl: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@pageTitle = @{
-    val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
-    errorPrefix.concat(msgs("group.manage.clients"))
-}
 
 @layout(
-    title = pageTitle,
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty,
+                                     msgs("group.manage.clients"),
+                                     form("filter").value,
+                                     form("search").value),
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
     fullWidth = true
 ) {

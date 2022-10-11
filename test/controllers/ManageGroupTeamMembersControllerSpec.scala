@@ -152,8 +152,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'John 1' Manage team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Manage team members"
+      html.select(H2).text shouldBe "Filter results for 'John 1'"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -187,8 +188,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Manage team members"
+      html.select(H2).text shouldBe "Filter results for 'hn2@ab'"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -221,7 +223,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Manage team members"
 
       val tableOfTeamMembers = html.select(Css.tableWithId("members"))

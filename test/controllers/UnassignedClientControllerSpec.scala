@@ -577,7 +577,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
-      html.select(Css.errorSummaryForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
+      html.select(Css.errorSummaryForField("groupId1"))
+        .text() shouldBe "You must select an access group or add a new group"
       html.select(Css.errorForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
 
 
@@ -606,7 +607,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
-      html.select(Css.errorSummaryForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
+      html.select(Css.errorSummaryForField("groupId1"))
+        .text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
       html.select(Css.errorForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
 
 

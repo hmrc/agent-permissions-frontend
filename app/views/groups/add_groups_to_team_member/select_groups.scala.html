@@ -19,6 +19,7 @@
 @import controllers.routes
 @import views.components.models.CheckboxData
 @import views.html.main_layout
+@import views.components.models.LegendData
 
 @this(
     layout: main_layout,
@@ -27,6 +28,7 @@
     caption: caption, table: table,
     submit_button: submit_button, a_button: link_as_button,
     checkboxes: checkboxes,
+    govukErrorSummary: GovukErrorSummary,
 )
 
 @(
@@ -39,11 +41,21 @@
 @h1Text = @{msgs(if(availableGroups.isEmpty) "member.select.groups.none.h1" else "member.select.groups.h1", teamMember.name)}
 
     @layout(
-        title = h1Text,
-        backLinkHref = Some(routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url),
+        title = withErrorPrefix(form.hasErrors, h1Text),
         fullWidth = true,
-        formErrors = form.errors
+        backLinkHref = Some(routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url),
     ) {
+
+    @if(form.errors && availableGroups.nonEmpty) {
+        @govukErrorSummary(
+            ErrorSummary(errorList = Seq(
+                ErrorLink(Some("#" + availableGroups(0).groupId),
+                    Text(msgs("error.member.select.groups.empty"))
+                )
+            )
+            )
+        )
+    }
 
         <div class="govuk-!-width-two-thirds">
             @h1(h1Text)
@@ -62,27 +74,29 @@
         @if(!availableGroups.isEmpty) {
 
             @formWithCSRF(action = routes.AddTeamMemberToGroupsController.submitSelectGroupsForTeamMember(teamMember.id)) {
+                <fieldset class="govuk-fieldset">
+                    @checkboxes(
+                        id = Some("groups"),
+                        hint = Some("Select all that apply"),
+                        field = form("groups"),
+                        name = "groups[]",
+                        items = availableGroups.map { g =>
+                            CheckboxData(
+                                id = g.groupId,
+                                label = g.groupName,
+                                value = g.groupId
+                            )
+                        },
+                        legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden")))
+                    )
 
-                @checkboxes(
-                    id = Some("groups"),
-                    hint = Some("Select all that apply"),
-                    field = form("groups"),
-                    name = "groups[]",
-                    items = availableGroups.map { g =>
-                        CheckboxData(
-                            id = g.groupId,
-                            label = g.groupName,
-                            value = g.groupId
-                        )
-                    }
-                )
-
-                @a_button(
-                    routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url,
-                    key = "common.cancel",
-                    classes = Some("govuk-button--secondary govuk-!-margin-right-3")
-                )
-                @submit_button(messageKey = "save.and.continue.button")
+                    @a_button(
+                        routes.ManageTeamMemberController.showTeamMemberDetails(teamMember.id).url,
+                        key = "common.cancel",
+                        classes = Some("govuk-button--secondary govuk-!-margin-right-3")
+                    )
+                    @submit_button(messageKey = "save.and.continue.button")
+                </fieldset>
             }
         } else {
             <div class="govuk-!-margin-top-8">

@@ -30,23 +30,23 @@
         formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[SelectGroups],
-        groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(form: Form[SelectGroups], groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @heading = @{
-        if(groups.nonEmpty) "unassigned.client.assign.h1" else "unassigned.client.no.groups.h1"
-    }
+@heading = @{
+    if(groups.nonEmpty) "unassigned.client.assign.h1" else "unassigned.client.no.groups.h1"
+}
 
-    @layout(
-        title = msgs(heading),
-        formErrors = form.errors,
-        backLinkHref = Some(routes.UnassignedClientController.showSelectedUnassignedClients.url)
-    ) {
-        @h1(heading)
-        @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
-            @if(groups.isEmpty) {
-                @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")
-            } else {
+@layout(
+    title = msgs(heading),
+    formErrors = form.errors,
+    backLinkHref = Some(routes.UnassignedClientController.showSelectedUnassignedClients.url)
+) {
+    @h1(heading)
+    @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
+        @if(groups.isEmpty) {
+            @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")
+        } else {
+            <fieldset class="govuk-fieldset">
 
                 <div id="field-wrapper" class="govuk-form-group  @{
                     if(form.errors) "govuk-form-group--error" else ""
@@ -94,6 +94,7 @@
                 </div>
 
                 @submit_button()
-            }
+            </fieldset>
         }
     }
+}

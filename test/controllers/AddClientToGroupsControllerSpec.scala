@@ -106,7 +106,11 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       html.select(Css.li("already-in-groups")).get(1).text() shouldBe "Group 2"
       val form = html.select(Css.form)
       form.attr("action").shouldBe(submitUrl)
-      val checkboxes = form.select(".govuk-checkboxes#groups input[name=groups[]]")
+
+      val fieldset = form.select("fieldset.govuk-fieldset")
+      fieldset.isEmpty shouldBe false // <-- fieldset needed for a11y
+
+      val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
       checkboxes size() shouldBe 3
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
       checkboxLabels.get(0).text() shouldBe "Group 3"
@@ -299,7 +303,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       // then
       html.title() shouldBe "Error: Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
-      html.select(Css.errorSummaryForField("groups")).text() shouldBe "You must select at least one group"
+      //a11y: error should link to first group in the checkboxes
+      html.select(Css.errorSummaryForField("groupId3")).text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"
     }
   }

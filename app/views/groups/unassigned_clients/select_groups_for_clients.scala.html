@@ -27,30 +27,40 @@
         submit_button: submit_button,
         link_as_button: link_as_button,
         checkboxes: checkboxes,
-        formWithCSRF: FormWithCSRF
+        formWithCSRF: FormWithCSRF,
+        govukErrorSummary: GovukErrorSummary
 )
 
-@(form: Form[SelectGroups],
-        groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(form: Form[SelectGroups], groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @heading = @{
-        if(groups.nonEmpty) "unassigned.client.assign.h1" else "unassigned.client.no.groups.h1"
+@heading = @{
+    if(groups.nonEmpty) "unassigned.client.assign.h1" else "unassigned.client.no.groups.h1"
+}
+
+@formErrorsClasses = @{if(form.errors) "govuk-form-group--error" else ""}
+
+@layout(title = msgs(heading),
+    backLinkHref = Some(routes.UnassignedClientController.showSelectedUnassignedClients.url)) {
+
+    @if(form.errors && groups.nonEmpty) {
+        @govukErrorSummary(
+            ErrorSummary(
+                errorList = Seq(
+                    ErrorLink(Some("#" + groups(0).groupId), Text(msgs(form.errors(0).message)))
+                )
+            )
+        )
     }
 
-    @layout(
-        title = msgs(heading),
-        formErrors = form.errors,
-        backLinkHref = Some(routes.UnassignedClientController.showSelectedUnassignedClients.url)
-    ) {
-        @h1(heading)
-        @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
-            @if(groups.isEmpty) {
-                @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")
-            } else {
+    @h1(heading)
+    @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
+        @if(groups.isEmpty) {
+            @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")
+        } else {
+            <fieldset class="govuk-fieldset">
+                <legend class="govuk-visually-hidden">@heading</legend>
 
-                <div id="field-wrapper" class="govuk-form-group  @{
-                    if(form.errors) "govuk-form-group--error" else ""
-                }">
+                <div id="field-wrapper" class="govuk-form-group  @formErrorsClasses">
                     @if(form.errors) {
                         @p(key = form.errors(0).message,
                             id = Some("field-wrapper-error"),
@@ -85,8 +95,6 @@
                                 label = "Add to a new access group",
                                 value = "true",
                                 checked = form.data.get("createNew").isDefined
-
-
                             )
                         ),
                         hint = Some("or")
@@ -94,6 +102,8 @@
                 </div>
 
                 @submit_button()
-            }
+
+            </fieldset>
         }
     }
+}

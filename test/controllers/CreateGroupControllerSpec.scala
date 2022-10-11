@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest}
-import helpers.Css.{H1, paragraphs}
+import helpers.Css.{H1, H2, paragraphs}
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
@@ -499,6 +499,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       stubGetClientsOk(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
+      await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1"))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
@@ -509,8 +510,9 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
+      html.title() shouldBe "Filter results for 'friendly1' Select clients - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select clients"
+      html.select(H2).text() shouldBe "Filter results for 'friendly1'"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
@@ -541,6 +543,8 @@ class CreateGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
+      await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "blah"))
+      await(sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT"))
 
       val result = controller.showSelectClients()(request)
 
@@ -549,7 +553,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html
-        .title() shouldBe s"Select clients - Agent services account - GOV.UK"
+        .title() shouldBe s"Filter results for 'blah' or 'VAT' Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Select clients"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
@@ -558,7 +562,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
     }
 
-    "render correct backling when navigating from check your answers page" in {
+    "render correct back link when navigating from check your answers page" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -1049,6 +1053,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       stubGetTeamMembersOk(arn)(users)
 
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
+      await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
@@ -1059,8 +1064,10 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'John' Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
+
+      html.select(H2).text() shouldBe "Filter results for 'John'"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4

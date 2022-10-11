@@ -44,8 +44,7 @@
 }
 
 @pageTitle = @{
-    val errorPrefix = if(!form.errors.isEmpty) msgs("error-prefix") + " " else ""
-    errorPrefix.concat(msgs(s"group.${msgKey}.members.list.h1", groupName))
+withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"group.${msgKey}.members.list.h1", groupName), None, form("search").value)
 }
 
 @layout(

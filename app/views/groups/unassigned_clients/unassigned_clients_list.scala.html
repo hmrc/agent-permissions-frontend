@@ -43,8 +43,12 @@ if(addClientsToGroupForm.errors.map(error => error.message).contains("error.sear
 }
 
 @pageTitle = @{
-val errorPrefix = if(!addClientsToGroupForm.errors.isEmpty) msgs("error-prefix") + " " else ""
-errorPrefix.concat(msgs("group.manage.tabs.2.label"))
+withSearchAndErrorPrefix(
+                            !addClientsToGroupForm.errors.isEmpty,
+                            msgs("group.manage.tabs.2.label"),
+                            addClientsToGroupForm("filter").value,
+                            addClientsToGroupForm("search").value
+                        )
 }
 
 @layout(title = pageTitle,

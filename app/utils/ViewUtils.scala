@@ -38,7 +38,7 @@ object ViewUtils {
       case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
       case "HMRC-TERS-ORG"   => mgs("tax-service.trusts")
       case "HMRC-TERSNT-ORG" => mgs("tax-service.trusts")
-      case s                 => throw new Exception(s"$s is not a service key")
+      case s                 => throw new Exception(s"str: '$s' is not a service key")
     }
   }
 
@@ -71,4 +71,59 @@ object ViewUtils {
     }
   }
 
+  def withErrorPrefix(hasFormErrors: Boolean, str: String)(implicit mgs: Messages): String = {
+    val errorPrefix = if(hasFormErrors) { mgs("error-prefix") + " "} else {""}
+    errorPrefix.concat(mgs(str))
+  }
+
+
+  def withSearchPrefix( str: String,
+                        formFilter: Option[String],
+                        formSearch: Option[String]
+                       )(implicit mgs: Messages): String = {
+
+    // it's a bit annoying that the form makes it an option but an empty term is usually "" so .isDefined or .nonEmpty are both unhelpful here
+    val hasOneInput = if(formFilter.getOrElse("") != "" && formSearch.getOrElse("") != "") {
+      Some(false)
+    } else {
+      if(formFilter.getOrElse("") != "" || formSearch.getOrElse("") != "") {
+        Some(true)
+      } else {
+        None
+      }
+    }
+
+    val filterOrSearch = if (formFilter.getOrElse("") != "") {
+      displayTaxServiceFromServiceKey(formFilter.get)
+    } else {
+      formSearch.getOrElse("")
+    }
+
+    if (hasOneInput.isDefined) {
+      if (hasOneInput.get) {
+        val prefix = mgs("common.results-for1", filterOrSearch)
+        prefix.concat(" " + mgs(str))
+      } else {
+        val prefix = mgs("common.results-for2", formSearch.get, displayTaxServiceFromServiceKey(formFilter.get))
+        prefix.concat(" " + mgs(str))
+      }
+    } else {
+      mgs(str)
+    }
+
+  }
+
+  // prioritises Error prefix (error state clears any filter) - useful for page titles
+  def withSearchAndErrorPrefix(hasFormErrors: Boolean,
+                               str: String,
+                               formFilter: Option[String],
+                               formSearch: Option[String]
+                              )(implicit mgs: Messages): String = {
+    if (hasFormErrors) {
+      withErrorPrefix(hasFormErrors, str)
+    } else {
+      withSearchPrefix(str, formFilter, formSearch)
+    }
+
+  }
 }

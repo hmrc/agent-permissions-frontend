@@ -46,7 +46,7 @@
     }
 
     @layout(
-        title = msgs("group.manage.members", group.groupName),
+        title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.manage.members", group.groupName), None, form("search").value),
         backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
         fullWidth = true) {
 
@@ -55,6 +55,7 @@
             @h1(msgs("group.manage.members"))
         </div>
 
+        @* TODO use a partial *@
         @govukSkipLink(SkipLink(
             href = "#members",
             content = Text(msgs("common.skip-to-team-members"))
@@ -90,6 +91,10 @@
         }
 
     @if(teamMembers.nonEmpty) {
+
+        @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
+            @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
+        }
 
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
         @table(

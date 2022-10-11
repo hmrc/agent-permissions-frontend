@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
-import helpers.Css.H1
+import helpers.Css.{H1, H2}
 import helpers.{BaseSpec, Css}
 import models.DisplayClient
 import org.jsoup.Jsoup
@@ -147,8 +147,9 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage clients - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'friendly1' Manage clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
+      html.select(H2).text() shouldBe "Filter results for 'friendly1'"
 
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       trs.size() shouldBe 1
@@ -176,8 +177,9 @@ class ManageClientControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Manage clients - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for 'friendly1' or 'Capital Gains Tax on UK Property account' Manage clients - Agent services account - GOV.UK"
       html.select(Css.H1).text shouldBe "Manage clients"
+      html.select(H2).text shouldBe "No clients found"
 
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       trs.size() shouldBe 0

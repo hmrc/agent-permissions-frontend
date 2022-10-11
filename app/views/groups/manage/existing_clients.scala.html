@@ -47,7 +47,7 @@
 }
 
 @layout(
-    title = msgs("group.existing.clients.title",  group.name),
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title",  group.name), form("filter").value, form("search").value),
     backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
     fullWidth = true
 ) {
@@ -57,10 +57,12 @@
         @h1("group.existing.clients.h1")
     </div>
 
+    @* TODO use a partial *@
     @govukSkipLink(SkipLink(
         href = "#clients",
         content = Text(msgs("common.skip-to-clients"))
     ))
+
 
     @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group._id)) {
 
@@ -101,6 +103,10 @@
     </div>
     }
     @if(group.clients.nonEmpty) {
+
+        @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
+            @h2(withSearchPrefix("", form("filter").value, form("search").value))
+        }
 
         <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
         @table(

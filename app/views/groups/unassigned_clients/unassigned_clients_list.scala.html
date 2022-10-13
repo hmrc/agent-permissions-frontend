@@ -72,7 +72,7 @@ withSearchAndErrorPrefix(
     } else {
 
         @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
-        <div class="govuk-grid-row">
+        <div class="govuk-grid-row" role="search">
             @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
             }

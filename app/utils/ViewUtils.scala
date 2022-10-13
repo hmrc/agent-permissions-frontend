@@ -38,7 +38,9 @@ object ViewUtils {
       case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
       case "HMRC-TERS-ORG"   => mgs("tax-service.trusts")
       case "HMRC-TERSNT-ORG" => mgs("tax-service.trusts")
-      case s                 => throw new Exception(s"str: '$s' is not a service key")
+      // not a service key but value for filter
+      case "TRUST"           => mgs("tax-service.trusts")
+      case s                 => throw new Exception(s"str: '$s' is not a value for a tax service")
     }
   }
 
@@ -82,7 +84,7 @@ object ViewUtils {
                         formSearch: Option[String]
                        )(implicit mgs: Messages): String = {
 
-    // it's a bit annoying that the form makes it an option but an empty term is usually "" so .isDefined or .nonEmpty are both unhelpful here
+    // the form makes search/filter an option but an empty term is usually "" so .isDefined or .nonEmpty are both unhelpful here
     val hasOneInput = if(formFilter.getOrElse("") != "" && formSearch.getOrElse("") != "") {
       Some(false)
     } else {
@@ -113,7 +115,7 @@ object ViewUtils {
 
   }
 
-  // prioritises Error prefix (error state clears any filter) - useful for page titles
+  // prioritises Error prefix (error state clears any filter)
   def withSearchAndErrorPrefix(hasFormErrors: Boolean,
                                str: String,
                                formFilter: Option[String],

@@ -553,7 +553,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html
-        .title() shouldBe s"Filter results for 'blah' or 'VAT' Select clients - Agent services account - GOV.UK"
+        .title() shouldBe s"Filter results for 'blah' and 'VAT' Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Select clients"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")

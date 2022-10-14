@@ -177,7 +177,7 @@ class ManageClientControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'friendly1' or 'Capital Gains Tax on UK Property account' Manage clients - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Agent services account - GOV.UK"
       html.select(Css.H1).text shouldBe "Manage clients"
       html.select(H2).text shouldBe "No clients found"
 

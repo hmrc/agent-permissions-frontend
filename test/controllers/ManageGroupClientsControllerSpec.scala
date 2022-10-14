@@ -178,10 +178,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'friendly1' or 'VAT' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for 'friendly1' and 'VAT' Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
-      html.select(H2).text shouldBe "Filter results for 'friendly1' or 'VAT'"
+      html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
@@ -214,7 +214,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'friendly1' or 'Capital Gains Tax on UK Property account' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
@@ -389,9 +389,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'blah' or 'VAT' Update clients in this group - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'blah' and 'VAT' Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Update clients in this group"
-      html.select(H2).text() shouldBe "Filter results for 'blah' or 'VAT'"
+      html.select(H2).text() shouldBe "Filter results for 'blah' and 'VAT'"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")

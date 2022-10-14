@@ -19,7 +19,7 @@ common.skip-to-results=Skip to results
 common.skip-to-clients=Ewch yn syth iír rhestr o gleientiaid
 common.skip-to-team-members=Ewch yn syth iír rhestr o aelodauír tÓm
 common.results-for1=Hidlo’r canlyniadau ar gyfer ‘{0}’
-common.results-for2=Hidlo’r canlyniadau ar gyfer ‘{0}’ neu ‘{1}’
+common.results-for2=Hidlo’r canlyniadau ar gyfer ‘{0}’ a ‘{1}’
 
 save.and.continue.button=Cadw ac yn eich blaen
 submit.button=Cyflwyno

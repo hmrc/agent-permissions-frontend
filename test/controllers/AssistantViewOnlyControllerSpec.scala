@@ -178,7 +178,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'friendly1' or 'Capital Gains Tax on UK Property account' Other clients you can access - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Other clients you can access - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Other clients you can access"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
@@ -303,7 +303,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe s"Filter results for 'friendly1' or 'Capital Gains Tax on UK Property account' ${accessGroup.groupName} clients - Agent services account - GOV.UK"
+      html.title() shouldBe s"Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' ${accessGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${accessGroup.groupName} clients"
 
       html.select(H2).text shouldBe "No clients found"

@@ -92,9 +92,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .expects(arn, teamMember.id, *, *)
         .returning(Future successful Some(teamMember))
 
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
+      (mockAgentPermissionsConnector.groupsOnly(_: Arn)( _: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future.successful(groupSummaries))
 
       (mockGroupService
         .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
@@ -132,7 +132,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToMember = Seq.empty
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -144,9 +143,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .expects(arn, teamMember.id, *, *)
         .returning(Future successful Some(teamMember))
 
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
+      (mockAgentPermissionsConnector.groupsOnly(_: Arn)( _: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future.successful(groupSummaries))
 
       (mockGroupService
         .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
@@ -180,7 +179,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 2)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToMember = groupSummaries
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -192,9 +190,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .expects(arn, teamMember.id, *, *)
         .returning(Future successful Some(teamMember))
 
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
+      (mockAgentPermissionsConnector.groupsOnly(_: Arn)( _: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future.successful(groupSummaries))
 
       (mockGroupService
         .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
@@ -275,7 +273,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -286,9 +283,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .expects(arn, teamMember.id, *, *)
         .returning(Future successful Some(teamMember))
 
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
+      (mockAgentPermissionsConnector.groupsOnly(_: Arn)( _: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future.successful(groupSummaries))
 
       (mockGroupService
         .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
@@ -322,7 +319,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
@@ -334,9 +330,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .expects(arn, teamMember.id, *, *)
         .returning(Future successful Some(teamMember))
 
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
+      (mockAgentPermissionsConnector.groupsOnly(_: Arn)( _: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future.successful(groupSummaries))
 
       //when
       val result = controller.showConfirmTeamMemberAddedToGroups(teamMember.id)(request)

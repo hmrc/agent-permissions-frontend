@@ -19,8 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
-import models.ButtonSelect.{Clear, Filter}
-import models.{AddClientsToGroup, ButtonSelect}
+import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -35,21 +34,21 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupController @Inject()(
-     authAction: AuthAction,
-     groupAction: GroupAction,
-     mcc: MessagesControllerComponents,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService,
-     groupService: GroupService,
-     dashboard: dashboard,
-     rename_group: rename_group,
-     rename_group_complete: rename_group_complete,
-     confirm_delete_group: confirm_delete_group,
-     delete_group_complete: delete_group_complete
-    )
-   (implicit val appConfig: AppConfig, ec: ExecutionContext,
-    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+                                       authAction: AuthAction,
+                                       groupAction: GroupAction,
+                                       mcc: MessagesControllerComponents,
+                                       val agentPermissionsConnector: AgentPermissionsConnector,
+                                       val sessionCacheRepository: SessionCacheRepository,
+                                       val sessionCacheService: SessionCacheService,
+                                       groupService: GroupService,
+                                       dashboard: dashboard,
+                                       rename_group: rename_group,
+                                       rename_group_complete: rename_group_complete,
+                                       confirm_delete_group: confirm_delete_group,
+                                       delete_group_complete: delete_group_complete
+                                     )
+                                     (implicit val appConfig: AppConfig, ec: ExecutionContext,
+                                      implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with GroupsControllerCommon
   with I18nSupport
@@ -62,44 +61,22 @@ class ManageGroupController @Inject()(
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[String](FILTERED_GROUPS_INPUT) { groupSearchTerm =>
-          groupService.groupSummaries(arn).map(gs =>
-            Ok(dashboard(
-                gs,
-                FilterByGroupNameForm.form.fill(groupSearchTerm.getOrElse(""))
-              ))
+        agentPermissionsConnector.groupsOnly(arn).map { groupSummaries =>
+          val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+          searchFilter.submit.fold( //i.e. regular page load with no params
+            Ok(dashboard(groupSummaries, SearchAndFilterForm.form()))
+          )(submitButton =>
+            //either the 'filter' button or the 'clear' filter button was clicked
+            submitButton match {
+              case "clear" =>
+                Redirect(routes.ManageGroupController.showManageGroups)
+              case "filter" =>
+                val filteredGroupSummaries = groupSummaries
+                  .filter(_.groupName.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+                Ok(dashboard(filteredGroupSummaries, SearchAndFilterForm.form().fill(searchFilter)))
+            }
           )
         }
-      }
-    }
-  }
-
-  def submitFilterByGroupName: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-          val encoded = request.body.asFormUrlEncoded
-          val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
-
-          buttonSelection match {
-            case Clear =>
-              for {
-                _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUP_SUMMARIES)
-                _ <- sessionCacheRepository.deleteFromSession(FILTERED_GROUPS_INPUT)
-              } yield Redirect(routes.ManageGroupController.showManageGroups)
-            case Filter =>
-              FilterByGroupNameForm.form
-                .bindFromRequest()
-                .fold(
-                  hasErrors =>
-                    groupService.groupSummaries(arn).map(
-                      gs => Ok(dashboard(gs, hasErrors)))
-                  ,
-                  formData => {
-                    groupService.filterByGroupName(formData)(arn)
-                      .map(_ => Redirect(routes.ManageGroupController.showManageGroups))
-                  }
-                )
-          }
       }
     }
   }

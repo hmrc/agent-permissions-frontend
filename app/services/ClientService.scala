@@ -112,8 +112,11 @@ class ClientServiceImpl @Inject()(
   }
 
   def getUnassignedClients(arn: Arn)
-                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] =
-    agentPermissionsConnector.groupsSummaries(arn).map(_.map(_._2))
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[Option[Seq[DisplayClient]]] = {
+    agentPermissionsConnector.unassignedClients(arn).map(clients => if (clients.isEmpty) None else Some(clients))
+
+  }
 
   def lookupClient(arn: Arn)
                   (clientId: String)

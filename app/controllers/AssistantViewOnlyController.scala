@@ -62,33 +62,25 @@ class AssistantViewOnlyController @Inject()(
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
         searchFilter.submit.fold(
           //no filter/clear was applied
-          clientService.getUnassignedClients(arn).map(maybeClients =>
-            Ok(unassigned_client_list(
-              unassignedClients = maybeClients.getOrElse(Seq.empty[DisplayClient]),
-              filterForm = SearchAndFilterForm.form()
-            ))
-          )
+          agentPermissionsConnector.unassignedClients(arn).map(clients =>
+            Ok(unassigned_client_list( clients,SearchAndFilterForm.form())))
         ) { //either the 'filter' button or the 'clear' filter button was clicked
           case "clear" =>
             Redirect(routes.AssistantViewOnlyController.showUnassignedClientsViewOnly).toFuture
           case "filter" =>
-            for {
-              maybeClients <- clientService.getUnassignedClients(arn)
-              filteredClients = maybeClients.getOrElse(Seq.empty[DisplayClient])
-                .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
-                .filter(dc =>
-                  if (!searchFilter.filter.isDefined) true
-                  else {
-                    val filter = searchFilter.filter.get
-                    dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
-                  }
-                )
-            } yield Ok(
-              unassigned_client_list(
-                unassignedClients = filteredClients,
-                filterForm = SearchAndFilterForm.form().fill(searchFilter)
-              )
-            )
+            agentPermissionsConnector.unassignedClients(arn).map{ clients =>
+              val filteredClients = clients.filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("")
+              .toLowerCase))
+                  .filter(dc =>
+                    if (!searchFilter.filter.isDefined) true
+                    else {
+                      val filter = searchFilter.filter.get
+                      dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
+                    }
+                  )
+                Ok(unassigned_client_list(filteredClients,SearchAndFilterForm.form().fill(searchFilter)))
+            }
+
         }
       }
     }

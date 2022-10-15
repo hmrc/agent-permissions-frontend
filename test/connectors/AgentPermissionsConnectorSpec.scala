@@ -134,7 +134,7 @@ class AgentPermissionsConnectorSpec
     }
   }
 
-  "GET GroupSummaries" should {
+  "GET Tuple GroupSummaries" should {
 
     "return successfully" in {
       //given
@@ -279,6 +279,68 @@ class AgentPermissionsConnectorSpec
       //then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.getGroupsForTeamMember(arn, agentUser))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "GET Group summaries" should {
+
+    "return successfully" in {
+      //given
+      val groupSummaries = Seq(GroupSummary("groupId", "groupName", 33, 9))
+
+      val expectedUrl =
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/groupsOnly"
+      val mockJsonResponseBody = Json.toJson(groupSummaries).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //then
+      connector.groupsOnly(arn).futureValue shouldBe groupSummaries
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      //given
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.groupsOnly(arn))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "GET unassigned clients" should {
+
+    "return successfully" in {
+      //given
+      val clients = Set(Client("taxService~identKey~hmrcRef", "name"))
+      val displayClients = Seq(DisplayClient.fromClient(Client("taxService~identKey~hmrcRef", "name")))
+      val expectedUrl =
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
+      val mockJsonResponseBody = Json.toJson(clients).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //then
+      connector.unassignedClients(arn).futureValue shouldBe displayClients
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      //given
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      mockHttpGet[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.unassignedClients(arn))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }

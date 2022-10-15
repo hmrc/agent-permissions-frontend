@@ -63,11 +63,9 @@ class UnassignedClientControllerSpec extends BaseSpec {
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val fakeClients: Seq[Client] =
-    List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
+  val fakeClients: Seq[Client] = List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
 
-  val displayClients: Seq[DisplayClient] =
-    fakeClients.map(DisplayClient.fromClient(_))
+  val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
   val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
     GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
@@ -82,8 +80,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetUnassignedClientsSuccess(arn, displayClients)
+
 
       //when
       val result = controller.showUnassignedClients(request)
@@ -111,8 +109,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1"))
 
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //when
       val result = controller.showUnassignedClients(request)
@@ -143,8 +140,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(HIDDEN_CLIENTS_EXIST, true))
 
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //when
       val result = controller.showUnassignedClients(request)
@@ -205,7 +201,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       stubGetClientsOk(arn)(fakeClients)
-      expectGetGroupSummarySuccess(arn, Some(Seq.empty, displayClients))
+      expectGetUnassignedClientsSuccess(arn, displayClients)
 
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -237,7 +233,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, None)
+      expectGetUnassignedClientsSuccess(arn, Seq.empty[DisplayClient])
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitAddUnassignedClients.url)
@@ -261,7 +257,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, None)
+      expectGetUnassignedClientsSuccess(arn, Seq.empty[DisplayClient])
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitAddUnassignedClients.url)
@@ -430,7 +426,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+      expectGetGroupSummarySuccess(arn, groupSummaries)
 
       //when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
@@ -464,7 +460,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       checkboxInputs.get(2).attr("value") shouldBe "groupId3"
 
       form.select("#createNew-hint").text shouldBe "or"
-      val createNewCheckboxes  = form.select("div#createNew .govuk-checkboxes__item")
+      val createNewCheckboxes = form.select("div#createNew .govuk-checkboxes__item")
       createNewCheckboxes.select("label").text shouldBe "Add to a new access group"
       createNewCheckboxes.select("input[type='checkbox']").attr("name") shouldBe "createNew"
       createNewCheckboxes.select("input[type='checkbox']").attr("value") shouldBe "true"
@@ -482,7 +478,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+      expectGetGroupSummarySuccess(arn, groupSummaries)
+
 
       //when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
@@ -533,17 +530,18 @@ class UnassignedClientControllerSpec extends BaseSpec {
     "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
       //given
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
-
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url)
-          .withFormUrlEncodedBody("groups[0]" -> "12412312")
+        FakeRequest("POST",
+          routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url
+        ).withFormUrlEncodedBody("groups[0]" -> groupSummaries(0).groupId)
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+      expectGetGroupSummarySuccess(arn, groupSummaries)
+
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
@@ -556,11 +554,11 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "show errors when nothing selected" in {
       //given
-      val groupSummaries = (1 to 3).map(i =>
-        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url)
+        FakeRequest("POST",
+          routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url)
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -568,7 +566,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+      expectGetGroupSummarySuccess(arn, groupSummaries)
+
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
@@ -586,11 +585,11 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "show errors when both createNew and existing groups are selected" in {
       //given
-      val groupSummaries = (1 to 3).map(i =>
-        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url)
+        FakeRequest("POST",
+          routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients.url)
           .withFormUrlEncodedBody("createNew" -> "true", "groups[0]" -> "12412312")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -598,7 +597,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, Seq.empty[DisplayClient])))
+      expectGetGroupSummarySuccess(arn, groupSummaries)
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)

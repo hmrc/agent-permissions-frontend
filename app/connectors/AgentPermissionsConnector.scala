@@ -58,8 +58,11 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                                 ec: ExecutionContext)
     : Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]]
 
-  def getGroup(id: String)(implicit hc: HeaderCarrier,
-                           ec: ExecutionContext): Future[Option[AccessGroup]]
+  def groupsOnly(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+
+  def unassignedClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
+
+  def getGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
                                                             ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
@@ -205,6 +208,34 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
+  def groupsOnly(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groupsOnly"
+    monitor("ConsumedAPI-groupSummaries-GET") {
+      http.GET[HttpResponse](url).map { response: HttpResponse =>
+        response.status match {
+          case OK => response.json.as[Seq[GroupSummary]]
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error getting group summaries for arn $arn, from $url", anyOtherStatus)
+        }
+      }
+    }
+  }
+
+  def unassignedClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/unassigned-clients"
+    monitor("ConsumedAPI-unassigned-clients-GET") {
+      http.GET[HttpResponse](url).map { response: HttpResponse =>
+        response.status match {
+          case OK =>
+            val clients = response.json.as[Seq[Client]]
+            clients.map(DisplayClient.fromClient(_))
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error getting unassigned clients for arn $arn, from $url", anyOtherStatus)
+        }
+      }
+    }
+  }
+
   def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
                                                             ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client/$enrolmentKey/groups"
@@ -248,9 +279,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  override def getGroup(id: String)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[AccessGroup]] = {
+  def getGroup(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
@@ -334,6 +364,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
       }
     }
   }
+
 }
 
 case class GroupRequest(groupName: String,

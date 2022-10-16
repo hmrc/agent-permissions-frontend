@@ -17,7 +17,7 @@
 package helpers
 
 import connectors.GroupSummary
-import models.TeamMember
+import models.{DisplayClient, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
@@ -31,15 +31,15 @@ trait GroupServiceMocks extends MockFactory {
   def expectGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(
     implicit groupService: GroupService): Unit =
     (groupService
-    .getTeamMembersFromGroup(_: Arn)(_: Option[Seq[TeamMember]])
-      (_: HeaderCarrier,
-        _: ExecutionContext)
-    )
-    .expects(arn, Some(List()), *, *)
-    .returning(Future successful Some(teamMembers))
+      .getTeamMembersFromGroup(_: Arn)(_: Option[Seq[TeamMember]])
+      (_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, Some(List()), *, *)
+      .returning(Future successful Some(teamMembers)).once()
+
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
-    (groupService.groups(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+    (groupService
+      .groups(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future.successful(groups)).once()
 
@@ -47,9 +47,17 @@ trait GroupServiceMocks extends MockFactory {
                                           (groupsAlreadyAssociatedToMember: Seq[GroupSummary])
                                           (implicit groupService: GroupService): Unit =
     (groupService
-      .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-      .expects(arn, teamMember, *, *, *)
+      .groupSummariesForTeamMember(_: Arn, _: TeamMember)
+      (_: Request[_], _: ExecutionContext, _: HeaderCarrier)
+      ).expects(arn, teamMember, *, *, *)
       .returning(Future.successful(groupsAlreadyAssociatedToMember)).once()
 
+  def expectGetGroupSummariesForClient(arn: Arn)(client: DisplayClient)
+                                      (groupsAlreadyAssociatedToClient: Seq[GroupSummary])
+                                      (implicit groupService: GroupService): Unit =
+    (groupService
+      .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
+      .expects(arn, client, *, *, *)
+      .returning(Future.successful(groupsAlreadyAssociatedToClient)).once()
 
 }

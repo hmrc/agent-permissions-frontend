@@ -82,11 +82,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -126,12 +122,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
-
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -166,12 +157,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
-
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -246,15 +232,9 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
-
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+      expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       implicit val request =
         FakeRequest("POST", submitUrl)

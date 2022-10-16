@@ -54,9 +54,8 @@ class ClientAction @Inject()(val authConnector: AuthConnector,
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         clientService.lookupClient(arn)(clientId).flatMap(
-          _.fold(clientNotFound)(client => {
-            fn(client, arn)
-          }))
+          _.fold(clientNotFound)(client => fn(client, arn))
+        )
       }
     }
   }

@@ -17,7 +17,7 @@
 package forms
 
 import models.ButtonSelect.{Clear, Continue, Filter}
-import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
+import models.{AddTeamMembersToGroup, ButtonSelect}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}

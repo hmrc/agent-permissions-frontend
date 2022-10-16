@@ -16,8 +16,10 @@
 
 package helpers
 
+import connectors.GroupSummary
 import models.TeamMember
 import org.scalamock.scalatest.MockFactory
+import play.api.mvc.Request
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
@@ -26,7 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait GroupServiceMocks extends MockFactory {
 
-  def stubGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(
+  def expectGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(
     implicit groupService: GroupService): Unit =
     (groupService
     .getTeamMembersFromGroup(_: Arn)(_: Option[Seq[TeamMember]])
@@ -35,5 +37,19 @@ trait GroupServiceMocks extends MockFactory {
     )
     .expects(arn, Some(List()), *, *)
     .returning(Future successful Some(teamMembers))
+
+  def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
+    (groupService.groups(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
+      .returning(Future.successful(groups)).once()
+
+  def expectGetGroupSummariesForTeamMember(arn: Arn)(teamMember: TeamMember)
+                                          (groupsAlreadyAssociatedToMember: Seq[GroupSummary])
+                                          (implicit groupService: GroupService): Unit =
+    (groupService
+      .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
+      .expects(arn, teamMember, *, *, *)
+      .returning(Future.successful(groupsAlreadyAssociatedToMember)).once()
+
 
 }

@@ -61,7 +61,7 @@ class ManageGroupController @Inject()(
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        agentPermissionsConnector.groupsOnly(arn).map { groupSummaries =>
+        groupService.groups(arn).map { groupSummaries =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold( //i.e. regular page load with no params
             Ok(dashboard(groupSummaries, SearchAndFilterForm.form()))

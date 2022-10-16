@@ -164,8 +164,6 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-
-      val summaries = None
       expectGetGroupSummarySuccess(arn, Seq.empty)
 
       //when
@@ -177,9 +175,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage access groups"
-      html
-        .select("p#info")
-        .get(0)
+      html.select("p#info").get(0)
         .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group."
 
       html.select(H2).text() shouldBe "No groups found"

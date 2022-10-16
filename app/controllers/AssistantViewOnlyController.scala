@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms._
-import models.{DisplayClient, DisplayGroup, SearchFilter}
+import models.{DisplayGroup, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -34,19 +34,19 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class AssistantViewOnlyController @Inject()(
-     authAction: AuthAction,
-     groupAction: GroupAction,
-     mcc: MessagesControllerComponents,
-     groupService: GroupService,
-     clientService: ClientService,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService,
-     unassigned_client_list: unassigned_client_list,
-     existing_group_client_list: existing_group_client_list
-    )
+                                             authAction: AuthAction,
+                                             groupAction: GroupAction,
+                                             mcc: MessagesControllerComponents,
+                                             groupService: GroupService,
+                                             clientService: ClientService,
+                                             val agentPermissionsConnector: AgentPermissionsConnector,
+                                             val sessionCacheRepository: SessionCacheRepository,
+                                             val sessionCacheService: SessionCacheService,
+                                             unassigned_client_list: unassigned_client_list,
+                                             existing_group_client_list: existing_group_client_list
+                                           )
                                            (implicit val appConfig: AppConfig, ec: ExecutionContext,
-    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+                                            implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with GroupsControllerCommon
   with I18nSupport
@@ -62,23 +62,23 @@ class AssistantViewOnlyController @Inject()(
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
         searchFilter.submit.fold(
           //no filter/clear was applied
-          agentPermissionsConnector.unassignedClients(arn).map(clients =>
-            Ok(unassigned_client_list( clients,SearchAndFilterForm.form())))
+          clientService.getUnassignedClients(arn).map(clients =>
+            Ok(unassigned_client_list(clients, SearchAndFilterForm.form())))
         ) { //either the 'filter' button or the 'clear' filter button was clicked
           case "clear" =>
             Redirect(routes.AssistantViewOnlyController.showUnassignedClientsViewOnly).toFuture
           case "filter" =>
-            agentPermissionsConnector.unassignedClients(arn).map{ clients =>
+            clientService.getUnassignedClients(arn).map { clients =>
               val filteredClients = clients.filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("")
-              .toLowerCase))
-                  .filter(dc =>
-                    if (!searchFilter.filter.isDefined) true
-                    else {
-                      val filter = searchFilter.filter.get
-                      dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
-                    }
-                  )
-                Ok(unassigned_client_list(filteredClients,SearchAndFilterForm.form().fill(searchFilter)))
+                .toLowerCase))
+                .filter(dc =>
+                  if (!searchFilter.filter.isDefined) true
+                  else {
+                    val filter = searchFilter.filter.get
+                    dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
+                  }
+                )
+              Ok(unassigned_client_list(filteredClients, SearchAndFilterForm.form().fill(searchFilter)))
             }
 
         }

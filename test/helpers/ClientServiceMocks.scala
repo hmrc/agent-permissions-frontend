@@ -43,12 +43,12 @@ trait ClientServiceMocks extends MockFactory {
       .expects(buttonPress, arn, *, *, *, *, *)
       .returning(Future successful((): Unit))
 
-  def stubLookupClient(arn: Arn, clientId: String)
-                      (client: DisplayClient)
-                      (clientService: ClientService): Unit =
+  def expectLookupClient(arn: Arn)
+                        (client: DisplayClient)
+                        (implicit clientService: ClientService): Unit =
     (clientService
       .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, clientId, *, *)
-      .returning(Future successful Some(client))
+      .expects(arn, client.id, *, *)
+      .returning(Future successful Some(client)).once()
 
 }

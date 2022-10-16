@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector}
 import forms._
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import play.api.Logging
@@ -27,7 +27,6 @@ import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
@@ -68,7 +67,7 @@ class UnassignedClientController @Inject()(
         withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
             withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-              agentPermissionsConnector.unassignedClients(arn).map(unassignedClients =>
+              clientService.getUnassignedClients(arn).map(unassignedClients =>
                 Ok(
                   unassigned_clients_list(
                     unassignedClients,
@@ -102,7 +101,7 @@ class UnassignedClientController @Inject()(
               .fold(
                 formWithErrors => {
                   for {
-                    unassignedClients <- agentPermissionsConnector.unassignedClients(arn)
+                    unassignedClients <- clientService.getUnassignedClients(arn)
                     _ <- if (buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else Future.successful(())
                     result = if (maybeFilteredClients.isDefined)
                       Ok(unassigned_clients_list(unassignedClients, formWithErrors,maybeHiddenClients))
@@ -111,7 +110,8 @@ class UnassignedClientController @Inject()(
                   } yield result
                 },
                 formData => {
-                  clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getUnassignedClients).map(_ =>
+                  clientService.saveSelectedOrFilteredClients(
+                    buttonSelection)(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
                     if(buttonSelection == ButtonSelect.Continue)
                       Redirect(controller.showSelectedUnassignedClients)
                     else Redirect(controller.showUnassignedClients)
@@ -183,7 +183,7 @@ class UnassignedClientController @Inject()(
   def showSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        agentPermissionsConnector.groupsOnly(arn).map(groups =>
+        groupService.groups(arn).map(groups =>
         Ok(select_groups_for_clients(SelectGroupsForm.form().fill(SelectGroups(None, None)), groups)))
       }
     }
@@ -194,7 +194,7 @@ class UnassignedClientController @Inject()(
       isOptedInComplete(arn) { _ =>
         SelectGroupsForm.form().bindFromRequest().fold(
           formWithErrors => {
-            agentPermissionsConnector.groupsOnly(arn).map( groups => {
+            groupService.groups(arn).map( groups => {
               val clonedForm = formWithErrors.copy(
                 errors = Seq(FormError("field-wrapper", formWithErrors.errors.head.message))
               )
@@ -205,7 +205,7 @@ class UnassignedClientController @Inject()(
             if(validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
             else {
               for {
-                allGroups <- agentPermissionsConnector.groupsOnly(arn)
+                allGroups <- groupService.groups(arn)
                 groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary))
                 _ <- sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS)

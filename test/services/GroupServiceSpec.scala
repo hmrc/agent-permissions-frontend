@@ -16,16 +16,20 @@
 
 package services
 
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.BaseSpec
-import models.TeamMember
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class GroupServiceSpec extends BaseSpec {
 
   val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
+
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
@@ -33,27 +37,34 @@ class GroupServiceSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
 
   val service =
-    new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
+    new GroupServiceImpl(
+      mockAgentUserClientDetailsConnector,
+      sessionCacheRepo,
+      mockAgentPermissionsConnector
+    )
 
-  val fakeClients: Seq[Client] = (1 to 10)
-    .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
+  "get groups" should {
+    "Return groups from agentPermissionsConnector" in {
 
-  val users: Seq[UserDetails] = (1 to 3)
-    .map(
-      i =>
-        UserDetails(userId = Option(s"user$i"),
-                    None,
-                    Some(s"Name $i"),
-                    Some(s"bob$i@accounting.com")))
-
-  val fakeTeamMembers: Seq[TeamMember] = (1 to 5)
-    .map(i => {
-      TeamMember(
-        s"John $i",
-        "User",
-        Some("John"),
-        Some(s"john$i@abc.com"),
+      //given
+      val groupSummaries = Seq(
+        GroupSummary("2", "Carrots", 1, 1),
+        GroupSummary("3", "Potatoes", 1, 1),
       )
-    })
+
+      (mockAgentPermissionsConnector
+        .groupsOnly(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future successful groupSummaries).once()
+
+      //when
+      val summaries = await(service.groups(arn))
+
+      //then
+      summaries shouldBe groupSummaries
+
+
+    }
+  }
 
 }

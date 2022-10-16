@@ -57,7 +57,7 @@ class AddTeamMemberToGroupsController @Inject()(
   def showSelectGroupsForTeamMember(id: String): Action[AnyContent] = Action.async { implicit request =>
     withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) => {
       sessionCacheRepository.deleteFromSession(GROUP_IDS_ADDED_TO)
-      agentPermissionsConnector.groupsOnly(arn).flatMap { allGroups =>
+      groupService.groups(arn).flatMap { allGroups =>
         groupService.groupSummariesForTeamMember(arn, tm).map { membersGroups =>
           Ok(
             select_groups(
@@ -76,7 +76,7 @@ class AddTeamMemberToGroupsController @Inject()(
   def submitSelectGroupsForTeamMember(id: String): Action[AnyContent] = Action.async { implicit request =>
     withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) => {
       AddGroupsToClientForm.form().bindFromRequest().fold(formErrors => {
-        agentPermissionsConnector.groupsOnly(arn).flatMap { allGroups =>
+        groupService.groups(arn).flatMap { allGroups =>
           groupService.groupSummariesForTeamMember(arn, tm).map { membersGroups =>
             Ok(
               select_groups(
@@ -107,7 +107,7 @@ class AddTeamMemberToGroupsController @Inject()(
   def showConfirmTeamMemberAddedToGroups(id: String): Action[AnyContent] = Action.async { implicit request =>
     withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) => {
       sessionCacheRepository.getFromSession[Seq[String]](GROUP_IDS_ADDED_TO).flatMap { maybeGroupIds =>
-        agentPermissionsConnector.groupsOnly(arn).map { groups =>
+        groupService.groups(arn).map { groups =>
           val groupsAddedTo = groups
             .filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))
           Ok(confirm_added(tm, groupsAddedTo))

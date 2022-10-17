@@ -19,21 +19,20 @@ package forms
 import models.AddClientsToGroup
 import play.api.data.Form
 import play.api.data.Forms._
-import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfEqual
 
 object AddClientsToGroupForm {
 
   def form(): Form[AddClientsToGroup] = Form(
     mapping(
       "hasSelectedClients" -> boolean,
-      "search" -> optional(text),
+      "search" -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
       "filter" -> optional(text),
-      "clients" -> mandatoryIfEqual(
-        "submit",
-        "continue",
-        list(text).verifying("error.select-clients.empty", _.length > 0)
-      ),
+      "clients" -> optional(list(text)),
       "submit" -> text
     )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
+      .verifying("error.select-clients.empty", data => {
+        data.submit != "continue" ||
+        (data.submit == "continue" && data.clients.getOrElse(Seq.empty).nonEmpty)
+      })
   )
 }

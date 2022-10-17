@@ -149,9 +149,6 @@ class ManageGroupTeamMembersController @Inject()(
   }
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-
-    val encoded = request.body.asFormUrlEncoded
-
     withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
         withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>

@@ -162,7 +162,7 @@ class ClientServiceImpl @Inject()(
                                    )(getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
-    buttonSelect match {
+    buttonSelect.trim.toLowerCase() match {
       case "clear" =>
         for {
           clients <- lookupClients(arn)(formData.clients)

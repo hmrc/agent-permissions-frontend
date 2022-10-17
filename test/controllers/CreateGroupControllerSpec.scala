@@ -750,7 +750,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
     }
 
-    "display error when button is Filter and no filter term was provided" in {
+    "NOT display error when button is Filter and no filter term was provided" in {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -775,20 +775,8 @@ class CreateGroupControllerSpec extends BaseSpec {
       // when
       val result = controller.submitSelectedClients()(request)
 
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-
-      // then
-      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
-      html
-        .select(Css.ERROR_SUMMARY_LINK)
-        .text() shouldBe "You must enter a tax reference, client reference or select a tax service to apply filters"
-      html
-        .select(Css.errorForField("filter"))
-        .text() shouldBe "Error: You must enter a tax reference, client reference or select a tax service to apply filters"
-      // and should have cleared the previously selected clients from the session
-      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.CreateGroupController.showSelectClients.url)
 
     }
 

@@ -79,7 +79,7 @@ class AddTeamMembersToGroupFormSpec
       )
       val boundForm = AddTeamMembersToGroupForm.form().bindFromRequest(params)
 
-      boundForm.errors shouldBe List(FormError("members", List("error.select-members.empty")))
+      boundForm.errors shouldBe List(FormError("", List("error.select-members.empty")))
     }
 
 

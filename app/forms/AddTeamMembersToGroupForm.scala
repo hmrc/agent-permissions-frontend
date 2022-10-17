@@ -19,20 +19,19 @@ package forms
 import models.AddTeamMembersToGroup
 import play.api.data.Form
 import play.api.data.Forms._
-import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfEqual
 
 object AddTeamMembersToGroupForm {
 
   def form(): Form[AddTeamMembersToGroup] = Form(
     mapping(
     "hasAlreadySelected" -> boolean,
-    "search" -> optional(text),
-    "members" -> mandatoryIfEqual(
-      "submit",
-      "continue",
-      list(text).verifying("error.select-members.empty", _.length > 0)
-    ),
+    "search" -> optional(text.verifying("error.search-members.invalid", s => !(s.contains('<') || s.contains('>')))),
+    "members" -> optional(list(text)),
     "submit" -> text
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
+      .verifying("error.select-members.empty", data => {
+        data.submit != "continue" ||
+          (data.submit == "continue" && data.members.getOrElse(Seq.empty).nonEmpty)
+      })
   )
 }

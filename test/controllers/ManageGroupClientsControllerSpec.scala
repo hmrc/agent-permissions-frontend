@@ -478,9 +478,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
       }
 
-      "display error when filtered clients and form has errors" in {
-        // given
+      "NOT display error when search & filter empty" in {
 
+        // given
         implicit val request = FakeRequest(
           "POST",
           routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url
@@ -502,15 +502,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         // when
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
 
-        status(result) shouldBe OK
-        val html = Jsoup.parse(contentAsString(result))
-
-        // then
-        html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Update clients in this group"
-        html
-          .select(Css.errorSummaryForField("clients"))
-        await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url)
       }
 
 

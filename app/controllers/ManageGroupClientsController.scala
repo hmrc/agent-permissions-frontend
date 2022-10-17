@@ -31,7 +31,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageGroupClientsController @Inject()(
@@ -143,21 +143,16 @@ class ManageGroupClientsController @Inject()(
                 }
               },
               formData => {
-                println("******************")
-                println(formData.submit)
-                println(formData.clients)
-                println("******************")
                 clientService.saveSelectedOrFilteredClients(formData.submit)(group.arn)(formData)(clientService.getAllClients)
                   .flatMap(_ =>
                   if (formData.submit == "continue") {
                     for {
-                      enrolments <- sessionCacheRepository
+                      maybeSelectedClients <- sessionCacheRepository
                         .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
-                        .map { maybeClients: Option[Seq[DisplayClient]] =>
-                          maybeClients
+                      enrolments = maybeSelectedClients
                             .map(_.map(dc => Client(dc.enrolmentKey, dc.name)))
                             .map(_.toSet)
-                        }
+
                       groupRequest = UpdateAccessGroupRequest(clients = enrolments)
                       _ <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
                       _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)

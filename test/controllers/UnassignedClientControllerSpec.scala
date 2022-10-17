@@ -157,14 +157,13 @@ class UnassignedClientControllerSpec extends BaseSpec {
       val tr = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
       tr.size() shouldBe 3
 
-
     }
 
   }
 
   s"POST ${routes.UnassignedClientController.submitAddUnassignedClients.url}" should {
-    s"save selected unassigned clients and redirect to ${routes.UnassignedClientController.showSelectedUnassignedClients} " +
-      s"when button is Continue" in {
+
+    s"save selected unassigned clients and redirect to ${routes.UnassignedClientController.showSelectedUnassignedClients} when button is Continue and form is valid" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -195,8 +194,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     }
 
-    s"save selected unassigned clients and redirect to ${routes.UnassignedClientController.showUnassignedClients} " +
-      s"when button is NOT Continue" in {
+    s"save selected unassigned clients and redirect to ${routes.UnassignedClientController.showUnassignedClients} when button is NOT Continue" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -224,12 +222,13 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       redirectLocation(result).get shouldBe s"${routes.UnassignedClientController.showUnassignedClients}"
 
-      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)) shouldBe Some(Seq(displayClients.head.copy(selected = true),
-        displayClients.last.copy(selected = true)))
+      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).shouldBe(
+        Some(Seq(displayClients.head.copy(selected = true), displayClients.last.copy(selected = true)))
+      )
 
     }
 
-    s"present page with errors when form validation fails" in {
+    "present page with errors when form validation fails" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -241,7 +240,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
             "hasSelectedClients" -> "false",
             "search" -> "",
             "filter" -> "",
-            "submit" -> "filter"
+            "submit" -> "continue"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -253,7 +252,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     }
 
-    s"present page with errors when form validation fails and filtered clients exist" in {
+    "present page with errors when form validation fails and filtered clients exist" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)

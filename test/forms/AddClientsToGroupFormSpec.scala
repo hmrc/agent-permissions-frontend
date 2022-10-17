@@ -113,23 +113,26 @@ class AddClientsToGroupFormSpec
         Map(hasSelectedClients -> List("false"),
           search -> List.empty,
           filter -> List.empty,
-          clients -> List.empty)
+          clients -> List.empty,
+          "submit" -> List("continue"),
+        )
+
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.errors shouldBe List(
-        FormError("", List("error.select-clients.empty")))
+
+      boundForm.errors shouldBe List(FormError("", List("error.select-clients.empty")))
     }
 
-    "have errors when button is Filter and search and filter fields are empty" in {
+    "have NOT have errors when button is Filter and search and filter fields are empty" in {
       val params = Map(
         hasSelectedClients -> List("false"),
         search -> List.empty,
         filter -> List.empty,
-        clients -> List(client1.id, client2.id)
+        clients -> List(client1.id, client2.id),
+        "submit" -> List("filter")
       )
-      val boundForm =
-        AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.errors shouldBe List(
-        FormError("", List("error.search-filter.empty")))
+      val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
+
+      boundForm.hasErrors shouldBe false
     }
 
     "have errors when button is Filter and search contains invalid characters" in {

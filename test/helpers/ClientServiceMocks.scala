@@ -16,7 +16,7 @@
 
 package helpers
 
-import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
+import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.ClientService
@@ -34,14 +34,6 @@ trait ClientServiceMocks extends MockFactory {
       .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Some(clients))
-
-  def expectProcessFormDataForClients(buttonPress: ButtonSelect)(arn: Arn)
-                                     (implicit clientService: ClientService): Unit =
-    (clientService
-      .saveSelectedOrFilteredClients(_: ButtonSelect)(_: Arn)(_: AddClientsToGroup)(_: Arn => Future[Option[Seq[DisplayClient]]])
-      (_: HeaderCarrier,  _: ExecutionContext,  _: Request[_]))
-      .expects(buttonPress, arn, *, *, *, *, *)
-      .returning(Future successful((): Unit))
 
   def expectLookupClient(arn: Arn)
                         (client: DisplayClient)

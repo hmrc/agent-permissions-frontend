@@ -19,8 +19,7 @@ package services
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
 import controllers.{FILTERED_TEAM_MEMBERS, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, selectingTeamMemberKeys}
-import models.ButtonSelect.{Clear, Continue, Filter}
-import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
+import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -44,7 +43,7 @@ trait TeamMemberService {
   def lookupTeamMembers(arn: Arn)(ids: Option[List[String]]
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]]
 
-  def saveSelectedOrFilteredTeamMembers(buttonSelect: ButtonSelect)
+  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
                                    (arn: Arn)
                                    (formData: AddTeamMembersToGroup
                                    )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
@@ -118,13 +117,13 @@ class TeamMemberServiceImpl @Inject()(
     }
   }
 
-  def saveSelectedOrFilteredTeamMembers(buttonSelect: ButtonSelect)
+  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
                                        (arn: Arn)
                                        (formData: AddTeamMembersToGroup
                                        )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     buttonSelect match {
-      case Clear =>
+      case "clear" =>
         for {
           teamMembers <- lookupTeamMembers(arn)(formData.members)
           _ <- addSelectablesToSession(
@@ -135,7 +134,7 @@ class TeamMemberServiceImpl @Inject()(
          _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
-      case Continue =>
+      case "continue" =>
         for {
           teamMembers <- lookupTeamMembers(arn)(formData.members)
           _ <- addSelectablesToSession(
@@ -146,7 +145,7 @@ class TeamMemberServiceImpl @Inject()(
          _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
-      case Filter =>
+      case "filter" =>
         for {
           teamMembers <- lookupTeamMembers(arn)(formData.members)
           _ <- addSelectablesToSession(

@@ -15,11 +15,9 @@
  *@
 
 @import config.AppConfig
-@import connectors.GroupSummary
-@import views.components.models.SummaryListData
 @import views.html.main_layout
 @import views.html.partials.selectable_clients_table_form
-@import views.html.helper.CSPNonce
+@import views.html.partials.search_and_filter
 
 @this(
     layout: main_layout,
@@ -27,9 +25,9 @@
     table: table, textbox: textbox, input_select: input_select,
     a_button: link_as_button,summary_list: summary_list,
     selectable_clients_table_form: selectable_clients_table_form,
-        formWithCSRF: FormWithCSRF,
-        submit_button_group: submit_button_group,
-        summaryErrors: SummaryErrors
+    formWithCSRF: FormWithCSRF,
+    search_and_filter: search_and_filter,
+    summaryErrors: SummaryErrors
 )
 
 @(
@@ -72,47 +70,8 @@ withSearchAndErrorPrefix(
     } else {
 
         @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
-        <div class="govuk-grid-row" role="search">
-            @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-            }
 
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                        @msgs("filter.legend")
-                    </legend>
-
-                    @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {
-                    <p id="filter-error" class="govuk-error-message">
-                        <span class="govuk-visually-hidden">Error:</span>
-                        @msgs("error.search-filter.empty")
-                    </p>
-                    }
-
-                    <div class="govuk-grid-column-one-quarter">
-                        @textbox(
-                        field = addClientsToGroupForm("search"),
-                        label = "client-filter.text.label",
-                        labelClasses = "govuk-label--s",
-                        classes = "govuk-input--width-20"
-                        )
-                    </div>
-
-                    <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
-                        @input_select(
-                        field = addClientsToGroupForm("filter"),
-                        label = msgs("client-filter.select.label"),
-                        emptyOptionText = msgs("client-filter.select.label.empty-option"),
-                        options = getFiltersByTaxService()
-                        )
-                    </div>
-
-                    <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-                        @submit_button_group(additionalClasses = "govuk-!-margin-bottom-7")
-                    </div>
-                </fieldset>
-                @if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
-        </div>
+            @search_and_filter(addClientsToGroupForm, true)
         }
 
         @h3("unassigned-clients.not-found.heading")

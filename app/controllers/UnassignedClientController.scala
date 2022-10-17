@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector}
 import forms._
-import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
+import models.{AddClientsToGroup, DisplayClient}
 import play.api.Logging
 import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -52,8 +52,7 @@ class UnassignedClientController @Inject()(
                                           (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-  with GroupsControllerCommon
-  with I18nSupport
+    with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -88,21 +87,19 @@ class UnassignedClientController @Inject()(
 
   def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
 
-    val encoded = request.body.asFormUrlEncoded
-    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
-
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredClients =>
           withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
             AddClientsToGroupForm
-              .form(buttonSelection)
+              .form()
               .bindFromRequest()
               .fold(
                 formWithErrors => {
                   for {
                     unassignedClients <- clientService.getUnassignedClients(arn)
-                    _ <- if (buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else Future.successful(())
+                    _ <- if ("continue" == formWithErrors.data.get("submit")) sessionCacheService.clearSelectedClients() else
+                      Future.successful(())
                     result = if (maybeFilteredClients.isDefined)
                       Ok(unassigned_clients_list(unassignedClients, formWithErrors,maybeHiddenClients))
                     else
@@ -110,9 +107,9 @@ class UnassignedClientController @Inject()(
                   } yield result
                 },
                 formData => {
-                  clientService.saveSelectedOrFilteredClients(
-                    buttonSelection)(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
-                    if(buttonSelection == ButtonSelect.Continue)
+                  clientService.saveSelectedOrFilteredClients(formData.submit)(arn)(
+                    formData)(clientService.getMaybeUnassignedClients).map(_ =>
+                    if(formData.submit == "continue")
                       Redirect(controller.showSelectedUnassignedClients)
                     else Redirect(controller.showUnassignedClients)
                   )

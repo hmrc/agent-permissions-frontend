@@ -18,38 +18,29 @@
 
 @this(button: GovukButton)
 
-@(
-    submitId: String = "filter-button",
-    submitValue: String = "submitFilter",
-    submitMsgKey: String = "filter.apply",
-    name: String = "submitFilter",
-    secondId: String = "clear-button",
-    secondValue: String = "submitClear",
-    secondMsgKey: String = "filter.clear",
-    secondName: String = "submitClear",
-    id: Option[String] = None,
-    additionalClasses: String = ""
-)(implicit msgs: Messages)
+@(additionalClasses: String = "govuk-!-margin-bottom-7", hasFilter: Boolean)(implicit msgs: Messages)
 
-<div @id.map(i => {s"id =${i}"}) class="govuk-button-group @additionalClasses">
+@id_of_wrapper = @{if(hasFilter) "search-with-filter" else "search-no-filter"}
+
+    <div class="govuk-button-group @additionalClasses" id="@id_of_wrapper">
     @button(
         Button(
-            attributes = Map("id" -> s"${submitId}"),
+            attributes = Map("id" -> "filter-button"),
             classes = "govuk-button--secondary",
-            content = Text(msgs(submitMsgKey)),
+            content = Text(msgs("filter.apply")),
             inputType = Some("submit"),
-            name = Some(name),
-            value = Some(submitValue)
+            name = Some("submit"),
+            value = Some("filter")
         )
     )
     @button(
         Button(
-            attributes = Map("id" -> s"${secondId}"),
+            attributes = Map("id" -> "clear-button"),
             classes = "govuk-button--secondary",
-            content = Text(msgs(secondMsgKey)),
+            content = Text(msgs("filter.clear")),
             inputType = Some("submit"),
-            name = Some(secondName),
-            value = Some(secondValue)
+            name = Some("submit"),
+            value = Some("clear")
         )
     )
 </div>

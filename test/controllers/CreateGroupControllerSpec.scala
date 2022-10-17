@@ -614,7 +614,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -649,7 +649,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "friendly0",
               "filter" -> "",
-              "submitFilter" -> "submitFilter"
+              "submit" -> "filter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -687,7 +687,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
-              "submitClear" -> "submitClear"
+              "submit" -> "clear"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -726,7 +726,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "continue" -> "continue"
+          "submit" -> "continue"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -765,7 +765,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -804,7 +804,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       ).withFormUrlEncodedBody(
           "hasSelectedClients" -> "false",
           "filter" -> "",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1172,7 +1172,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "hasAlreadySelected" -> "false",
               "members[]" -> teamMembersIds.head,
               "members[]" -> teamMembersIds.last,
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1207,7 +1207,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "members[]" -> teamMembersIds.head,
               "members[]" -> teamMembersIds.last,
               "search" -> "10",
-              "submitFilter" -> "submitFilter"
+              "submit" -> "filter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1247,7 +1247,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "members[]" -> teamMembersIds.head,
               "members[]" -> teamMembersIds.last,
               "search" -> "1",
-              "submitClear" -> "submitClear"
+              "submit" -> "clear"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1285,7 +1285,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           "hasAlreadySelected" -> "false",
           "members" -> "",
           "search" -> "",
-          "continue" -> "continue"
+          "submit" -> "continue"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1329,7 +1329,7 @@ class CreateGroupControllerSpec extends BaseSpec {
             "members[]" -> teamMembersIds.head,
             "members[]" -> teamMembersIds.last,
             "search" -> "",
-            "submitFilter" -> "submitFilter"
+            "submit" -> "filter"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1367,7 +1367,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       implicit val request = FakeRequest(
         "POST",
         routes.CreateGroupController.submitSelectedTeamMembers.url
-      ).withFormUrlEncodedBody("continue" -> "continue")
+      ).withFormUrlEncodedBody("submit" -> "continue")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

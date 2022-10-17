@@ -16,24 +16,22 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import play.api.libs.json.Json
-@import models.Selectable
+@import views.html.partials.search_and_filter
 
 @this(
-        p: p, h1: h1, h2: h2, span: span, a: a,
-        caption: caption,
-        govukSkipLink: GovukSkipLink,
-        table: table,
-        submit_button_group: submit_button_group,
-        textbox: textbox,
-        input_select: input_select,
-        formWithCSRF: FormWithCSRF
+    p: p, h1: h1, h2: h2, span: span, a: a,
+    caption: caption,
+    govukSkipLink: GovukSkipLink,
+    table: table, textbox: textbox,
+    filter_buttons: filter_buttons,
+    search_and_filter: search_and_filter,
+    input_select: input_select,
 )
 
 @(
-        teamMembers: Option[Seq[TeamMember]] = None,
-        form: Form[SearchFilter],
-        formAction: Call = routes.ManageTeamMemberController.showAllTeamMembers,
+    teamMembers: Option[Seq[TeamMember]] = None,
+    form: Form[SearchFilter],
+    formAction: Call = routes.ManageTeamMemberController.showAllTeamMembers,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -60,27 +58,7 @@
 
 @views.html.helper.form(action = formAction) {
 
-    <div class="govuk-grid-row" role="search">
-        <fieldset class="govuk-fieldset">
-            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                @msgs("filter.legend")
-            </legend>
-
-            <div class="govuk-grid-column-one-quarter">
-                @textbox(
-                field = form("search"),
-                label = "group.members.list.filter.label",
-                labelClasses = "govuk-label--s",
-                classes = "govuk-input--width-20"
-                )
-            </div>
-
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
-                @submit_button_group(name = "submit", secondName="submit", secondValue="clear", submitValue="filter",
-                additionalClasses = "govuk-!-margin-bottom-7")
-            </div>
-        </fieldset>
-    </div>
+    @search_and_filter(form, false)
 
     @if(teamMembers.getOrElse(Seq.empty).nonEmpty) {
 

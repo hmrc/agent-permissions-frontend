@@ -16,7 +16,7 @@
 
 package helpers
 
-import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
+import models.TeamMember
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.TeamMemberService
@@ -34,13 +34,6 @@ trait TeamMemberServiceMocks extends MockFactory {
         _: ExecutionContext, _: Request[_]))
       .expects(arn, *, *, *)
       .returning(Future successful Some(teamMembers))
-
-  def expectProcessFormDataForTeamMembers(buttonPress: ButtonSelect)(arn: Arn)(implicit teamMemberService: TeamMemberService): Unit =
-    (teamMemberService
-      .saveSelectedOrFilteredTeamMembers(_: ButtonSelect)(_: Arn)(_: AddTeamMembersToGroup)
-      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
-      .expects(buttonPress, arn, *, *, *, *)
-      .returning(Future successful())
 
   def expectLookupTeamMember(arn: Arn)
                             (teamMember: TeamMember)

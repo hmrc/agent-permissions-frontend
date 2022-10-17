@@ -26,4 +26,6 @@ $(document).ready(function () {
         $('#member-count-text strong')[0].innerHTML = selectedCount;
     });
 
+    $("#filter-buttons-wrapper button")
+
 });

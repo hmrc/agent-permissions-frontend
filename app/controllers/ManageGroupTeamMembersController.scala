@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
 import models.TeamMember.toAgentUser
-import models.{AddTeamMembersToGroup, ButtonSelect, SearchFilter, TeamMember}
+import models.{AddTeamMembersToGroup, SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -51,8 +51,7 @@ class ManageGroupTeamMembersController @Inject()(
                                                 (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-  with GroupsControllerCommon
-  with I18nSupport
+    with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -152,18 +151,17 @@ class ManageGroupTeamMembersController @Inject()(
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
 
     val encoded = request.body.asFormUrlEncoded
-    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
 
     withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
         withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
           AddTeamMembersToGroupForm
-            .form(buttonSelection)
+            .form()
             .bindFromRequest()
             .fold(
               formWithErrors => {
                 for {
-                  _ <- if (buttonSelection == ButtonSelect.Continue)
+                  _ <- if ("continue" == formWithErrors.data.get("submit"))
                     sessionCacheService.clearSelectedTeamMembers()
                   else ().toFuture
                   result <- if (maybeFilteredResult.isDefined)
@@ -190,8 +188,8 @@ class ManageGroupTeamMembersController @Inject()(
                 } yield result
               },
               formData => {
-                teamMemberService.saveSelectedOrFilteredTeamMembers(buttonSelection)(group.arn)(formData).map(_ =>
-                  if (buttonSelection == ButtonSelect.Continue) {
+                teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).map(_ =>
+                  if (formData.submit == "continue") {
                     for {
                       members <- sessionCacheRepository
                         .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)

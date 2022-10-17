@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import views.html.partials.search_and_filter
 
 @this(
     layout: main_layout,
@@ -26,7 +27,7 @@
     link_as_button: link_as_button,
     submit_button: submit_button,
     textbox: textbox,
-    submit_button_group: submit_button_group,
+    search_and_filter: search_and_filter,
     input_select: input_select,
     checkbox: checkbox
 )
@@ -66,41 +67,8 @@
 
     @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group._id)) {
 
-    <div class="govuk-grid-row" role="search">
+        @search_and_filter(form, true)
 
-        <fieldset class="govuk-fieldset">
-            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-            @msgs("filter.legend")
-            </legend>
-
-            <div class="govuk-grid-column-one-quarter">
-            @textbox(
-                field = form("search"),
-                label = "client-filter.text.label",
-                labelClasses = "govuk-label--s",
-                classes = "govuk-input--width-20"
-            )
-            </div>
-
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
-            @input_select(
-                field = form("filter"),
-                label = msgs("client-filter.select.label"),
-                emptyOptionText = msgs("client-filter.select.label.empty-option"),
-                options = getFiltersByTaxService()
-            )
-            </div>
-
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-                @submit_button_group(
-                    name = "submit",
-                    secondName="submit",
-                    secondValue="clear",
-                    submitValue="filter",
-                    additionalClasses = "govuk-!-margin-bottom-7")
-            </div>
-        </fieldset>
-    </div>
     }
     @if(group.clients.nonEmpty) {
 

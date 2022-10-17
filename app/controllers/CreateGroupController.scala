@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
-import models.{AddClientsToGroup, AddTeamMembersToGroup, ButtonSelect, DisplayClient, TeamMember}
+import models.{AddClientsToGroup, AddTeamMembersToGroup, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -56,8 +56,7 @@ class CreateGroupController @Inject()(
                                  ec: ExecutionContext,
                                  implicit override val messagesApi: MessagesApi
                                ) extends FrontendController(mcc)
-  with GroupsControllerCommon
-  with I18nSupport
+    with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -155,11 +154,12 @@ class CreateGroupController @Inject()(
                     AddClientsToGroup(
                       maybeHiddenClients.getOrElse(false),
                       search = clientSearchTerm,
-                      filter = clientFilterTerm,
-                      clients = None))
+                      filter = clientFilterTerm
+                    )
+                  )
                 )
               )
-            }
+             }
             }
           }
         }
@@ -170,15 +170,13 @@ class CreateGroupController @Inject()(
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-        val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
-
         AddClientsToGroupForm
-          .form(buttonSelection)
+          .form()
           .bindFromRequest()
           .fold(
             formWithErrors => {
               for {
-                _ <- if (buttonSelection == ButtonSelect.Continue)
+                _ <- if ("continue" == formWithErrors.data.get("submit"))
                   sessionCacheService.clearSelectedClients()
                 else ().toFuture
                 clients <- clientService.getClients(arn)
@@ -191,9 +189,9 @@ class CreateGroupController @Inject()(
 
             },
             formData => {
-              clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getAllClients)
+              clientService.saveSelectedOrFilteredClients(formData.submit)(arn)(formData)(clientService.getAllClients)
                 .map(_ =>
-                  if (buttonSelection == ButtonSelect.Continue)
+                  if (formData.submit == "continue")
                     Redirect(controller.showReviewSelectedClients)
                   else
                     Redirect(
@@ -256,12 +254,14 @@ class CreateGroupController @Inject()(
                 groupName,
                 maybeHiddenTeamMembers,
                 backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showReviewSelectedClients.url)),
-                form = AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
-                  hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
-                  search = teamMemberSearchTerm,
-                  members = None
-                ))
-              ))
+                form = AddTeamMembersToGroupForm.form().fill(
+                  AddTeamMembersToGroup(
+                    hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
+                    search = teamMemberSearchTerm
+                  )
+                )
+              )
+            )
           }
           }
         }
@@ -273,15 +273,13 @@ class CreateGroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
 
-        val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(request.body.asFormUrlEncoded)
-
         AddTeamMembersToGroupForm
-          .form(buttonSelection)
+          .form()
           .bindFromRequest()
           .fold(
             formWithErrors => {
               for {
-                _ <- if (buttonSelection == ButtonSelect.Continue)
+                _ <- if ("continue" == formWithErrors.data.get("submit"))
                   sessionCacheService
                     .clearSelectedTeamMembers()
                 else ().toFuture
@@ -296,10 +294,8 @@ class CreateGroupController @Inject()(
             },
             formData => {
               teamMemberService
-                .saveSelectedOrFilteredTeamMembers(
-                  buttonSelection)(arn)(formData)
-                .map(_ =>
-                  if (buttonSelection == ButtonSelect.Continue)
+                .saveSelectedOrFilteredTeamMembers(formData.submit)(arn)(formData).map(_ =>
+                  if (formData.submit == "continue")
                     Redirect(controller.showReviewSelectedTeamMembers)
                   else Redirect(controller.showSelectTeamMembers))
             }

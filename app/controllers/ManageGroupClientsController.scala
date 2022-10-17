@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
 import forms._
 import models.DisplayClient.format
-import models.{AddClientsToGroup, ButtonSelect, DisplayClient, DisplayGroup, SearchFilter}
+import models.{AddClientsToGroup, DisplayClient, DisplayGroup, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -48,8 +48,7 @@ class ManageGroupClientsController @Inject()(
     )(implicit val appConfig: AppConfig, ec: ExecutionContext,
       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-  with GroupsControllerCommon
-  with I18nSupport
+    with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -120,20 +119,15 @@ class ManageGroupClientsController @Inject()(
   }
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-
-    val encoded = request.body.asFormUrlEncoded
-    val buttonSelection: ButtonSelect = buttonClickedByUserOnFilterFormPage(encoded)
-
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-
-        withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+      withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
           AddClientsToGroupForm
-            .form(buttonSelection)
+            .form()
             .bindFromRequest()
             .fold(
               formWithErrors => {
                 for {
-                  _ <- if (buttonSelection == ButtonSelect.Continue)
+                  _ <- if ("continue" == formWithErrors.data.get("submit"))
                     sessionCacheService.clearSelectedClients()
                   else ().toFuture
                   clients <- clientService.getClients(group.arn)
@@ -149,8 +143,13 @@ class ManageGroupClientsController @Inject()(
                 }
               },
               formData => {
-                clientService.saveSelectedOrFilteredClients(buttonSelection)(group.arn)(formData)(clientService.getAllClients).flatMap(_ =>
-                  if (buttonSelection == ButtonSelect.Continue) {
+                println("******************")
+                println(formData.submit)
+                println(formData.clients)
+                println("******************")
+                clientService.saveSelectedOrFilteredClients(formData.submit)(group.arn)(formData)(clientService.getAllClients)
+                  .flatMap(_ =>
+                  if (formData.submit == "continue") {
                     for {
                       enrolments <- sessionCacheRepository
                         .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)

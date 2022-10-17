@@ -16,48 +16,23 @@
 
 package forms
 
-import models.ButtonSelect.{Clear, Continue, Filter}
-import models.{AddTeamMembersToGroup, ButtonSelect}
+import models.AddTeamMembersToGroup
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
+import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfEqual
 
 object AddTeamMembersToGroupForm {
 
-  def form(buttonPressed: ButtonSelect = Continue): Form[AddTeamMembersToGroup] = buttonPressed match {
-    case Continue =>
-      Form(addTeamMembersToGroupMapping.verifying(emptyTeamMemberConstraint))
-    case Filter =>
-      Form(addTeamMembersToGroupFilterMapping.verifying(emptySearchFieldConstraint))
-    case Clear =>
-      Form(addTeamMembersToGroupMapping)
-    case e => throw new RuntimeException(s"invalid button $e")
-  }
-
-  private val emptyTeamMemberConstraint: Constraint[AddTeamMembersToGroup] =
-    Constraint { formData: AddTeamMembersToGroup =>
-      if (!formData.hasAlreadySelected && formData.members.isEmpty) {
-        Invalid(ValidationError("error.select-members.empty"))
-      } else Valid
-    }
-
-  private val emptySearchFieldConstraint: Constraint[AddTeamMembersToGroup] =
-    Constraint { formData =>
-      if (formData.search.isEmpty)
-        Invalid(ValidationError("error.search-members.empty"))
-      else Valid
-    }
-
-  private val addTeamMembersToGroupFilterMapping = mapping(
-    "hasAlreadySelected" -> boolean,
-    "search" -> optional(text.verifying("error.search-members.invalid", s => !(s.contains('<') || s.contains('>')))),
-    "members" -> optional(list(text))
-  )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
-
-  private val addTeamMembersToGroupMapping = mapping(
+  def form(): Form[AddTeamMembersToGroup] = Form(
+    mapping(
     "hasAlreadySelected" -> boolean,
     "search" -> optional(text),
-    "members" -> optional(list(text))
+    "members" -> mandatoryIfEqual(
+      "submit",
+      "continue",
+      list(text).verifying("error.select-members.empty", _.length > 0)
+    ),
+    "submit" -> text
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
-
+  )
 }

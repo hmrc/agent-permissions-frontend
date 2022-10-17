@@ -417,7 +417,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -454,7 +454,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "continue" -> "continue"
+          "submit" -> "continue"
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -489,7 +489,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -524,7 +524,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "Ab",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

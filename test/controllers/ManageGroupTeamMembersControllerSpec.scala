@@ -354,7 +354,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
               "members[0]" -> teamMembers.head.id,
               "members[1]" -> teamMembers.last.id,
               "search" -> "",
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -386,7 +386,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
               "hasAlreadySelected" -> "false",
               "members" -> "",
               "search" -> "",
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -410,7 +410,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
 
-      "button is Filter with no search value display error" in {
+      "button is Filter with no search value displays no error" in {
         // given
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
@@ -418,7 +418,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
               "hasAlreadySelected" -> "false",
               "members" -> "",
               "search" -> "",
-              "submitFilter" -> "submitFilter"
+              "submit" -> "filter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -435,10 +435,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
+        html.title() shouldBe "Select team members - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Select team members"
-        html
-          .select(Css.errorSummaryForField("search")).text() shouldBe "You must enter a name or email to apply filters"
+        html.select(Css.errorSummaryForField("search")).isEmpty shouldBe true
 
         await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
@@ -452,7 +451,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
               "hasAlreadySelected" -> "false",
               "members" -> "",
               "search" -> "1",
-              "submitFilter" -> "submitFilter"
+              "submit" -> "filter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 

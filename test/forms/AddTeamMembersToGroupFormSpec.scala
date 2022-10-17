@@ -16,7 +16,7 @@
 
 package forms
 
-import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
+import models.{AddTeamMembersToGroup, TeamMember}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -24,7 +24,7 @@ import play.api.data.FormError
 
 
 class AddTeamMembersToGroupFormSpec
-    extends AnyWordSpec
+  extends AnyWordSpec
     with Matchers
     with GuiceOneAppPerSuite {
 
@@ -42,107 +42,107 @@ class AddTeamMembersToGroupFormSpec
         .form()
         .fill(
           AddTeamMembersToGroup(hasAlreadySelected = false,
-                                None,
-                                Some(List(member1.id, member2.id))))
+            None,
+            Some(List(member1.id, member2.id))))
       validatedForm.hasErrors shouldBe false
       validatedForm.value shouldBe Some(
         AddTeamMembersToGroup(hasAlreadySelected = false,
-                              None,
-                              Some(List(member1.id, member2.id))))
+          None,
+          Some(List(member1.id, member2.id))))
     }
 
     "be successful when button is Continue and team members are non-empty" in {
       val params = Map(
         hasAlreadySelected -> List("false"),
         search -> List.empty,
-        members -> List(member1.id,member2.id)
+        members -> List(member1.id, member2.id),
+        "submit" -> List("continue")
       )
       val boundForm = AddTeamMembersToGroupForm
-        .form(ButtonSelect.Continue)
+        .form()
         .bindFromRequest(params)
+
       boundForm.value shouldBe Some(
         AddTeamMembersToGroup(hasAlreadySelected = false,
-                              None,
-                              Some(List(member1.id, member2.id))))
+          None,
+          Some(List(member1.id, member2.id)),
+          submit = "continue")
+      )
     }
 
-    "have errors when team members is empty and hasAlreadySelected is false" in {
+    "have errors when team members is empty and submit is continue" in {
       val params = Map(
         hasAlreadySelected -> List("false"),
         search -> List.empty,
-        members -> List.empty
+        members -> List.empty,
+        "submit" -> List("continue"),
       )
-      val boundForm = AddTeamMembersToGroupForm
-        .form(ButtonSelect.Continue)
-        .bindFromRequest(params)
+      val boundForm = AddTeamMembersToGroupForm.form().bindFromRequest(params)
 
-      boundForm.errors shouldBe List(FormError("", List("error.select-members.empty")))
+      boundForm.errors shouldBe List(FormError("members", List("error.select-members.empty")))
     }
 
-
-    "throw exception for invalid Button Select" in {
-
-      val exception = intercept[RuntimeException] {
-        AddTeamMembersToGroupForm.form(ButtonSelect("invalid mate")).bindFromRequest(Map.empty)
-      }
-      exception.getMessage startsWith  "invalid mate"
-
-    }
 
     "be successful when button is Filter with search value" in {
       val params = Map(
         hasAlreadySelected -> List("false"),
         search -> List("abc"),
-        members -> List(member1.id, member2.id)
+        members -> List(member1.id, member2.id),
+        "submit" -> List("filter"),
       )
       val boundForm = AddTeamMembersToGroupForm
-        .form(ButtonSelect.Filter)
+        .form()
         .bindFromRequest(params)
       boundForm.value shouldBe Some(
-        AddTeamMembersToGroup(hasAlreadySelected = false,
-                              Some("abc"),
-                              Some(List(member1.id, member2.id))))
+        AddTeamMembersToGroup(
+          hasAlreadySelected = false,
+          Some("abc"),
+          Some(List(member1.id, member2.id)),
+          submit = "filter")
+      )
     }
 
     "have errors when button is Filter and search contains invalid characters" in {
       val params = Map(
         hasAlreadySelected -> List("false"),
         search -> List("bad<search>"),
-        members -> List(member1.id, member2.id)
+        members -> List(member1.id, member2.id),
+        "submit" -> List("filter"),
       )
       val boundForm = AddTeamMembersToGroupForm
-        .form(ButtonSelect.Filter)
+        .form()
         .bindFromRequest(params)
 
       boundForm.errors shouldBe List(
         FormError("search", List("error.search-members.invalid")))
     }
 
-    "have errors when button is Filter and search field is empty" in {
+    "no errors when button is Filter and search field is empty" in {
       val params = Map(
         hasAlreadySelected -> List("false"),
         search -> List.empty,
-        members -> List(member1.id, member2.id)
+        members -> List(member1.id, member2.id),
+        "submit" -> List("filter"),
       )
       val boundForm = AddTeamMembersToGroupForm
-        .form(ButtonSelect.Filter)
+        .form()
         .bindFromRequest(params)
 
-      boundForm.errors shouldBe List(
-        FormError("", List("error.search-members.empty")))
+      boundForm.hasErrors shouldBe false
     }
 
     "be successful when button is Clear and form is empty" in {
       val params = Map(
         hasAlreadySelected -> List("false"),
         search -> List.empty,
-        members -> List.empty
+        members -> List.empty,
+        "submit" -> List("clear"),
       )
       val boundForm = AddTeamMembersToGroupForm
-        .form(ButtonSelect.Clear)
+        .form()
         .bindFromRequest(params)
       boundForm.value shouldBe Some(
-        AddTeamMembersToGroup(hasAlreadySelected = false, None, None))
+        AddTeamMembersToGroup(hasAlreadySelected = false, None, None, submit = "clear"))
     }
 
   }
@@ -150,40 +150,49 @@ class AddTeamMembersToGroupFormSpec
   "Add TeamMembersToGroup unbind form" should {
 
     "give expected Map of data Continue" in {
-      val model = AddTeamMembersToGroup(hasAlreadySelected = false,
-                                        None,
-                                        Some(List(member1.id, member2.id)))
+      val model = AddTeamMembersToGroup(
+        hasAlreadySelected = false,
+        None,
+        Some(List(member1.id, member2.id)),
+        submit = "continue"
+      )
       AddTeamMembersToGroupForm
-        .form(ButtonSelect.Continue)
+        .form()
         .mapping
         .unbind(model) shouldBe Map(
         "hasAlreadySelected" -> "false",
         "members[0]" -> member1.id,
         "members[1]" -> member2.id,
+        "submit" -> "continue"
       )
     }
 
     "give expected Map of data Filter" in {
-      val model = AddTeamMembersToGroup(hasAlreadySelected = false,
-                                        Option("Ab"),
-                                        Some(List(member1.id)))
+      val model = AddTeamMembersToGroup(
+        hasAlreadySelected = false,
+        Option("Ab"),
+        Some(List(member1.id)),
+        submit = "filter"
+      )
       AddTeamMembersToGroupForm
-        .form(ButtonSelect.Filter)
+        .form()
         .mapping
         .unbind(model) shouldBe Map(
         "hasAlreadySelected" -> "false",
         "search" -> "Ab",
         "members[0]" -> member1.id,
+        "submit" -> "filter",
       )
     }
 
     "give expected Map of data Clear" in {
-      val model = AddTeamMembersToGroup(hasAlreadySelected = false, None, None)
+      val model = AddTeamMembersToGroup(hasAlreadySelected = false, None, None, submit = "clear")
       AddTeamMembersToGroupForm
-        .form(ButtonSelect.Clear)
+        .form()
         .mapping
         .unbind(model) shouldBe Map(
         "hasAlreadySelected" -> "false",
+        "submit" -> "clear"
       )
     }
   }

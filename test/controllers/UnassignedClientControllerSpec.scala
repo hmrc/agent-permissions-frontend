@@ -178,7 +178,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
             "clients[1]" -> displayClients.last.id,
             "search" -> "",
             "filter" -> "",
-            "continue" -> "continue"
+            "submit" -> "continue"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -212,7 +212,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
             "clients[1]" -> displayClients.last.id,
             "search" -> "",
             "filter" -> "VAT",
-            "submitFilter" -> "submitFilter"
+            "submit" -> "filter"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -241,7 +241,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
             "hasSelectedClients" -> "false",
             "search" -> "",
             "filter" -> "",
-            "submitFilter" -> "submitFilter"
+            "submit" -> "filter"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -265,7 +265,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
             "hasSelectedClients" -> "false",
             "search" -> "",
             "filter" -> "",
-            "continue" -> "continue"
+            "submit" -> "continue"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 

@@ -67,11 +67,10 @@ class ManageGroupClientsController @Inject()(
       )(submitButton =>
         //either the 'filter' button or the 'clear' filter button was clicked
         submitButton match {
-          case "clear" =>
-            Redirect(controller.showExistingGroupClients(groupId))
           case "filter" =>
+            val searchTerm = searchFilter.search.getOrElse("")
             val filteredClients = displayGroup.clients
-              .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+              .filter(_.name.toLowerCase.contains(searchTerm.toLowerCase))
               .filter(dc =>
                 if (!searchFilter.filter.isDefined) true
                 else {
@@ -84,6 +83,8 @@ class ManageGroupClientsController @Inject()(
                 form = SearchAndFilterForm.form().fill(searchFilter)
               )
             )
+          case "clear" =>
+            Redirect(controller.showExistingGroupClients(groupId))
         }
       ).toFuture
     }

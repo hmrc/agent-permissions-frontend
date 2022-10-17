@@ -23,7 +23,10 @@ import helpers.BaseSpec
 import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.Client
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class ClientServiceSpec extends BaseSpec {
 
@@ -48,8 +51,6 @@ class ClientServiceSpec extends BaseSpec {
     "PUT client to agentUserClientDetailsConnector" in {
       //given
       val newName = "The new name"
-      val clientWithNewName = Client("HMRC-MTD-VAT~VRN~123456781", newName)
-
       stubUpdateClientReferenceSuccess()
 
       //when
@@ -66,8 +67,7 @@ class ClientServiceSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "new name"))
 
       //when
-      val maybeNewName: Option[String] =
-        await(service.getNewNameFromSession())
+      val maybeNewName: Option[String] = await(service.getNewNameFromSession())
       val name: String = maybeNewName.get
 
       //then
@@ -104,6 +104,20 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  // TODO implement tests for addClient/addTeamMember, refactor processFormData?
+  "getUnassignedClients" should {
+    "Gets them from mockAgentPermissionsConnector" in {
+      //given
+      (mockAgentPermissionsConnector.unassignedClients(_: Arn)( _: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future.successful(displayClients)).once()
+
+      //when
+      val unassignedClients: Seq[DisplayClient] = await(service.getUnassignedClients(arn))
+
+
+      //then
+      unassignedClients shouldBe displayClients
+    }
+  }
 
 }

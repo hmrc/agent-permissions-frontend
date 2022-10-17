@@ -17,12 +17,10 @@
 package services
 
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
-import controllers.{FILTERED_GROUPS_INPUT, FILTERED_GROUP_SUMMARIES}
 import helpers.BaseSpec
-import models.{DisplayClient, TeamMember}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,6 +29,7 @@ class GroupServiceSpec extends BaseSpec {
 
   val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
+
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
@@ -38,55 +37,33 @@ class GroupServiceSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
 
   val service =
-    new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
+    new GroupServiceImpl(
+      mockAgentUserClientDetailsConnector,
+      sessionCacheRepo,
+      mockAgentPermissionsConnector
+    )
 
-  val fakeClients: Seq[Client] = (1 to 10)
-    .map(i => Client(s"tax$i~enrolmentKey$i~hmrcRef$i", s"friendlyName$i"))
-
-  val users: Seq[UserDetails] = (1 to 3)
-    .map(
-      i =>
-        UserDetails(userId = Option(s"user$i"),
-                    None,
-                    Some(s"Name $i"),
-                    Some(s"bob$i@accounting.com")))
-
-  val fakeTeamMembers: Seq[TeamMember] = (1 to 5)
-    .map(i => {
-      TeamMember(
-        s"John $i",
-        "User",
-        Some("John"),
-        Some(s"john$i@abc.com"),
-      )
-    })
-
-  "filterGroupsByName" should {
-    "Filter out Groups from  agentPermissionsConnector and select those matching filter" in {
+  "get groups" should {
+    "Return groups from agentPermissionsConnector" in {
 
       //given
-      val expectedFilteredGroup = GroupSummary("1", "Potatoes", 1, 1)
       val groupSummaries = Seq(
-        expectedFilteredGroup,
         GroupSummary("2", "Carrots", 1, 1),
-        GroupSummary("3", "cars", 1, 1),
-        GroupSummary("4", "chickens", 1, 1),
+        GroupSummary("3", "Potatoes", 1, 1),
       )
+
       (mockAgentPermissionsConnector
-        .groupsSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .groups(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
-        .returning(Future successful Some(groupSummaries, Seq.empty[DisplayClient]))
+        .returning(Future successful groupSummaries).once()
 
       //when
-      await(service.filterByGroupName("pot")(arn))
+      val summaries = await(service.groups(arn))
 
       //then
-      val maybeSummaries = await(sessionCacheRepo.getFromSession(FILTERED_GROUP_SUMMARIES))
-      val maybeInput = await(sessionCacheRepo.getFromSession(FILTERED_GROUPS_INPUT))
-      maybeSummaries.isDefined shouldBe true
-      maybeSummaries.get.size shouldBe 1
-      maybeSummaries.get.head shouldBe expectedFilteredGroup
-      maybeInput.get shouldBe "pot"
+      summaries shouldBe groupSummaries
+
+
     }
   }
 

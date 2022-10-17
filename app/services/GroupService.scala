@@ -33,10 +33,6 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[GroupServiceImpl])
 trait GroupService {
 
-  def getClientsForManageGroups(displayClients: Future[Seq[DisplayClient]])(implicit request: Request[_],
-                                                                            hc: HeaderCarrier,
-                                                                            ec: ExecutionContext): Future[List[DisplayClient]]
-
   def getTeamMembersFromGroup(arn: Arn)(
     teamMembersInGroup: Option[Seq[TeamMember]]
   )(implicit hc: HeaderCarrier,
@@ -44,10 +40,7 @@ trait GroupService {
 
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit]
 
-  def groupSummaries(arn: Arn)
-                    (implicit request: Request[_],
-                     ec: ExecutionContext,
-                     hc: HeaderCarrier): Future[(Seq[GroupSummary], Seq[DisplayClient])]
+  def groups(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
                              (implicit request: Request[_],
@@ -59,10 +52,6 @@ trait GroupService {
                                   ec: ExecutionContext,
                                   hc: HeaderCarrier): Future[Seq[GroupSummary]]
 
-  def filterByGroupName(searchTerm: String)(arn: Arn)
-                       (implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext): Future[Unit]
-
-
 }
 
 
@@ -72,19 +61,6 @@ class GroupServiceImpl @Inject()(
     sessionCacheRepository: SessionCacheRepository,
     agentPermissionsConnector: AgentPermissionsConnector
 ) extends GroupService with Logging {
-
-  def getClientsForManageGroups(displayClients: Future[Seq[DisplayClient]])(implicit request: Request[_],
-                                          hc: HeaderCarrier,
-                                          ec: ExecutionContext): Future[List[DisplayClient]] =
-    for {
-      maybeSelectedClients <- sessionCacheRepository
-        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
-      dcWithoutPreselected <- displayClients.map(_.filterNot(clients =>
-      maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(clients.hmrcRef))))
-      mergeWithPreselected = dcWithoutPreselected.toList  ::: maybeSelectedClients.getOrElse(List.empty).toList
-      sorted = mergeWithPreselected.sortBy(_.name)
-    } yield sorted
-
 
 
   // Compares users in group with users on ARN & fetches missing details (email & cred role)
@@ -105,6 +81,10 @@ class GroupServiceImpl @Inject()(
       groupTeamMembersSelected = groupTeamMembers.map(_.map(_.copy(selected = true))) // makes them selected
     } yield groupTeamMembersSelected
 
+  def groups(arn: Arn)
+            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[Seq[GroupSummary]] = agentPermissionsConnector.groups(arn)
+
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
     for {
       clients    <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS).map(_.map(_.map(client => Client(client.enrolmentKey, client.name))))
@@ -114,39 +94,6 @@ class GroupServiceImpl @Inject()(
       _             <- Future.sequence(creatingGroupKeys.map(key => sessionCacheRepository.deleteFromSession(key)))
       _             <- sessionCacheRepository.putSession(NAME_OF_GROUP_CREATED, groupName)
     } yield ()
-  }
-
-
-  def groupSummaries(arn: Arn)
-                    (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[(Seq[GroupSummary], Seq[DisplayClient])] = {
-
-   val groupSummaries = sessionCacheRepository.getFromSession[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES).flatMap {
-     case Some(gs) => gs.toFuture
-     case None =>
-       agentPermissionsConnector.groupsSummaries(arn).map {
-         case Some(gs) => gs._1
-         case None => {
-           logger.warn(s"no group summaries returned")
-           Seq.empty
-         }
-       }
-   }
-
-   val clients = sessionCacheRepository.getFromSession[Seq[DisplayClient]](FILTERED_CLIENTS).flatMap {
-     case Some(fc) => fc.toFuture
-     case None =>
-       agentPermissionsConnector.groupsSummaries(arn).flatMap {
-         case Some(gs) => getClientsForManageGroups(gs._2.toFuture)
-         case None => {
-           logger.warn("no group summaries returned for unassigned clients result")
-           Seq.empty.toFuture
-         }
-       }
-   }
-    for {
-      g <- groupSummaries
-      c <- clients
-    } yield (g,c)
   }
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
@@ -172,14 +119,4 @@ class GroupServiceImpl @Inject()(
     } yield g
   }
 
-  def filterByGroupName(searchTerm: String)(arn: Arn)(implicit hc: HeaderCarrier, request: Request[_], ec: ExecutionContext): Future[Unit] = {
-    for {
-      (x,y) <- sessionCacheRepository.putSession[String](FILTERED_GROUPS_INPUT, searchTerm)
-      maybeGroupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
-      filtered = maybeGroupSummaries.map { summaries =>
-        summaries._1.filter(_.groupName.toLowerCase.contains(searchTerm.toLowerCase))
-      }
-      _ <- sessionCacheRepository.putSession[Seq[GroupSummary]](FILTERED_GROUP_SUMMARIES, filtered.getOrElse(Seq.empty))
-    } yield ()
-  }
 }

@@ -24,7 +24,6 @@ import models.TeamMember
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -86,20 +85,10 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
+      expectLookupTeamMember(arn)(teamMember)
+      expectGetGroupsForArn(arn)(groupSummaries)
+      expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
-      (mockTeamMemberService
-        .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, teamMember.id, *, *)
-        .returning(Future successful Some(teamMember))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, teamMember, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToMember))
 
       //when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
@@ -132,26 +121,15 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToMember = Seq.empty
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
+      expectLookupTeamMember(arn)(teamMember)
+      expectGetGroupsForArn(arn)(groupSummaries)
+      expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
-      (mockTeamMemberService
-        .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, teamMember.id, *, *)
-        .returning(Future successful Some(teamMember))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, teamMember, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToMember))
 
       //when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
@@ -180,26 +158,15 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 2)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToMember = groupSummaries
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
 
-      (mockTeamMemberService
-        .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, teamMember.id, *, *)
-        .returning(Future successful Some(teamMember))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, teamMember, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToMember))
+      expectLookupTeamMember(arn)(teamMember)
+      expectGetGroupsForArn(arn)(groupSummaries)
+      expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
       //when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
@@ -275,25 +242,14 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
+      expectLookupTeamMember(arn)(teamMember)
+      expectGetGroupsForArn(arn)(groupSummaries)
+      expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
-      (mockTeamMemberService
-        .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, teamMember.id, *, *)
-        .returning(Future successful Some(teamMember))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, teamMember, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToMember))
 
       implicit val request =
         FakeRequest("POST", submitUrl)
@@ -322,21 +278,13 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-
-      (mockTeamMemberService
-        .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, teamMember.id, *, *)
-        .returning(Future successful Some(teamMember))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
+      expectLookupTeamMember(arn)(teamMember)
+      expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
       val result = controller.showConfirmTeamMemberAddedToGroups(teamMember.id)(request)

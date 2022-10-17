@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, GroupSummary}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector}
 import forms._
 import models.{AddClientsToGroup, ButtonSelect, DisplayClient}
 import play.api.Logging
@@ -27,7 +27,6 @@ import play.api.mvc._
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
@@ -68,9 +67,10 @@ class UnassignedClientController @Inject()(
         withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
             withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-              groupService.groupSummaries(arn).map(gs =>
-                Ok(unassigned_clients_list(
-                    gs,
+              clientService.getUnassignedClients(arn).map(unassignedClients =>
+                Ok(
+                  unassigned_clients_list(
+                    unassignedClients,
                     AddClientsToGroupForm.form().fill(
                       AddClientsToGroup(
                         maybeHiddenClients.getOrElse(false),
@@ -101,16 +101,17 @@ class UnassignedClientController @Inject()(
               .fold(
                 formWithErrors => {
                   for {
-                    groupSummaries <- agentPermissionsConnector.groupsSummaries(arn)
+                    unassignedClients <- clientService.getUnassignedClients(arn)
                     _ <- if (buttonSelection == ButtonSelect.Continue) sessionCacheService.clearSelectedClients() else Future.successful(())
                     result = if (maybeFilteredClients.isDefined)
-                      Ok(unassigned_clients_list(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors,maybeHiddenClients))
+                      Ok(unassigned_clients_list(unassignedClients, formWithErrors,maybeHiddenClients))
                     else
-                      Ok(unassigned_clients_list(groupSummaries.getOrElse(Seq.empty[GroupSummary], Seq.empty[DisplayClient]), formWithErrors, maybeHiddenClients))
+                      Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
                   } yield result
                 },
                 formData => {
-                  clientService.saveSelectedOrFilteredClients(buttonSelection)(arn)(formData)(clientService.getUnassignedClients).map(_ =>
+                  clientService.saveSelectedOrFilteredClients(
+                    buttonSelection)(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
                     if(buttonSelection == ButtonSelect.Continue)
                       Redirect(controller.showSelectedUnassignedClients)
                     else Redirect(controller.showUnassignedClients)
@@ -182,10 +183,8 @@ class UnassignedClientController @Inject()(
   def showSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        getGroupSummaries(arn).map(tuple =>
-        Ok(select_groups_for_clients(SelectGroupsForm
-          .form()
-          .fill(SelectGroups(None, None)), tuple._1)))
+        groupService.groups(arn).map(groups =>
+        Ok(select_groups_for_clients(SelectGroupsForm.form().fill(SelectGroups(None, None)), groups)))
       }
     }
   }
@@ -195,20 +194,19 @@ class UnassignedClientController @Inject()(
       isOptedInComplete(arn) { _ =>
         SelectGroupsForm.form().bindFromRequest().fold(
           formWithErrors => {
-            getGroupSummaries(arn).map( tuple => {
+            groupService.groups(arn).map( groups => {
               val clonedForm = formWithErrors.copy(
                 errors = Seq(FormError("field-wrapper", formWithErrors.errors.head.message))
               )
-              Ok(select_groups_for_clients(clonedForm, tuple._1))
+              Ok(select_groups_for_clients(clonedForm, groups))
             }
             )
           }, validForm => {
             if(validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
             else {
               for {
-                summaries <- getGroupSummaries(arn)
-                groupsToAddTo = summaries._1
-                  .filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId))
+                allGroups <- groupService.groups(arn)
+                groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary))
                 _ <- sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS)
                 result <- selectedClients.fold(
@@ -242,12 +240,6 @@ class UnassignedClientController @Inject()(
           case Some(groups) => sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS).map(_ => Ok(clients_added_to_groups_complete(groups)))
         }
       }
-    }
-  }
-
-  private def getGroupSummaries(arn: Arn)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[(Seq[GroupSummary], Seq[DisplayClient])] = {
-    agentPermissionsConnector.groupsSummaries(arn).map { maybeSummaries =>
-      maybeSummaries.getOrElse((Seq.empty[GroupSummary], Seq.empty[DisplayClient]))
     }
   }
 }

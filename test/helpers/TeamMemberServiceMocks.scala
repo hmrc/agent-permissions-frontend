@@ -17,11 +17,11 @@
 package helpers
 
 import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
+import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
-import services.{GroupService, TeamMemberService}
+import services.TeamMemberService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
-import org.scalamock.scalatest.MockFactory
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,5 +40,13 @@ trait TeamMemberServiceMocks extends MockFactory {
       .saveSelectedOrFilteredTeamMembers(_: ButtonSelect)(_: Arn)(_: AddTeamMembersToGroup)
       (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
       .expects(buttonPress, arn, *, *, *, *)
-      .returning(Future successful ())
+      .returning(Future successful())
+
+  def expectLookupTeamMember(arn: Arn)
+                            (teamMember: TeamMember)
+                            (implicit teamMemberService: TeamMemberService): Unit =
+    (teamMemberService
+      .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, teamMember.id, *, *)
+      .returning(Future successful Some(teamMember)).once()
 }

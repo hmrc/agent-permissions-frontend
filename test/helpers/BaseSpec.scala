@@ -45,6 +45,7 @@ abstract class BaseSpec
     with AuthMocks
     with ScalaFutures
     with GroupServiceMocks
+    with TeamMemberServiceMocks
     with ClientServiceMocks
     with AgentPermissionsConnectorMocks
     with HttpClientMocks

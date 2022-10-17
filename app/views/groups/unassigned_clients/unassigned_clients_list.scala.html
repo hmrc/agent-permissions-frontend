@@ -33,7 +33,7 @@
 )
 
 @(
-    summaries: (Seq[GroupSummary], Seq[DisplayClient]),
+    unassignedClients: Seq[DisplayClient],
     addClientsToGroupForm: Form[AddClientsToGroup],
     hiddenClientsExist: Option[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -62,9 +62,9 @@ withSearchAndErrorPrefix(
 
     @summaryErrors(addClientsToGroupForm.errors, Some(errorHref))
 
-    @if(!summaries._2.isEmpty) {
+    @if(!unassignedClients.isEmpty) {
         @selectable_clients_table_form(
-            Some(summaries._2),
+            Some(unassignedClients),
             hiddenClientsExist,
             addClientsToGroupForm,
             routes.UnassignedClientController.submitAddUnassignedClients

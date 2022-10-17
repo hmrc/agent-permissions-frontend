@@ -33,7 +33,6 @@ import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
-import uk.gov.hmrc.mongo.cache.DataKey
 
 class CreateGroupControllerSpec extends BaseSpec {
 

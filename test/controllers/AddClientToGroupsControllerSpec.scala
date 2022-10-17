@@ -74,26 +74,15 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
+
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-
-      (mockClientService
-        .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, client.id, *, *)
-        .returning(Future successful Some(client))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+      expectLookupClient(arn)(client)
+      expectGetGroupsForArn(arn)(groupSummaries)
+            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -126,26 +115,14 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToClient = Seq.empty
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-
-      (mockClientService
-        .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, client.id, *, *)
-        .returning(Future successful Some(client))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+      expectLookupClient(arn)(client)
+      expectGetGroupsForArn(arn)(groupSummaries)
+            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -173,26 +150,14 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 2)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToClient = groupSummaries
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-
-      (mockClientService
-        .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, client.id, *, *)
-        .returning(Future successful Some(client))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+      expectLookupClient(arn)(client)
+      expectGetGroupsForArn(arn)(groupSummaries)
+            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -225,11 +190,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(true)
-
-        (mockClientService
-          .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-          .expects(arn, client.id, *, *)
-          .returning(Future successful Some(client))
+        expectLookupClient(arn)(client)
 
         val expectedAddRequest1 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         (mockAgentPermissionsConnector
@@ -267,25 +228,13 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-
-      (mockClientService
-        .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, client.id, *, *)
-        .returning(Future successful Some(client))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
-
-      (mockGroupService
-        .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, client, *, *, *)
-        .returning(Future.successful(groupsAlreadyAssociatedToClient))
+      expectLookupClient(arn)(client)
+      expectGetGroupsForArn(arn)(groupSummaries)
+      expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       implicit val request =
         FakeRequest("POST", submitUrl)
@@ -321,15 +270,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-
-      (mockClientService
-        .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, client.id, *, *)
-        .returning(Future successful Some(client))
-
-      (mockGroupService.groupSummaries(_: Arn)(_: Request[_], _: ExecutionContext, _: HeaderCarrier))
-        .expects(arn, *, *, *)
-        .returning(Future.successful(summaries))
+      expectLookupClient(arn)(client)
+      expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
       val result = controller.showConfirmClientAddedToGroups(client.id)(request)

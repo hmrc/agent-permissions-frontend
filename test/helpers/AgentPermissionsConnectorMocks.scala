@@ -79,14 +79,19 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", BAD_REQUEST))
 
-  def expectGetGroupSummarySuccess(
-      arn: Arn,
-      summaries: Option[(Seq[GroupSummary], Seq[DisplayClient])])(
+  def expectGetGroupSummarySuccess(arn: Arn, summaries: Seq[GroupSummary])(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .groupsSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .groups(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful summaries)
+
+  def expectGetUnassignedClientsSuccess(arn: Arn, clients: Seq[DisplayClient])(
+    implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .unassignedClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful clients)
 
   def expectGetGroupsForClientSuccess(
                                        arn: Arn,

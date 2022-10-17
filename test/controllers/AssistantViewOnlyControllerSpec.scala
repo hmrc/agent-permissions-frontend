@@ -101,7 +101,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //when
       val result = controller.showUnassignedClientsViewOnly(request)
@@ -128,7 +128,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetUnassignedClientsSuccess(arn, displayClients)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         routes.AssistantViewOnlyController.showUnassignedClientsViewOnly.url +
@@ -160,7 +160,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupSummarySuccess(arn, Some((groupSummaries, displayClients)))
+      expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"

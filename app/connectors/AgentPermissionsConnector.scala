@@ -183,7 +183,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
   }
 
   def groups(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groupsOnly"
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
     monitor("ConsumedAPI-groupSummaries-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         response.status match {

@@ -82,7 +82,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
   def expectGetGroupSummarySuccess(arn: Arn, summaries: Seq[GroupSummary])(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .groupsOnly(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .groups(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful summaries)
 

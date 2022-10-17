@@ -134,50 +134,6 @@ class AgentPermissionsConnectorSpec
     }
   }
 
-  "GET Tuple GroupSummaries" should {
-
-    "return successfully" in {
-      //given
-      val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", 33, 9)
-      )
-      val groupSummaryResponse = AccessGroupSummaries(
-        groupSummaries,
-        Set(Client("taxService~identKey~hmrcRef", "name"))
-      )
-      val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
-      val mockJsonResponseBody = Json.toJson(groupSummaryResponse).toString
-      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
-
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
-
-      //and
-      val expectedTransformedResponse = Some(
-        (groupSummaries,
-         Seq(DisplayClient("hmrcRef", "name", "taxService", "identKey")))
-      )
-
-      //then
-      connector
-        .groupsSummaries(arn)
-        .futureValue shouldBe expectedTransformedResponse
-    }
-
-    "throw an exception for any other HTTP response code" in {
-
-      //given
-      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpGet[HttpResponse](mockResponse)
-
-      //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.groupsSummaries(arn))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
-    }
-  }
-
   "GET GroupSummariesForClient" should {
 
     val client = Client("123456780", "friendly0")
@@ -298,7 +254,7 @@ class AgentPermissionsConnectorSpec
       mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //then
-      connector.groupsOnly(arn).futureValue shouldBe groupSummaries
+      connector.groups(arn).futureValue shouldBe groupSummaries
     }
 
     "throw an exception for any other HTTP response code" in {
@@ -309,7 +265,7 @@ class AgentPermissionsConnectorSpec
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
-        await(connector.groupsOnly(arn))
+        await(connector.groups(arn))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }

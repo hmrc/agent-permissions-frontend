@@ -83,7 +83,7 @@ class GroupServiceImpl @Inject()(
 
   def groups(arn: Arn)
             (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
-  : Future[Seq[GroupSummary]] = agentPermissionsConnector.groupsOnly(arn)
+  : Future[Seq[GroupSummary]] = agentPermissionsConnector.groups(arn)
 
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
     for {

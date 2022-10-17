@@ -53,7 +53,7 @@ class GroupServiceSpec extends BaseSpec {
       )
 
       (mockAgentPermissionsConnector
-        .groupsOnly(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .groups(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful groupSummaries).once()
 

@@ -54,11 +54,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
       implicit hc: HeaderCarrier,
       ec: ExecutionContext): Future[Done]
 
-  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier,
-                                ec: ExecutionContext)
-    : Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]]
-
-  def groupsOnly(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+  def groups(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def unassignedClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
@@ -186,29 +182,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  def groupsSummaries(arn: Arn)(implicit hc: HeaderCarrier,
-                                ec: ExecutionContext)
-    : Future[Option[(Seq[GroupSummary], Seq[DisplayClient])]] = {
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
-    monitor("ConsumedAPI-groupSummaries-GET") {
-      http.GET[HttpResponse](url).map { response: HttpResponse =>
-        val eventuallySummaries = response.status match {
-          case OK => response.json.asOpt[AccessGroupSummaries]
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(
-              s"error getting group summary for arn $arn, from $url",
-              anyOtherStatus)
-        }
-        val maybeTuple = eventuallySummaries.map { summaries =>
-          (summaries.groups,
-           summaries.unassignedClients.map(DisplayClient.fromClient(_)).toSeq)
-        }
-        maybeTuple
-      }
-    }
-  }
-
-  def groupsOnly(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
+  def groups(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groupsOnly"
     monitor("ConsumedAPI-groupSummaries-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>

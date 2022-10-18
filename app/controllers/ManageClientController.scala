@@ -101,7 +101,6 @@ class ManageClientController @Inject()(
               clientGroups = maybeGroups
             ))
           }
-          case _ => Redirect(routes.ManageClientController.showAllClients).toFuture
         }
       }
     }
@@ -145,7 +144,6 @@ class ManageClientController @Inject()(
                   Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId))
                 }
               )
-          case _ => Redirect(routes.ManageClientController.showAllClients)
         }
       }
     }
@@ -161,9 +159,7 @@ class ManageClientController @Inject()(
                 client,
                 clientRef = newName.get
               )))
-          case _ => Redirect(routes.ManageClientController.showAllClients).toFuture
         }
-
       }
     }
   }

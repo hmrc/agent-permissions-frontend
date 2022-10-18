@@ -18,37 +18,46 @@
 
 @this(filter_buttons: filter_buttons, textbox: textbox, input_select: input_select)
 
-@(form: Form[_], withFilter: Boolean = true)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    form: Form[_],
+    withFilter: Boolean = true,
+    searchLabelKey: String  = "client-filter.text.label",
+    filterLabelKey: String  = "client-filter.select.label",
+    emptyFilterOptionKey: String  = "client-filter.select.label.empty-option"
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@searchGridClass = @{if(withFilter) "govuk-grid-column-one-third" else "govuk-grid-column-one-half"}
+@paddingTopType = @{if(withFilter && msgs(searchLabelKey).length > 38) "pad-top-2" else "pad-top-1" }
 
 <div class="govuk-grid-row" role="search" id="search-filter-wrapper">
 
-    <fieldset class="govuk-fieldset">
+    <fieldset class="govuk-fieldset" id="search-and-filter">
         <legend class="govuk-fieldset__legend govuk-visually-hidden">
             @msgs("filter.legend")
         </legend>
 
-        <div class="govuk-grid-column-one-quarter">
+        <div class="@searchGridClass" id="search-box-wrapper">
         @textbox(
             field = form("search"),
-            label = "client-filter.text.label",
+            label = msgs(searchLabelKey),
             labelClasses = "govuk-label--s",
-            classes = "govuk-input--width-20"
+            classes = if(withFilter)"govuk-input--width-20" else "govuk-input--width-30"
         )
         </div>
 
         @if(withFilter){
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
+            <div class="govuk-grid-column-one-third @paddingTopType" id="filter-box-wrapper">
             @input_select(
                 field = form("filter"),
-                label = msgs("client-filter.select.label"),
-                emptyOptionText = msgs("client-filter.select.label.empty-option"),
+                label = msgs(filterLabelKey),
+                emptyOptionText = msgs(emptyFilterOptionKey),
                 options = getFiltersByTaxService()
             )
             </div>
         }
 
-        <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-        @filter_buttons(hasFilter = withFilter)
+        <div class="govuk-grid-column-one-third @paddingTopType" id="button-wrapper">
+            @filter_buttons(additionalClasses = "govuk-!-margin-bottom-7")
         </div>
     </fieldset>
 </div>

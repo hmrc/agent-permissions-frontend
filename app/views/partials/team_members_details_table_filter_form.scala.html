@@ -58,7 +58,7 @@
 
 @views.html.helper.form(action = formAction) {
 
-    @search_and_filter(form, false)
+    @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
 
     @if(teamMembers.getOrElse(Seq.empty).nonEmpty) {
 

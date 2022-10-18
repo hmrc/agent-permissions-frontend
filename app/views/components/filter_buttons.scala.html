@@ -18,11 +18,10 @@
 
 @this(button: GovukButton)
 
-@(additionalClasses: String = "govuk-!-margin-bottom-7", hasFilter: Boolean)(implicit msgs: Messages)
+@(additionalClasses: String = "govuk-!-margin-bottom-7")(implicit msgs: Messages)
 
-@id_of_wrapper = @{if(hasFilter) "search-with-filter" else "search-no-filter"}
 
-    <div class="govuk-button-group @additionalClasses" id="@id_of_wrapper">
+    <div class="govuk-button-group @additionalClasses">
     @button(
         Button(
             attributes = Map("id" -> "filter-button"),

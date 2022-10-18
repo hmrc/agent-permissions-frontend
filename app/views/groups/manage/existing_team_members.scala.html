@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import views.html.partials.search_and_filter
 @import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 
 @this(
@@ -26,7 +27,7 @@
     link_as_button: link_as_button,
     submit_button: submit_button,
     textbox: textbox, checkbox: checkbox,
-    filter_buttons: filter_buttons
+    search_and_filter: search_and_filter
 )
 
 @(
@@ -64,25 +65,8 @@
         @views.html.helper.form(
             action = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString)) {
 
-            <div class="govuk-grid-row" role="search">
-                <div class="govuk-grid-column-one-third">
-                @textbox(
-                    field = form("search"),
-                    label = "group.members.list.filter.label",
-                    labelClasses = "govuk-label--s",
-                    classes = "govuk-input--width-20",
-                    errorMessage = if(form.errors.map(error => error.message).contains("error.search-members.empty")) {
-                        Some(msgs("error.search-members.empty"))
-                    } else {
-                        None
-                    }
-                )
-                </div>
+            @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
 
-                <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
-                @filter_buttons(hasFilter = false)
-                </div>
-            </div>
         }
 
     @if(teamMembers.nonEmpty) {

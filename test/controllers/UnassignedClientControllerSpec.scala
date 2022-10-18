@@ -126,7 +126,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 4
       val tr = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
-      tr.size() shouldBe 3
+      tr.size() shouldBe 1
 
       html.select("input#search").attr("value") shouldBe "friendly1"
 

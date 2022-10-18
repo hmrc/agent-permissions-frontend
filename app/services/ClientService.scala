@@ -162,7 +162,7 @@ class ClientServiceImpl @Inject()(
                                    )(getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
-    buttonSelect.trim.toLowerCase() match {
+    buttonSelect.trim match {
       case "clear" =>
         for {
           clients <- lookupClients(arn)(formData.clients)
@@ -184,7 +184,7 @@ class ClientServiceImpl @Inject()(
 
       case "filter" =>
         if (formData.search.isEmpty && formData.filter.isEmpty) {
-          Future.successful(Unit)
+          clearSessionForSelectingClients()
         } else {
           for {
             clients <- lookupClients(arn)(formData.clients)

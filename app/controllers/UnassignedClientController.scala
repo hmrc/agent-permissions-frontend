@@ -37,22 +37,22 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UnassignedClientController @Inject()(
-     authAction: AuthAction,
-     mcc: MessagesControllerComponents,
-     groupService: GroupService,
-     clientService: ClientService,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService,
-     unassigned_clients_list: unassigned_clients_list,
-     review_clients_to_add: review_clients_to_add,
-     select_groups_for_clients: select_groups_for_clients,
-     clients_added_to_groups_complete: clients_added_to_groups_complete
-    )
+                                            authAction: AuthAction,
+                                            mcc: MessagesControllerComponents,
+                                            groupService: GroupService,
+                                            clientService: ClientService,
+                                            val agentPermissionsConnector: AgentPermissionsConnector,
+                                            val sessionCacheRepository: SessionCacheRepository,
+                                            val sessionCacheService: SessionCacheService,
+                                            unassigned_clients_list: unassigned_clients_list,
+                                            review_clients_to_add: review_clients_to_add,
+                                            select_groups_for_clients: select_groups_for_clients,
+                                            clients_added_to_groups_complete: clients_added_to_groups_complete
+                                          )
                                           (implicit val appConfig: AppConfig, ec: ExecutionContext,
-    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+                                           implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-    with I18nSupport
+  with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -63,20 +63,25 @@ class UnassignedClientController @Inject()(
   def showUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
-          withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+        withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
+          withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
             withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-              clientService.getUnassignedClients(arn).map(unassignedClients =>
+              clientService.getUnassignedClients(arn).map(unassignedClients => {
+                val filteredClients =
+                  unassignedClients
+                    .filter(dc => filterTerm.isEmpty || filterTerm.get == "" || dc.taxService.equalsIgnoreCase(filterTerm.get))
+                    .filter( dc => searchTerm.isEmpty || dc.name.toLowerCase.contains(searchTerm.get.toLowerCase))
                 Ok(
                   unassigned_clients_list(
-                    unassignedClients,
+                    filteredClients,
                     AddClientsToGroupForm.form().fill(
                       AddClientsToGroup(
                         maybeHiddenClients.getOrElse(false),
-                        search = clientSearchTerm,
-                        filter = clientFilterTerm,
+                        search = searchTerm,
+                        filter = filterTerm,
                         clients = None)),
                     maybeHiddenClients))
+              }
               )
             }
           }
@@ -101,7 +106,7 @@ class UnassignedClientController @Inject()(
                     _ <- if ("continue" == formWithErrors.data.get("submit")) sessionCacheService.clearSelectedClients() else
                       Future.successful(())
                     result = if (maybeFilteredClients.isDefined)
-                      Ok(unassigned_clients_list(unassignedClients, formWithErrors,maybeHiddenClients))
+                      Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
                     else
                       Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
                   } yield result
@@ -109,7 +114,7 @@ class UnassignedClientController @Inject()(
                 formData => {
                   clientService.saveSelectedOrFilteredClients(formData.submit)(arn)(
                     formData)(clientService.getMaybeUnassignedClients).map(_ =>
-                    if(formData.submit == "continue")
+                    if (formData.submit == "continue")
                       Redirect(controller.showSelectedUnassignedClients)
                     else Redirect(controller.showUnassignedClients)
                   )
@@ -121,7 +126,6 @@ class UnassignedClientController @Inject()(
     }
   }
 
-
   def showSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
@@ -129,7 +133,8 @@ class UnassignedClientController @Inject()(
           selectedClients
             .fold {
               Redirect(controller.showUnassignedClients).toFuture
-            } { clients => Ok(
+            } { clients =>
+              Ok(
                 review_clients_to_add(
                   clients = clients,
                   groupName = "",
@@ -181,7 +186,7 @@ class UnassignedClientController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         groupService.groups(arn).map(groups =>
-        Ok(select_groups_for_clients(SelectGroupsForm.form().fill(SelectGroups(None, None)), groups)))
+          Ok(select_groups_for_clients(SelectGroupsForm.form().fill(SelectGroups(None, None)), groups)))
       }
     }
   }
@@ -191,7 +196,7 @@ class UnassignedClientController @Inject()(
       isOptedInComplete(arn) { _ =>
         SelectGroupsForm.form().bindFromRequest().fold(
           formWithErrors => {
-            groupService.groups(arn).map( groups => {
+            groupService.groups(arn).map(groups => {
               val clonedForm = formWithErrors.copy(
                 errors = Seq(FormError("field-wrapper", formWithErrors.errors.head.message))
               )
@@ -199,7 +204,7 @@ class UnassignedClientController @Inject()(
             }
             )
           }, validForm => {
-            if(validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
+            if (validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
             else {
               for {
                 allGroups <- groupService.groups(arn)
@@ -208,15 +213,14 @@ class UnassignedClientController @Inject()(
                 selectedClients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS)
                 result <- selectedClients.fold(
                   Redirect(routes.ManageGroupController.showManageGroups).toFuture
-                )
-                { displayClients =>
+                ) { displayClients =>
                   val clients: Set[Client] = displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
-                  Future.sequence( groupsToAddTo.map{ grp =>
+                  Future.sequence(groupsToAddTo.map { grp =>
                     //TODO: what do we do if 3 out of 4 fail to save?
-                    agentPermissionsConnector.addMembersToGroup (
+                    agentPermissionsConnector.addMembersToGroup(
                       grp.groupId, AddMembersToAccessGroupRequest(clients = Some(clients))
                     )
-                  }).map{ _ =>
+                  }).map { _ =>
                     Redirect(controller.showConfirmClientsAddedToGroups)
                   }
                 }
@@ -229,7 +233,7 @@ class UnassignedClientController @Inject()(
     }
   }
 
-  def showConfirmClientsAddedToGroups: Action[AnyContent] = Action.async {implicit request =>
+  def showConfirmClientsAddedToGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         sessionCacheRepository.getFromSession(GROUPS_FOR_UNASSIGNED_CLIENTS).flatMap {

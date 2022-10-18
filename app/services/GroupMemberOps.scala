@@ -33,8 +33,9 @@ trait GroupMemberOps {
                                               (sessionMembersDataKey: DataKey[Seq[T]],
                                                filteredMembersDataKey: DataKey[Seq[T]])
                                               (implicit hc: HeaderCarrier, request: Request[Any],
-                                               ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] =
-    for {
+                                               ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] = {
+
+  for {
       inSession <- sessionCacheRepository.getFromSession[Seq[T]](sessionMembersDataKey).map(_.map(_.toList))
 
       filteredSelected <- sessionCacheRepository
@@ -48,5 +49,6 @@ trait GroupMemberOps {
       _ <- sessionCacheRepository.putSession[Seq[T]](sessionMembersDataKey, toSave.distinct)
 
     } yield ()
+  }
 
 }

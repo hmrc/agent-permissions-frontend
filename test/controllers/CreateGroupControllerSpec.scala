@@ -343,7 +343,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     s"redirect to ${controller.showAccessGroupNameExists} when the access group name already exists" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      getGroupNameCheckReturns(ok = false)(arn, groupName)
+      expectGroupNameCheck(ok = false)(arn, groupName)
 
       implicit val request =
         FakeRequest("POST", routes.CreateGroupController.submitConfirmGroupName.url)
@@ -363,7 +363,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     "redirect to add-clients page when Confirm access group name 'yes' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      getGroupNameCheckReturns(ok = true)(arn, groupName)
+      expectGroupNameCheck(ok = true)(arn, groupName)
 
       implicit val request =
         FakeRequest("POST", routes.CreateGroupController.submitGroupName.url)
@@ -446,7 +446,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -495,7 +495,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
       await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1"))
@@ -537,7 +537,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(List.empty)
+      expectGetClients(arn)(List.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -565,7 +565,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(List.empty)
+      expectGetClients(arn)(List.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -604,7 +604,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         // given
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        stubGetClientsOk(arn)(fakeClients)
+        expectGetClients(arn)(fakeClients)
 
         implicit val request =
           FakeRequest("POST", routes.CreateGroupController.submitSelectedClients.url)
@@ -614,7 +614,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -638,8 +638,8 @@ class CreateGroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        stubGetClientsOk(arn)(fakeClients)
-        stubGetClientsOk(arn)(fakeClients)
+        expectGetClients(arn)(fakeClients)
+        expectGetClients(arn)(fakeClients)
 
         implicit val request =
           FakeRequest("POST", routes.CreateGroupController.submitSelectedClients.url)
@@ -649,7 +649,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "friendly0",
               "filter" -> "",
-              "submitFilter" -> "submitFilter"
+              "submit" -> "filter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -677,7 +677,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        stubGetClientsOk(arn)(fakeClients)
+        expectGetClients(arn)(fakeClients)
 
         implicit val request =
           FakeRequest("POST", routes.CreateGroupController.submitSelectedClients.url)
@@ -687,7 +687,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
-              "submitClear" -> "submitClear"
+              "submit" -> "clear"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -716,7 +716,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       implicit val request = FakeRequest(
         "POST",
@@ -726,7 +726,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "continue" -> "continue"
+          "submit" -> "continue"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -750,12 +750,11 @@ class CreateGroupControllerSpec extends BaseSpec {
 
     }
 
-    "display error when button is Filter and no filter term was provided" in {
+    "NOT display error when button is Filter and no filter term was provided" in {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(fakeClients)
 
       implicit val request = FakeRequest(
         "POST",
@@ -765,7 +764,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -775,20 +774,8 @@ class CreateGroupControllerSpec extends BaseSpec {
       // when
       val result = controller.submitSelectedClients()(request)
 
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-
-      // then
-      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
-      html
-        .select(Css.ERROR_SUMMARY_LINK)
-        .text() shouldBe "You must enter a tax reference, client reference or select a tax service to apply filters"
-      html
-        .select(Css.errorForField("filter"))
-        .text() shouldBe "Error: You must enter a tax reference, client reference or select a tax service to apply filters"
-      // and should have cleared the previously selected clients from the session
-      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.CreateGroupController.showSelectClients.url)
 
     }
 
@@ -804,7 +791,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       ).withFormUrlEncodedBody(
           "hasSelectedClients" -> "false",
           "filter" -> "",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1007,7 +994,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetTeamMembersOk(arn)(fakeTeamMembers)
+      expectGetTeamMembers(arn)(fakeTeamMembers)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -1049,7 +1036,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetTeamMembersOk(arn)(users)
+      expectGetTeamMembers(arn)(users)
 
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
       await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
@@ -1092,7 +1079,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetTeamMembersOk(arn)(Seq.empty)
+      expectGetTeamMembers(arn)(Seq.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -1124,7 +1111,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetTeamMembersOk(arn)(Seq.empty)
+      expectGetTeamMembers(arn)(Seq.empty)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
@@ -1163,7 +1150,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        stubGetTeamMembersOk(arn)(users)
+        expectGetTeamMembers(arn)(users)
 
         implicit val request =
           FakeRequest("POST",
@@ -1172,7 +1159,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "hasAlreadySelected" -> "false",
               "members[]" -> teamMembersIds.head,
               "members[]" -> teamMembersIds.last,
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1196,8 +1183,8 @@ class CreateGroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        stubGetTeamMembersOk(arn)(users)
-        stubGetTeamMembersOk(arn)(users)
+        expectGetTeamMembers(arn)(users)
+        expectGetTeamMembers(arn)(users)
 
         implicit val request =
           FakeRequest("POST",
@@ -1207,7 +1194,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "members[]" -> teamMembersIds.head,
               "members[]" -> teamMembersIds.last,
               "search" -> "10",
-              "submitFilter" -> "submitFilter"
+              "submit" -> "filter"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1237,7 +1224,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        stubGetTeamMembersOk(arn)(users)
+        expectGetTeamMembers(arn)(users)
 
         implicit val request =
           FakeRequest("POST",
@@ -1247,7 +1234,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "members[]" -> teamMembersIds.head,
               "members[]" -> teamMembersIds.last,
               "search" -> "1",
-              "submitClear" -> "submitClear"
+              "submit" -> "clear"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1276,7 +1263,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetTeamMembersOk(arn)(users)
+      expectGetTeamMembers(arn)(users)
 
       implicit val request = FakeRequest(
         "POST",
@@ -1285,7 +1272,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           "hasAlreadySelected" -> "false",
           "members" -> "",
           "search" -> "",
-          "continue" -> "continue"
+          "submit" -> "continue"
         )
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1314,12 +1301,11 @@ class CreateGroupControllerSpec extends BaseSpec {
 
     }
 
-    "display error when button is Filter and no filter term was provided" in {
+    "not show any errors when button is Filter and no filter term was provided" in {
 
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetTeamMembersOk(arn)(users)
 
       implicit val request =
         FakeRequest("POST",
@@ -1329,7 +1315,7 @@ class CreateGroupControllerSpec extends BaseSpec {
             "members[]" -> teamMembersIds.head,
             "members[]" -> teamMembersIds.last,
             "search" -> "",
-            "submitFilter" -> "submitFilter"
+            "submit" -> "filter"
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -1340,22 +1326,8 @@ class CreateGroupControllerSpec extends BaseSpec {
       // when
       val result = controller.submitSelectedTeamMembers()(request)
 
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-
-      // then
-      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select team members"
-//      html
-//        .select(Css.errorSummaryForField("search"))
-//        .text() shouldBe "You must enter a name or email to apply filters"
-      html
-        .select(Css.errorForField("search"))
-        .text() shouldBe "Error: You must enter a name or email to apply filters"
-
-      // and should have cleared the previously selected clients from the session
-      await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
-
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.CreateGroupController.showSelectTeamMembers.url)
     }
 
     "redirect to createGroup when POSTED without groupName in Session" in {
@@ -1367,7 +1339,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       implicit val request = FakeRequest(
         "POST",
         routes.CreateGroupController.submitSelectedTeamMembers.url
-      ).withFormUrlEncodedBody("continue" -> "continue")
+      ).withFormUrlEncodedBody("submit" -> "continue")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

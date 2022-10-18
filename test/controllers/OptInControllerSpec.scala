@@ -66,7 +66,7 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedOutEligible)
+      expectOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.start()(request)
       status(result) shouldBe OK
@@ -142,7 +142,7 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedOutSingleUser)
+      expectOptInStatusOk(arn)(OptedOutSingleUser)
 
       val result = controller.start()(request)
       status(result) shouldBe SEE_OTHER
@@ -155,7 +155,7 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedOutEligible)
+      expectOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.showDoYouWantToOptIn()(request)
 
@@ -196,8 +196,8 @@ class OptInControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
 
-      stubPostOptInAccepted(arn)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectPostOptInAccepted(arn)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       val result = controller.submitDoYouWantToOptIn()(request)
 
@@ -257,7 +257,7 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubPostOptInError(arn)
+      expectPostOptInError(arn)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", "/opt-in/do-you-want-to-opt-in")

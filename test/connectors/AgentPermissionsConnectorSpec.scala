@@ -55,13 +55,13 @@ class AgentPermissionsConnectorSpec
   "getOptinStatus" should {
     "return the OptinStatus when valid JSON response received" in {
 
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(200, s""" "Opted-In_READY" """))
       connector.getOptInStatus(arn).futureValue shouldBe Some(OptedInReady)
     }
     "return None when there was an error status" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(503, s""" "" """))
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(503, s""" "" """))
       connector.getOptInStatus(arn).futureValue shouldBe None
     }
   }
@@ -69,18 +69,18 @@ class AgentPermissionsConnectorSpec
   "postOptin" should {
     "return Done when successful" in {
 
-      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
+      expectHttpClientPOSTEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
       connector.optIn(arn, None).futureValue shouldBe Done
     }
 
     "return Done when already opted in" in {
-      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CONFLICT, ""))
+      expectHttpClientPOSTEmpty[HttpResponse](HttpResponse.apply(CONFLICT, ""))
       connector.optIn(arn, None).futureValue shouldBe Done
     }
 
     "throw an exception when there was a problem" in {
 
-      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
+      expectHttpClientPOSTEmpty[HttpResponse](HttpResponse.apply(503, ""))
       intercept[UpstreamErrorResponse] {
         await(connector.optIn(arn, None))
       }
@@ -90,18 +90,18 @@ class AgentPermissionsConnectorSpec
   "postOptOut" should {
     "return Done when successful" in {
 
-      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
+      expectHttpClientPOSTEmpty[HttpResponse](HttpResponse.apply(CREATED, ""))
       connector.optOut(arn).futureValue shouldBe Done
     }
 
     "return Done when already opted out" in {
-      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(CONFLICT, ""))
+      expectHttpClientPOSTEmpty[HttpResponse](HttpResponse.apply(CONFLICT, ""))
       connector.optOut(arn).futureValue shouldBe Done
     }
 
     "throw an exception when there was a problem" in {
 
-      mockHttpPostEmpty[HttpResponse](HttpResponse.apply(503, ""))
+      expectHttpClientPOSTEmpty[HttpResponse](HttpResponse.apply(503, ""))
       intercept[UpstreamErrorResponse] {
         await(connector.optOut(arn))
       }
@@ -116,7 +116,7 @@ class AgentPermissionsConnectorSpec
       val url =
         s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
       val mockResponse = HttpResponse.apply(CREATED, "response Body")
-      mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
+      expectHttpClientPOST[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
       connector.createGroup(arn)(groupRequest).futureValue shouldBe Done
     }
 
@@ -126,7 +126,7 @@ class AgentPermissionsConnectorSpec
       val url =
         s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpPost[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
+      expectHttpClientPOST[GroupRequest, HttpResponse](url, groupRequest, mockResponse)
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.createGroup(arn)(groupRequest))
       }
@@ -149,7 +149,7 @@ class AgentPermissionsConnectorSpec
       val mockJsonResponseBody = Json.toJson(groupSummaries).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //and
       val expectedTransformedResponse = Some(
@@ -165,7 +165,7 @@ class AgentPermissionsConnectorSpec
     "return None 404 if no groups found" in {
       //given
       val mockResponse = HttpResponse.apply(NOT_FOUND, "")
-      mockHttpGet[HttpResponse](mockResponse)
+      expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
       connector
@@ -176,7 +176,7 @@ class AgentPermissionsConnectorSpec
     "throw an exception for any other HTTP response code" in {
       //given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpGet[HttpResponse](mockResponse)
+      expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -203,7 +203,7 @@ class AgentPermissionsConnectorSpec
       val mockJsonResponseBody = Json.toJson(groupSummaries).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //and
       val expectedTransformedResponse = Some(
@@ -219,7 +219,7 @@ class AgentPermissionsConnectorSpec
     "return None 404 if no groups found" in {
       //given
       val mockResponse = HttpResponse.apply(NOT_FOUND, "")
-      mockHttpGet[HttpResponse](mockResponse)
+      expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
       connector
@@ -230,7 +230,7 @@ class AgentPermissionsConnectorSpec
     "throw an exception for any other HTTP response code" in {
       //given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpGet[HttpResponse](mockResponse)
+      expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -251,7 +251,7 @@ class AgentPermissionsConnectorSpec
       val mockJsonResponseBody = Json.toJson(groupSummaries).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //then
       connector.groups(arn).futureValue shouldBe groupSummaries
@@ -261,7 +261,7 @@ class AgentPermissionsConnectorSpec
 
       //given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpGet[HttpResponse](mockResponse)
+      expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -282,7 +282,7 @@ class AgentPermissionsConnectorSpec
       val mockJsonResponseBody = Json.toJson(clients).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //then
       connector.unassignedClients(arn).futureValue shouldBe displayClients
@@ -292,7 +292,7 @@ class AgentPermissionsConnectorSpec
 
       //given
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpGet[HttpResponse](mockResponse)
+      expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -325,7 +325,7 @@ class AgentPermissionsConnectorSpec
       val mockJsonResponseBody = Json.toJson(accessGroup).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //and
       val expectedTransformedResponse = Some(accessGroup)
@@ -341,7 +341,7 @@ class AgentPermissionsConnectorSpec
       //given
       val groupId = "234234"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpGet[HttpResponse](mockResponse)
+      expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -359,7 +359,7 @@ class AgentPermissionsConnectorSpec
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
-      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url,
+      expectHttpClientPATCH[UpdateAccessGroupRequest, HttpResponse](url,
                                                             groupRequest,
                                                             mockResponse)
       connector.updateGroup(groupId, groupRequest).futureValue shouldBe Done
@@ -371,7 +371,7 @@ class AgentPermissionsConnectorSpec
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpPATCH[UpdateAccessGroupRequest, HttpResponse](url,
+      expectHttpClientPATCH[UpdateAccessGroupRequest, HttpResponse](url,
                                                             groupRequest,
                                                             mockResponse)
 
@@ -391,7 +391,7 @@ class AgentPermissionsConnectorSpec
       val groupId = "234234"
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
-      mockHttpDELETE[HttpResponse](url, mockResponse)
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
       connector.deleteGroup(groupId).futureValue shouldBe Done
     }
 
@@ -400,7 +400,7 @@ class AgentPermissionsConnectorSpec
       val groupId = "234234"
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
-      mockHttpDELETE[HttpResponse](url, mockResponse)
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -420,7 +420,7 @@ class AgentPermissionsConnectorSpec
 
       val mockResponse = HttpResponse.apply(OK, "")
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       connector.groupNameCheck(arn, groupName).futureValue shouldBe true
     }
@@ -433,7 +433,7 @@ class AgentPermissionsConnectorSpec
 
       val mockResponse = HttpResponse.apply(CONFLICT, "")
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       connector.groupNameCheck(arn, groupName).futureValue shouldBe false
     }
@@ -446,7 +446,7 @@ class AgentPermissionsConnectorSpec
 
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
 
-      mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -465,7 +465,7 @@ class AgentPermissionsConnectorSpec
 
         val mockResponse = HttpResponse.apply(OK, "")
 
-        mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+        expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
         connector.isArnAllowed.futureValue shouldBe true
       }
@@ -478,7 +478,7 @@ class AgentPermissionsConnectorSpec
 
         val mockResponse = HttpResponse.apply(FORBIDDEN, "")
 
-        mockHttpGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+        expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
         connector.isArnAllowed.futureValue shouldBe false
       }

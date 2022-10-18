@@ -95,8 +95,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showAllTeamMembers()(request)
@@ -123,8 +123,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetTeamMembers(arn)(userDetails)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         routes.ManageTeamMemberController.showAllTeamMembers.url +
@@ -152,8 +152,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetTeamMembers(arn)(userDetails)
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
         routes.ManageTeamMemberController.showAllTeamMembers.url +
@@ -179,9 +179,9 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, None)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)
@@ -200,9 +200,9 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, Some(groupSummaries))
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)

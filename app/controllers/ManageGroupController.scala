@@ -50,8 +50,7 @@ class ManageGroupController @Inject()(
                                      (implicit val appConfig: AppConfig, ec: ExecutionContext,
                                       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-  with GroupsControllerCommon
-  with I18nSupport
+    with I18nSupport
   with SessionBehaviour
   with Logging {
 

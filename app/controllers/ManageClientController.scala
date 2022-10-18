@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext}
 
 @Singleton
 class ManageClientController @Inject()(
@@ -48,8 +48,7 @@ class ManageClientController @Inject()(
                                       (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-  with GroupsControllerCommon
-  with I18nSupport
+    with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -125,7 +124,8 @@ class ManageClientController @Inject()(
   def submitUpdateClientReference(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).map {
+        clientService.lookupClient(arn)(clientId).map
+        {
           case Some(client) =>
             ClientReferenceForm.form()
               .bindFromRequest()
@@ -160,7 +160,6 @@ class ManageClientController @Inject()(
                 clientRef = newName.get
               )))
         }
-
       }
     }
   }

@@ -18,6 +18,7 @@ package models
 
 case class AddTeamMembersToGroup(
     hasAlreadySelected: Boolean,
-    search: Option[String],
-    members: Option[List[String]]
+    search: Option[String] = None,
+    members: Option[List[String]] = None,
+    submit: String = ""
 )

@@ -31,6 +31,7 @@ import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.{Inject, Singleton}
+import scala.annotation.nowarn
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -45,6 +46,7 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
   private val agentEnrolment = "HMRC-AS-AGENT"
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
+  @nowarn
   def isAuthorisedAgent(body: Arn => Future[Result])(
       implicit ec: ExecutionContext,
       request: RequestHeader,

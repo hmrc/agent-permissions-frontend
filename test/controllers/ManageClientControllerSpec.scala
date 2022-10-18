@@ -101,8 +101,8 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetClientsOk(arn)(fakeClients)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result = controller.showAllClients()(request)
@@ -130,8 +130,8 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetClientsOk(arn)(fakeClients)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetClients(arn)(fakeClients)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         routes.ManageClientController.showAllClients.url +
@@ -159,8 +159,8 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetClientsOk(arn)(fakeClients)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetClients(arn)(fakeClients)
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
@@ -189,8 +189,8 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetClientsOk(arn)(fakeClients)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetClients(arn)(fakeClients)
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
@@ -217,9 +217,9 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolmentKey, None)
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result = controller.showClientDetails(clientId)(request)
@@ -238,9 +238,9 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForClientSuccess(arn, enrolmentKey, Some(groupSummaries))
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result = controller.showClientDetails(clientId)(request)
@@ -264,8 +264,8 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetClientsOk(arn)(fakeClients)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetClients(arn)(fakeClients)
       //when
       val result = controller.showUpdateClientReference(clientId)(request)
 
@@ -283,11 +283,11 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       val fakeClientWithoutFriendlyName = fakeClients.head.copy(friendlyName = "")
 
-      stubGetClientsOk(arn)(Seq(fakeClientWithoutFriendlyName))
+      expectGetClients(arn)(Seq(fakeClientWithoutFriendlyName))
 
       //when
       val result = controller.showUpdateClientReference(DisplayClient.fromClient(fakeClientWithoutFriendlyName).id)(request)
@@ -310,9 +310,9 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       //await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result = controller.submitUpdateClientReference(clientId)(request)
@@ -326,8 +326,8 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
-      stubGetClientsOk(arn)(fakeClients)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result = controller.submitUpdateClientReference(clientId)(request)
@@ -347,9 +347,9 @@ class ManageClientControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result = controller.showClientReferenceUpdatedComplete(clientId)(request)

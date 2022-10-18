@@ -79,7 +79,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
@@ -88,7 +87,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       expectLookupTeamMember(arn)(teamMember)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
-
 
       //when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)

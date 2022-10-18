@@ -16,48 +16,23 @@
 
 package forms
 
-import models.ButtonSelect.{Clear, Continue, Filter}
-import models.{AddClientsToGroup, ButtonSelect}
+import models.AddClientsToGroup
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 
 object AddClientsToGroupForm {
 
-  def form(buttonPressed: ButtonSelect = Continue): Form[AddClientsToGroup] =
-    buttonPressed match {
-      case Continue =>
-         Form(addClientsToGroupMapping.verifying(emptyClientConstraint))
-      case Filter =>
-        Form(
-          addClientsToGroupFilterMapping
-            .verifying(error = "error.search-filter.empty",
-              form => form.filter.isDefined || form.search.isDefined)
-        )
-      case Clear =>
-        Form(addClientsToGroupMapping)
-      case e => throw new RuntimeException(s"invalid button $e")
-    }
-
-  private val emptyClientConstraint: Constraint[AddClientsToGroup] =
-    Constraint { formData =>
-      if (!formData.hasSelectedClients && formData.clients.isEmpty)
-        Invalid(ValidationError("error.select-clients.empty"))
-      else Valid
-    }
-
-  private val addClientsToGroupFilterMapping = mapping(
-    "hasSelectedClients" -> boolean,
-    "search" -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
-    "filter" -> optional(text),
-    "clients" -> optional(list(text))
-  )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
-
-  private val addClientsToGroupMapping = mapping(
-    "hasSelectedClients" -> boolean,
-    "search" -> optional(text),
-    "filter" -> optional(text),
-    "clients" -> optional(list(text))
-  )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
-
+  def form(): Form[AddClientsToGroup] = Form(
+    mapping(
+      "hasSelectedClients" -> boolean,
+      "search" -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
+      "filter" -> optional(text),
+      "clients" -> optional(list(text)),
+      "submit" -> text
+    )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
+      .verifying("error.select-clients.empty", data => {
+        data.submit != "continue" ||
+        (data.submit == "continue" && data.clients.getOrElse(Seq.empty).nonEmpty)
+      })
+  )
 }

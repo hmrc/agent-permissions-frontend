@@ -43,7 +43,7 @@ class TeamMemberServiceSpec extends BaseSpec {
   "getTeamMembers" should {
     "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones" in {
       //given
-      stubGetTeamMembersOk(arn)(users)
+      expectGetTeamMembers(arn)(users)
 
       //when
       val maybeTeamMembers: Option[Seq[TeamMember]] =

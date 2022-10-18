@@ -46,8 +46,7 @@ class ManageTeamMemberController @Inject()(
                                           (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-  with GroupsControllerCommon
-  with I18nSupport
+    with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -94,6 +93,7 @@ class ManageTeamMemberController @Inject()(
                   teamMemberGroups = gs
                 ))
           )
+          case _ => Redirect(routes.ManageTeamMemberController.showAllTeamMembers).toFuture
         }
         }
       }

@@ -60,7 +60,7 @@ class SessionBehaviourSpec
   "isEligibleToOptIn" should {
     "execute body when status is OptedOutEligible and store status in journey session if no session exists" in {
 
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(200, s""" "Opted-Out_ELIGIBLE" """))
       val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)) {
         (_: OptinStatus) =>
@@ -90,7 +90,7 @@ class SessionBehaviourSpec
 
     "if not eligible to opt-in then redirect to root" in {
 
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(200, s""" "Opted-Out_SINGLE_USER" """))
       val result = await(testSessionBehaviour.isEligibleToOptIn(Arn(validArn)) {
         (_: OptinStatus) =>
@@ -110,7 +110,7 @@ class SessionBehaviourSpec
   "isOptedIn" should {
     "execute body when status is any OptedIn status and store status in journey session if no session exists" in {
 
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(200, s""" "Opted-In_READY" """))
       val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)) {
         (_: OptinStatus) =>
@@ -140,7 +140,7 @@ class SessionBehaviourSpec
 
     "if not eligible to opt-out then redirect to root" in {
 
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(OK, s""" "Opted-Out_SINGLE_USER" """))
 
       val result = await(testSessionBehaviour.isOptedIn(Arn(validArn)) {
@@ -179,7 +179,7 @@ class SessionBehaviourSpec
       redirectLocation(result).get shouldBe routes.RootController.start.url
     }
     "initialise session and execute body when there is no session and the status from the backend is Opted-In_READY" in {
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(OK, s""" "Opted-In_READY" """))
       val result = testSessionBehaviour.isOptedInComplete(Arn(validArn))(
         (_: OptinStatus) => Future successful Results.Ok(""))
@@ -227,7 +227,7 @@ class SessionBehaviourSpec
       redirectLocation(result).get shouldBe routes.RootController.start.url
     }
     "initialise session and execute body when there is no session and the status from the backend is Opted-Out_ELIGIBLE" in {
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(OK, s""" "Opted-Out_ELIGIBLE" """))
       val result =
         testSessionBehaviour.isOptedOut(Arn(validArn))((_: OptinStatus) =>

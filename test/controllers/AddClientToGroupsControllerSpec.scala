@@ -24,7 +24,6 @@ import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -264,8 +263,6 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      val summaries = (groupSummaries, Seq.empty)
-
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
       expectAuthorisationGrantsAccess(mockedAuthResponse)

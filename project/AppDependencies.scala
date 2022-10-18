@@ -7,7 +7,9 @@ object AppDependencies {
     "uk.gov.hmrc"             %% "play-frontend-hmrc"         % "3.23.0-play-28",
     "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"         % "0.73.0",
     "uk.gov.hmrc"             %% "agent-mtd-identifiers"      % "0.47.0-play-28",
-    "uk.gov.hmrc"             %% "agent-kenshoo-monitoring"   % "4.8.0-play-28"
+    "uk.gov.hmrc"             %% "agent-kenshoo-monitoring"        % "4.8.0-play-28",
+    "uk.gov.hmrc"             %% "play-conditional-form-mapping"   % "1.12.0-play-28",
+
   )
 
   val test = Seq(

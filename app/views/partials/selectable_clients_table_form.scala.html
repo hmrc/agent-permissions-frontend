@@ -19,29 +19,28 @@
 @import play.api.libs.json.Json
 @import views.html.main_layout
 @import models.AddClientsToGroup
-@import models.ButtonSelect.{Clear, Continue, Filter}
-
+@import views.html.partials.search_and_filter
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1, h2: h2, span: span,
-        caption: caption,
-        table: table,
-        submit_button: submit_button,
-        submit_button_group: submit_button_group,
-        textbox: textbox,
-        input_select: input_select,
-        checkbox: checkbox,
-        summaryErrors: SummaryErrors,
-        govukSkipLink: GovukSkipLink,
-        formWithCSRF: FormWithCSRF
+    layout: main_layout,
+    p: p, h1: h1, h2: h2, span: span,
+    caption: caption,
+    table: table,
+    submit_button: submit_button,
+    search_and_filter: search_and_filter,
+    textbox: textbox,
+    input_select: input_select,
+    checkbox: checkbox,
+    summaryErrors: SummaryErrors,
+    govukSkipLink: GovukSkipLink,
+    formWithCSRF: FormWithCSRF
 )
 
 @(
-        clients: Option[Seq[DisplayClient]] = None,
-        hiddenClientsExist: Option[Boolean],
-        form: Form[AddClientsToGroup],
-        formAction: Call = routes.CreateGroupController.submitSelectedClients,
+    clients: Option[Seq[DisplayClient]] = None,
+    hiddenClientsExist: Option[Boolean],
+    form: Form[AddClientsToGroup],
+    formAction: Call = routes.CreateGroupController.submitSelectedClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -73,48 +72,7 @@
 
     <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
 
-    <div class="govuk-grid-row" role="search">
-
-        @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-            }
-
-        <fieldset class="govuk-fieldset">
-            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-            @msgs("filter.legend")
-            </legend>
-
-            @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
-                <p id="filter-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">Error:</span>
-                    @msgs("error.search-filter.empty")
-                </p>
-            }
-
-            <div class="govuk-grid-column-one-quarter">
-            @textbox(
-                field = form("search"),
-                label = "client-filter.text.label",
-                labelClasses = "govuk-label--s",
-                classes = "govuk-input--width-20"
-            )
-            </div>
-
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-5">
-            @input_select(
-                field = form("filter"),
-                label = msgs("client-filter.select.label"),
-                emptyOptionText = msgs("client-filter.select.label.empty-option"),
-                options = getFiltersByTaxService()
-            )
-            </div>
-
-            <div class="govuk-grid-column-one-third govuk-!-padding-top-8">
-                @submit_button_group(additionalClasses = "govuk-!-margin-bottom-7")
-            </div>
-        </fieldset>
-        @if(form.errors.map(error => error.message).contains("error.search-filter.empty")) { </div> }
-    </div>
+    @search_and_filter(form, true)
 
     @if(clients.getOrElse(Seq.empty).nonEmpty) {
 

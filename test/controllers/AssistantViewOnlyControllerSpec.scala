@@ -26,9 +26,8 @@ import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model._
@@ -99,7 +98,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
@@ -126,7 +125,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
@@ -158,7 +157,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
@@ -194,7 +193,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
@@ -221,7 +220,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -250,7 +249,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -284,7 +283,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -318,7 +317,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 

@@ -19,8 +19,7 @@ package services
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
 import controllers.{FILTERED_TEAM_MEMBERS, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, selectingTeamMemberKeys}
-import models.ButtonSelect.{Clear, Continue, Filter}
-import models.{AddTeamMembersToGroup, ButtonSelect, TeamMember}
+import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -36,7 +35,7 @@ trait TeamMemberService {
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
 
   def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier,
-    ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
+                               ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
 
   def lookupTeamMember(arn: Arn)(id: String
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]]
@@ -44,10 +43,10 @@ trait TeamMemberService {
   def lookupTeamMembers(arn: Arn)(ids: Option[List[String]]
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]]
 
-  def saveSelectedOrFilteredTeamMembers(buttonSelect: ButtonSelect)
-                                   (arn: Arn)
-                                   (formData: AddTeamMembersToGroup
-                                   )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
+  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
+                                       (arn: Arn)
+                                       (formData: AddTeamMembersToGroup
+                                       )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
 
 }
@@ -55,13 +54,13 @@ trait TeamMemberService {
 
 @Singleton
 class TeamMemberServiceImpl @Inject()(
-    agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-    val sessionCacheRepository: SessionCacheRepository
-) extends TeamMemberService with GroupMemberOps {
+                                       agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+                                       val sessionCacheRepository: SessionCacheRepository
+                                     ) extends TeamMemberService with GroupMemberOps {
 
   // returns team members from agent-user-client-details, selecting previously selected team members
   def getAllTeamMembers(arn: Arn)
-                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
     for {
       ugsAsTeamMembers <- getFromUgsAsTeamMember(arn)
       maybeSelectedTeamMembers <- sessionCacheRepository
@@ -110,7 +109,7 @@ class TeamMemberServiceImpl @Inject()(
 
   def lookupTeamMembers(arn: Arn)(ids: Option[List[String]])
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]] = {
-    ids.fold(Option.empty[List[TeamMember]].toFuture){
+    ids.fold(Option.empty[List[TeamMember]].toFuture) {
       ids =>
         getFromUgsAsTeamMember(arn)
           .map(_.map(teamMembers => ids
@@ -118,13 +117,13 @@ class TeamMemberServiceImpl @Inject()(
     }
   }
 
-  def saveSelectedOrFilteredTeamMembers(buttonSelect: ButtonSelect)
+  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
                                        (arn: Arn)
                                        (formData: AddTeamMembersToGroup
                                        )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     buttonSelect match {
-      case Clear =>
+      case "clear" =>
         for {
           teamMembers <- lookupTeamMembers(arn)(formData.members)
           _ <- addSelectablesToSession(
@@ -132,10 +131,10 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-         _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
+          _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
-      case Continue =>
+      case "continue" =>
         for {
           teamMembers <- lookupTeamMembers(arn)(formData.members)
           _ <- addSelectablesToSession(
@@ -143,20 +142,24 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-         _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
+          _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
-      case Filter =>
-        for {
-          teamMembers <- lookupTeamMembers(arn)(formData.members)
-          _ <- addSelectablesToSession(
-            teamMembers.map(_.map(_.copy(selected = true))))(
-            SELECTED_TEAM_MEMBERS,
-            FILTERED_TEAM_MEMBERS
-          )
-          _ <- sessionCacheRepository.putSession(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
-          _ <- filterTeamMembers(arn)(formData)
-        } yield ()
+      case "filter" =>
+        if (formData.search.isEmpty) {
+          Future.successful(())
+        } else {
+          for {
+            teamMembers <- lookupTeamMembers(arn)(formData.members)
+            _ <- addSelectablesToSession(
+              teamMembers.map(_.map(_.copy(selected = true))))(
+              SELECTED_TEAM_MEMBERS,
+              FILTERED_TEAM_MEMBERS
+            )
+            _ <- sessionCacheRepository.putSession(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
+            _ <- filterTeamMembers(arn)(formData)
+          } yield ()
+        }
     }
   }
 

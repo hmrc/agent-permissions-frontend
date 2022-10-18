@@ -263,7 +263,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result =
@@ -305,7 +305,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-      stubGetClientsAccepted(arn)
+      expectGetClientsReturningNone(arn)
 
       //when
       val result =
@@ -335,7 +335,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       expectGetGroupSuccess(groupWithClients._id.toString, Some(groupWithClients))
 
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result =
@@ -380,7 +380,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       val result =
         controller.showManageGroupClients(accessGroup._id.toString)(request)
@@ -417,7 +417,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
               "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
-              "continue" -> "continue"
+              "submit" -> "continue"
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -427,7 +427,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        stubGetClientsOk(arn)(fakeClients)
+        expectGetClients(arn)(fakeClients)
 
         expectUpdateGroupSuccess(accessGroup._id.toString,
           UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name)))))
@@ -454,14 +454,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "continue" -> "continue"
+          "submit" -> "continue"
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        stubGetClientsOk(arn)(fakeClients)
+        expectGetClients(arn)(fakeClients)
 
 
         // when
@@ -478,9 +478,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
       }
 
-      "display error when filtered clients and form has errors" in {
-        // given
+      "NOT display error when search & filter empty" in {
 
+        // given
         implicit val request = FakeRequest(
           "POST",
           routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url
@@ -489,7 +489,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -497,20 +497,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
-        stubGetClientsOk(arn)(fakeClients)
 
         // when
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
 
-        status(result) shouldBe OK
-        val html = Jsoup.parse(contentAsString(result))
-
-        // then
-        html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Update clients in this group"
-        html
-          .select(Css.errorSummaryForField("clients"))
-        await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)).isDefined shouldBe false
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url)
       }
 
 
@@ -524,14 +516,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "clients" -> "",
           "search" -> "",
           "filter" -> "Ab",
-          "submitFilter" -> "submitFilter"
+          "submit" -> "filter"
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        stubGetClientsOk(arn)(fakeClients)
+        expectGetClients(arn)(fakeClients)
 
         // when
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)

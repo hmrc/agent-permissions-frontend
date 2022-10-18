@@ -24,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait HttpClientMocks extends MockFactory {
 
-  def mockHttpGet[A](response: A)(implicit mockHttpClient: HttpClient): Unit = {
+  def expectHttpClientGET[A](response: A)(implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient
       .GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(
         _: HttpReads[A],
@@ -34,7 +34,7 @@ trait HttpClientMocks extends MockFactory {
       .returns(Future.successful(response))
   }
 
-  def mockHttpGetWithUrl[A](expectedUrl: String, response: A)(
+  def expectHttpClientGETWithUrl[A](expectedUrl: String, response: A)(
       implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient
       .GET[A](_: String, _: Seq[(String, String)], _: Seq[(String, String)])(
@@ -45,7 +45,7 @@ trait HttpClientMocks extends MockFactory {
       .returns(Future.successful(response))
   }
 
-  def mockHttpPostEmpty[A](response: A)(
+  def expectHttpClientPOSTEmpty[A](response: A)(
       implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient
       .POSTEmpty(_: String, _: Seq[(String, String)])(_: HttpReads[A],
@@ -55,7 +55,7 @@ trait HttpClientMocks extends MockFactory {
       .returns(Future.successful(response))
   }
 
-  def mockHttpPost[I, O](url: String, input: I, output: O)(
+  def expectHttpClientPOST[I, O](url: String, input: I, output: O)(
       implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient
       .POST(_: String, _: I, _: Seq[(String, String)])(_: Writes[I],
@@ -66,7 +66,7 @@ trait HttpClientMocks extends MockFactory {
       .returns(Future.successful(output))
   }
 
-  def mockHttpPUT[I, O](url: String, input: I, output: O)(
+  def expectHttpClientPUT[I, O](url: String, input: I, output: O)(
     implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient
       .PUT(_: String, _: I, _: Seq[(String, String)])(_: Writes[I],
@@ -77,7 +77,7 @@ trait HttpClientMocks extends MockFactory {
       .returns(Future.successful(output))
   }
 
-  def mockHttpPATCH[I, O](url: String, input: I, output: O)(
+  def expectHttpClientPATCH[I, O](url: String, input: I, output: O)(
       implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient
       .PATCH(_: String, _: I, _: Seq[(String, String)])(_: Writes[I],
@@ -88,7 +88,7 @@ trait HttpClientMocks extends MockFactory {
       .returns(Future.successful(output))
   }
 
-  def mockHttpDELETE[O](url: String, output: O)(
+  def expectHttpClientDELETE[O](url: String, output: O)(
       implicit mockHttpClient: HttpClient): Unit = {
     (mockHttpClient
       .DELETE(_: String, _: Seq[(String, String)])(_: HttpReads[O],

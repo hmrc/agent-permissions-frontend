@@ -26,7 +26,7 @@
     link_as_button: link_as_button,
     submit_button: submit_button,
     textbox: textbox, checkbox: checkbox,
-    submit_button_group: submit_button_group
+    filter_buttons: filter_buttons
 )
 
 @(
@@ -80,12 +80,7 @@
                 </div>
 
                 <div class="govuk-grid-column-one-third govuk-!-padding-top-6">
-                @submit_button_group(
-                    name = "submit",
-                    secondName="submit",
-                    secondValue="clear",
-                    submitValue="filter",
-                    additionalClasses = "govuk-!-margin-bottom-7")
+                @filter_buttons(hasFilter = false)
                 </div>
             </div>
         }

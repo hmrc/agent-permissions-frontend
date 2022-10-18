@@ -20,12 +20,13 @@
 @import views.html.main_layout
 @import views.html.partials.selectable_clients_table_form
 @import views.html.helper.CSPNonce
+@import views.html.partials.search_and_filter
 
 @this(
     layout: main_layout,
     p: p, h1: h1, h2: h2, a: a, span: span,
     table: table, textbox: textbox, summary_list: summary_list,
-    a_button: link_as_button, filter_buttons: filter_buttons,
+    a_button: link_as_button, search_and_filter: search_and_filter,
     selectable_clients_table_form: selectable_clients_table_form,
     summaryErrors: SummaryErrors
 )
@@ -44,19 +45,10 @@
 
     @views.html.helper.form(routes.ManageGroupController.showManageGroups){
 
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-one-third">
-                @textbox(
-                field = filterGroupSummaryForm("search"),
-                label = "group-name-filter.text.label",
-                labelClasses = "govuk-label--s",
-                classes = "govuk-input--width-20"
-                )
-            </div>
-            <div class="govuk-grid-column-one-third">
-                @filter_buttons(hasFilter = false)
-            </div>
-        </div>
+        @search_and_filter(
+            filterGroupSummaryForm,
+            withFilter =false,
+            searchLabelKey = "group-name-filter.text.label")
 
     }
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;

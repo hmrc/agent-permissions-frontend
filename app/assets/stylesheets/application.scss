@@ -32,16 +32,10 @@ div.scrollable-table-container {
 
 
 #search-no-filter{
-  button, .govuk-form-group {
-    float: left;
-  }
-  padding-top: 29px;
+    padding-top: 29px;
 }
 
 #search-with-filter{
-  button, .govuk-form-group {
-    float: left;
-  }
   padding-top: 4px;
 }
 body.js-enabled p#member-count-text-non-js{
@@ -56,9 +50,14 @@ body:not(.js-enabled) p#member-count-text-non-js.hide-me{
   display: none;
 }
 
-//we are disabling the search buttons when no search criteria, but don't want them
-//to look disabled as GDS doesn't like that
-button.govuk-button.govuk-button--disabled {
-  opacity: 1;
+fieldset#search-and-filter{
+  #filter-box-wrapper{
+    &.pad-top-1{ padding-top: 12px;}
+    &.pad-top-2{ padding-top: 25px;}
+  }
+  #button-wrapper{
+    &.pad-top-1{ padding-top: 30px;}
+    &.pad-top-2{ padding-top: 54px;}
+  }
 }
 

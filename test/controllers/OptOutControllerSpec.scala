@@ -131,7 +131,7 @@ class OptOutControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedOutEligible)
+      expectOptInStatusOk(arn)(OptedOutEligible)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", "/opt-out/do-you-want-to-opt-out")
@@ -140,7 +140,7 @@ class OptOutControllerSpec extends BaseSpec {
 
       await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
 
-      stubPostOptOutAccepted(arn)
+      expectPostOptOutAccepted(arn)
 
       val result = controller.submitDoYouWantToOptOut()(request)
       status(result) shouldBe SEE_OTHER

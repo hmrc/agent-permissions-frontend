@@ -184,7 +184,7 @@ class ClientServiceImpl @Inject()(
 
       case "filter" =>
         if (formData.search.isEmpty && formData.filter.isEmpty) {
-          Future successful()
+          Future.successful(Unit)
         } else {
           for {
             clients <- lookupClients(arn)(formData.clients)

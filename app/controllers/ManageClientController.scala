@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext}
 
 @Singleton
 class ManageClientController @Inject()(
@@ -101,6 +101,7 @@ class ManageClientController @Inject()(
               clientGroups = maybeGroups
             ))
           }
+          case _ => Redirect(routes.ManageClientController.showAllClients).toFuture
         }
       }
     }
@@ -124,7 +125,8 @@ class ManageClientController @Inject()(
   def submitUpdateClientReference(clientId :String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).map {
+        clientService.lookupClient(arn)(clientId).map
+        {
           case Some(client) =>
             ClientReferenceForm.form()
               .bindFromRequest()
@@ -143,6 +145,7 @@ class ManageClientController @Inject()(
                   Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId))
                 }
               )
+          case _ => Redirect(routes.ManageClientController.showAllClients)
         }
       }
     }
@@ -158,6 +161,7 @@ class ManageClientController @Inject()(
                 client,
                 clientRef = newName.get
               )))
+          case _ => Redirect(routes.ManageClientController.showAllClients).toFuture
         }
 
       }

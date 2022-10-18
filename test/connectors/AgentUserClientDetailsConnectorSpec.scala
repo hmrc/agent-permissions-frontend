@@ -48,7 +48,7 @@ class AgentUserClientDetailsConnectorSpec
 
   "getClientList" should {
     "return a Some[Seq[Client]] when status response is OK" in {
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(
           OK,
           """[
@@ -66,14 +66,14 @@ class AgentUserClientDetailsConnectorSpec
 
     "return None when status response is Accepted" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
 
       connector.getClients(arn).futureValue shouldBe None
     }
 
     "throw error when status response is 5xx" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(503, ""))
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(503, ""))
 
       intercept[UpstreamErrorResponse] {
         await(connector.getClients(arn))
@@ -83,7 +83,7 @@ class AgentUserClientDetailsConnectorSpec
 
   "getTeamMembers" should {
     "return a Some[Seq[UserDetails]] when status response is OK" in {
-      mockHttpGet[HttpResponse](
+      expectHttpClientGET[HttpResponse](
         HttpResponse.apply(
           OK,
           """[
@@ -110,14 +110,14 @@ class AgentUserClientDetailsConnectorSpec
 
     "return None when status response is Accepted" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
 
       connector.getTeamMembers(arn).futureValue shouldBe None
     }
 
     "throw error when status response is 5xx" in {
 
-      mockHttpGet[HttpResponse](HttpResponse.apply(503, ""))
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(503, ""))
 
       intercept[UpstreamErrorResponse] {
         await(connector.getTeamMembers(arn))
@@ -133,7 +133,7 @@ class AgentUserClientDetailsConnectorSpec
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
       val mockResponse = HttpResponse.apply(NO_CONTENT, "")
-      mockHttpPUT[Client, HttpResponse](url,
+      expectHttpClientPUT[Client, HttpResponse](url,
         clientRequest,
         mockResponse)
       connector.updateClientReference(arn, clientRequest).futureValue shouldBe Done
@@ -144,7 +144,7 @@ class AgentUserClientDetailsConnectorSpec
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      mockHttpPUT[Client, HttpResponse](url,
+      expectHttpClientPUT[Client, HttpResponse](url,
         clientRequest,
         mockResponse)
 

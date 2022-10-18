@@ -343,7 +343,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     s"redirect to ${controller.showAccessGroupNameExists} when the access group name already exists" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      getGroupNameCheckReturns(ok = false)(arn, groupName)
+      expectGroupNameCheck(ok = false)(arn, groupName)
 
       implicit val request =
         FakeRequest("POST", routes.CreateGroupController.submitConfirmGroupName.url)
@@ -363,7 +363,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     "redirect to add-clients page when Confirm access group name 'yes' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      getGroupNameCheckReturns(ok = true)(arn, groupName)
+      expectGroupNameCheck(ok = true)(arn, groupName)
 
       implicit val request =
         FakeRequest("POST", routes.CreateGroupController.submitGroupName.url)

@@ -98,7 +98,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
@@ -125,7 +125,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
@@ -157,7 +157,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
@@ -193,7 +193,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
@@ -220,7 +220,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -249,7 +249,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -283,7 +283,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
@@ -317,7 +317,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 

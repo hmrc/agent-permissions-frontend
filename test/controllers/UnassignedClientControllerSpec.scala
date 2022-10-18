@@ -333,7 +333,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
     "redirect if no selected clients in session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
@@ -353,7 +353,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
@@ -373,7 +373,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
@@ -394,7 +394,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)

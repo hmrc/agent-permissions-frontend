@@ -57,7 +57,7 @@ class RootControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(true)
-        stubOptInStatusOk(arn)(OptedOutEligible)
+        expectOptInStatusOk(arn)(OptedOutEligible)
 
         val result = controller.start()(request)
 
@@ -70,7 +70,7 @@ class RootControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(true)
-        stubOptInStatusError(arn)
+        expectOptInStatusError(arn)
 
         intercept[UpstreamErrorResponse] {
           await(controller.start()(request))

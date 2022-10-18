@@ -27,13 +27,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ClientServiceMocks extends MockFactory {
 
-  def stubGetClients(arn: Arn)
-                    (clients: Seq[DisplayClient])
-                    (implicit clientService: ClientService): Unit =
+  def expectGetClientsFromService(arn: Arn)
+                                 (clients: Seq[DisplayClient])
+                                 (implicit clientService: ClientService): Unit =
     (clientService
       .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful Some(clients))
+      .returning(Future successful Some(clients)).once()
 
   def expectLookupClient(arn: Arn)
                         (client: DisplayClient)

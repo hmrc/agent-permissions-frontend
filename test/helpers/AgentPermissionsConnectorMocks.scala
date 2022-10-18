@@ -28,35 +28,35 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentPermissionsConnectorMocks extends MockFactory {
 
-  def stubOptInStatusOk(arn: Arn)(optinStatus: OptinStatus)(
+  def expectOptInStatusOk(arn: Arn)(optinStatus: OptinStatus)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Some(optinStatus))
 
-  def stubOptInStatusError(arn: Arn)(
+  def expectOptInStatusError(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def stubPostOptInAccepted(arn: Arn)(
+  def expectPostOptInAccepted(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .optIn(_: Arn, _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Done)
 
-  def stubPostOptInError(arn: Arn)(
+  def expectPostOptInError(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .optIn(_: Arn, _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def stubPostOptOutAccepted(arn: Arn)(
+  def expectPostOptOutAccepted(arn: Arn)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .optOut(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
@@ -120,14 +120,14 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .expects(id, *, *)
       .returning(Future successful group)
 
-  def getGroupNameCheckReturns(ok: Boolean)(arn: Arn, name: String)(
+  def expectGroupNameCheck(ok: Boolean)(arn: Arn, name: String)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, name, *, *)
       .returning(Future successful ok)
 
-  def getGroupNameCheckError(arn: Arn, name: String)(
+  def expectGroupNameCheckError(arn: Arn, name: String)(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))

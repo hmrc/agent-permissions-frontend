@@ -93,6 +93,7 @@ class ManageTeamMemberController @Inject()(
                   teamMemberGroups = gs
                 ))
           )
+          case _ => Redirect(routes.ManageTeamMemberController.showAllTeamMembers).toFuture
         }
         }
       }

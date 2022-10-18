@@ -95,7 +95,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetTeamMembers(arn)(userDetails)
 
       //when
@@ -123,7 +123,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetTeamMembers(arn)(userDetails)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
@@ -152,7 +152,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetTeamMembers(arn)(userDetails)
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
@@ -179,7 +179,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, None)
       expectGetTeamMembers(arn)(userDetails)
 
@@ -200,7 +200,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      stubOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, Some(groupSummaries))
       expectGetTeamMembers(arn)(userDetails)
 

@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait TeamMemberServiceMocks extends MockFactory {
 
-  def stubGetTeamMembers(arn: Arn)(teamMembers: Seq[TeamMember])(
+  def expectGetTeamMembersFromService(arn: Arn)(teamMembers: Seq[TeamMember])(
     implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
       .getTeamMembers(_: Arn)(_: HeaderCarrier,

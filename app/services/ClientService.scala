@@ -183,15 +183,19 @@ class ClientServiceImpl @Inject()(
         } yield ()
 
       case "filter" =>
-        for {
-          clients <- lookupClients(arn)(formData.clients)
-          _ <- addSelectablesToSession(
-            clients.map(_.map(_.copy(selected = true)))
-          )(SELECTED_CLIENTS, FILTERED_CLIENTS)
-          _ <- sessionCacheRepository.putSession(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
-          _ <- sessionCacheRepository.putSession(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
-          _ <- filterClients(arn)(formData)(getClients)
-        } yield ()
+        if (formData.search.isEmpty && formData.filter.isEmpty) {
+          Future successful()
+        } else {
+          for {
+            clients <- lookupClients(arn)(formData.clients)
+            _ <- addSelectablesToSession(
+              clients.map(_.map(_.copy(selected = true)))
+            )(SELECTED_CLIENTS, FILTERED_CLIENTS)
+            _ <- sessionCacheRepository.putSession(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
+            _ <- sessionCacheRepository.putSession(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
+            _ <- filterClients(arn)(formData)(getClients)
+          } yield ()
+        }
 
     }
   }

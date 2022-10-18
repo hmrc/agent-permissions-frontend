@@ -26,15 +26,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentUserClientDetailsConnectorMocks extends MockFactory {
 
-  def stubGetClientsOk(arn: Arn)(clientList: Seq[Client])(
+  def expectGetClients(arn: Arn)(clientList: Seq[Client])(
       implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
     : Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful (Some(clientList)))
+      .returning(Future successful (Some(clientList))).once()
 
-  def stubGetClientsAccepted(arn: Arn)(
+  def expectGetClientsReturningNone(arn: Arn)(
       implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
     : Unit =
     (agentUserClientDetailsConnector
@@ -42,7 +42,7 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory {
       .expects(arn, *, *)
       .returning(Future successful None)
 
-  def stubGetClientsError(arn: Arn)(
+  def expectGetClientsWithUpstreamError(arn: Arn)(
       implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
     : Unit =
     (agentUserClientDetailsConnector
@@ -50,7 +50,7 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory {
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def stubGetTeamMembersOk(arn: Arn)(teamMembers: Seq[UserDetails])(
+  def expectGetTeamMembers(arn: Arn)(teamMembers: Seq[UserDetails])(
       implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
     : Unit =
     (agentUserClientDetailsConnector
@@ -58,15 +58,7 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory {
       .expects(arn, *, *)
       .returning(Future successful Some(teamMembers))
 
-  def stubGetTeamMembersAccepted(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
-    (agentUserClientDetailsConnector
-      .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, *, *)
-      .returning(Future successful None)
-
-  def stubGetTeamMembersError(arn: Arn)(
+  def expectGetTeamMembersWithUpstreamError(arn: Arn)(
       implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
     : Unit =
     (agentUserClientDetailsConnector
@@ -74,8 +66,8 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory {
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def stubUpdateClientReferenceSuccess()
-                                      (implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def expectUpdateClientReferenceSuccess()
+                                        (implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector.updateClientReference(_: Arn, _:Client)(_: HeaderCarrier, _: ExecutionContext))
     .expects(*, *,*,*)
     .returning(Future successful Done)

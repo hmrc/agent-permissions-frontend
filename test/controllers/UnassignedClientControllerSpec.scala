@@ -167,7 +167,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitAddUnassignedClients.url)
@@ -198,7 +198,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
 

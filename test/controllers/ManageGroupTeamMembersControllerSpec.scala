@@ -105,7 +105,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(request)
@@ -144,7 +144,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(requestWithQueryParams)
@@ -180,7 +180,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(requestWithQueryParams)
@@ -215,7 +215,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = None)))
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(requestWithQueryParams)
@@ -243,8 +243,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-      stubGetTeamMembersOk(arn)(userDetails)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -279,8 +279,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-      stubGetTeamMembersOk(arn)(userDetails)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -313,8 +313,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(Set(AgentUser("id1", "John"))))))
-      stubGetTeamMembersOk(arn)(userDetails)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -364,7 +364,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        stubGetTeamMembersOk(arn)(userDetails)
+        expectGetTeamMembers(arn)(userDetails)
 
 
         val result =
@@ -394,7 +394,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        stubGetTeamMembersOk(accessGroup.arn)(userDetails)
+        expectGetTeamMembers(accessGroup.arn)(userDetails)
 
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -410,7 +410,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
 
-      "button is Filter with no search value displays no error" in {
+      "when filter button is pushed with no search value, no error will be shown" in {
         // given
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
@@ -431,15 +431,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
 
-        status(result) shouldBe OK
-        val html = Jsoup.parse(contentAsString(result))
+        status(result) shouldBe SEE_OTHER
 
-        // then
-        html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Select team members"
-        html.select(Css.errorSummaryForField("search")).isEmpty shouldBe true
-
-        await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
 
 
@@ -459,7 +452,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
-        stubGetTeamMembersOk(arn)(userDetails)
+        expectGetTeamMembers(arn)(userDetails)
 
 
         // when

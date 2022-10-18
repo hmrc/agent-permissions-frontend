@@ -96,7 +96,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       stubOptInStatusOk(arn)(OptedInReady)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showAllTeamMembers()(request)
@@ -124,7 +124,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         routes.ManageTeamMemberController.showAllTeamMembers.url +
@@ -153,7 +153,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
         routes.ManageTeamMemberController.showAllTeamMembers.url +
@@ -181,7 +181,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, None)
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)
@@ -202,7 +202,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       stubOptInStatusOk(arn)(OptedInReady)
       expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, Some(groupSummaries))
-      stubGetTeamMembersOk(arn)(userDetails)
+      expectGetTeamMembers(arn)(userDetails)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)

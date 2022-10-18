@@ -51,7 +51,7 @@ class ClientServiceSpec extends BaseSpec {
     "PUT client to agentUserClientDetailsConnector" in {
       //given
       val newName = "The new name"
-      stubUpdateClientReferenceSuccess()
+      expectUpdateClientReferenceSuccess()
 
       //when
       val updateRef = await(service.updateClientReference(arn, displayClients.head, newName))
@@ -78,7 +78,7 @@ class ClientServiceSpec extends BaseSpec {
   "getClients" should {
     "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
       //given
-      stubGetClientsOk(arn)(fakeClients)
+      expectGetClients(arn)(fakeClients)
 
       //when
       val result =  await(service.getClients(arn))

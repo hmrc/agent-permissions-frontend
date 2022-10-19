@@ -103,7 +103,8 @@ class UnassignedClientController @Inject()(
                 formWithErrors => {
                   for {
                     unassignedClients <- clientService.getUnassignedClients(arn)
-                    _ <- if ("continue" == formWithErrors.data.get("submit")) sessionCacheService.clearSelectedClients() else
+                    _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit")) sessionCacheService
+                      .clearSelectedClients() else
                       Future.successful(())
                     result = if (maybeFilteredClients.isDefined)
                       Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
@@ -112,9 +113,8 @@ class UnassignedClientController @Inject()(
                   } yield result
                 },
                 formData => {
-                  clientService.saveSelectedOrFilteredClients(formData.submit)(arn)(
-                    formData)(clientService.getMaybeUnassignedClients).map(_ =>
-                    if (formData.submit == "continue")
+                  clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
+                    if (formData.submit == CONTINUE_BUTTON)
                       Redirect(controller.showSelectedUnassignedClients)
                     else Redirect(controller.showUnassignedClients)
                   )

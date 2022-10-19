@@ -16,6 +16,7 @@
 
 package forms
 
+import controllers.CONTINUE_BUTTON
 import models.AddTeamMembersToGroup
 import play.api.data.Form
 import play.api.data.Forms._
@@ -30,8 +31,8 @@ object AddTeamMembersToGroupForm {
     "submit" -> text
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
       .verifying("error.select-members.empty", data => {
-        data.submit != "continue" ||
-          (data.submit == "continue" && data.members.getOrElse(Seq.empty).nonEmpty)
+        data.submit != CONTINUE_BUTTON ||
+          (data.submit == CONTINUE_BUTTON && data.members.getOrElse(Seq.empty).nonEmpty)
       })
   )
 }

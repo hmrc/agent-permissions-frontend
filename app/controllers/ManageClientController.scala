@@ -68,9 +68,9 @@ class ManageClientController @Inject()(
             )).toFuture
           )({
             //clear/filter buttons pressed
-            case "clear" =>
+            case CLEAR_BUTTON =>
               Redirect(routes.ManageClientController.showAllClients).toFuture
-            case "filter" =>
+            case FILTER_BUTTON =>
               val filteredClients = maybeClients.get
                 .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
                 .filter(dc =>

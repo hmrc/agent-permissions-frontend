@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture, selectingClientsKeys}
+import controllers.{CLEAR_BUTTON, CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, FILTERED_CLIENTS, FILTER_BUTTON, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture, selectingClientsKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
@@ -49,7 +49,7 @@ trait ClientService {
   def lookupClients(arn: Arn)(ids: Option[List[String]])
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]]
 
-  def saveSelectedOrFilteredClients(buttonSelect: String)(arn: Arn)
+  def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)(getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
@@ -156,14 +156,13 @@ class ClientServiceImpl @Inject()(
     Future.traverse(selectingClientsKeys)(key => sessionCacheRepository.deleteFromSession(key)).map(_ => ())
 
   // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
-  def saveSelectedOrFilteredClients(buttonSelect: String)
-                                   (arn: Arn)
-                                   (formData: AddClientsToGroup
-                                   )(getClients: Arn => Future[Option[Seq[DisplayClient]]])
+  def saveSelectedOrFilteredClients(arn: Arn)
+                                   (formData: AddClientsToGroup)
+                                   (getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
-    buttonSelect.trim match {
-      case "clear" =>
+    formData.submit.trim match {
+      case CLEAR_BUTTON =>
         for {
           clients <- lookupClients(arn)(formData.clients)
           _ <- addSelectablesToSession(clients.map(_.map(dc => dc.copy(selected = true)))
@@ -171,7 +170,7 @@ class ClientServiceImpl @Inject()(
           _ <- clearSessionForSelectingClients()
         } yield ()
 
-      case "continue" =>
+      case CONTINUE_BUTTON =>
         for {
           clients <- lookupClients(arn)(formData.clients)
           _ <- addSelectablesToSession(
@@ -182,7 +181,7 @@ class ClientServiceImpl @Inject()(
           _ <- clearSessionForSelectingClients()
         } yield ()
 
-      case "filter" =>
+      case FILTER_BUTTON =>
         if (formData.search.isEmpty && formData.filter.isEmpty) {
           clearSessionForSelectingClients()
         } else {

@@ -66,7 +66,7 @@ class ManageGroupClientsController @Inject()(
       )(submitButton =>
         //either the 'filter' button or the 'clear' filter button was clicked
         submitButton match {
-          case "filter" =>
+          case FILTER_BUTTON =>
             val searchTerm = searchFilter.search.getOrElse("")
             val filteredClients = displayGroup.clients
               .filter(_.name.toLowerCase.contains(searchTerm.toLowerCase))
@@ -82,7 +82,7 @@ class ManageGroupClientsController @Inject()(
                 form = SearchAndFilterForm.form().fill(searchFilter)
               )
             )
-          case "clear" =>
+          case CLEAR_BUTTON =>
             Redirect(controller.showExistingGroupClients(groupId))
         }
       ).toFuture
@@ -127,7 +127,7 @@ class ManageGroupClientsController @Inject()(
             .fold(
               formWithErrors => {
                 for {
-                  _ <- if ("continue" == formWithErrors.data.get("submit"))
+                  _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
                     sessionCacheService.clearSelectedClients()
                   else ().toFuture
                   clients <- clientService.getClients(group.arn)
@@ -143,9 +143,9 @@ class ManageGroupClientsController @Inject()(
                 }
               },
               formData => {
-                clientService.saveSelectedOrFilteredClients(formData.submit)(group.arn)(formData)(clientService.getAllClients)
+                clientService.saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients)
                   .flatMap(_ =>
-                  if (formData.submit == "continue") {
+                  if (formData.submit == CONTINUE_BUTTON) {
                     for {
                       maybeSelectedClients <- sessionCacheRepository
                         .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)

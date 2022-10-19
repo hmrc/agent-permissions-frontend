@@ -64,9 +64,9 @@ class AssistantViewOnlyController @Inject()(
           clientService.getUnassignedClients(arn).map(clients =>
             Ok(unassigned_client_list(clients, SearchAndFilterForm.form())))
         ) { //either the 'filter' button or the 'clear' filter button was clicked
-          case "clear" =>
+          case CLEAR_BUTTON =>
             Redirect(routes.AssistantViewOnlyController.showUnassignedClientsViewOnly).toFuture
-          case "filter" =>
+          case FILTER_BUTTON =>
             clientService.getUnassignedClients(arn).map { clients =>
               val filteredClients = clients.filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("")
                 .toLowerCase))
@@ -95,9 +95,9 @@ class AssistantViewOnlyController @Inject()(
       )(submitButton =>
         //either the 'filter' button or the 'clear' filter button was clicked
         submitButton match {
-          case "clear" =>
+          case CLEAR_BUTTON =>
             Redirect(routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId))
-          case "filter" =>
+          case FILTER_BUTTON =>
             val filteredClients = displayGroup.clients
               .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
               .filter(dc =>

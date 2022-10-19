@@ -112,8 +112,7 @@ class UnassignedClientController @Inject()(
                   } yield result
                 },
                 formData => {
-                  clientService.saveSelectedOrFilteredClients(formData.submit)(arn)(
-                    formData)(clientService.getMaybeUnassignedClients).map(_ =>
+                  clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
                     if (formData.submit == "continue")
                       Redirect(controller.showSelectedUnassignedClients)
                     else Redirect(controller.showUnassignedClients)

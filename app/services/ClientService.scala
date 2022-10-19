@@ -49,7 +49,7 @@ trait ClientService {
   def lookupClients(arn: Arn)(ids: Option[List[String]])
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]]
 
-  def saveSelectedOrFilteredClients(buttonSelect: String)(arn: Arn)
+  def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)(getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
@@ -156,13 +156,12 @@ class ClientServiceImpl @Inject()(
     Future.traverse(selectingClientsKeys)(key => sessionCacheRepository.deleteFromSession(key)).map(_ => ())
 
   // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
-  def saveSelectedOrFilteredClients(buttonSelect: String)
-                                   (arn: Arn)
-                                   (formData: AddClientsToGroup
-                                   )(getClients: Arn => Future[Option[Seq[DisplayClient]]])
+  def saveSelectedOrFilteredClients(arn: Arn)
+                                   (formData: AddClientsToGroup)
+                                   (getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
-    buttonSelect.trim match {
+    formData.submit.trim match {
       case "clear" =>
         for {
           clients <- lookupClients(arn)(formData.clients)

@@ -35,6 +35,10 @@ package object controllers {
     }
   }
 
+  final val CONTINUE_BUTTON: String = "continue"
+  final val CLEAR_BUTTON: String = "clear"
+  final val FILTER_BUTTON: String = "filter"
+
   val isEligibleToOptIn: OptinStatus => Boolean = status =>
     status == OptedOutEligible
   val isOptedIn: OptinStatus => Boolean = status =>

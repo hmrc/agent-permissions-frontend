@@ -74,9 +74,9 @@ class ManageGroupTeamMembersController @Inject()(
             )
           )
         )(button => button match {
-            case "clear" =>
+            case CLEAR_BUTTON =>
               Redirect(controller.showExistingGroupTeamMembers(groupId))
-            case "filter" =>
+            case FILTER_BUTTON =>
               val lowerCaseSearchTerm = searchFilter.search.getOrElse("").toLowerCase
               val filteredMembers = members.getOrElse(Seq.empty)
                 .filter(tm =>
@@ -158,7 +158,7 @@ class ManageGroupTeamMembersController @Inject()(
             .fold(
               formWithErrors => {
                 for {
-                  _ <- if ("continue" == formWithErrors.data.get("submit"))
+                  _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
                     sessionCacheService.clearSelectedTeamMembers()
                   else ().toFuture
                   result <- if (maybeFilteredResult.isDefined)
@@ -186,7 +186,7 @@ class ManageGroupTeamMembersController @Inject()(
               },
               formData => {
                 teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).map(_ =>
-                  if (formData.submit == "continue") {
+                  if (formData.submit == CONTINUE_BUTTON) {
                     for {
                       members <- sessionCacheRepository
                         .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)

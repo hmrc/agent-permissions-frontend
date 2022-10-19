@@ -16,6 +16,7 @@
 
 package forms
 
+import controllers.CONTINUE_BUTTON
 import models.AddClientsToGroup
 import play.api.data.Form
 import play.api.data.Forms._
@@ -31,8 +32,8 @@ object AddClientsToGroupForm {
       "submit" -> text
     )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
       .verifying("error.select-clients.empty", data => {
-        data.submit != "continue" ||
-        (data.submit == "continue" && data.clients.getOrElse(Seq.empty).nonEmpty)
+        data.submit != CONTINUE_BUTTON ||
+        (data.submit == CONTINUE_BUTTON && data.clients.getOrElse(Seq.empty).nonEmpty)
       })
   )
 }

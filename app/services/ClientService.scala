@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture, selectingClientsKeys}
+import controllers.{CLEAR_BUTTON, CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, FILTERED_CLIENTS, FILTER_BUTTON, HIDDEN_CLIENTS_EXIST, SELECTED_CLIENTS, ToFuture, selectingClientsKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
@@ -162,7 +162,7 @@ class ClientServiceImpl @Inject()(
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     formData.submit.trim match {
-      case "clear" =>
+      case CLEAR_BUTTON =>
         for {
           clients <- lookupClients(arn)(formData.clients)
           _ <- addSelectablesToSession(clients.map(_.map(dc => dc.copy(selected = true)))
@@ -170,7 +170,7 @@ class ClientServiceImpl @Inject()(
           _ <- clearSessionForSelectingClients()
         } yield ()
 
-      case "continue" =>
+      case CONTINUE_BUTTON =>
         for {
           clients <- lookupClients(arn)(formData.clients)
           _ <- addSelectablesToSession(
@@ -181,7 +181,7 @@ class ClientServiceImpl @Inject()(
           _ <- clearSessionForSelectingClients()
         } yield ()
 
-      case "filter" =>
+      case FILTER_BUTTON =>
         if (formData.search.isEmpty && formData.filter.isEmpty) {
           clearSessionForSelectingClients()
         } else {

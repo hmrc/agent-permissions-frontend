@@ -176,7 +176,7 @@ class CreateGroupController @Inject()(
           .fold(
             formWithErrors => {
               for {
-                _ <- if ("continue" == formWithErrors.data.get("submit"))
+                _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
                   sessionCacheService.clearSelectedClients()
                 else ().toFuture
                 clients <- clientService.getClients(arn)
@@ -191,11 +191,10 @@ class CreateGroupController @Inject()(
             formData => {
               clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getAllClients)
                 .map(_ =>
-                  if (formData.submit == "continue")
+                  if (formData.submit == CONTINUE_BUTTON)
                     Redirect(controller.showReviewSelectedClients)
                   else
-                    Redirect(
-                      controller.showSelectClients))
+                    Redirect(controller.showSelectClients))
             }
           )
       }
@@ -279,7 +278,7 @@ class CreateGroupController @Inject()(
           .fold(
             formWithErrors => {
               for {
-                _ <- if ("continue" == formWithErrors.data.get("submit"))
+                _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
                   sessionCacheService
                     .clearSelectedTeamMembers()
                 else ().toFuture
@@ -295,7 +294,7 @@ class CreateGroupController @Inject()(
             formData => {
               teamMemberService
                 .saveSelectedOrFilteredTeamMembers(formData.submit)(arn)(formData).map(_ =>
-                  if (formData.submit == "continue")
+                  if (formData.submit == CONTINUE_BUTTON)
                     Redirect(controller.showReviewSelectedTeamMembers)
                   else Redirect(controller.showSelectTeamMembers))
             }

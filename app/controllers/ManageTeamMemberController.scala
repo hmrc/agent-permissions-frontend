@@ -62,9 +62,9 @@ class ManageTeamMemberController @Inject()(
             Ok(manage_team_members_list(teamMembers = maybeTeamMembers, form = SearchAndFilterForm.form()))
           )({
             //clear/filter buttons pressed
-            case "clear" =>
+            case CLEAR_BUTTON =>
               Redirect(routes.ManageTeamMemberController.showAllTeamMembers)
-            case "filter" =>
+            case FILTER_BUTTON =>
               val filterByName = maybeTeamMembers.getOrElse(Seq.empty)
                 .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
               val filterByEmail = maybeTeamMembers.getOrElse(Seq.empty)

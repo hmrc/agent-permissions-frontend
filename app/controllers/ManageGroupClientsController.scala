@@ -97,7 +97,7 @@ class ManageGroupClientsController @Inject()(
             _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS,
               group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true)))
             maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
-            clients <- clientService.getClients(group.arn)
+            clients <- clientService.getFilteredClientsElseAll(group.arn)
           } yield Ok(
             update_client_group_list(
               clients,
@@ -130,7 +130,7 @@ class ManageGroupClientsController @Inject()(
                   _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
                     sessionCacheService.clearSelectedClients()
                   else ().toFuture
-                  clients <- clientService.getClients(group.arn)
+                  clients <- clientService.getFilteredClientsElseAll(group.arn)
                 } yield {
                   Ok(update_client_group_list(
                     clients,

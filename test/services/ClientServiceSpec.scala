@@ -81,7 +81,7 @@ class ClientServiceSpec extends BaseSpec {
       expectGetClients(arn)(fakeClients)
 
       //when
-      val result =  await(service.getClients(arn))
+      val result =  await(service.getFilteredClientsElseAll(arn))
       val clients = result.get
 
       //then

@@ -143,7 +143,7 @@ class CreateGroupController @Inject()(
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
           withSessionItem[String](RETURN_URL) { returnUrl =>
-            clientService.getClients(arn).map { maybeClients =>
+            clientService.getFilteredClientsElseAll(arn).map { maybeClients =>
               Ok(
                 client_group_list(
                   maybeClients,
@@ -179,7 +179,7 @@ class CreateGroupController @Inject()(
                 _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
                   sessionCacheService.clearSelectedClients()
                 else ().toFuture
-                clients <- clientService.getClients(arn)
+                clients <- clientService.getFilteredClientsElseAll(arn)
               } yield
                 Ok(
                   client_group_list(clients,

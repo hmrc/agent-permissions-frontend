@@ -35,11 +35,10 @@ trait GroupMemberOps {
                                               (implicit hc: HeaderCarrier, request: Request[Any],
                                                ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] = {
 
-  for {
+    for {
       inSession <- sessionCacheRepository.getFromSession[Seq[T]](sessionMembersDataKey).map(_.map(_.toList))
 
-      filteredSelected <- sessionCacheRepository
-        .getFromSession[Seq[T]](filteredMembersDataKey)
+      filteredSelected <- sessionCacheRepository.getFromSession[Seq[T]](filteredMembersDataKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
       deSelected = filteredSelected.orElse(inSession).map(_ diff formData.getOrElse(Nil))

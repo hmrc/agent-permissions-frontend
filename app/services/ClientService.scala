@@ -35,8 +35,8 @@ trait ClientService {
   def getAllClients(arn: Arn)
                    (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
 
-  def getClients(arn: Arn)
-                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
+  def getFilteredClientsElseAll(arn: Arn)
+                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]]
 
   def getUnassignedClients(arn: Arn)
                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
@@ -72,56 +72,39 @@ class ClientServiceImpl @Inject()(
                    (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
     for {
       es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
-      maybeSelectedClients <- sessionCacheRepository
-        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
+      maybeSelectedClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
       es3WithoutPreSelected = es3AsDisplayClients.map(
         _.filterNot(
-          dc =>
-            maybeSelectedClients.fold(false)(
-              _.map(_.hmrcRef).contains(dc.hmrcRef)))
+          dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef))
+        )
       )
       mergedWithPreselected = es3WithoutPreSelected.map(
-        _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
-      sorted = mergedWithPreselected.map(_.sortBy(_.name))
-    } yield sorted
-
+        _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList
+      )
+      maybeClientsSortedByName = mergedWithPreselected.map(_.sortBy(_.name))
+    } yield maybeClientsSortedByName
   }
 
   // returns clients from es3 OR a filtered list, selecting previously selected clients
-  def getClients(arn: Arn)
-                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[DisplayClient]]] = {
-    val fromEs3 = for {
-      es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
-      maybeSelectedClients <- sessionCacheRepository
-        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
-      es3WithoutPreSelected = es3AsDisplayClients.map(
-        _.filterNot(
-          dc =>
-            maybeSelectedClients.fold(false)(
-              _.map(_.hmrcRef).contains(dc.hmrcRef)))
-      )
-      mergedWithPreselected = es3WithoutPreSelected.map(
-        _.toList ::: maybeSelectedClients.getOrElse(List.empty).toList)
-      sorted = mergedWithPreselected.map(_.sortBy(_.name))
-    } yield sorted
+  def getFilteredClientsElseAll(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[Option[Seq[DisplayClient]]] = {
 
-    for {
-      filtered <- sessionCacheRepository.getFromSession(FILTERED_CLIENTS)
-      es3 <- fromEs3
-    } yield filtered.orElse(es3)
-
+    val maybeFilteredClients = sessionCacheRepository.getFromSession(FILTERED_CLIENTS)
+    maybeFilteredClients.flatMap { maybeClients =>
+      if (maybeClients.isDefined) Future.successful(maybeClients)
+      else getAllClients(arn)
+    }
   }
 
   def getUnassignedClients(arn: Arn)
-                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
-  : Future[Seq[DisplayClient]] = agentPermissionsConnector.unassignedClients(arn)
+                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] =
+    agentPermissionsConnector.unassignedClients(arn)
 
 
   def getMaybeUnassignedClients(arn: Arn)
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[Option[Seq[DisplayClient]]] = {
     getUnassignedClients(arn).map(clients => if (clients.isEmpty) None else Some(clients))
-
   }
 
   def lookupClient(arn: Arn)
@@ -137,10 +120,7 @@ class ClientServiceImpl @Inject()(
                    (ids: Option[List[String]])
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[DisplayClient]]] = {
     ids.fold(Option.empty[List[DisplayClient]].toFuture) {
-      ids =>
-        getFromEs3AsDisplayClients(arn)
-          .map(_.map(clients => ids
-            .flatMap(id => clients.find(_.id == id))))
+      ids => getFromEs3AsDisplayClients(arn).map(_.map(clients => ids.flatMap(id => clients.find(_.id == id))))
     }
   }
 
@@ -161,81 +141,74 @@ class ClientServiceImpl @Inject()(
                                    (getClients: Arn => Future[Option[Seq[DisplayClient]]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
-    formData.submit.trim match {
-      case CLEAR_BUTTON =>
-        for {
-          clients <- lookupClients(arn)(formData.clients)
-          _ <- addSelectablesToSession(clients.map(_.map(dc => dc.copy(selected = true)))
-          )(SELECTED_CLIENTS, FILTERED_CLIENTS)
-          _ <- clearSessionForSelectingClients()
-        } yield ()
-
-      case CONTINUE_BUTTON =>
-        for {
-          clients <- lookupClients(arn)(formData.clients)
-          _ <- addSelectablesToSession(
-            clients.map(_.map(_.copy(selected = true))))(
-            SELECTED_CLIENTS,
-            FILTERED_CLIENTS
-          )
-          _ <- clearSessionForSelectingClients()
-        } yield ()
-
-      case FILTER_BUTTON =>
-        if (formData.search.isEmpty && formData.filter.isEmpty) {
-          clearSessionForSelectingClients()
-        } else {
+    val selectedClientIds = formData.clients
+    val common = for {
+      clients <- lookupClients(arn)(selectedClientIds)
+      maybeClients = clients.map(_.map(_.copy(selected = true)))
+      _ <- addSelectablesToSession(maybeClients)(SELECTED_CLIENTS, FILTERED_CLIENTS)
+    } yield ()
+    common.map { _ =>
+      formData.submit.trim match {
+        case FILTER_BUTTON =>
           for {
-            clients <- lookupClients(arn)(formData.clients)
-            _ <- addSelectablesToSession(
-              clients.map(_.map(_.copy(selected = true)))
-            )(SELECTED_CLIENTS, FILTERED_CLIENTS)
             _ <- sessionCacheRepository.putSession(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
             _ <- sessionCacheRepository.putSession(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
             _ <- filterClients(arn)(formData)(getClients)
           } yield ()
-        }
-
+        case _ =>
+          for {
+            _ <- sessionCacheRepository.deleteFromSession(CLIENT_FILTER_INPUT)
+            _ <- sessionCacheRepository.deleteFromSession(CLIENT_SEARCH_INPUT)
+          } yield ()
+      }
     }
   }
 
-  private def filterClients(arn: Arn)(formData: AddClientsToGroup)(getClients: Arn => Future[Option[Seq[DisplayClient]]])
+  private def filterClients(arn: Arn)(formData: AddClientsToGroup)
+                           (getClients: Arn => Future[Option[Seq[DisplayClient]]])
                            (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext)
-  : Future[Option[Seq[DisplayClient]]] =
+  : Future[Option[Seq[DisplayClient]]] = {
+
+    val filterTerm = formData.filter
+    val searchTerm = formData.search
+
     for {
       clients <- getClients(arn).map(_.map(_.toVector))
-      maybeTaxService = formData.filter
-      resultByTaxService = maybeTaxService.fold(clients)(
-        term =>
-          if (term == "TRUST")
-            clients.map(_.filter(_.taxService.contains("HMRC-TERS")))
-          else clients.map(_.filter(_.taxService == term)))
-      maybeTaxRefOrName = formData.search
-      resultByName = maybeTaxRefOrName.fold(resultByTaxService)(
-        term =>
-          resultByTaxService.map(
-            _.filter(_.name.toLowerCase.contains(term.toLowerCase))))
-      resultByTaxRef = maybeTaxRefOrName.fold(resultByTaxService)(
-        term =>
-          resultByTaxService.map(
-            _.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase))))
-      consolidatedResult = resultByName
-        .map(_ ++ resultByTaxRef.getOrElse(Vector.empty))
-        .map(_.distinct)
-      result = consolidatedResult.map(_.toVector)
+      resultByTaxService = filterTerm.fold(clients)(term =>
+        if (term == "TRUST") clients.map(_.filter(_.taxService.contains("HMRC-TERS")))
+        else clients.map(_.filter(_.taxService == term))
+      )
+      resultByName = searchTerm.fold(resultByTaxService) { term =>
+        resultByTaxService.map(_.filter(_.name.toLowerCase.contains(term.toLowerCase)))
+      }
+      resultByTaxRef = searchTerm.fold(resultByTaxService) {
+        term => resultByTaxService.map(_.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase)))
+      }
+      consolidatedResult = resultByName.map(_ ++ resultByTaxRef.getOrElse(Vector.empty)).map(_.distinct)
+      result: Option[Vector[DisplayClient]] = consolidatedResult.map(_.toVector)
       _ <- result match {
         case Some(filteredResult) => sessionCacheRepository.putSession(FILTERED_CLIENTS, filteredResult)
-        case _ => Future.successful(())
+        case None => Future.successful(())
       }
-      hiddenClients = clients.map(
-        _.filter(_.selected) diff result.getOrElse(Vector.empty)
-          .filter(_.selected)
-      )
+      hiddenClients = clients.map(_.filter(_.selected) diff result.getOrElse(Vector.empty).filter(_.selected))
       _ <- hiddenClients match {
         case Some(hidden) if hidden.nonEmpty => sessionCacheRepository.putSession(HIDDEN_CLIENTS_EXIST, true)
         case _ => Future.successful(())
       }
+      _ <- Future.successful(println("*************"))
+      _ <- Future.successful(println(clients.map(_.map(_.name)).mkString(",")))
+      _ <- Future.successful(println("clients: " + clients.getOrElse(Seq.empty).length))
+      _ <- Future.successful(println(""))
+      _ <- Future.successful(println(result.map(_.map(_.name)).mkString(",")))
+      _ <- Future.successful(println("result: " + result.getOrElse(Seq.empty).length))
+      _ <- Future.successful(println(""))
+      str = hiddenClients.map(_.map(_.name)).mkString(",")
+      _ <- Future.successful(println("hidden: " + hiddenClients.getOrElse(Seq.empty).length))
+      _ <- Future.successful(println(str))
+      _ <- Future.successful(println("*************"))
     } yield result
+  }
+
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit request: Request[_],
                                                                                      hc: HeaderCarrier,

@@ -31,7 +31,7 @@ trait ClientServiceMocks extends MockFactory {
                                  (clients: Seq[DisplayClient])
                                  (implicit clientService: ClientService): Unit =
     (clientService
-      .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getFilteredClientsElseAll(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Some(clients)).once()
 

@@ -29,7 +29,6 @@
 @(
     maybeTeamMembers: Option[Seq[TeamMember]] = None,
     groupName: String,
-    hiddenTeamMembersExist: Option[Boolean],
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
     formAction: Call = routes.CreateGroupController.submitSelectedTeamMembers,
@@ -62,7 +61,7 @@ withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"group.${msgKey}.members.li
         @p(s"group.${msgKey}.members.list.p1")
     </div>
 
-    @selectable_team_members_table_form(maybeTeamMembers, hiddenTeamMembersExist, form, formAction)
+    @selectable_team_members_table_form(maybeTeamMembers, form, formAction)
 
 }
 

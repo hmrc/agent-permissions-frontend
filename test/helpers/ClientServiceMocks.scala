@@ -16,7 +16,7 @@
 
 package helpers
 
-import models.DisplayClient
+import models.{AddClientsToGroup, DisplayClient}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.ClientService
@@ -27,13 +27,29 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ClientServiceMocks extends MockFactory {
 
-  def expectGetClientsFromService(arn: Arn)
+  def expectGetFilteredClientsFromService(arn: Arn)
+                                         (clients: Seq[DisplayClient])
+                                         (implicit clientService: ClientService): Unit =
+    (clientService
+      .getFilteredClientsElseAll(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
+      .returning(Future successful Some(clients)).once()
+
+  def expectGetAllClientsFromService(arn: Arn)
                                  (clients: Seq[DisplayClient])
                                  (implicit clientService: ClientService): Unit =
     (clientService
-      .getClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getAllClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Some(clients)).once()
+
+  def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit clientService: ClientService): Unit =
+    (clientService
+      .saveSelectedOrFilteredClients(_: Arn)(_: AddClientsToGroup)
+      (_: Arn => Future[Option[Seq[DisplayClient]]])(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .expects(arn, *, *, *, *, *)
+      .returning(Future.successful(()))
+      .once()
 
   def expectLookupClient(arn: Arn)
                         (client: DisplayClient)

@@ -138,8 +138,6 @@ class UnassignedClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(HIDDEN_CLIENTS_EXIST, true))
-
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //when
@@ -167,17 +165,16 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetClients(arn)(fakeClients)
+      expectGetUnassignedClientsSuccess(arn, displayClients)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
-            "hasSelectedClients" -> "false",
-            "clients[0]" -> displayClients.head.id,
+                        "clients[0]" -> displayClients.head.id,
             "clients[1]" -> displayClients.last.id,
             "search" -> "",
             "filter" -> "",
-            "submit" -> "continue"
+            "submit" -> CONTINUE_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -198,19 +195,18 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetClients(arn)(fakeClients)
       expectGetUnassignedClientsSuccess(arn, displayClients)
-
+      //we don't expect this as we have selected clients
+      //expectGetUnassignedClientsSuccess(arn, displayClients)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
-            "hasSelectedClients" -> "false",
             "clients[0]" -> displayClients.head.id,
             "clients[1]" -> displayClients.last.id,
             "search" -> "",
             "filter" -> "VAT",
-            "submit" -> "filter"
+            "submit" -> FILTER_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -237,10 +233,9 @@ class UnassignedClientControllerSpec extends BaseSpec {
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
-            "hasSelectedClients" -> "false",
-            "search" -> "",
+                        "search" -> "",
             "filter" -> "",
-            "submit" -> "continue"
+            "submit" -> CONTINUE_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -261,10 +256,9 @@ class UnassignedClientControllerSpec extends BaseSpec {
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", routes.UnassignedClientController.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
-            "hasSelectedClients" -> "false",
-            "search" -> "",
+                        "search" -> "",
             "filter" -> "",
-            "submit" -> "continue"
+            "submit" -> CONTINUE_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 

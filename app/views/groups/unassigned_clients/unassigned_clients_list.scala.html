@@ -32,20 +32,19 @@
 
 @(
     unassignedClients: Seq[DisplayClient],
-    addClientsToGroupForm: Form[AddClientsToGroup],
-    hiddenClientsExist: Option[Boolean]
+    form: Form[AddClientsToGroup],
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @errorHref = @{
-if(addClientsToGroupForm.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
+if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
 }
 
 @pageTitle = @{
 withSearchAndErrorPrefix(
-                            !addClientsToGroupForm.errors.isEmpty,
+                            !form.errors.isEmpty,
                             msgs("group.manage.tabs.2.label"),
-                            addClientsToGroupForm("filter").value,
-                            addClientsToGroupForm("search").value
+                            form("filter").value,
+                            form("search").value
                         )
 }
 
@@ -58,20 +57,19 @@ withSearchAndErrorPrefix(
         @inset_text("unassigned.client.list.p", classes = "govuk-!-margin-bottom-9", id= Some("info"))
     </div>
 
-    @summaryErrors(addClientsToGroupForm.errors, Some(errorHref))
+    @summaryErrors(form.errors, Some(errorHref))
 
     @if(!unassignedClients.isEmpty) {
         @selectable_clients_table_form(
             Some(unassignedClients),
-            hiddenClientsExist,
-            addClientsToGroupForm,
+            form,
             routes.UnassignedClientController.submitAddUnassignedClients
         )
     } else {
 
         @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
 
-            @search_and_filter(addClientsToGroupForm, true)
+            @search_and_filter(form, true)
         }
 
         @h3("unassigned-clients.not-found.heading")

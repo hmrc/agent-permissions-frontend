@@ -31,7 +31,6 @@
 @(
     clients: Option[Seq[DisplayClient]] = None,
     groupName: String,
-    hiddenClientsExist: Option[Boolean],
     form: Form[AddClientsToGroup],
     formAction: Call = routes.CreateGroupController.submitSelectedClients,
     backUrl: Option[String] = Some(routes.CreateGroupController.showConfirmGroupName.url)
@@ -58,7 +57,7 @@
         @p("group.client.list.p1")
     </div>
 
-    @selectable_clients_table_form(clients, hiddenClientsExist, form, formAction)
+    @selectable_clients_table_form(clients, form, formAction)
 
 }
 

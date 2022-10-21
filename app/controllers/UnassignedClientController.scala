@@ -65,63 +65,50 @@ class UnassignedClientController @Inject()(
       isOptedIn(arn) { _ =>
         withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
-            withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-              clientService.getUnassignedClients(arn).map(unassignedClients => {
-                val filteredClients =
-                  unassignedClients
-                    .filter(dc => filterTerm.isEmpty || filterTerm.get == "" || dc.taxService.equalsIgnoreCase(filterTerm.get))
-                    .filter( dc => searchTerm.isEmpty || dc.name.toLowerCase.contains(searchTerm.get.toLowerCase))
-                Ok(
-                  unassigned_clients_list(
-                    filteredClients,
-                    AddClientsToGroupForm.form().fill(
-                      AddClientsToGroup(
-                        maybeHiddenClients.getOrElse(false),
-                        search = searchTerm,
-                        filter = filterTerm,
-                        clients = None)),
-                    maybeHiddenClients))
+            withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
+                clientService.getUnassignedClients(arn).map(unassignedClients => {
+                  val filteredClients =
+                    unassignedClients
+                      .filter(dc => filterTerm.isEmpty || filterTerm.get == "" || dc.taxService.equalsIgnoreCase(filterTerm.get))
+                      .filter(dc => searchTerm.isEmpty || dc.name.toLowerCase.contains(searchTerm.get.toLowerCase))
+                      .map( c => if(maybeSelectedClients.isEmpty) c else c.copy(selected = maybeSelectedClients.get.map(_.id).contains(c.id)))
+                  Ok(
+                    unassigned_clients_list(
+                      filteredClients,
+                      AddClientsToGroupForm.form().fill(
+                        AddClientsToGroup(
+                          search = searchTerm,
+                          filter = filterTerm,
+                          clients = None)
+                      )
+                      )
+                  )
+                }
+                )
               }
-              )
             }
-          }
         }
       }
     }
   }
 
   def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
-
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredClients =>
-          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-            AddClientsToGroupForm
-              .form()
-              .bindFromRequest()
-              .fold(
-                formWithErrors => {
-                  for {
-                    unassignedClients <- clientService.getUnassignedClients(arn)
-                    _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit")) sessionCacheService
-                      .clearSelectedClients() else
-                      Future.successful(())
-                    result = if (maybeFilteredClients.isDefined)
-                      Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
-                    else
-                      Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
-                  } yield result
-                },
-                formData => {
-                  clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
-                    if (formData.submit == CONTINUE_BUTTON)
-                      Redirect(controller.showSelectedUnassignedClients)
-                    else Redirect(controller.showUnassignedClients)
-                  )
-                }
+        AddClientsToGroupForm
+          .form().bindFromRequest()
+          .fold(
+            formWithErrors =>
+              clientService.getUnassignedClients(arn)
+                .map(clients => Ok(unassigned_clients_list(clients, formWithErrors))),
+            formData => {
+              clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
+                if (formData.submit == CONTINUE_BUTTON)
+                  Redirect(controller.showSelectedUnassignedClients)
+                else Redirect(controller.showUnassignedClients)
               )
-          }
-        }
+            }
+          )
       }
     }
   }

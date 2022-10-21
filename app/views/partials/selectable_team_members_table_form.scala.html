@@ -36,7 +36,6 @@
 
 @(
     teamMembers: Option[Seq[TeamMember]] = None,
-    hiddenTeamMembersExist: Option[Boolean],
     form: Form[AddTeamMembersToGroup],
     formAction: Call = routes.CreateGroupController.submitSelectedTeamMembers,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -68,7 +67,6 @@
 
 @formWithCSRF(action = formAction) {
 
-<input type="hidden" name="hasAlreadySelected" value=@hiddenTeamMembersExist.getOrElse(false)>
 
     @search_and_filter(form, false)
 

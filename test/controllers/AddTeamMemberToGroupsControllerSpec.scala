@@ -221,7 +221,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
             .withFormUrlEncodedBody(
               "groups[0]" -> groupSummaries(3).groupId,
               "groups[1]" -> groupSummaries(4).groupId,
-              "submit" -> "continue"
+              "submit" -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -251,7 +251,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
       implicit val request =
         FakeRequest("POST", submitUrl)
-          .withFormUrlEncodedBody("submit" -> "continue")
+          .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

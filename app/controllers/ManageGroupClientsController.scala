@@ -96,16 +96,13 @@ class ManageGroupClientsController @Inject()(
           for {
             _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS,
               group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true)))
-            maybeHiddenClients <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_CLIENTS_EXIST)
             clients <- clientService.getFilteredClientsElseAll(group.arn)
           } yield Ok(
             update_client_group_list(
               clients,
               group.groupName,
-              maybeHiddenClients,
               AddClientsToGroupForm.form().fill(
                 AddClientsToGroup(
-                  maybeHiddenClients.getOrElse(false),
                   search = clientSearchTerm,
                   filter = clientFilterTerm,
                   clients = None)),
@@ -120,22 +117,15 @@ class ManageGroupClientsController @Inject()(
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
           AddClientsToGroupForm
             .form()
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                for {
-                  _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
-                    sessionCacheService.clearSelectedClients()
-                  else ().toFuture
-                  clients <- clientService.getFilteredClientsElseAll(group.arn)
-                } yield {
+                clientService.getFilteredClientsElseAll(group.arn).map{maybeFilteredClients =>
                   Ok(update_client_group_list(
-                    clients,
+                    maybeFilteredClients,
                     group.groupName,
-                    maybeHiddenClients,
                     formWithErrors,
                     formAction = controller.submitManageGroupClients(groupId),
                     backUrl = Some(controller.showExistingGroupClients(groupId).url)
@@ -147,16 +137,16 @@ class ManageGroupClientsController @Inject()(
                   .flatMap(_ =>
                   if (formData.submit == CONTINUE_BUTTON) {
                     for {
-                      maybeSelectedClients <- sessionCacheRepository
-                        .getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
-                      enrolments = maybeSelectedClients
+                      maybeSelectedClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
+                      clientsToSaveToGroup = maybeSelectedClients
                             .map(_.map(dc => Client(dc.enrolmentKey, dc.name)))
                             .map(_.toSet)
 
-                      groupRequest = UpdateAccessGroupRequest(clients = enrolments)
+                      groupRequest = UpdateAccessGroupRequest(clients = clientsToSaveToGroup)
                       _ <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
                       _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
-                      _ <- sessionCacheRepository.deleteFromSession(HIDDEN_CLIENTS_EXIST)
+                      _ <- sessionCacheRepository.deleteFromSession(CLIENT_FILTER_INPUT)
+                      _ <- sessionCacheRepository.deleteFromSession(CLIENT_SEARCH_INPUT)
                     } yield
                       Redirect(controller.showReviewSelectedClients(groupId))
                   }
@@ -164,7 +154,6 @@ class ManageGroupClientsController @Inject()(
                 )
               }
             )
-      }
     }
   }
 

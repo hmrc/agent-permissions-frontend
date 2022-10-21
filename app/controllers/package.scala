@@ -39,14 +39,12 @@ package object controllers {
   final val CLEAR_BUTTON: String = "clear"
   final val FILTER_BUTTON: String = "filter"
 
-  val isEligibleToOptIn: OptinStatus => Boolean = status =>
-    status == OptedOutEligible
+  val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
   val isOptedIn: OptinStatus => Boolean = status =>
     status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser
   val isOptedOut: OptinStatus => Boolean = status =>
     status == OptedOutEligible || status == OptedOutSingleUser || status == OptedOutWrongClientCount
-  val isOptedInComplete: OptinStatus => Boolean = status =>
-    status == OptedInReady
+  val isOptedInComplete: OptinStatus => Boolean = status => status == OptedInReady
 
   val OPTIN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
 
@@ -55,16 +53,11 @@ package object controllers {
 
   val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
-  val HIDDEN_CLIENTS_EXIST
-  : DataKey[Boolean] = DataKey("hiddenClients") // some previously selected clients are not in the filtered result
   val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
   val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")
 
-  val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
-    "filteredTeamMembers")
-  val HIDDEN_TEAM_MEMBERS_EXIST: DataKey[Boolean] = DataKey("hiddenTeamMembers")
-  val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey(
-    "groupTeamMembersSelected")
+  val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("filteredTeamMembers")
+  val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
   val TEAM_MEMBER_SEARCH_INPUT: DataKey[String] = DataKey("TeamMemberSearchInputValue")
 
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
@@ -83,18 +76,16 @@ package object controllers {
   val CLIENT_REFERENCE: DataKey[String] = DataKey("clientRef")
   val GROUP_IDS_ADDED_TO: DataKey[Seq[String]] = DataKey("groupIdsAddedTo")
 
-  val selectingClientsKeys =
+  val clientFilteringKeys =
     List(
       FILTERED_CLIENTS,
-      HIDDEN_CLIENTS_EXIST,
       CLIENT_FILTER_INPUT,
       CLIENT_SEARCH_INPUT,
     )
 
-  val selectingTeamMemberKeys =
+  val teamMemberFilteringKeys =
     List(
       FILTERED_TEAM_MEMBERS,
-      HIDDEN_TEAM_MEMBERS_EXIST,
       TEAM_MEMBER_SEARCH_INPUT
     )
 
@@ -108,8 +99,8 @@ package object controllers {
     )
 
   val sessionKeys = (
-    selectingClientsKeys ++
-      selectingTeamMemberKeys ++
+    clientFilteringKeys ++
+      teamMemberFilteringKeys ++
       creatingGroupKeys ++
       List(
         OPTIN_STATUS,

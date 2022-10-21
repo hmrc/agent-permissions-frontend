@@ -103,24 +103,20 @@ class ManageGroupTeamMembersController @Inject()(
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers))
         _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers.get)
         filteredTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
-        maybeHiddenTeamMembers <- sessionCacheRepository.getFromSession[Boolean](HIDDEN_TEAM_MEMBERS_EXIST)
         maybeFilterTerm <- sessionCacheRepository.getFromSession[String](TEAM_MEMBER_SEARCH_INPUT)
         teamMembersForArn <- teamMemberService.getAllTeamMembers(group.arn)
-      } yield (filteredTeamMembers, maybeHiddenTeamMembers, teamMembersForArn, maybeFilterTerm)
+      } yield (filteredTeamMembers, teamMembersForArn, maybeFilterTerm)
       result.map {
         result =>
           val filteredTeamMembers = result._1
-          val maybeHiddenTeamMembers = result._2
-          val teamMembersSearchTerm = result._4
+          val teamMembersSearchTerm = result._3
           val backUrl = Some(routes.ManageGroupClientsController.showExistingGroupClients(groupId).url)
           if (filteredTeamMembers.isDefined)
             Ok(
               team_members_list(
                 filteredTeamMembers,
                 group.groupName,
-                maybeHiddenTeamMembers,
                 AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
-                  hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
                   search = teamMembersSearchTerm,
                   members = None
                 )),
@@ -132,11 +128,9 @@ class ManageGroupTeamMembersController @Inject()(
           else
             Ok(
               team_members_list(
-                result._3,
+                result._2,
                 group.groupName,
-                maybeHiddenTeamMembers,
                 AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
-                  hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
                   search = teamMembersSearchTerm,
                   members = None
                 )),
@@ -151,7 +145,6 @@ class ManageGroupTeamMembersController @Inject()(
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
-        withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
           AddTeamMembersToGroupForm
             .form()
             .bindFromRequest()
@@ -165,7 +158,6 @@ class ManageGroupTeamMembersController @Inject()(
                     Ok(team_members_list(
                       maybeFilteredResult,
                       group.groupName,
-                      maybeHiddenTeamMembers,
                       formWithErrors,
                       formAction = controller.submitManageGroupTeamMembers(groupId),
                       backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
@@ -176,7 +168,6 @@ class ManageGroupTeamMembersController @Inject()(
                         Ok(team_members_list(
                           maybeTeamMembers,
                           group.groupName,
-                          maybeHiddenTeamMembers,
                           formWithErrors,
                           formAction = controller.submitManageGroupTeamMembers(groupId),
                           backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
@@ -199,7 +190,6 @@ class ManageGroupTeamMembersController @Inject()(
                       updated <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
                     } yield updated
                     sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
-                    sessionCacheRepository.deleteFromSession(HIDDEN_TEAM_MEMBERS_EXIST)
                     Redirect(controller.showReviewSelectedTeamMembers(groupId))
                   }
                   else Redirect(controller.showManageGroupTeamMembers(groupId))
@@ -207,7 +197,6 @@ class ManageGroupTeamMembersController @Inject()(
               }
             )
         }
-      }
     }
   }
 

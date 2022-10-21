@@ -29,23 +29,23 @@ trait GroupMemberOps {
 
   val sessionCacheRepository: SessionCacheRepository
 
-  def addSelectablesToSession[T <: Selectable](formData: Option[List[T]])
-                                              (sessionMembersDataKey: DataKey[Seq[T]],
+  def addSelectablesToSession[T <: Selectable](selectables: Option[List[T]])
+                                              (selectedMembersDataKey: DataKey[Seq[T]],
                                                filteredMembersDataKey: DataKey[Seq[T]])
                                               (implicit hc: HeaderCarrier, request: Request[Any],
                                                ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] = {
 
     for {
-      inSession <- sessionCacheRepository.getFromSession[Seq[T]](sessionMembersDataKey).map(_.map(_.toList))
+      selectedInSession <- sessionCacheRepository.getFromSession[Seq[T]](selectedMembersDataKey).map(_.map(_.toList))
 
       filteredSelected <- sessionCacheRepository.getFromSession[Seq[T]](filteredMembersDataKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
-      deSelected = filteredSelected.orElse(inSession).map(_ diff formData.getOrElse(Nil))
-      added = formData.map(_ diff filteredSelected.getOrElse(Nil))
+      deSelected = filteredSelected.orElse(selectedInSession).map(_ diff selectables.getOrElse(Nil))
+      added = selectables.map(_ diff filteredSelected.getOrElse(Nil))
 
-      toSave = added.getOrElse(Nil) ::: inSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
-      _ <- sessionCacheRepository.putSession[Seq[T]](sessionMembersDataKey, toSave.distinct)
+      toSave = added.getOrElse(Nil) ::: selectedInSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
+      _ <- sessionCacheRepository.putSession[Seq[T]](selectedMembersDataKey, toSave.distinct)
 
     } yield ()
   }

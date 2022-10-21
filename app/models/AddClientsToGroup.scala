@@ -17,7 +17,6 @@
 package models
 
 case class AddClientsToGroup(
-    hasSelectedClients: Boolean,
     search: Option[String] = None,
     filter: Option[String] = None,
     clients: Option[List[String]] = None,

@@ -25,7 +25,6 @@ object AddTeamMembersToGroupForm {
 
   def form(): Form[AddTeamMembersToGroup] = Form(
     mapping(
-    "hasAlreadySelected" -> boolean,
     "search" -> optional(text.verifying("error.search-members.invalid", s => !(s.contains('<') || s.contains('>')))),
     "members" -> optional(list(text)),
     "submit" -> text

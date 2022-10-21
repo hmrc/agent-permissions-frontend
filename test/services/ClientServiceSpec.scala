@@ -120,4 +120,18 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
+  "lookup clients" should {
+    "gets clients by id" in {
+      //given
+      expectGetClients(arn)(fakeClients)
+
+      //when
+      val unassignedClients = await(service.lookupClients(arn)(Some(displayClients.take(2).map(_.id).toList)))
+
+
+      //then
+      unassignedClients shouldBe Some(displayClients.take(2))
+    }
+  }
+
 }

@@ -66,7 +66,6 @@ class UnassignedClientController @Inject()(
         withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
             withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
-              withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
                 clientService.getUnassignedClients(arn).map(unassignedClients => {
                   val filteredClients =
                     unassignedClients
@@ -78,52 +77,38 @@ class UnassignedClientController @Inject()(
                       filteredClients,
                       AddClientsToGroupForm.form().fill(
                         AddClientsToGroup(
-                          maybeHiddenClients.getOrElse(false),
                           search = searchTerm,
                           filter = filterTerm,
-                          clients = None)),
-                      maybeHiddenClients))
+                          clients = None)
+                      )
+                      )
+                  )
                 }
                 )
               }
             }
-          }
         }
       }
     }
   }
 
   def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
-
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](FILTERED_CLIENTS) { maybeFilteredClients =>
-          withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
-            withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
-              AddClientsToGroupForm
-                .form()
-                .bindFromRequest()
-                .fold(
-                  formWithErrors => {
-                    for {
-                      unassignedClients <- clientService.getUnassignedClients(arn)
-                      result = if (maybeFilteredClients.isDefined)
-                        Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
-                      else
-                        Ok(unassigned_clients_list(unassignedClients, formWithErrors, maybeHiddenClients))
-                    } yield result
-                  },
-                  formData => {
-                    clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
-                      if (formData.submit == CONTINUE_BUTTON)
-                        Redirect(controller.showSelectedUnassignedClients)
-                      else Redirect(controller.showUnassignedClients)
-                    )
-                  }
-                )
+        AddClientsToGroupForm
+          .form().bindFromRequest()
+          .fold(
+            formWithErrors =>
+              clientService.getUnassignedClients(arn)
+                .map(clients => Ok(unassigned_clients_list(clients, formWithErrors))),
+            formData => {
+              clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
+                if (formData.submit == CONTINUE_BUTTON)
+                  Redirect(controller.showSelectedUnassignedClients)
+                else Redirect(controller.showUnassignedClients)
+              )
             }
-          }
-        }
+          )
       }
     }
   }

@@ -34,29 +34,29 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CreateGroupController @Inject()(
-                                 authAction: AuthAction,
-                                 mcc: MessagesControllerComponents,
-                                 create: create,
-                                 confirm_group_name: confirm_group_name,
-                                 access_group_name_exists: access_group_name_exists,
-                                 val client_group_list: client_group_list,
-                                 review_clients_to_add: review_clients_to_add,
-                                 team_members_list: team_members_list,
-                                 review_team_members_to_add: review_team_members_to_add,
-                                 check_your_answers: check_your_answers,
-                                 group_created: group_created,
-                                 val agentPermissionsConnector: AgentPermissionsConnector,
-                                 val sessionCacheService: SessionCacheService,
-                                 val sessionCacheRepository: SessionCacheRepository,
-                                 val groupService: GroupService,
-                                 clientService: ClientService,
-                                 teamMemberService: TeamMemberService
-                               )(
-                                 implicit val appConfig: AppConfig,
-                                 ec: ExecutionContext,
-                                 implicit override val messagesApi: MessagesApi
-                               ) extends FrontendController(mcc)
-    with I18nSupport
+                                       authAction: AuthAction,
+                                       mcc: MessagesControllerComponents,
+                                       create: create,
+                                       confirm_group_name: confirm_group_name,
+                                       access_group_name_exists: access_group_name_exists,
+                                       val client_group_list: client_group_list,
+                                       review_clients_to_add: review_clients_to_add,
+                                       team_members_list: team_members_list,
+                                       review_team_members_to_add: review_team_members_to_add,
+                                       check_your_answers: check_your_answers,
+                                       group_created: group_created,
+                                       val agentPermissionsConnector: AgentPermissionsConnector,
+                                       val sessionCacheService: SessionCacheService,
+                                       val sessionCacheRepository: SessionCacheRepository,
+                                       val groupService: GroupService,
+                                       clientService: ClientService,
+                                       teamMemberService: TeamMemberService
+                                     )(
+                                       implicit val appConfig: AppConfig,
+                                       ec: ExecutionContext,
+                                       implicit override val messagesApi: MessagesApi
+                                     ) extends FrontendController(mcc)
+  with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -74,7 +74,7 @@ class CreateGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[String](GROUP_NAME) { maybeName =>
-          sessionCacheService.clearCreateGroupSession().map( _ =>
+          sessionCacheService.clearCreateGroupSession().map(_ =>
             Ok(create(GroupNameForm.form().fill(maybeName.getOrElse(""))))
           )
         }
@@ -141,25 +141,16 @@ class CreateGroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
           withSessionItem[String](RETURN_URL) { returnUrl =>
             clientService.getFilteredClientsElseAll(arn).map { maybeClients =>
               Ok(
                 client_group_list(
                   maybeClients,
                   groupName,
-                  maybeHiddenClients,
                   backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
-                  form = AddClientsToGroupForm.form().fill(
-                    AddClientsToGroup(
-                      maybeHiddenClients.getOrElse(false),
-                      search = clientSearchTerm,
-                      filter = clientFilterTerm
-                    )
-                  )
+                  form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm))
                 )
               )
-             }
             }
           }
         }
@@ -169,32 +160,29 @@ class CreateGroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Boolean](HIDDEN_CLIENTS_EXIST) { maybeHiddenClients =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         AddClientsToGroupForm
           .form()
           .bindFromRequest()
           .fold(
             formWithErrors => {
               for {
-                _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
+                _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit").get)
                   sessionCacheService.clearSelectedClients()
                 else ().toFuture
                 clients <- clientService.getFilteredClientsElseAll(arn)
               } yield
-                Ok(
-                  client_group_list(clients,
-                    groupName,
-                    maybeHiddenClients,
-                    formWithErrors))
-
+                Ok(client_group_list(clients, groupName, formWithErrors))
             },
             formData => {
               clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getAllClients)
-                .map(_ =>
+                .map(_ => {
                   if (formData.submit == CONTINUE_BUTTON)
                     Redirect(controller.showReviewSelectedClients)
                   else
-                    Redirect(controller.showSelectClients))
+                    Redirect(controller.showSelectClients)
+                }
+                )
             }
           )
       }
@@ -224,7 +212,9 @@ class CreateGroupController @Inject()(
                     Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
                   }, (yes: Boolean) => {
                     if (yes)
-                      Redirect(controller.showSelectClients).toFuture
+                      clientService.clearSessionForSelectingClients().map(_ =>
+                        Redirect(controller.showSelectClients)
+                      )
                     else {
                       sessionCacheRepository.getFromSession(RETURN_URL)
                         .map(returnUrl =>
@@ -244,24 +234,20 @@ class CreateGroupController @Inject()(
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
-        withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
-          withSessionItem[String](RETURN_URL) { returnUrl =>
+        withSessionItem[String](RETURN_URL) { returnUrl =>
           teamMemberService.getTeamMembers(arn).map { maybeTeamMembers =>
             Ok(
               team_members_list(
                 maybeTeamMembers,
                 groupName,
-                maybeHiddenTeamMembers,
                 backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showReviewSelectedClients.url)),
                 form = AddTeamMembersToGroupForm.form().fill(
                   AddTeamMembersToGroup(
-                    hasAlreadySelected = maybeHiddenTeamMembers.getOrElse(false),
                     search = teamMemberSearchTerm
                   )
                 )
               )
             )
-          }
           }
         }
       }
@@ -270,36 +256,25 @@ class CreateGroupController @Inject()(
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Boolean](HIDDEN_TEAM_MEMBERS_EXIST) { maybeHiddenTeamMembers =>
 
-        AddTeamMembersToGroupForm
-          .form()
-          .bindFromRequest()
-          .fold(
-            formWithErrors => {
-              for {
-                _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
-                  sessionCacheService
-                    .clearSelectedTeamMembers()
-                else ().toFuture
-                teamMembers <- teamMemberService.getTeamMembers(arn)
-              } yield
-                Ok(
-                  team_members_list(
-                    teamMembers,
-                    groupName,
-                    maybeHiddenTeamMembers,
-                    formWithErrors))
-            },
-            formData => {
-              teamMemberService
-                .saveSelectedOrFilteredTeamMembers(formData.submit)(arn)(formData).map(_ =>
-                  if (formData.submit == CONTINUE_BUTTON)
-                    Redirect(controller.showReviewSelectedTeamMembers)
-                  else Redirect(controller.showSelectTeamMembers))
-            }
-          )
-      }
+      AddTeamMembersToGroupForm
+        .form()
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            for {
+              teamMembers <- teamMemberService.getTeamMembers(arn)
+            } yield
+              Ok(team_members_list(teamMembers, groupName, formWithErrors))
+          },
+          formData => {
+            teamMemberService
+              .saveSelectedOrFilteredTeamMembers(formData.submit)(arn)(formData).map(_ =>
+              if (formData.submit == CONTINUE_BUTTON)
+                Redirect(controller.showReviewSelectedTeamMembers)
+              else Redirect(controller.showSelectTeamMembers))
+          }
+        )
     }
   }
 
@@ -353,7 +328,7 @@ class CreateGroupController @Inject()(
   def redirectToEditClients: Action[AnyContent] = Action.async { implicit request =>
     sessionCacheRepository.putSession(RETURN_URL,
       controllers.routes.CreateGroupController.showCheckYourAnswers.url)
-      .map(_=> Redirect(controllers.routes.CreateGroupController.showSelectClients))
+      .map(_ => Redirect(controllers.routes.CreateGroupController.showSelectClients))
 
   }
 

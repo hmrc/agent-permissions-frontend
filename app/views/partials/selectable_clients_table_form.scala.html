@@ -38,7 +38,6 @@
 
 @(
     clients: Option[Seq[DisplayClient]] = None,
-    hiddenClientsExist: Option[Boolean],
     form: Form[AddClientsToGroup],
     formAction: Call = routes.CreateGroupController.submitSelectedClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -70,7 +69,6 @@
 
 @formWithCSRF(action = formAction) {
 
-    <input type="hidden" name="hasSelectedClients" value=@hiddenClientsExist.getOrElse(false)>
 
     @search_and_filter(form, true)
 

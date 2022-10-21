@@ -25,7 +25,6 @@ object AddClientsToGroupForm {
 
   def form(): Form[AddClientsToGroup] = Form(
     mapping(
-      "hasSelectedClients" -> boolean,
       "search" -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
       "filter" -> optional(text),
       "clients" -> optional(list(text)),

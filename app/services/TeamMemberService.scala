@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
-import controllers.{CLEAR_BUTTON, FILTER_BUTTON, CONTINUE_BUTTON, FILTERED_TEAM_MEMBERS, HIDDEN_TEAM_MEMBERS_EXIST, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, selectingTeamMemberKeys}
+import controllers.{CLEAR_BUTTON, FILTER_BUTTON, CONTINUE_BUTTON, FILTERED_TEAM_MEMBERS, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
@@ -131,7 +131,7 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-          _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
+          _ <- Future.traverse(teamMemberFilteringKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
       case CONTINUE_BUTTON =>
@@ -142,7 +142,7 @@ class TeamMemberServiceImpl @Inject()(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
-          _ <- Future.traverse(selectingTeamMemberKeys)(key => sessionCacheRepository.deleteFromSession(key))
+          _ <- Future.traverse(teamMemberFilteringKeys)(key => sessionCacheRepository.deleteFromSession(key))
         } yield ()
 
       case FILTER_BUTTON =>
@@ -186,15 +186,6 @@ class TeamMemberServiceImpl @Inject()(
       result = consolidatedResult.map(_.toVector)
       _ <- result match {
         case Some(filteredResult) => sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS, filteredResult)
-        case _ => Future.successful(())
-      }
-      hiddenTeamMembers = teamMembers.map(
-        _.filter(_.selected) diff result
-          .map(_.filter(_.selected))
-          .getOrElse(Vector.empty)
-      )
-      _ <- hiddenTeamMembers match {
-        case Some(hidden) if hidden.nonEmpty => sessionCacheRepository.putSession(HIDDEN_TEAM_MEMBERS_EXIST, true)
         case _ => Future.successful(())
       }
     } yield result

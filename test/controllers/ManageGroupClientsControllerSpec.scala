@@ -380,10 +380,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
-      expectGetClients(arn)(fakeClients)
-
-      val result =
-        controller.showManageGroupClients(accessGroup._id.toString)(request)
+      val result = controller.showManageGroupClients(accessGroup._id.toString)(request)
 
       status(result) shouldBe OK
 
@@ -412,12 +409,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         implicit val request =
           FakeRequest("POST", routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
-              "hasSelectedClients" -> "false",
-              "clients[0]" -> displayClients.head.id,
+                            "clients[0]" -> displayClients.head.id,
               "clients[1]" -> displayClients.last.id,
               "search" -> "",
               "filter" -> "",
-              "submit" -> "continue"
+              "submit" -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -439,7 +435,6 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         redirectLocation(result).get shouldBe
           routes.ManageGroupClientsController.showReviewSelectedClients(accessGroup._id.toString).url
         await(sessionCacheRepo.getFromSession(FILTERED_CLIENTS)) shouldBe Option.empty
-        await(sessionCacheRepo.getFromSession(HIDDEN_CLIENTS_EXIST)) shouldBe Option.empty
       }
 
       "display error when button is Continue, no filtered clients, no hidden clients exist and no clients were selected" in {
@@ -450,11 +445,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString)
             .url
         ).withFormUrlEncodedBody(
-          "hasSelectedClients" -> "false",
-          "clients" -> "",
+                    "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "submit" -> "continue"
+          "submit" -> CONTINUE_BUTTON
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -484,20 +478,19 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         implicit val request = FakeRequest(
           "POST",
           routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url
-        ).withFormUrlEncodedBody(
-          "hasSelectedClients" -> "false",
+        ).withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "submit" -> "filter"
-        ).withSession(SessionKeys.sessionId -> "session-x")
-
+          "submit"-> FILTER_BUTTON
+        )
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        expectGetClients(arn)(fakeClients)
+        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
-
         // when
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
 
@@ -512,11 +505,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "POST",
           routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url
         ).withFormUrlEncodedBody(
-          "hasSelectedClients" -> "false",
-          "clients" -> "",
+                    "clients" -> "",
           "search" -> "",
           "filter" -> "Ab",
-          "submit" -> "filter"
+          "submit"-> FILTER_BUTTON
         ).withSession(SessionKeys.sessionId -> "session-x")
 
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))

@@ -16,6 +16,7 @@
 
 package forms
 
+import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, FILTER_BUTTON}
 import models.{AddTeamMembersToGroup, TeamMember}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -28,7 +29,6 @@ class AddTeamMembersToGroupFormSpec
     with Matchers
     with GuiceOneAppPerSuite {
 
-  val hasAlreadySelected = "hasAlreadySelected"
   val search = "search"
   val members = "members[]"
 
@@ -41,19 +41,18 @@ class AddTeamMembersToGroupFormSpec
       val validatedForm = AddTeamMembersToGroupForm
         .form()
         .fill(
-          AddTeamMembersToGroup(hasAlreadySelected = false,
+          AddTeamMembersToGroup(
             None,
             Some(List(member1.id, member2.id))))
       validatedForm.hasErrors shouldBe false
       validatedForm.value shouldBe Some(
-        AddTeamMembersToGroup(hasAlreadySelected = false,
+        AddTeamMembersToGroup(
           None,
           Some(List(member1.id, member2.id))))
     }
 
     "be successful when button is Continue and team members are non-empty" in {
       val params = Map(
-        hasAlreadySelected -> List("false"),
         search -> List.empty,
         members -> List(member1.id, member2.id),
         "submit" -> List("continue")
@@ -63,7 +62,7 @@ class AddTeamMembersToGroupFormSpec
         .bindFromRequest(params)
 
       boundForm.value shouldBe Some(
-        AddTeamMembersToGroup(hasAlreadySelected = false,
+        AddTeamMembersToGroup(
           None,
           Some(List(member1.id, member2.id)),
           submit = "continue")
@@ -72,7 +71,6 @@ class AddTeamMembersToGroupFormSpec
 
     "have errors when team members is empty and submit is continue" in {
       val params = Map(
-        hasAlreadySelected -> List("false"),
         search -> List.empty,
         members -> List.empty,
         "submit" -> List("continue"),
@@ -85,7 +83,6 @@ class AddTeamMembersToGroupFormSpec
 
     "be successful when button is Filter with search value" in {
       val params = Map(
-        hasAlreadySelected -> List("false"),
         search -> List("abc"),
         members -> List(member1.id, member2.id),
         "submit" -> List("filter"),
@@ -95,7 +92,6 @@ class AddTeamMembersToGroupFormSpec
         .bindFromRequest(params)
       boundForm.value shouldBe Some(
         AddTeamMembersToGroup(
-          hasAlreadySelected = false,
           Some("abc"),
           Some(List(member1.id, member2.id)),
           submit = "filter")
@@ -104,7 +100,6 @@ class AddTeamMembersToGroupFormSpec
 
     "have errors when button is Filter and search contains invalid characters" in {
       val params = Map(
-        hasAlreadySelected -> List("false"),
         search -> List("bad<search>"),
         members -> List(member1.id, member2.id),
         "submit" -> List("filter"),
@@ -119,7 +114,6 @@ class AddTeamMembersToGroupFormSpec
 
     "no errors when button is Filter and search field is empty" in {
       val params = Map(
-        hasAlreadySelected -> List("false"),
         search -> List.empty,
         members -> List(member1.id, member2.id),
         "submit" -> List("filter"),
@@ -133,7 +127,6 @@ class AddTeamMembersToGroupFormSpec
 
     "be successful when button is Clear and form is empty" in {
       val params = Map(
-        hasAlreadySelected -> List("false"),
         search -> List.empty,
         members -> List.empty,
         "submit" -> List("clear"),
@@ -142,7 +135,7 @@ class AddTeamMembersToGroupFormSpec
         .form()
         .bindFromRequest(params)
       boundForm.value shouldBe Some(
-        AddTeamMembersToGroup(hasAlreadySelected = false, None, None, submit = "clear"))
+        AddTeamMembersToGroup( None, None, submit = "clear"))
     }
 
   }
@@ -151,7 +144,6 @@ class AddTeamMembersToGroupFormSpec
 
     "give expected Map of data Continue" in {
       val model = AddTeamMembersToGroup(
-        hasAlreadySelected = false,
         None,
         Some(List(member1.id, member2.id)),
         submit = "continue"
@@ -160,16 +152,14 @@ class AddTeamMembersToGroupFormSpec
         .form()
         .mapping
         .unbind(model) shouldBe Map(
-        "hasAlreadySelected" -> "false",
         "members[0]" -> member1.id,
         "members[1]" -> member2.id,
-        "submit" -> "continue"
+        "submit" -> CONTINUE_BUTTON
       )
     }
 
     "give expected Map of data Filter" in {
       val model = AddTeamMembersToGroup(
-        hasAlreadySelected = false,
         Option("Ab"),
         Some(List(member1.id)),
         submit = "filter"
@@ -178,21 +168,19 @@ class AddTeamMembersToGroupFormSpec
         .form()
         .mapping
         .unbind(model) shouldBe Map(
-        "hasAlreadySelected" -> "false",
         "search" -> "Ab",
         "members[0]" -> member1.id,
-        "submit" -> "filter",
+        "submit" -> FILTER_BUTTON,
       )
     }
 
     "give expected Map of data Clear" in {
-      val model = AddTeamMembersToGroup(hasAlreadySelected = false, None, None, submit = "clear")
+      val model = AddTeamMembersToGroup( None, None, submit = "clear")
       AddTeamMembersToGroupForm
         .form()
         .mapping
         .unbind(model) shouldBe Map(
-        "hasAlreadySelected" -> "false",
-        "submit" -> "clear"
+        "submit" -> CLEAR_BUTTON
       )
     }
   }

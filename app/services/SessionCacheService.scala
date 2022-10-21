@@ -16,7 +16,7 @@
 
 package services
 
-import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys, selectingClientsKeys, selectingTeamMemberKeys}
+import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys, clientFilteringKeys, teamMemberFilteringKeys}
 import models.{DisplayClient, TeamMember}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request, Result}
@@ -62,7 +62,7 @@ class SessionCacheService @Inject()(
   }
 
   def clearCreateGroupSession()(implicit r: Request[_], ec: ExecutionContext): Future[Unit] = {
-    val sessionKeys: Seq[DataKey[_]] = selectingClientsKeys ++ selectingTeamMemberKeys ++ creatingGroupKeys
+    val sessionKeys: Seq[DataKey[_]] = clientFilteringKeys ++ teamMemberFilteringKeys ++ creatingGroupKeys
     Future.traverse(sessionKeys)(key => sessionCacheRepository.deleteFromSession(key)).map(_ => ())
   }
 

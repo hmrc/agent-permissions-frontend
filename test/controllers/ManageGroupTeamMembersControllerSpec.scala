@@ -43,7 +43,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
 
   lazy val sessionCacheRepo: SessionCacheRepository =
@@ -52,14 +52,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   private val agentUser: AgentUser =
     AgentUser(RandomStringUtils.random(5), "Rob the Agent")
   val accessGroup: AccessGroup = AccessGroup(new ObjectId(),
-                                arn,
-                                "Bananas",
-                                LocalDate.of(2020, 3, 10).atStartOfDay(),
-                                null,
-                                agentUser,
-                                agentUser,
-                                None,
-                                None)
+    arn,
+    "Bananas",
+    LocalDate.of(2020, 3, 10).atStartOfDay(),
+    null,
+    agentUser,
+    agentUser,
+    None,
+    None)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -139,7 +139,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
-      .withSession(SessionKeys.sessionId -> "session-x")
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -175,7 +175,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
           "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
-      .withSession(SessionKeys.sessionId -> "session-x")
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -274,7 +274,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     "render correctly the manage TEAM MEMBERS LIST page filtered results exist" in {
       //given
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers ))
+      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
       await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -350,11 +350,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
-              "hasAlreadySelected" -> "false",
               "members[0]" -> teamMembers.head.id,
               "members[1]" -> teamMembers.last.id,
               "search" -> "",
-              "submit" -> "continue"
+              "submit" -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -375,7 +374,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(accessGroup._id.toString).url
 
         await(sessionCacheRepo.getFromSession(FILTERED_TEAM_MEMBERS)) shouldBe Option.empty
-        await(sessionCacheRepo.getFromSession(HIDDEN_TEAM_MEMBERS_EXIST)) shouldBe Option.empty
       }
 
       "button is Continue with no filters or hidden members AND none selected display error" in {
@@ -383,10 +381,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
-              "hasAlreadySelected" -> "false",
               "members" -> "",
               "search" -> "",
-              "submit" -> "continue"
+              "submit" -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -415,10 +412,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
-              "hasAlreadySelected" -> "false",
               "members" -> "",
               "search" -> "",
-              "submit" -> "filter"
+              "submit" -> FILTER_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -441,10 +437,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
-              "hasAlreadySelected" -> "false",
               "members" -> "",
               "search" -> "1",
-              "submit" -> "filter"
+              "submit" -> FILTER_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 

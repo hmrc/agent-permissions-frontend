@@ -17,6 +17,7 @@
 package services
 
 import connectors.AgentUserClientDetailsConnector
+import controllers.FILTERED_TEAM_MEMBERS
 import helpers.BaseSpec
 import models.TeamMember
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -32,7 +33,7 @@ class TeamMemberServiceSpec extends BaseSpec {
 
   val service = new TeamMemberServiceImpl(mockAgentUserClientDetailsConnector,sessionCacheRepo)
 
-  val users: Seq[UserDetails] = (1 to 3)
+  val users: Seq[UserDetails] = (1 to 5)
     .map(
       i =>
         UserDetails(userId = Option(s"user$i"),
@@ -40,18 +41,35 @@ class TeamMemberServiceSpec extends BaseSpec {
           Some(s"Name $i"),
           Some(s"bob$i@accounting.com")))
 
+  val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
+
   "getTeamMembers" should {
-    "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones" in {
-      //given
+    "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones when no FILTERED_TEAM_MEMBERS" in {
+
+      //given NOFILTERED_TEAM_MEMBERS in session
       expectGetTeamMembers(arn)(users)
 
       //when
-      val maybeTeamMembers: Option[Seq[TeamMember]] =
-        await(service.getTeamMembers(arn))
-      val teamMembers: Seq[TeamMember] = maybeTeamMembers.get
+      val teamMembers: Seq[TeamMember] = await(service.getFilteredTeamMembersElseAll(arn))
 
       //then
-      teamMembers.size shouldBe 3
+      teamMembers.size shouldBe 5
+      teamMembers.head.name shouldBe "Name 1"
+      teamMembers.head.userId shouldBe Some("user1")
+      teamMembers.head.email shouldBe "bob1@accounting.com"
+      teamMembers.head.selected shouldBe false
+
+    }
+    "Get TeamMembers from session when FILTERED_TEAM_MEMBERS exists" in {
+
+      //given
+      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, members))
+
+      //when
+      val teamMembers: Seq[TeamMember] = await(service.getFilteredTeamMembersElseAll(arn))
+
+      //then
+      teamMembers.size shouldBe 5
       teamMembers.head.name shouldBe "Name 1"
       teamMembers.head.userId shouldBe Some("user1")
       teamMembers.head.email shouldBe "bob1@accounting.com"
@@ -60,6 +78,34 @@ class TeamMemberServiceSpec extends BaseSpec {
     }
   }
 
-  "filterTeamMembers" should {}
+  "Lookup team members" should {
+
+    "Return empty list when no ids passed in" in {
+
+      //given
+      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, members))
+
+      //when
+      val teamMembers: Seq[TeamMember] = await(service.lookupTeamMembers(arn)(None))
+
+      //then
+      teamMembers shouldBe Seq.empty[TeamMember]
+
+    }
+
+    "Return list of team members with passed ids" in {
+
+      //given
+      expectGetTeamMembers(arn)(users)
+      //when
+      val teamMembers: Seq[TeamMember] = await(service.lookupTeamMembers(arn)(Some(members.take(2).map(_.id).toList)))
+
+      //then
+      teamMembers shouldBe teamMembers.take(2)
+
+    }
+  }
+
+
 
 }

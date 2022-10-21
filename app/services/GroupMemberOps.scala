@@ -29,7 +29,7 @@ trait GroupMemberOps {
 
   val sessionCacheRepository: SessionCacheRepository
 
-  def addSelectablesToSession[T <: Selectable](selectables: Option[List[T]])
+  def addSelectablesToSession[T <: Selectable](selectables: List[T])
                                               (selectedMembersDataKey: DataKey[Seq[T]],
                                                filteredMembersDataKey: DataKey[Seq[T]])
                                               (implicit hc: HeaderCarrier, request: Request[Any],
@@ -41,10 +41,10 @@ trait GroupMemberOps {
       filteredSelected <- sessionCacheRepository.getFromSession[Seq[T]](filteredMembersDataKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
-      deSelected = filteredSelected.orElse(selectedInSession).map(_ diff selectables.getOrElse(Nil))
-      added = selectables.map(_ diff filteredSelected.getOrElse(Nil))
+      deSelected = filteredSelected.orElse(selectedInSession).map(_ diff selectables)
+      added = selectables.diff(filteredSelected.getOrElse(Nil))
 
-      toSave = added.getOrElse(Nil) ::: selectedInSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
+      toSave = added ::: selectedInSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
       _ <- sessionCacheRepository.putSession[Seq[T]](selectedMembersDataKey, toSave.distinct)
 
     } yield ()

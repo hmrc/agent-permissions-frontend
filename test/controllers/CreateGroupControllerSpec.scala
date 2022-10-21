@@ -293,6 +293,8 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
+  private val showAccessGroupNameExistsUrl: String = routes.CreateGroupController.showAccessGroupNameExists.url
+
   "POST /group/confirm-name" should {
     "render correct error messages when nothing is submitted" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -338,7 +340,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
     }
 
-    s"redirect to ${controller.showAccessGroupNameExists} when the access group name already exists" in {
+    s"redirect to $showAccessGroupNameExistsUrl when the access group name already exists" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGroupNameCheck(ok = false)(arn, groupName)
@@ -355,7 +357,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe routes.CreateGroupController.showAccessGroupNameExists.url
+      redirectLocation(result).get shouldBe showAccessGroupNameExistsUrl
     }
 
     "redirect to add-clients page when Confirm access group name 'yes' selected" in {
@@ -398,7 +400,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.showAccessGroupNameExists.url}" should {
+  s"GET $showAccessGroupNameExistsUrl" should {
 
     "display content" in {
 
@@ -1026,7 +1028,6 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetTeamMembers(arn)(users)
 
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
       await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
@@ -1435,7 +1436,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showCheckYourAnswers.url
     }
 
-    s"redirect to '${controller.showSelectTeamMembers}'" +
+    s"redirect to '${routes.CreateGroupController.showSelectTeamMembers.url}'" +
       s" page with answer 'true'" in {
 
       implicit val request =

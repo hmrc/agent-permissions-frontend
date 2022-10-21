@@ -25,7 +25,7 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails}
@@ -96,7 +96,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetTeamMembers(arn)(userDetails)
+//      expectGetTeamMembers(arn)(userDetails)
+      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
 
       //when
       val result = controller.showAllTeamMembers()(request)

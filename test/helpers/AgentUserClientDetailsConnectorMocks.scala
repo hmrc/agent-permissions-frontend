@@ -27,40 +27,35 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentUserClientDetailsConnectorMocks extends MockFactory {
 
   def expectGetClients(arn: Arn)(clientList: Seq[Client])(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful (Some(clientList))).once()
+      .returning(Future successful clientList).once()
 
   def expectGetClientsReturningNone(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful None)
+      .returning(Future successful Seq.empty)
 
   def expectGetClientsWithUpstreamError(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
   def expectGetTeamMembers(arn: Arn)(teamMembers: Seq[UserDetails])(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful Some(teamMembers))
+      .returning(Future successful teamMembers)
 
   def expectGetTeamMembersWithUpstreamError(arn: Arn)(
-      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector)
-    : Unit =
+      implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)

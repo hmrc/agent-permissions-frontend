@@ -31,10 +31,10 @@ trait GroupServiceMocks extends MockFactory {
   def expectGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(
     implicit groupService: GroupService): Unit =
     (groupService
-      .getTeamMembersFromGroup(_: Arn)(_: Option[Seq[TeamMember]])
+      .getTeamMembersFromGroup(_: Arn)(_: Seq[TeamMember])
       (_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, Some(List()), *, *)
-      .returning(Future successful Some(teamMembers)).once()
+      .expects(arn, List(), *, *)
+      .returning(Future successful teamMembers).once()
 
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =

@@ -34,9 +34,9 @@ import scala.concurrent.{ExecutionContext, Future}
 trait GroupService {
 
   def getTeamMembersFromGroup(arn: Arn)(
-    teamMembersInGroup: Option[Seq[TeamMember]]
+    teamMembersInGroup: Seq[TeamMember]
   )(implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Seq[TeamMember]]]
+    ec: ExecutionContext): Future[Seq[TeamMember]]
 
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit]
 
@@ -57,28 +57,22 @@ trait GroupService {
 
 @Singleton
 class GroupServiceImpl @Inject()(
-    agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-    sessionCacheRepository: SessionCacheRepository,
-    agentPermissionsConnector: AgentPermissionsConnector
-) extends GroupService with Logging {
+                                  agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+                                  sessionCacheRepository: SessionCacheRepository,
+                                  agentPermissionsConnector: AgentPermissionsConnector
+                                ) extends GroupService with Logging {
 
 
   // Compares users in group with users on ARN & fetches missing details (email & cred role)
-  def getTeamMembersFromGroup(arn: Arn)(
-    teamMembersInGroup: Option[Seq[TeamMember]] = None
-  )(implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Seq[TeamMember]]] =
+  def getTeamMembersFromGroup(arn: Arn)(teamMembersInGroup: Seq[TeamMember] = Seq.empty)
+                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] =
     for {
       ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
-      ugsAsTeamMembers = ugsUsers.map(list =>
-        list.map(TeamMember.fromUserDetails))
-      groupTeamMembers = ugsAsTeamMembers.map(
-        teamMembers =>
-          teamMembers.filter(teamMember =>
-            teamMembersInGroup.fold(true)(
-              _.map(_.userId).contains(teamMember.userId))))
-        .map(_.sortBy(_.name))
-      groupTeamMembersSelected = groupTeamMembers.map(_.map(_.copy(selected = true))) // makes them selected
+      ugsAsTeamMembers = ugsUsers.map(TeamMember.fromUserDetails)
+      groupTeamMembers = ugsAsTeamMembers
+        .filter(tm => teamMembersInGroup.map(_.userId).contains(tm.userId))
+        .sortBy(_.name)
+      groupTeamMembersSelected = groupTeamMembers.map(_.copy(selected = true)) // makes them selected
     } yield groupTeamMembersSelected
 
   def groups(arn: Arn)
@@ -87,21 +81,21 @@ class GroupServiceImpl @Inject()(
 
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
     for {
-      clients    <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS).map(_.map(_.map(client => Client(client.enrolmentKey, client.name))))
-      agentUsers    <- sessionCacheRepository.getFromSession(SELECTED_TEAM_MEMBERS).map(_.map(_.map(tm => toAgentUser(tm))))
-      groupRequest  = GroupRequest(groupName, agentUsers, clients)
-      _             <- agentPermissionsConnector.createGroup(arn)(groupRequest)
-      _             <- Future.sequence(creatingGroupKeys.map(key => sessionCacheRepository.deleteFromSession(key)))
-      _             <- sessionCacheRepository.putSession(NAME_OF_GROUP_CREATED, groupName)
+      clients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS).map(_.map(_.map(client => Client(client.enrolmentKey, client.name))))
+      agentUsers <- sessionCacheRepository.getFromSession(SELECTED_TEAM_MEMBERS).map(_.map(_.map(tm => toAgentUser(tm))))
+      groupRequest = GroupRequest(groupName, agentUsers, clients)
+      _ <- agentPermissionsConnector.createGroup(arn)(groupRequest)
+      _ <- Future.sequence(creatingGroupKeys.map(key => sessionCacheRepository.deleteFromSession(key)))
+      _ <- sessionCacheRepository.putSession(NAME_OF_GROUP_CREATED, groupName)
     } yield ()
   }
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
-                    (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[GroupSummary]] = {
+                             (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[GroupSummary]] = {
     val groupSummaries = agentPermissionsConnector.getGroupsForClient(arn, client.enrolmentKey).map {
-          case Some(gs) => gs
-          case None => Seq.empty
-        }
+      case Some(gs) => gs
+      case None => Seq.empty
+    }
     for {
       g <- groupSummaries
     } yield g

@@ -28,7 +28,7 @@
 )
 
 @(
-    clients: Option[Seq[DisplayClient]] = None,
+    clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     groupName: String,
     form: Form[AddClientsToGroup],
     formAction: Call,

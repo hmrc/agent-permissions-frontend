@@ -58,12 +58,12 @@ class ManageClientController @Inject()(
   def showAllClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.getAllClients(arn).flatMap { maybeClients =>
+        clientService.getAllClients(arn).flatMap { clients =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold(
             //no filter/clear was applied
             Ok(manage_clients_list(
-                maybeClients,
+                clients,
                 SearchAndFilterForm.form()
             )).toFuture
           )({
@@ -71,7 +71,7 @@ class ManageClientController @Inject()(
             case CLEAR_BUTTON =>
               Redirect(routes.ManageClientController.showAllClients).toFuture
             case FILTER_BUTTON =>
-              val filteredClients = maybeClients.get
+              val filteredClients = clients
                 .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
                 .filter(dc =>
                   if (searchFilter.filter.isEmpty) true
@@ -80,10 +80,7 @@ class ManageClientController @Inject()(
                     dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
                   })
               Ok(
-                manage_clients_list(
-                  Some(filteredClients),
-                  SearchAndFilterForm.form().fill(searchFilter)
-                )).toFuture
+                manage_clients_list(filteredClients, SearchAndFilterForm.form().fill(searchFilter))).toFuture
           })
         }
       }

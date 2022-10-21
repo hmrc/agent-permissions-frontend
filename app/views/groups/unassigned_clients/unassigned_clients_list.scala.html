@@ -60,9 +60,7 @@ withSearchAndErrorPrefix(
     @summaryErrors(form.errors, Some(errorHref))
 
     @if(!unassignedClients.isEmpty) {
-        @selectable_clients_table_form(
-            Some(unassignedClients),
-            form,
+        @selectable_clients_table_form(unassignedClients, form,
             routes.UnassignedClientController.submitAddUnassignedClients
         )
     } else {

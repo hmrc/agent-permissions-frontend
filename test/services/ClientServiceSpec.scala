@@ -81,8 +81,7 @@ class ClientServiceSpec extends BaseSpec {
       expectGetClients(arn)(fakeClients)
 
       //when
-      val result =  await(service.getFilteredClientsElseAll(arn))
-      val clients = result.get
+      val clients =  await(service.getFilteredClientsElseAll(arn))
 
       //then
       clients.size shouldBe 10
@@ -128,9 +127,16 @@ class ClientServiceSpec extends BaseSpec {
       //when
       val unassignedClients = await(service.lookupClients(arn)(Some(displayClients.take(2).map(_.id).toList)))
 
+      //then
+      unassignedClients shouldBe displayClients.take(2)
+    }
+
+    "return empty list when no ids provided" in {
+      //when
+      val unassignedClients = await(service.lookupClients(arn)(None))
 
       //then
-      unassignedClients shouldBe Some(displayClients.take(2))
+      unassignedClients shouldBe Seq.empty[DisplayClient]
     }
   }
 

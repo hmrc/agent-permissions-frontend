@@ -28,7 +28,7 @@
 )
 
 @(
-    teamMembers: Option[Seq[TeamMember]] = None,
+    teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
     formAction: Call = routes.ManageTeamMemberController.showAllTeamMembers,
     backUrl: Option[String] = None

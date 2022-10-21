@@ -142,10 +142,10 @@ class CreateGroupController @Inject()(
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           withSessionItem[String](RETURN_URL) { returnUrl =>
-            clientService.getFilteredClientsElseAll(arn).map { maybeClients =>
+            clientService.getFilteredClientsElseAll(arn).map { clients =>
               Ok(
                 client_group_list(
-                  maybeClients,
+                  clients,
                   groupName,
                   backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
                   form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm))
@@ -212,7 +212,7 @@ class CreateGroupController @Inject()(
                     Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
                   }, (yes: Boolean) => {
                     if (yes)
-                      clientService.clearSessionForSelectingClients().map(_ =>
+                      clientService.clearSessionForFilteringClients().map(_ =>
                         Redirect(controller.showSelectClients)
                       )
                     else {
@@ -235,10 +235,10 @@ class CreateGroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
         withSessionItem[String](RETURN_URL) { returnUrl =>
-          teamMemberService.getTeamMembers(arn).map { maybeTeamMembers =>
+          teamMemberService.getFilteredTeamMembersElseAll(arn).map { teamMembers =>
             Ok(
               team_members_list(
-                maybeTeamMembers,
+                teamMembers,
                 groupName,
                 backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showReviewSelectedClients.url)),
                 form = AddTeamMembersToGroupForm.form().fill(
@@ -262,10 +262,9 @@ class CreateGroupController @Inject()(
         .bindFromRequest()
         .fold(
           formWithErrors => {
-            for {
-              teamMembers <- teamMemberService.getTeamMembers(arn)
-            } yield
-              Ok(team_members_list(teamMembers, groupName, formWithErrors))
+            teamMemberService.getFilteredTeamMembersElseAll(arn).map(tm =>
+              Ok(team_members_list(tm, groupName, formWithErrors))
+            )
           },
           formData => {
             teamMemberService

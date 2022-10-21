@@ -29,13 +29,13 @@
 )
 
 @(
-        clients: Option[Seq[DisplayClient]] = None,
+        clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
         form: Form[SearchFilter],
         formAction: Call = routes.ManageClientController.showAllClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
+    clients.map(client =>
         Seq(
             Html(client.name),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
@@ -48,7 +48,7 @@
                 href= routes.ManageClientController.showClientDetails(client.id).url
             )
         )
-    )
+
     )
 }
 
@@ -62,7 +62,7 @@
 
    @search_and_filter(form, true)
 
-    @if(clients.getOrElse(Seq.empty).nonEmpty) {
+    @if(clients.nonEmpty) {
 
         @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
             @h2(withSearchPrefix("", form("filter").value, form("search").value))
@@ -97,7 +97,7 @@
         )
         </div>
 
-        @p(msgs("common.total.clients", clients.get.length),
+        @p(msgs("common.total.clients", clients.length),
         id = Some("clients-in-group"))
     } else {
         <div id="clients">

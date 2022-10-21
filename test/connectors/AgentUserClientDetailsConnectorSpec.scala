@@ -19,6 +19,7 @@ package connectors
 import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
+import models.TeamMember
 import play.api.Application
 import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -59,16 +60,16 @@ class AgentUserClientDetailsConnectorSpec
           |]""".stripMargin
         ))
 
-      connector.getClients(arn).futureValue shouldBe Some(
+      connector.getClients(arn).futureValue shouldBe
         Seq(Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
-                   friendlyName = "Rapunzel")))
+                   friendlyName = "Rapunzel"))
     }
 
     "return None when status response is Accepted" in {
 
       expectHttpClientGET[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
 
-      connector.getClients(arn).futureValue shouldBe None
+      connector.getClients(arn).futureValue shouldBe Seq.empty[Client]
     }
 
     "throw error when status response is 5xx" in {
@@ -96,23 +97,15 @@ class AgentUserClientDetailsConnectorSpec
           |]""".stripMargin
         ))
 
-      connector.getTeamMembers(arn).futureValue shouldBe Some(
-        Seq(
-          UserDetails(
-            userId = Some("uid"),
-            credentialRole = Some("cred-role"),
-            name = Some("name"),
-            email = Some("x@y.com")
-          )
-        )
-      )
+      connector.getTeamMembers(arn).futureValue shouldBe
+        Seq(UserDetails( Some("uid"),Some("cred-role"),  Some("name"), Some("x@y.com")))
     }
 
     "return None when status response is Accepted" in {
 
       expectHttpClientGET[HttpResponse](HttpResponse.apply(ACCEPTED, ""))
 
-      connector.getTeamMembers(arn).futureValue shouldBe None
+      connector.getTeamMembers(arn).futureValue shouldBe Seq.empty[TeamMember]
     }
 
     "throw error when status response is 5xx" in {

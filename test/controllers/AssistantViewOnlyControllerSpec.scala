@@ -91,8 +91,9 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     )
 
   val controller: AssistantViewOnlyController = fakeApplication.injector.instanceOf[AssistantViewOnlyController]
+  private val ctrlRoute: ReverseAssistantViewOnlyController = routes.AssistantViewOnlyController
 
-  s"GET ${routes.AssistantViewOnlyController.showUnassignedClientsViewOnly.url}" should {
+  s"GET ${ctrlRoute.showUnassignedClientsViewOnly.url}" should {
 
     "render unassigned clients list with no query params" in {
       // given
@@ -214,7 +215,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url}" should {
 
     s"render group ${accessGroup.groupName} clients list with no query params" in {
       // given

@@ -94,8 +94,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
   val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
+  private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  s"GET ${routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
@@ -235,7 +236,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString).url}" should {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
@@ -341,9 +342,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"POST to ${ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url}" should {
 
-      s"successful post redirect to ${routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" in {
+      s"successful post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" in {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
@@ -427,7 +428,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       }
 
-      s"Filter clicked redirect to ${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString).url}" in {
+      s"Filter clicked redirect to ${ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString).url}" in {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
@@ -453,7 +454,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       }
   }
 
-  s"GET ${routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
 
 
     "redirect if no team members selected in session" in {
@@ -502,9 +503,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
 
-    s"redirect to '${routes.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
 
       implicit val request =
         FakeRequest(
@@ -526,7 +527,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         .showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString).url
     }
 
-    s"redirect to '${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString)}'" +
+    s"redirect to '${ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString)}'" +
       s" page with answer 'true'" in {
 
       implicit val request =
@@ -576,7 +577,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString).url}" should {
 
     "redirect if no team members selected in session" in {
       //given

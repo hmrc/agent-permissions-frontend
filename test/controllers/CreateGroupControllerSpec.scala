@@ -105,9 +105,11 @@ class CreateGroupControllerSpec extends BaseSpec {
 
   }
 
+  private val ctrlRoute: ReverseCreateGroupController = routes.CreateGroupController
+  
   s"GET /" should {
 
-    s"redirect to ${routes.CreateGroupController.showGroupName.url}" in {
+    s"redirect to ${ctrlRoute.showGroupName.url}" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -120,7 +122,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.showGroupName.url}" should {
+  s"GET ${ctrlRoute.showGroupName.url}" should {
 
     "have correct layout and content" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -177,7 +179,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.showGroupName.url}" should {
+  s"POST ${ctrlRoute.showGroupName.url}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -428,11 +430,11 @@ class CreateGroupControllerSpec extends BaseSpec {
         .text shouldBe "Enter a new access group name"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe s"${routes.CreateGroupController.showGroupName.url}"
+        .attr("href") shouldBe s"${ctrlRoute.showGroupName.url}"
     }
   }
 
-  s"GET ${routes.CreateGroupController.showSelectClients.url}" should {
+  s"GET ${ctrlRoute.showSelectClients.url}" should {
 
     "render with es3 clients when a filter was not applied" in {
 
@@ -596,11 +598,11 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.submitSelectedClients.url}" should {
+  s"POST ${ctrlRoute.submitSelectedClients.url}" should {
 
     "save selected clients to session" when {
 
-      s"button is Continue and redirect to ${routes.CreateGroupController.showReviewSelectedClients.url}" in {
+      s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedClients.url}" in {
         // given
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
@@ -633,7 +635,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         )
       }
 
-      s"button is Filter and redirect to ${routes.CreateGroupController.showSelectClients.url}" in {
+      s"button is Filter and redirect to ${ctrlRoute.showSelectClients.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
@@ -669,7 +671,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         filteredClients.get.toList shouldBe List(displayClients.head)
       }
 
-      s"button is Clear and redirect to ${routes.CreateGroupController.showSelectClients.url}" in {
+      s"button is Clear and redirect to ${ctrlRoute.showSelectClients.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
@@ -799,7 +801,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.CreateGroupController.showReviewSelectedClients.url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedClients.url}" should {
 
     "render with selected clients" in {
 
@@ -897,9 +899,9 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.submitReviewSelectedClients.url}" should {
+  s"POST ${ctrlRoute.submitReviewSelectedClients.url}" should {
 
-    s"redirect to '${routes.CreateGroupController.showSelectTeamMembers.url}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showSelectTeamMembers.url}' page with answer 'false'" in {
 
       implicit val request =
         FakeRequest(
@@ -920,12 +922,12 @@ class CreateGroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showSelectTeamMembers.url
     }
 
-    s"redirect to '${routes.CreateGroupController.showSelectClients.url}' page with answer 'true'" in {
+    s"redirect to '${ctrlRoute.showSelectClients.url}' page with answer 'true'" in {
 
       implicit val request =
         FakeRequest(
           "POST",
-          s"${routes.CreateGroupController.submitReviewSelectedTeamMembers}")
+          s"${ctrlRoute.submitReviewSelectedTeamMembers}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -946,7 +948,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       implicit val request =
         FakeRequest(
           "POST",
-          s"${routes.CreateGroupController.submitReviewSelectedTeamMembers}")
+          s"${ctrlRoute.submitReviewSelectedTeamMembers}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -968,7 +970,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.showSelectTeamMembers.url}" should {
+  s"GET ${ctrlRoute.showSelectTeamMembers.url}" should {
 
     val fakeTeamMembers = (1 to 10)
       .map { i =>
@@ -1133,11 +1135,11 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${routes.CreateGroupController.submitSelectedTeamMembers.url}" should {
+  s"POST to ${ctrlRoute.submitSelectedTeamMembers.url}" should {
 
     "save selected team members to session" when {
 
-      s"button is Continue and redirect to ${routes.CreateGroupController.showReviewSelectedTeamMembers.url}" in {
+      s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
@@ -1169,7 +1171,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         )
       }
 
-      s"button is Filter and redirect to ${routes.CreateGroupController.showSelectTeamMembers.url}" in {
+      s"button is Filter and redirect to ${ctrlRoute.showSelectTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
@@ -1208,7 +1210,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           teamMembers.last.copy(selected = true))
       }
 
-      s"button is Clear and redirect to ${routes.CreateGroupController.showSelectTeamMembers.url}" in {
+      s"button is Clear and redirect to ${ctrlRoute.showSelectTeamMembers.url}" in {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
@@ -1338,7 +1340,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.showReviewSelectedTeamMembers.url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedTeamMembers.url}" should {
 
     "render with selected team members" in {
 
@@ -1413,9 +1415,9 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers.url}" should {
+  s"POST ${ctrlRoute.submitReviewSelectedTeamMembers.url}" should {
 
-    s"redirect to '${routes.CreateGroupController.showCheckYourAnswers.url}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showCheckYourAnswers.url}' page with answer 'false'" in {
 
       implicit val request =
         FakeRequest(
@@ -1436,7 +1438,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showCheckYourAnswers.url
     }
 
-    s"redirect to '${routes.CreateGroupController.showSelectTeamMembers.url}'" +
+    s"redirect to '${ctrlRoute.showSelectTeamMembers.url}'" +
       s" page with answer 'true'" in {
 
       implicit val request =
@@ -1485,7 +1487,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.showCheckYourAnswers.url}" should {
+  s"GET ${ctrlRoute.showCheckYourAnswers.url}" should {
 
     "render correctly check you answers page" in {
 
@@ -1565,7 +1567,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${routes.CreateGroupController.submitCheckYourAnswers.url}" should {
+  s"POST to ${ctrlRoute.submitCheckYourAnswers.url}" should {
 
     "redirect to Group Name page if no group name in session" in {
 
@@ -1661,7 +1663,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.redirectToEditClients.url}" should {
+  s"GET ${ctrlRoute.redirectToEditClients.url}" should {
 
     "redirect to select-clients" in {
 
@@ -1676,7 +1678,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.CreateGroupController.showGroupCreated.url}" should {
+  s"GET ${ctrlRoute.showGroupCreated.url}" should {
 
     "render correctly the confirmation page" in {
 

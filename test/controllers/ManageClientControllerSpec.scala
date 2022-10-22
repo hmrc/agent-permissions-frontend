@@ -94,8 +94,9 @@ class ManageClientControllerSpec extends BaseSpec {
   )
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
+  private val ctrlRoute: ReverseManageClientController = routes.ManageClientController
 
-  s"GET ${routes.ManageClientController.showAllClients.url}" should {
+  s"GET ${ctrlRoute.showAllClients.url}" should {
 
     "render the manage clients list with no query params" in {
       //given
@@ -211,7 +212,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.ManageClientController.showClientDetails(clientId).url}" should {
+  s"GET ${ctrlRoute.showClientDetails(clientId).url}" should {
 
     "render the clients details page with NO GROUPS" in {
       //given
@@ -258,7 +259,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.ManageClientController.showUpdateClientReference(clientId).url}" should {
+  s"GET ${ctrlRoute.showUpdateClientReference(clientId).url}" should {
 
     "render update_client_reference with existing client reference" in {
       //given
@@ -304,9 +305,9 @@ class ManageClientControllerSpec extends BaseSpec {
 
   }
 
-  s"POST ${routes.ManageClientController.submitUpdateClientReference(clientId).url}" should {
+  s"POST ${ctrlRoute.submitUpdateClientReference(clientId).url}" should {
 
-    s"redirect to ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
+    s"redirect to ${ctrlRoute.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
@@ -341,7 +342,7 @@ class ManageClientControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId).url}" should {
+  s"GET ${ctrlRoute.showClientReferenceUpdatedComplete(clientId).url}" should {
 
     "render client_details_complete with new client reference" in {
       //given

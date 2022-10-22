@@ -65,9 +65,9 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
   private val client: DisplayClient = displayClients(0)
-
-
-  s"GET ${routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url}" should {
+  private val ctrlRoute: ReverseAddClientToGroupsController = routes.AddClientToGroupsController
+  
+  s"GET ${ctrlRoute.showSelectGroupsForClient(client.id).url}" should {
 
     "render correctly the html" in {
       //given
@@ -81,7 +81,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
-            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
+      expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -121,7 +121,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
-            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
+      expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -156,7 +156,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
-            expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
+      expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
       val result = controller.showSelectGroupsForClient(client.id)(request)
@@ -257,7 +257,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.AddClientToGroupsController.showConfirmClientAddedToGroups(client.id).url}" should {
+  s"GET ${ctrlRoute.showConfirmClientAddedToGroups(client.id).url}" should {
 
     "render correctly the html" in {
       //given

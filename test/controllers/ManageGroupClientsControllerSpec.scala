@@ -104,8 +104,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
   val controller: ManageGroupClientsController = fakeApplication.injector.instanceOf[ManageGroupClientsController]
+  private val ctrlRoute: ReverseManageGroupClientsController = routes.ManageGroupClientsController
 
-  s"GET ${routes.ManageGroupClientsController.showExistingGroupClients(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupClients(accessGroup._id.toString).url}" should {
 
     "render correctly the EXISTING CLIENTS page with no query params" in {
       //given
@@ -151,7 +152,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
       html.select("a#update-clients").text() shouldBe "Update clients"
       html.select("a#update-clients").attr("href") shouldBe
-        routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url
+        ctrlRoute.showManageGroupClients(accessGroup._id.toString).url
     }
 
     "render with filter & searchTerm set" in {
@@ -165,7 +166,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
           "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -202,7 +203,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -238,7 +239,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
           s"?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -250,12 +251,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //then
       redirectLocation(result).get
-        .shouldBe(routes.ManageGroupClientsController.showExistingGroupClients(groupWithClients._id.toString).url)
+        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url)
     }
 
   }
 
-  s"GET ${routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showManageGroupClients(accessGroup._id.toString).url}" should {
 
     "render correctly the manage group CLIENTS page" in {
       //given
@@ -400,14 +401,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitManageGroupClients(accessGroup._id.toString).url}" should {
 
     "save selected clients to session" when {
 
       s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups.url}" in {
 
         implicit val request =
-          FakeRequest("POST", routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url)
+          FakeRequest("POST", ctrlRoute.submitManageGroupClients(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
                             "clients[0]" -> displayClients.head.id,
               "clients[1]" -> displayClients.last.id,
@@ -433,7 +434,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
-          routes.ManageGroupClientsController.showReviewSelectedClients(accessGroup._id.toString).url
+          ctrlRoute.showReviewSelectedClients(accessGroup._id.toString).url
         await(sessionCacheRepo.getFromSession(FILTERED_CLIENTS)) shouldBe Option.empty
       }
 
@@ -442,7 +443,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         implicit val request = FakeRequest(
           "POST",
-          routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString)
+          ctrlRoute.submitManageGroupClients(accessGroup._id.toString)
             .url
         ).withFormUrlEncodedBody(
                     "clients" -> "",
@@ -477,7 +478,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         // given
         implicit val request = FakeRequest(
           "POST",
-          routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url
+          ctrlRoute.submitManageGroupClients(accessGroup._id.toString).url
         ).withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
           "clients" -> "",
@@ -495,15 +496,15 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result) shouldBe Some(routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url)
+        redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroupClients(accessGroup._id.toString).url)
       }
 
 
-      s"when Filter clicked redirect to ${routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url}" in {
+      s"when Filter clicked redirect to ${ctrlRoute.showManageGroupClients(accessGroup._id.toString).url}" in {
 
         implicit val request = FakeRequest(
           "POST",
-          routes.ManageGroupClientsController.submitManageGroupClients(accessGroup._id.toString).url
+          ctrlRoute.submitManageGroupClients(accessGroup._id.toString).url
         ).withFormUrlEncodedBody(
                     "clients" -> "",
           "search" -> "",
@@ -524,7 +525,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupClientsController.showReviewSelectedClients(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedClients(accessGroup._id.toString).url}" should {
 
 
     "redirect if no clients selected are in session" in {
@@ -539,7 +540,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(accessGroup._id.toString).url
     }
 
     "render correctly the manage group REVIEW SELECTED page" in {
@@ -572,9 +573,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupClientsController.submitReviewSelectedClients(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitReviewSelectedClients(accessGroup._id.toString).url}" should {
 
-    s"redirect to '${routes.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
 
       implicit val request =
         FakeRequest(
@@ -592,11 +593,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients(accessGroup._id.toString)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupClientsController
+      redirectLocation(result).get shouldBe ctrlRoute
         .showGroupClientsUpdatedConfirmation(accessGroup._id.toString).url
     }
 
-    s"redirect to '${routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString)}'" +
+    s"redirect to '${ctrlRoute.showManageGroupClients(accessGroup._id.toString)}'" +
       s" page with answer 'true'" in {
 
       implicit val request =
@@ -615,7 +616,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients(accessGroup._id.toString)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupClientsController
+      redirectLocation(result).get shouldBe ctrlRoute
         .showManageGroupClients(accessGroup._id.toString).url
     }
 
@@ -646,7 +647,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showGroupClientsUpdatedConfirmation(accessGroup._id.toString).url}" should {
 
     "render correctly" in {
       //given
@@ -684,7 +685,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
     }
 
-    s"redirect to ${routes.ManageGroupClientsController.showManageGroupClients(groupId)} when there are no selected clients" in {
+    s"redirect to ${ctrlRoute.showManageGroupClients(groupId)} when there are no selected clients" in {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -697,7 +698,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe routes.ManageGroupClientsController.showManageGroupClients(accessGroup._id.toString).url
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(accessGroup._id.toString).url
     }
   }
 

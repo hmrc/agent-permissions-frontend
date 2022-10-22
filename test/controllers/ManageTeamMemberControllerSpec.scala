@@ -88,8 +88,9 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     GroupSummary("groupId", "groupName", 33, 9),
     GroupSummary("groupId-1", "groupName-1", 3, 0)
   )
+  private val ctrlRoute: ReverseManageTeamMemberController = routes.ManageTeamMemberController
 
-  s"GET ${routes.ManageTeamMemberController.showAllTeamMembers.url}" should {
+  s"GET ${ctrlRoute.showAllTeamMembers.url}" should {
 
     "render the manage team members list" in {
       //given
@@ -174,7 +175,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.ManageTeamMemberController.showTeamMemberDetails(memberId).url}" should {
+  s"GET ${ctrlRoute.showTeamMemberDetails(memberId).url}" should {
 
     "render the team member details page with NO GROUPS" in {
       //given

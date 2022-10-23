@@ -128,10 +128,9 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectOptInStatusOk(arn)(OptedInReady)
       expectGetTeamMembers(arn)(userDetails)
 
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageTeamMemberController.showAllTeamMembers.url +
-          "?submit=filter&search=john1&filter="
-      )
+      implicit val requestWithQueryParams =
+        FakeRequest(GET,
+          ctrlRoute.showAllTeamMembers.url + "?submit=filter&search=john1&filter=")
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -158,7 +157,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectGetTeamMembers(arn)(userDetails)
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageTeamMemberController.showAllTeamMembers.url +
+        ctrlRoute.showAllTeamMembers.url +
           "?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -170,7 +169,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get
-        .shouldBe(routes.ManageTeamMemberController.showAllTeamMembers.url)
+        .shouldBe(ctrlRoute.showAllTeamMembers.url)
     }
 
   }

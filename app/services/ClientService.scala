@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_REFERENCE, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, ToFuture, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, ToFuture, clientFilteringKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
@@ -55,8 +55,6 @@ trait ClientService {
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
-
-  def getNewNameFromSession()(implicit request: Request[_], ec: ExecutionContext): Future[Option[String]]
 
 }
 
@@ -192,13 +190,6 @@ class ClientServiceImpl @Inject()(
                                                                                      ec: ExecutionContext): Future[Done] = {
     val client = Client(displayClient.enrolmentKey, newName)
     agentUserClientDetailsConnector.updateClientReference(arn, client)
-  }
-
-  def getNewNameFromSession()(implicit request: Request[_],
-                              ec: ExecutionContext): Future[Option[String]] = {
-    for {
-      newName <- sessionCacheRepository.getFromSession(CLIENT_REFERENCE)
-    } yield newName
   }
 
 }

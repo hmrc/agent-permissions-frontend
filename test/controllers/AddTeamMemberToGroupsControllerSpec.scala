@@ -185,7 +185,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   }
 
-  private val submitUrl: String = routes.AddTeamMemberToGroupsController.submitSelectGroupsForTeamMember(teamMember.id).url
+  private val submitUrl: String = ctrlRoute.submitSelectGroupsForTeamMember(teamMember.id).url
 
   s"POST to $submitUrl" should {
 
@@ -232,7 +232,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get
-          .shouldBe(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(teamMember.id).url)
+          .shouldBe(ctrlRoute.showConfirmTeamMemberAddedToGroups(teamMember.id).url)
 
       }
     }

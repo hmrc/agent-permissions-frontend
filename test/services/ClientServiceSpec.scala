@@ -18,7 +18,6 @@ package services
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.CLIENT_REFERENCE
 import helpers.BaseSpec
 import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -58,20 +57,6 @@ class ClientServiceSpec extends BaseSpec {
 
       //then
       updateRef shouldBe Done
-    }
-  }
-
-  "getNewNameFromSession" should {
-    "Get new name from the session" in {
-      //given
-      await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "new name"))
-
-      //when
-      val maybeNewName: Option[String] = await(service.getNewNameFromSession())
-      val name: String = maybeNewName.get
-
-      //then
-      name shouldBe "new name"
     }
   }
 

@@ -96,7 +96,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
   def expectGetGroupsForClientSuccess(
                                        arn: Arn,
                                        enrolmentKey: String,
-                                       groups: Option[Seq[GroupSummary]])(
+                                       groups: Seq[GroupSummary])(
                                     implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .getGroupsForClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))

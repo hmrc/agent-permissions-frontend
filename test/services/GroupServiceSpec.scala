@@ -18,6 +18,7 @@ package services
 
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.BaseSpec
+import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -59,6 +60,31 @@ class GroupServiceSpec extends BaseSpec {
 
       //when
       val summaries = await(service.groups(arn))
+
+      //then
+      summaries shouldBe groupSummaries
+
+
+    }
+  }
+
+  "groupSummariesForClient" should {
+    "Return groups summaries from agentPermissionsConnector" in {
+
+      //given
+      val groupSummaries = Seq(
+        GroupSummary("2", "Carrots", 1, 1),
+        GroupSummary("3", "Potatoes", 1, 1),
+      )
+      val expectedClient = DisplayClient("hmrc","Bob","tax", "ident")
+
+      (mockAgentPermissionsConnector.getGroupsForClient(_: Arn, _: String)
+      (_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, expectedClient.enrolmentKey, *, *)
+        .returning(Future successful groupSummaries).once()
+
+      //when
+      val summaries = await(service.groupSummariesForClient(arn, expectedClient))
 
       //then
       summaries shouldBe groupSummaries

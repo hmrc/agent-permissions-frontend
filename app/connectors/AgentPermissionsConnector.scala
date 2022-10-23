@@ -61,7 +61,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def getGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
-                                                            ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
+                                                            ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit hc: HeaderCarrier,
                                                          ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
@@ -211,13 +211,13 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
   }
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
-                                                            ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
+                                                            ec: ExecutionContext): Future[Seq[GroupSummary]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client/$enrolmentKey/groups"
     monitor("ConsumedAPI-groupSummariesForClient-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         val eventuallySummaries = response.status match {
-          case OK => response.json.asOpt[Seq[GroupSummary]]
-          case NOT_FOUND => None
+          case OK => response.json.as[Seq[GroupSummary]]
+          case NOT_FOUND => Seq.empty[GroupSummary]
           case e =>
             throw UpstreamErrorResponse(
               s"error getting group summary for arn: $arn, client: $enrolmentKey from $url",

@@ -92,13 +92,7 @@ class GroupServiceImpl @Inject()(
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
                              (implicit request: Request[_], ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[GroupSummary]] = {
-    val groupSummaries = agentPermissionsConnector.getGroupsForClient(arn, client.enrolmentKey).map {
-      case Some(gs) => gs
-      case None => Seq.empty
-    }
-    for {
-      g <- groupSummaries
-    } yield g
+      agentPermissionsConnector.getGroupsForClient(arn, client.enrolmentKey)
   }
 
   def groupSummariesForTeamMember(arn: Arn, teamMember: TeamMember)

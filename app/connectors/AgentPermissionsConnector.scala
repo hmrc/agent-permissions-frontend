@@ -300,9 +300,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
           response.status match {
             case OK => Done
             case anyOtherStatus =>
-              throw UpstreamErrorResponse(
-                s"error PUTing members to group request to $url",
-                anyOtherStatus)
+              throw UpstreamErrorResponse(s"error PUTing members to group request to $url", anyOtherStatus)
           }
         }
     }

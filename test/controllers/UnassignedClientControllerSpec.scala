@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.DisplayClient
@@ -28,7 +28,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{GroupService, GroupServiceImpl}
+import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -36,14 +36,11 @@ import uk.gov.hmrc.http.SessionKeys
 class UnassignedClientControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
-    mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector
-  : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
+  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit val mockGroupService: GroupService = mock[GroupService]
 
-  lazy val sessionCacheRepo: SessionCacheRepository =
-    new SessionCacheRepository(mongoComponent, timestampSupport)
+  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
   private val ctrlRoutes: ReverseUnassignedClientController = routes.UnassignedClientController
 
 
@@ -56,7 +53,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-      bind(classOf[GroupService]).toInstance(groupService)
+      bind(classOf[GroupService]).toInstance(mockGroupService)
     }
   }
 
@@ -421,7 +418,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, groupSummaries)
+      expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
@@ -473,8 +470,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, groupSummaries)
-
+      expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
@@ -524,19 +520,23 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
       //given
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val groupSummaries = (1 to 2).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val expectedGroupAddedTo = groupSummaries(0)
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url
-        ).withFormUrlEncodedBody("groups[0]" -> groupSummaries(0).groupId)
+        ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId)
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, groupSummaries)
-
+      expectGetGroupsForArn(arn)(groupSummaries)
+      expectAddMembersToGroup(
+        expectedGroupAddedTo.groupId,
+        AddMembersToAccessGroupRequest(None, Some(fakeClients.toSet))
+      )
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
@@ -544,7 +544,6 @@ class UnassignedClientControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoutes.showConfirmClientsAddedToGroups.url
-
     }
 
     "show errors when nothing selected" in {
@@ -561,7 +560,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, groupSummaries)
+      expectGetGroupsForArn(arn)(groupSummaries)
 
 
       //when
@@ -592,7 +591,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSummarySuccess(arn, groupSummaries)
+      expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)

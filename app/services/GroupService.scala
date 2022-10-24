@@ -18,7 +18,7 @@ package services
 
 import akka.Done
 import com.google.inject.ImplementedBy
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, GroupSummary, UpdateAccessGroupRequest}
 import controllers._
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
@@ -47,6 +47,9 @@ trait GroupService {
   def updateGroup(groupId: String, group: UpdateAccessGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
+  def deleteGroup(groupId: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
   def groups(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
@@ -58,6 +61,9 @@ trait GroupService {
                                  (implicit request: Request[_],
                                   ec: ExecutionContext,
                                   hc: HeaderCarrier): Future[Seq[GroupSummary]]
+
+  def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
 }
 
@@ -120,8 +126,16 @@ class GroupServiceImpl @Inject()(
     } yield g
   }
 
-  override def updateGroup(groupId: String, group: UpdateAccessGroupRequest)
+  def updateGroup(groupId: String, group: UpdateAccessGroupRequest)
                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
     agentPermissionsConnector.updateGroup(groupId, group)
+
+  def deleteGroup(groupId: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    agentPermissionsConnector.deleteGroup(groupId)
+
+  def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    agentPermissionsConnector.addMembersToGroup(id, groupRequest)
 
 }

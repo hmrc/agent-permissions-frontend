@@ -99,10 +99,13 @@ class UnassignedClientController @Inject()(
           .form().bindFromRequest()
           .fold(
             formWithErrors =>
-              clientService.getUnassignedClients(arn)
+              clientService
+                .getUnassignedClients(arn)
                 .map(clients => Ok(unassigned_clients_list(clients, formWithErrors))),
             formData => {
-              clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getUnassignedClients).map(_ =>
+              clientService
+                .saveSelectedOrFilteredClients(arn)(formData)(clientService.getUnassignedClients)
+                .map(_ =>
                 if (formData.submit == CONTINUE_BUTTON)
                   Redirect(controller.showSelectedUnassignedClients)
                 else Redirect(controller.showUnassignedClients)
@@ -157,10 +160,11 @@ class UnassignedClientController @Inject()(
                       continueCall = controller.submitSelectedUnassignedClients)
                     ).toFuture
                   }, (yes: Boolean) => {
-                    if (yes)
+                    if (yes) {
                       Redirect(controller.showUnassignedClients).toFuture
-                    else
+                    } else {
                       Redirect(controller.showSelectGroupsForSelectedUnassignedClients).toFuture
+                    }
                   }
                 )
             }
@@ -195,7 +199,7 @@ class UnassignedClientController @Inject()(
             else {
               for {
                 allGroups <- groupService.groups(arn)
-                groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary))
+                groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId))
                 _ <- sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS)
                 result <- selectedClients.fold(
@@ -203,7 +207,6 @@ class UnassignedClientController @Inject()(
                 ) { displayClients =>
                   val clients: Set[Client] = displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
                   Future.sequence(groupsToAddTo.map { grp =>
-                    //TODO: what do we do if 3 out of 4 fail to save?
                     groupService.addMembersToGroup(
                       grp.groupId, AddMembersToAccessGroupRequest(clients = Some(clients))
                     )

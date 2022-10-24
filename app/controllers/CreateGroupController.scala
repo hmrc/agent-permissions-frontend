@@ -175,7 +175,8 @@ class CreateGroupController @Inject()(
                 Ok(client_group_list(clients, groupName, formWithErrors))
             },
             formData => {
-              clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getAllClients)
+              clientService
+                .saveSelectedOrFilteredClients(arn)(formData)(clientService.getAllClients)
                 .map(_ => {
                   if (formData.submit == CONTINUE_BUTTON)
                     Redirect(controller.showReviewSelectedClients)

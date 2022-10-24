@@ -134,7 +134,8 @@ class ManageGroupClientsController @Inject()(
                 }
               },
               formData => {
-                clientService.saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients)
+                clientService
+                  .saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients)
                   .flatMap(_ =>
                   if (formData.submit == CONTINUE_BUTTON) {
                     for {

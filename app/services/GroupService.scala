@@ -16,15 +16,16 @@
 
 package services
 
+import akka.Done
 import com.google.inject.ImplementedBy
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, GroupSummary}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, GroupSummary, UpdateAccessGroupRequest}
 import controllers._
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, UserDetails}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -33,12 +34,18 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[GroupServiceImpl])
 trait GroupService {
 
-  def getTeamMembersFromGroup(arn: Arn)(
-    teamMembersInGroup: Seq[TeamMember]
-  )(implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Seq[TeamMember]]
+  def getGroup(groupId: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]]
 
-  def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit]
+
+  def getTeamMembersFromGroup(arn: Arn)(teamMembersInGroup: Seq[TeamMember])
+                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]]
+
+  def createGroup(arn: Arn, groupName: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit]
+
+  def updateGroup(groupId: String, group: UpdateAccessGroupRequest)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
   def groups(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
@@ -63,11 +70,17 @@ class GroupServiceImpl @Inject()(
                                 ) extends GroupService with Logging {
 
 
+  def getGroup(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]] =
+    agentPermissionsConnector.getGroup(id)
+
+
   // Compares users in group with users on ARN & fetches missing details (email & cred role)
-  def getTeamMembersFromGroup(arn: Arn)(teamMembersInGroup: Seq[TeamMember] = Seq.empty)
+  def getTeamMembersFromGroup(arn: Arn)
+                             (teamMembersInGroup: Seq[TeamMember] = Seq.empty)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] =
     for {
-      ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
+      ugsUsers: Seq[UserDetails] <- agentUserClientDetailsConnector.getTeamMembers(arn)
       ugsAsTeamMembers = ugsUsers.map(TeamMember.fromUserDetails)
       groupTeamMembers = ugsAsTeamMembers
         .filter(tm => teamMembersInGroup.map(_.userId).contains(tm.userId))
@@ -106,5 +119,9 @@ class GroupServiceImpl @Inject()(
       g <- groupSummaries
     } yield g
   }
+
+  override def updateGroup(groupId: String, group: UpdateAccessGroupRequest)
+                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    agentPermissionsConnector.updateGroup(groupId, group)
 
 }

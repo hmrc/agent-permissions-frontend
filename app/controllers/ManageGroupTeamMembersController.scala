@@ -188,7 +188,7 @@ class ManageGroupTeamMembersController @Inject()(
                             .map(_.toSet)
                         }
                       groupRequest = UpdateAccessGroupRequest(teamMembers = members)
-                      updated <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
+                      updated <- groupService.updateGroup(groupId, groupRequest)
                     } yield updated
                     sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
                     Redirect(controller.showReviewSelectedTeamMembers(groupId))
@@ -251,7 +251,7 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
-  private def agentUsersInGroupAsTeamMembers(group: AccessGroup) = {
+  def agentUsersInGroupAsTeamMembers(group: AccessGroup) = {
     group.teamMembers.map { maybeUsers: Set[AgentUser] =>
       maybeUsers.toSeq
         .map(UserDetails.fromAgentUser)

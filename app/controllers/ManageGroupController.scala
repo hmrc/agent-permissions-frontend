@@ -109,7 +109,7 @@ class ManageGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         for {
-          group <- agentPermissionsConnector.getGroup(groupId)
+          group <- groupService.getGroup(groupId)
           oldName <- sessionCacheRepository.getFromSession(GROUP_RENAMED_FROM)
         } yield Ok(rename_group_complete(oldName.get, group.get.groupName))
       }

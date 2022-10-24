@@ -40,55 +40,54 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   val http: HttpClient
 
-  def getOptInStatus(arn: Arn)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[OptinStatus]]
+  def getOptInStatus(arn: Arn)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
 
-  def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier,
-                      ec: ExecutionContext): Future[Done]
+  def optIn(arn: Arn, lang: Option[String])
+           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def optOut(arn: Arn)(implicit hc: HeaderCarrier,
-                       ec: ExecutionContext): Future[Done]
+  def optOut(arn: Arn)
+            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def createGroup(arn: Arn)(groupRequest: GroupRequest)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Done]
+  def createGroup(arn: Arn)
+                 (groupRequest: GroupRequest)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def groups(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+  def groups(arn: Arn)
+            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
-  def unassignedClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
+  def unassignedClients(arn: Arn)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
-  def getGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
+  def getGroup(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
 
-  def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
-                                                            ec: ExecutionContext): Future[Seq[GroupSummary]]
+  def getGroupsForClient(arn: Arn, enrolmentKey: String)
+                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
-  def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit hc: HeaderCarrier,
-                                                         ec: ExecutionContext): Future[Option[Seq[GroupSummary]]]
+  def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[Option[Seq[GroupSummary]]]
 
-  def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Done]
+  def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Done]
+  def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def deleteGroup(id: String)(implicit hc: HeaderCarrier,
-                              ec: ExecutionContext): Future[Done]
+  def deleteGroup(id: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def groupNameCheck(arn: Arn, name: String)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Boolean]
+  def groupNameCheck(arn: Arn, name: String)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
 
   def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
 }
 
 @Singleton
-class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)(
-    implicit metrics: Metrics,
-    appConfig: AppConfig)
-    extends AgentPermissionsConnector {
+class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
+                                             (implicit metrics: Metrics, appConfig: AppConfig)
+  extends AgentPermissionsConnector {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 

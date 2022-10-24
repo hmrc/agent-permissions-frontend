@@ -16,12 +16,13 @@
 
 package helpers
 
-import connectors.GroupSummary
+import akka.Done
+import connectors.{GroupSummary, UpdateAccessGroupRequest}
 import models.{DisplayClient, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,9 +34,15 @@ trait GroupServiceMocks extends MockFactory {
     (groupService
       .getTeamMembersFromGroup(_: Arn)(_: Seq[TeamMember])
       (_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, List(), *, *)
+      .expects(arn, *, *, *)
       .returning(Future successful teamMembers).once()
 
+  def expectGetGroupById(id: String, maybeGroup: Option[AccessGroup])(
+    implicit groupService: GroupService): Unit =
+    (groupService
+      .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, *, *)
+      .returning(Future successful maybeGroup)
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
@@ -60,4 +67,10 @@ trait GroupServiceMocks extends MockFactory {
       .expects(arn, client, *, *, *)
       .returning(Future.successful(groupsAlreadyAssociatedToClient)).once()
 
+  def expectUpdateGroup(id: String, payload: UpdateAccessGroupRequest)
+                                      (implicit groupService: GroupService): Unit =
+    (groupService
+      .updateGroup(_: String, _: UpdateAccessGroupRequest)(_: HeaderCarrier,  _: ExecutionContext))
+      .expects(id, payload, *, *)
+      .returning(Future.successful(Done)).once()
 }

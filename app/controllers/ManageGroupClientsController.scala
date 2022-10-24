@@ -25,13 +25,13 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{ClientService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupClientsController @Inject()(
@@ -39,6 +39,7 @@ class ManageGroupClientsController @Inject()(
      mcc: MessagesControllerComponents,
      clientService: ClientService,
      val agentPermissionsConnector: AgentPermissionsConnector,
+     groupService: GroupService,
      val sessionCacheRepository: SessionCacheRepository,
      val sessionCacheService: SessionCacheService,
      review_update_clients: review_update_clients,
@@ -143,7 +144,7 @@ class ManageGroupClientsController @Inject()(
                             .map(_.toSet)
 
                       groupRequest = UpdateAccessGroupRequest(clients = clientsToSaveToGroup)
-                      _ <- agentPermissionsConnector.updateGroup(groupId, groupRequest)
+                      _ <- groupService.updateGroup(groupId, groupRequest)
                       _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
                       _ <- sessionCacheRepository.deleteFromSession(CLIENT_FILTER_INPUT)
                       _ <- sessionCacheRepository.deleteFromSession(CLIENT_SEARCH_INPUT)

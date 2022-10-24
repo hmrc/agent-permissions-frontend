@@ -30,7 +30,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{GroupService, GroupServiceImpl}
+import services.{GroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -41,17 +41,12 @@ import java.util.Base64
 class ManageGroupClientsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
-    mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
-
-  lazy val sessionCacheRepo: SessionCacheRepository =
-    new SessionCacheRepository(mongoComponent, timestampSupport)
+  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockGroupService: GroupService = mock[GroupService]
+  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
   val groupId = "xyz"
-  private val agentUser: AgentUser =
-    AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
   val accessGroup: AccessGroup = AccessGroup(new ObjectId(),
                                 arn,
                                 "Bananas",
@@ -65,26 +60,21 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
-      bind(classOf[AgentPermissionsConnector])
-        .toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-      bind(classOf[GroupService]).toInstance(groupService)
+      bind(classOf[GroupService]).toInstance(mockGroupService)
     }
   }
 
   override implicit lazy val fakeApplication: Application =
-    appBuilder
-      .configure("mongodb.uri" -> mongoUri)
-      .build()
+    appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val fakeClients: Seq[Client] =
     List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
 
-  val displayClients: Seq[DisplayClient] =
-    fakeClients.map(DisplayClient.fromClient(_))
+  val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
   val encodedDisplayClients: Seq[String] = displayClients.map(client =>
     Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
@@ -93,12 +83,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   val userDetails: Seq[UserDetails] = (1 to 5)
     .map { i =>
-      UserDetails(
-        Some(s"John $i"),
-        Some("User"),
-        Some(s"John $i name"),
-        Some(s"john$i@abc.com")
-      )
+      UserDetails(Some(s"John $i"), Some("User"), Some(s"John $i name"), Some(s"john$i@abc.com"))
     }
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
@@ -115,13 +100,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-
-      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
-
+      expectGetGroupById(accessGroup._id.toString, Some(groupWithClients))
 
       //when
-      val result =
-        controller.showExistingGroupClients(groupWithClients._id.toString)(request)
+      val result = controller.showExistingGroupClients(groupWithClients._id.toString)(request)
 
       //then
       status(result) shouldBe OK
@@ -163,7 +145,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
+      expectGetGroupById(accessGroup._id.toString, Some(groupWithClients))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
@@ -198,7 +180,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
+      expectGetGroupById(accessGroup._id.toString, Some(groupWithClients))
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
@@ -235,7 +217,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      expectGetGroupSuccess(accessGroup._id.toString, Some(groupWithClients))
+      expectGetGroupById(accessGroup._id.toString, Some(groupWithClients))
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
@@ -263,7 +245,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
       expectGetClients(arn)(fakeClients)
 
       //when
@@ -305,7 +287,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT"))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
       expectGetClientsReturningNone(arn)
 
       //when
@@ -334,7 +316,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      expectGetGroupSuccess(groupWithClients._id.toString, Some(groupWithClients))
+      expectGetGroupById(groupWithClients._id.toString, Some(groupWithClients))
 
       expectGetClients(arn)(fakeClients)
 
@@ -379,7 +361,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT"))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       val result = controller.showManageGroupClients(accessGroup._id.toString)(request)
 
@@ -423,10 +405,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         expectGetClients(arn)(fakeClients)
 
-        expectUpdateGroupSuccess(accessGroup._id.toString,
+        expectUpdateGroup(accessGroup._id.toString,
           UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name)))))
 
         val result =
@@ -455,7 +437,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         expectGetClients(arn)(fakeClients)
 
 
@@ -488,7 +470,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         )
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         expectGetClients(arn)(fakeClients)
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
@@ -515,7 +497,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         expectGetClients(arn)(fakeClients)
 
         // when
@@ -533,7 +515,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
       val result = controller.showReviewSelectedClients(accessGroup._id.toString)(request)
@@ -549,7 +531,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
       val result = controller.showReviewSelectedClients(accessGroup._id.toString)(request)
@@ -588,7 +570,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       val result = controller.submitReviewSelectedClients(accessGroup._id.toString)(request)
 
@@ -611,7 +593,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       val result = controller.submitReviewSelectedClients(accessGroup._id.toString)(request)
 
@@ -633,7 +615,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       val result = controller.submitReviewSelectedClients(accessGroup._id.toString)(request)
 
@@ -655,7 +637,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
       val result = controller.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)(request)
@@ -690,7 +672,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
       val result = controller.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)(request)

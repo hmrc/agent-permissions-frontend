@@ -87,7 +87,7 @@ class AddClientToGroupsController @Inject()(
       }, { groupIds =>
         val client = Client(displayClient.enrolmentKey, displayClient.name)
         Future.sequence(groupIds.map { grp =>
-          agentPermissionsConnector.addMembersToGroup(
+          groupService.addMembersToGroup(
             grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))
             ))
         }).map { _ =>

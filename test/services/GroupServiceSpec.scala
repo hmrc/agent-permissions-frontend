@@ -17,9 +17,10 @@
 package services
 
 import akka.Done
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary, UpdateAccessGroupRequest}
 import helpers.BaseSpec
 import models.{DisplayClient, TeamMember}
+import org.apache.commons.lang3.RandomStringUtils
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, UserDetails}
@@ -104,6 +105,41 @@ class GroupServiceSpec extends BaseSpec {
     }
   }
 
+  "delete group" should {
+    "delegate to agentPermissionsConnector" in {
+
+      //given
+      val grpId = RandomStringUtils.randomAlphabetic(5)
+      expectDeleteGroupSuccess(grpId)
+
+      //when
+      val output = await(service.deleteGroup(grpId))
+
+      //then
+      output shouldBe Done
+    }
+  }
+
+  "addMembersToGroup" should {
+    "delegate to agentPermissionsConnector" in {
+
+      //given
+      val grpId = RandomStringUtils.randomAlphabetic(5)
+      val payload = AddMembersToAccessGroupRequest(None, None)
+
+      (mockAgentPermissionsConnector
+        .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(grpId, payload, *, *)
+        .returning(Future successful Done)
+
+      //when
+      val output = await(service.addMembersToGroup(grpId, payload))
+
+      //then
+      output shouldBe Done
+    }
+  }
+
   "groupSummariesForClient" should {
     "Return groups summaries from agentPermissionsConnector" in {
 
@@ -133,8 +169,7 @@ class GroupServiceSpec extends BaseSpec {
     "contact agentUserClientDetailsConnector and set items as selected based on input " in {
 
       //given
-      val teamMembersInGroup: Seq[TeamMember]
-      = userDetails.take(2).reverse.map(TeamMember.fromUserDetails).toVector
+      val teamMembersInGroup = userDetails.take(2).reverse.map(TeamMember.fromUserDetails).toVector
       expectGetTeamMembers(arn)(userDetails)
 
       //when

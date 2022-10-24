@@ -90,7 +90,7 @@ class AddTeamMemberToGroupsController @Inject()(
       }, { groupIds =>
         val agentUser = TeamMember.toAgentUser(tm)
         Future.sequence(groupIds.map { grp =>
-          agentPermissionsConnector.addMembersToGroup(
+          groupService.addMembersToGroup(
             grp, AddMembersToAccessGroupRequest(teamMembers = Some(Set(agentUser))
             ))
         }).map { _ =>

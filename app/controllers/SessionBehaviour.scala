@@ -38,10 +38,8 @@ trait SessionBehaviour {
       ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(request, hc, ec)
 
-  def isOptedIn(arn: Arn)(body: OptinStatus => Future[Result])(
-      implicit request: Request[_],
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Result] =
+  def isOptedIn(arn: Arn)(body: OptinStatus => Future[Result])
+               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedIn)(arn)(body)(request, hc, ec)
 
   def isOptedInComplete(arn: Arn)(body: OptinStatus => Future[Result])(

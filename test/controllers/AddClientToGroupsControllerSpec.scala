@@ -16,7 +16,6 @@
 
 package controllers
 
-import akka.Done
 import com.google.inject.AbstractModule
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
 import helpers.{BaseSpec, Css}
@@ -30,9 +29,7 @@ import repository.SessionCacheRepository
 import services.{ClientService, GroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
-
-import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.SessionKeys
 
 class AddClientToGroupsControllerSpec extends BaseSpec {
 
@@ -192,16 +189,10 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         expectLookupClient(arn)(client)
 
         val expectedAddRequest1 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
-        (mockAgentPermissionsConnector
-          .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
-          .expects(groupSummaries(3).groupId, expectedAddRequest1, *, *)
-          .returning(Future successful Done)
+        expectAddMembersToGroup(groupSummaries(3).groupId, expectedAddRequest1)
 
         val expectedAddRequest2 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
-        (mockAgentPermissionsConnector
-          .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
-          .expects(groupSummaries(4).groupId, expectedAddRequest2, *, *)
-          .returning(Future successful Done)
+        expectAddMembersToGroup(groupSummaries(4).groupId, expectedAddRequest2)
 
         implicit val request =
           FakeRequest("POST", submitUrl)

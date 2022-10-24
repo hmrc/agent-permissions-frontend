@@ -98,7 +98,7 @@ class ManageGroupController @Inject()(
             for {
               _ <- sessionCacheRepository.putSession[String](GROUP_RENAMED_FROM, group.groupName)
               patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
-              _ <- agentPermissionsConnector.updateGroup(groupId, patchRequestBody)
+              _ <- groupService.updateGroup(groupId, patchRequestBody)
             } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
           }
         )
@@ -134,7 +134,7 @@ class ManageGroupController @Inject()(
             if (answer) {
               for {
                 _ <- sessionCacheRepository.putSession[String](GROUP_DELETED_NAME, group.groupName)
-                _ <- agentPermissionsConnector.deleteGroup(groupId)
+                _ <- groupService.deleteGroup(groupId)
               } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
               Redirect(routes.ManageGroupController.showManageGroups.url).toFuture

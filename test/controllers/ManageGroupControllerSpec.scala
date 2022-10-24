@@ -316,7 +316,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(groupId, Some(accessGroup))
-      expectUpdateGroupSuccess(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
+      expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -474,11 +474,10 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
-      expectDeleteGroupSuccess(accessGroup._id.toString)
+      expectDeleteGroup(accessGroup._id.toString)
 
       //when
-      val result =
-        controller.submitDeleteGroup(accessGroup._id.toString)(request)
+      val result = controller.submitDeleteGroup(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe SEE_OTHER

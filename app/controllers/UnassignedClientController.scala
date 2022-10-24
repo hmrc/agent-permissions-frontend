@@ -204,7 +204,7 @@ class UnassignedClientController @Inject()(
                   val clients: Set[Client] = displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
                   Future.sequence(groupsToAddTo.map { grp =>
                     //TODO: what do we do if 3 out of 4 fail to save?
-                    agentPermissionsConnector.addMembersToGroup(
+                    groupService.addMembersToGroup(
                       grp.groupId, AddMembersToAccessGroupRequest(clients = Some(clients))
                     )
                   }).map { _ =>

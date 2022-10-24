@@ -102,7 +102,7 @@ class UnassignedClientController @Inject()(
               clientService.getUnassignedClients(arn)
                 .map(clients => Ok(unassigned_clients_list(clients, formWithErrors))),
             formData => {
-              clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getMaybeUnassignedClients).map(_ =>
+              clientService.saveSelectedOrFilteredClients(arn)(formData)(clientService.getUnassignedClients).map(_ =>
                 if (formData.submit == CONTINUE_BUTTON)
                   Redirect(controller.showSelectedUnassignedClients)
                 else Redirect(controller.showUnassignedClients)

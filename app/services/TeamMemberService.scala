@@ -32,16 +32,15 @@ import scala.concurrent.{ExecutionContext, Future}
 trait TeamMemberService {
 
   def getAllTeamMembers(arn: Arn)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]]
 
-  def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier,
-                               ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]]
+  def getFilteredTeamMembersElseAll(arn: Arn)(implicit hc: HeaderCarrier,
+                                              ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]]
 
   def lookupTeamMember(arn: Arn)(id: String
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]]
 
-  def lookupTeamMembers(arn: Arn)(ids: Option[List[String]]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]]
+  def lookupTeamMembers(arn: Arn)(ids: Option[List[String]] )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[TeamMember]]
 
   def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
                                        (arn: Arn)
@@ -60,60 +59,38 @@ class TeamMemberServiceImpl @Inject()(
 
   // returns team members from agent-user-client-details, selecting previously selected team members
   def getAllTeamMembers(arn: Arn)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]] = {
     for {
       ugsAsTeamMembers <- getFromUgsAsTeamMember(arn)
-      maybeSelectedTeamMembers <- sessionCacheRepository
-        .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
-      ugsWithoutPreSelected = ugsAsTeamMembers.map(
-        teamMembers =>
-          teamMembers.filterNot(teamMember =>
-            maybeSelectedTeamMembers.fold(false)(
-              _.map(_.userId).contains(teamMember.userId))))
-      mergedWithPreselected = ugsWithoutPreSelected
-        .map(_.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
-        .map(_.sortBy(_.name))
+      maybeSelectedTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
+      ugsWithoutPreSelected = ugsAsTeamMembers.filterNot(teamMember =>
+            maybeSelectedTeamMembers.fold(false)(_.map(_.userId).contains(teamMember.userId)))
+      mergedWithPreselected = (ugsWithoutPreSelected.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
+        .sortBy(_.name)
     } yield mergedWithPreselected
   }
 
-  // returns team members from agent-user-client-details OR a filtered list, selecting previously selected team members
-  def getTeamMembers(arn: Arn)
-                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Option[Seq[TeamMember]]] = {
-    val fromUgs = for {
-      ugsAsTeamMembers <- getFromUgsAsTeamMember(arn)
-      maybeSelectedTeamMembers <- sessionCacheRepository
-        .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
-      ugsWithoutPreSelected = ugsAsTeamMembers.map(
-        teamMembers =>
-          teamMembers.filterNot(teamMember =>
-            maybeSelectedTeamMembers.fold(false)(
-              _.map(_.userId).contains(teamMember.userId))))
-      mergedWithPreselected = ugsWithoutPreSelected
-        .map(_.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
-        .map(_.sortBy(_.name))
-    } yield mergedWithPreselected
-
-    for {
-      filtered <- sessionCacheRepository.getFromSession(FILTERED_TEAM_MEMBERS)
-      ugs <- fromUgs
-    } yield filtered.orElse(ugs)
+  def getFilteredTeamMembersElseAll(arn: Arn)
+                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]] = {
+    val eventualMaybeTeamMembers = sessionCacheRepository.getFromSession(FILTERED_TEAM_MEMBERS)
+    eventualMaybeTeamMembers.flatMap { maybeMembers =>
+      if (maybeMembers.isDefined) Future.successful(maybeMembers.get)
+      else getAllTeamMembers(arn)
+    }
   }
 
   def lookupTeamMember(arn: Arn)(id: String)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]] = {
     for {
       ugsAsTeamMembers <- getFromUgsAsTeamMember(arn)
-      maybeTeamMember = ugsAsTeamMembers.flatMap(clients => clients.find(_.id == id))
+      maybeTeamMember = ugsAsTeamMembers.find(_.id == id)
     } yield maybeTeamMember
   }
 
-  def lookupTeamMembers(arn: Arn)(ids: Option[List[String]])
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[TeamMember]]] = {
-    ids.fold(Option.empty[List[TeamMember]].toFuture) {
-      ids =>
-        getFromUgsAsTeamMember(arn)
-          .map(_.map(teamMembers => ids
-            .flatMap(id => teamMembers.find(_.id == id))))
+  def lookupTeamMembers(arn: Arn)(ids:Option[List[String]])
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[TeamMember]] = {
+    ids.fold(List.empty[TeamMember].toFuture) {
+      ids => getFromUgsAsTeamMember(arn).map(tms => tms.filter(tm=> ids.contains(tm.id)).toList)
     }
   }
 
@@ -127,7 +104,7 @@ class TeamMemberServiceImpl @Inject()(
         for {
           teamMembers <- lookupTeamMembers(arn)(formData.members)
           _ <- addSelectablesToSession(
-            teamMembers.map(_.map(_.copy(selected = true))))(
+            teamMembers.map(_.copy(selected = true)))(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
@@ -138,7 +115,7 @@ class TeamMemberServiceImpl @Inject()(
         for {
           teamMembers <- lookupTeamMembers(arn)(formData.members)
           _ <- addSelectablesToSession(
-            teamMembers.map(_.map(_.copy(selected = true))))(
+            teamMembers.map(_.copy(selected = true)))(
             SELECTED_TEAM_MEMBERS,
             FILTERED_TEAM_MEMBERS
           )
@@ -152,7 +129,7 @@ class TeamMemberServiceImpl @Inject()(
           for {
             teamMembers <- lookupTeamMembers(arn)(formData.members)
             _ <- addSelectablesToSession(
-              teamMembers.map(_.map(_.copy(selected = true))))(
+              teamMembers.map(_.copy(selected = true)))(
               SELECTED_TEAM_MEMBERS,
               FILTERED_TEAM_MEMBERS
             )
@@ -163,39 +140,27 @@ class TeamMemberServiceImpl @Inject()(
     }
   }
 
-  private def filterTeamMembers(arn: Arn)(
-    formData: AddTeamMembersToGroup
-  )(implicit hc: HeaderCarrier,
-    request: Request[Any],
-    ec: ExecutionContext): Future[Option[Seq[TeamMember]]] =
+  private def filterTeamMembers(arn: Arn)
+                               (formData: AddTeamMembersToGroup)
+                               (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Seq[TeamMember]] =
     for {
-      teamMembers <- getAllTeamMembers(arn)
-        .map(_.map(_.toVector))
+      teamMembers <- getAllTeamMembers(arn).map(_.toVector)
       maybeNameOrEmail = formData.search
       resultByName = maybeNameOrEmail.fold(teamMembers)(
-        term =>
-          teamMembers.map(
-            _.filter(_.name.toLowerCase.contains(term.toLowerCase))))
+        searchTerm => teamMembers.filter(_.name.toLowerCase.contains(searchTerm.toLowerCase)))
       resultByEmail = maybeNameOrEmail.fold(teamMembers)(
-        term =>
-          teamMembers.map(
-            _.filter(_.email.toLowerCase.contains(term.toLowerCase))))
-      consolidatedResult = resultByName
-        .map(_ ++ resultByEmail.getOrElse(Vector.empty))
-        .map(_.distinct)
-      result = consolidatedResult.map(_.toVector)
-      _ <- result match {
-        case Some(filteredResult) => sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS, filteredResult)
-        case _ => Future.successful(())
-      }
+        searchTerm => teamMembers.filter(_.email.toLowerCase.contains(searchTerm.toLowerCase)))
+      consolidatedResult = (resultByName ++ resultByEmail).distinct
+      result = consolidatedResult.toVector
+      _ <- if(result.nonEmpty) sessionCacheRepository.putSession(FILTERED_TEAM_MEMBERS, result)
+      else Future.successful(())
     } yield result
 
 
-  private def getFromUgsAsTeamMember(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Seq[TeamMember]]] = {
+  private def getFromUgsAsTeamMember(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] = {
     for {
       ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
-      ugsAsTeamMembers = ugsUsers.map(list =>
-        list.map(TeamMember.fromUserDetails))
+      ugsAsTeamMembers = ugsUsers.map(TeamMember.fromUserDetails)
     } yield ugsAsTeamMembers
   }
 

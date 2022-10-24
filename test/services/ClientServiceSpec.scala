@@ -18,7 +18,6 @@ package services
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.CLIENT_REFERENCE
 import helpers.BaseSpec
 import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -61,28 +60,13 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "getNewNameFromSession" should {
-    "Get new name from the session" in {
-      //given
-      await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "new name"))
-
-      //when
-      val maybeNewName: Option[String] = await(service.getNewNameFromSession())
-      val name: String = maybeNewName.get
-
-      //then
-      name shouldBe "new name"
-    }
-  }
-
   "getClients" should {
     "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
       //given
       expectGetClients(arn)(fakeClients)
 
       //when
-      val result =  await(service.getFilteredClientsElseAll(arn))
-      val clients = result.get
+      val clients =  await(service.getFilteredClientsElseAll(arn))
 
       //then
       clients.size shouldBe 10
@@ -128,9 +112,16 @@ class ClientServiceSpec extends BaseSpec {
       //when
       val unassignedClients = await(service.lookupClients(arn)(Some(displayClients.take(2).map(_.id).toList)))
 
+      //then
+      unassignedClients shouldBe displayClients.take(2)
+    }
+
+    "return empty list when no ids provided" in {
+      //when
+      val unassignedClients = await(service.lookupClients(arn)(None))
 
       //then
-      unassignedClients shouldBe Some(displayClients.take(2))
+      unassignedClients shouldBe Seq.empty[DisplayClient]
     }
   }
 

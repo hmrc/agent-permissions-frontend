@@ -91,8 +91,9 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     )
 
   val controller: AssistantViewOnlyController = fakeApplication.injector.instanceOf[AssistantViewOnlyController]
+  private val ctrlRoute: ReverseAssistantViewOnlyController = routes.AssistantViewOnlyController
 
-  s"GET ${routes.AssistantViewOnlyController.showUnassignedClientsViewOnly.url}" should {
+  s"GET ${ctrlRoute.showUnassignedClientsViewOnly.url}" should {
 
     "render unassigned clients list with no query params" in {
       // given
@@ -130,7 +131,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.AssistantViewOnlyController.showUnassignedClientsViewOnly.url +
+        ctrlRoute.showUnassignedClientsViewOnly.url +
           "?submit=filter&search=friendly1&filter="
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -164,7 +165,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.AssistantViewOnlyController.showUnassignedClientsViewOnly.url +
+        ctrlRoute.showUnassignedClientsViewOnly.url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -197,7 +198,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.AssistantViewOnlyController.showUnassignedClientsViewOnly.url +
+        ctrlRoute.showUnassignedClientsViewOnly.url +
           s"?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -209,12 +210,12 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get
-        .shouldBe(routes.AssistantViewOnlyController.showUnassignedClientsViewOnly.url)
+        .shouldBe(ctrlRoute.showUnassignedClientsViewOnly.url)
     }
 
   }
 
-  s"GET ${routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url}" should {
 
     s"render group ${accessGroup.groupName} clients list with no query params" in {
       // given
@@ -254,7 +255,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
           "?submit=filter&search=friendly1&filter="
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -290,7 +291,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -323,7 +324,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
           s"?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -335,7 +336,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get
-        .shouldBe(routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(accessGroup._id.toString).url)
+        .shouldBe(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url)
     }
 
   }

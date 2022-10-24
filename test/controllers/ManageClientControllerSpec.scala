@@ -23,11 +23,11 @@ import helpers.{BaseSpec, Css}
 import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
-import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, GroupServiceImpl}
+import services.{ClientService, GroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -42,7 +42,7 @@ class ManageClientControllerSpec extends BaseSpec {
     : AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
-  implicit val mockManageClientService: ClientService = mock[ClientService]
+  implicit val mockClientService: ClientService = mock[ClientService]
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -52,13 +52,11 @@ class ManageClientControllerSpec extends BaseSpec {
     override def configure(): Unit = {
       bind(classOf[AuthAction])
         .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
-      bind(classOf[AgentPermissionsConnector])
-        .toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
+      bind(classOf[ClientService]).toInstance(mockClientService)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-      bind(classOf[AgentUserClientDetailsConnector])
-        .toInstance(mockAgentUserClientDetailsConnector)
-      bind(classOf[GroupService]).toInstance(
-        new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
+      bind(classOf[GroupService]).toInstance(mockGroupService)
     }
   }
 
@@ -79,8 +77,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
   val clientWithoutNameId: String = displayClientWithNoFrieldyName.id
 
-  val displayClients: Seq[DisplayClient] =
-    fakeClients.map(DisplayClient.fromClient(_))
+  val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
   val displayClientsIds: Seq[String] =
     displayClients.map(client =>
@@ -94,15 +91,16 @@ class ManageClientControllerSpec extends BaseSpec {
   )
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
+  private val ctrlRoute: ReverseManageClientController = routes.ManageClientController
 
-  s"GET ${routes.ManageClientController.showAllClients.url}" should {
+  s"GET ${ctrlRoute.showAllClients.url}" should {
 
     "render the manage clients list with no query params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetClients(arn)(fakeClients)
+      expectGetAllClientsFromService(arn)(displayClients)
 
       //when
       val result = controller.showAllClients()(request)
@@ -131,10 +129,10 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetClients(arn)(fakeClients)
+      expectGetAllClientsFromService(arn)(displayClients)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageClientController.showAllClients.url +
+        ctrlRoute.showAllClients.url +
           "?submit=filter&search=friendly1&filter="
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -160,7 +158,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetClients(arn)(fakeClients)
+      expectGetAllClientsFromService(arn)(displayClients)
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
@@ -190,11 +188,11 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetClients(arn)(fakeClients)
-
+      expectGetAllClientsFromService(arn)(displayClients)
+      
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageClientController.showAllClients.url +
+        ctrlRoute.showAllClients.url +
           s"?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -206,23 +204,44 @@ class ManageClientControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get
-        .shouldBe(routes.ManageClientController.showAllClients.url)
+        .shouldBe(ctrlRoute.showAllClients.url)
     }
 
   }
 
-  s"GET ${routes.ManageClientController.showClientDetails(clientId).url}" should {
+  s"GET ${ctrlRoute.showClientDetails(clientId).url}" should {
 
-    "render the clients details page with NO GROUPS" in {
+    "render not found for invalid id" in {
       //given
+      val invalidClientId = "invalid id"
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetGroupsForClientSuccess(arn, enrolmentKey, None)
-      expectGetClients(arn)(fakeClients)
+      expectLookupClientNotFound(arn)(invalidClientId)
 
       //when
-      val result = controller.showClientDetails(clientId)(request)
+      val result = controller.showClientDetails(invalidClientId)(request)
+
+      //then
+      status(result) shouldBe NOT_FOUND
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Client not found - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Client not found"
+
+    }
+
+    "render the clients details page with NO GROUPS" in {
+      //given
+      val expectedClient = displayClients.head
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
+      expectLookupClient(arn)(expectedClient)
+
+      //when
+      val result = controller.showClientDetails(expectedClient.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -231,19 +250,19 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Client details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Client details"
 
-      html.body.text().contains("Not assigned to an access group") shouldBe true
     }
 
     "render the clients details page with list of groups" in {
       //given
+      val expectedClient = displayClients.head
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetGroupsForClientSuccess(arn, enrolmentKey, Some(groupSummaries))
-      expectGetClients(arn)(fakeClients)
+      expectLookupClient(arn)(expectedClient)
+      expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
 
       //when
-      val result = controller.showClientDetails(clientId)(request)
+      val result = controller.showClientDetails(expectedClient.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -258,16 +277,17 @@ class ManageClientControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${routes.ManageClientController.showUpdateClientReference(clientId).url}" should {
+  s"GET ${ctrlRoute.showUpdateClientReference(clientId).url}" should {
 
     "render update_client_reference with existing client reference" in {
       //given
+      val expectedClient = displayClients.head
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetClients(arn)(fakeClients)
+      expectLookupClient(arn)(expectedClient)
       //when
-      val result = controller.showUpdateClientReference(clientId)(request)
+      val result = controller.showUpdateClientReference(expectedClient.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -279,18 +299,31 @@ class ManageClientControllerSpec extends BaseSpec {
       html.body.select("input#clientRef").attr("value") shouldBe "friendly0"
     }
 
-    "render update_client_reference without a client reference" in {
+    "render update_client_reference for invalid id" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-
-      val fakeClientWithoutFriendlyName = fakeClients.head.copy(friendlyName = "")
-
-      expectGetClients(arn)(Seq(fakeClientWithoutFriendlyName))
+      expectLookupClientNotFound(arn)("invalid")
 
       //when
-      val result = controller.showUpdateClientReference(DisplayClient.fromClient(fakeClientWithoutFriendlyName).id)(request)
+      val caught = intercept[RuntimeException] {
+        await(controller.showUpdateClientReference("invalid")(request))
+      }
+      caught.getMessage shouldBe "client reference supplied did not match any client"
+
+    }
+
+    "render update_client_reference without a client reference" in {
+      //given
+      val expectedClient = displayClients.head.copy(name = "")
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+      expectOptInStatusOk(arn)(OptedInReady)
+      expectLookupClient(arn)(expectedClient)
+
+      //when
+      val result = controller.showUpdateClientReference(expectedClient.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -304,18 +337,18 @@ class ManageClientControllerSpec extends BaseSpec {
 
   }
 
-  s"POST ${routes.ManageClientController.submitUpdateClientReference(clientId).url}" should {
+  s"POST to UPDATE CLIENT REF at ${ctrlRoute.submitUpdateClientReference(clientId).url}" should {
 
-    s"redirect to ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
+    s"redirect to ${ctrlRoute.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
       //given
+      val expectedClient = displayClients.head
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      //await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
-      expectGetClients(arn)(fakeClients)
+      expectIsArnAllowed(true)
+      expectLookupClient(arn)(expectedClient)
 
       //when
-      val result = controller.submitUpdateClientReference(clientId)(request)
+      val result = controller.submitUpdateClientReference(expectedClient.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -327,10 +360,11 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetClients(arn)(fakeClients)
+      val expectedClient = displayClients.head
+      expectLookupClient(arn)(expectedClient)
 
       //when
-      val result = controller.submitUpdateClientReference(clientId)(request)
+      val result = controller.submitUpdateClientReference(expectedClient.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -341,7 +375,7 @@ class ManageClientControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageClientController.showClientReferenceUpdatedComplete(clientId).url}" should {
+  s"GET ${ctrlRoute.showClientReferenceUpdatedComplete(clientId).url}" should {
 
     "render client_details_complete with new client reference" in {
       //given
@@ -349,10 +383,11 @@ class ManageClientControllerSpec extends BaseSpec {
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
       await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
-      expectGetClients(arn)(fakeClients)
+      val expectedClient = displayClients.head
+      expectLookupClient(arn)(expectedClient)
 
       //when
-      val result = controller.showClientReferenceUpdatedComplete(clientId)(request)
+      val result = controller.showClientReferenceUpdatedComplete(expectedClient.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -362,6 +397,21 @@ class ManageClientControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelH1)
         .text() shouldBe "Tax reference: ending in 6780 Client reference updated to The New Name"
+    }
+
+    s"GET showClientReferenceUpdatedComplete for invalid client id" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(true)
+      expectOptInStatusOk(arn)(OptedInReady)
+      val invalidClientId = "not found id"
+      expectLookupClientNotFound(arn)(invalidClientId)
+
+      //when
+      val result = controller.showClientReferenceUpdatedComplete(invalidClientId)(request)
+
+      //then
+      status(result) shouldBe NOT_FOUND
     }
 
   }

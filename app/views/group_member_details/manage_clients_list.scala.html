@@ -29,7 +29,7 @@
 )
 
 @(
-    clients: Option[Seq[DisplayClient]] = None,
+    clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     form: Form[SearchFilter],
     formAction: Call = routes.ManageClientController.showAllClients,
     backUrl: Option[String] = None

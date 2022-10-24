@@ -56,6 +56,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   }
 
   private val controller = fakeApplication.injector.instanceOf[AddTeamMemberToGroupsController]
+  private val ctrlRoute: ReverseAddTeamMemberToGroupsController = routes.AddTeamMemberToGroupsController
 
   override implicit lazy val fakeApplication: Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
@@ -73,7 +74,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
   val teamMember = teamMembers(0)
 
-  s"GET ${routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id).url}" should {
+  s"GET ${ctrlRoute.showSelectGroupsForTeamMember(teamMember.id).url}" should {
 
     "render correctly the html" in {
       //given
@@ -184,7 +185,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   }
 
-  private val submitUrl: String = routes.AddTeamMemberToGroupsController.submitSelectGroupsForTeamMember(teamMember.id).url
+  private val submitUrl: String = ctrlRoute.submitSelectGroupsForTeamMember(teamMember.id).url
 
   s"POST to $submitUrl" should {
 
@@ -231,7 +232,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get
-          .shouldBe(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(teamMember.id).url)
+          .shouldBe(ctrlRoute.showConfirmTeamMemberAddedToGroups(teamMember.id).url)
 
       }
     }
@@ -270,7 +271,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(teamMember.id).url}" should {
+  s"GET ${ctrlRoute.showConfirmTeamMemberAddedToGroups(teamMember.id).url}" should {
 
     "render correctly the html" in {
       //given

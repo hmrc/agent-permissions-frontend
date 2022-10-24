@@ -25,7 +25,7 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{GroupService, GroupServiceImpl}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails}
@@ -88,15 +88,17 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     GroupSummary("groupId", "groupName", 33, 9),
     GroupSummary("groupId-1", "groupName-1", 3, 0)
   )
+  private val ctrlRoute: ReverseManageTeamMemberController = routes.ManageTeamMemberController
 
-  s"GET ${routes.ManageTeamMemberController.showAllTeamMembers.url}" should {
+  s"GET ${ctrlRoute.showAllTeamMembers.url}" should {
 
     "render the manage team members list" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetTeamMembers(arn)(userDetails)
+//      expectGetTeamMembers(arn)(userDetails)
+      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
 
       //when
       val result = controller.showAllTeamMembers()(request)
@@ -126,10 +128,9 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectOptInStatusOk(arn)(OptedInReady)
       expectGetTeamMembers(arn)(userDetails)
 
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageTeamMemberController.showAllTeamMembers.url +
-          "?submit=filter&search=john1&filter="
-      )
+      implicit val requestWithQueryParams =
+        FakeRequest(GET,
+          ctrlRoute.showAllTeamMembers.url + "?submit=filter&search=john1&filter=")
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -156,7 +157,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectGetTeamMembers(arn)(userDetails)
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageTeamMemberController.showAllTeamMembers.url +
+        ctrlRoute.showAllTeamMembers.url +
           "?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -168,12 +169,12 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get
-        .shouldBe(routes.ManageTeamMemberController.showAllTeamMembers.url)
+        .shouldBe(ctrlRoute.showAllTeamMembers.url)
     }
 
   }
 
-  s"GET ${routes.ManageTeamMemberController.showTeamMemberDetails(memberId).url}" should {
+  s"GET ${ctrlRoute.showTeamMemberDetails(memberId).url}" should {
 
     "render the team member details page with NO GROUPS" in {
       //given

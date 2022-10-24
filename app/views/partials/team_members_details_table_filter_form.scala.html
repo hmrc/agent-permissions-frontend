@@ -29,13 +29,13 @@
 )
 
 @(
-    teamMembers: Option[Seq[TeamMember]] = None,
+    teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
     formAction: Call = routes.ManageTeamMemberController.showAllTeamMembers,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    teamMembers.fold(Seq.empty[Seq[Html]])(_.map(member =>
+    teamMembers.map(member =>
         Seq(
             Html(member.name),
             Html(member.email),
@@ -48,7 +48,7 @@
                 href= routes.ManageTeamMemberController.showTeamMemberDetails(member.id).url
             )
         )
-    ))
+    )
 }
 
 @govukSkipLink(SkipLink(
@@ -60,7 +60,7 @@
 
     @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
 
-    @if(teamMembers.getOrElse(Seq.empty).nonEmpty) {
+    @if(teamMembers.nonEmpty) {
 
         @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
                 @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
@@ -95,7 +95,7 @@
         )
         </div>
         @p(
-            msgs("common.total.team-members", teamMembers.get.length),
+            msgs("common.total.team-members", teamMembers.length),
             id = Some("team-members-in-group")
         )
     } else {

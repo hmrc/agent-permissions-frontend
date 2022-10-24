@@ -35,11 +35,11 @@ trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   val http: HttpClient
 
   def getClients(arn: Arn)(implicit hc: HeaderCarrier,
-                           ec: ExecutionContext): Future[Option[Seq[Client]]]
+                           ec: ExecutionContext): Future[Seq[Client]]
 
   def getTeamMembers(arn: Arn)(
       implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[Seq[UserDetails]]]
+      ec: ExecutionContext): Future[Seq[UserDetails]]
 
   def updateClientReference(arn: Arn, client: Client)(
     implicit hc: HeaderCarrier,
@@ -61,13 +61,13 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
 
   def getClients(arn: Arn)(
       implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[Seq[Client]]] = {
+      ec: ExecutionContext): Future[Seq[Client]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"
     monitor("ConsumedAPI-getClientList-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
-          case ACCEPTED => None
-          case OK       => response.json.asOpt[Seq[Client]]
+          case ACCEPTED => Seq.empty[Client]
+          case OK       => response.json.as[Seq[Client]]
           case e =>
             throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
                                         e)
@@ -76,16 +76,13 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  override def getTeamMembers(arn: Arn)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[Seq[UserDetails]]] = {
-    val url =
-      s"$baseUrl/agent-user-client-details/arn/${arn.value}/team-members"
+  override def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[UserDetails]] = {
+    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/team-members"
     monitor("ConsumedAPI-team-members-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
-          case ACCEPTED => None
-          case OK       => response.json.asOpt[Seq[UserDetails]]
+          case ACCEPTED => Seq.empty[UserDetails]
+          case OK       => response.json.as[Seq[UserDetails]]
           case e =>
             throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}",
                                         e)

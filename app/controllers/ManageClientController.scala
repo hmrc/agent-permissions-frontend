@@ -27,28 +27,30 @@ import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
+import views.html.groups.add_groups_to_client.client_not_found
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageClientController @Inject()(
-     authAction: AuthAction,
-     mcc: MessagesControllerComponents,
-     groupService: GroupService,
-     clientService: ClientService,
-     manage_clients_list: manage_clients_list,
-     client_details: client_details,
-     update_client_reference: update_client_reference,
-     update_client_reference_complete: update_client_reference_complete,
-     val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService)
+                                        authAction: AuthAction,
+                                        mcc: MessagesControllerComponents,
+                                        groupService: GroupService,
+                                        clientService: ClientService,
+                                        manage_clients_list: manage_clients_list,
+                                        client_details: client_details,
+                                        update_client_reference: update_client_reference,
+                                        update_client_reference_complete: update_client_reference_complete,
+                                        client_not_found: client_not_found,
+                                        val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
+                                        val agentPermissionsConnector: AgentPermissionsConnector,
+                                        val sessionCacheRepository: SessionCacheRepository,
+                                        val sessionCacheService: SessionCacheService)
                                       (implicit val appConfig: AppConfig, ec: ExecutionContext,
-    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+                                       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-    with I18nSupport
+  with I18nSupport
   with SessionBehaviour
   with Logging {
 
@@ -58,20 +60,20 @@ class ManageClientController @Inject()(
   def showAllClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.getAllClients(arn).flatMap { maybeClients =>
+        clientService.getAllClients(arn).flatMap { clients =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold(
             //no filter/clear was applied
             Ok(manage_clients_list(
-                maybeClients,
-                SearchAndFilterForm.form()
+              clients,
+              SearchAndFilterForm.form()
             )).toFuture
           )({
             //clear/filter buttons pressed
             case CLEAR_BUTTON =>
               Redirect(routes.ManageClientController.showAllClients).toFuture
             case FILTER_BUTTON =>
-              val filteredClients = maybeClients.get
+              val filteredClients = clients
                 .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
                 .filter(dc =>
                   if (searchFilter.filter.isEmpty) true
@@ -80,36 +82,33 @@ class ManageClientController @Inject()(
                     dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
                   })
               Ok(
-                manage_clients_list(
-                  Some(filteredClients),
-                  SearchAndFilterForm.form().fill(searchFilter)
-                )).toFuture
+                manage_clients_list(filteredClients, SearchAndFilterForm.form().fill(searchFilter))).toFuture
           })
         }
       }
     }
   }
 
-  def showClientDetails(clientId :String): Action[AnyContent] = Action.async { implicit request =>
+  def showClientDetails(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).flatMap {
-          case Some(client) =>
-          groupService.groupSummariesForClient(arn, client).map { maybeGroups =>
-            Ok(client_details(
-              client = client,
-              clientGroups = maybeGroups
-            ))
-          }
+        clientService.lookupClient(arn)(clientId).flatMap { maybeClient =>
+          maybeClient.fold(
+            Future.successful(NotFound(client_not_found()))
+          )(client =>
+            groupService.groupSummariesForClient(arn, client).map ( groups =>
+              Ok(client_details(client,  groups))
+            )
+          )
         }
       }
     }
   }
 
-  def showUpdateClientReference(clientId :String): Action[AnyContent] = Action.async { implicit request =>
+  def showUpdateClientReference(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).map{
+        clientService.lookupClient(arn)(clientId).map {
           case Some(client) =>
             Ok(update_client_reference(
               client = client,
@@ -121,7 +120,7 @@ class ManageClientController @Inject()(
     }
   }
 
-  def submitUpdateClientReference(clientId :String): Action[AnyContent] = Action.async { implicit request =>
+  def submitUpdateClientReference(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         clientService.lookupClient(arn)(clientId).map
@@ -144,22 +143,31 @@ class ManageClientController @Inject()(
                   Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId))
                 }
               )
+          case None => throw new RuntimeException("client reference supplied did not match any client")
+
         }
       }
     }
   }
 
-  def showClientReferenceUpdatedComplete(clientId :String): Action[AnyContent] = Action.async { implicit request =>
+  def showClientReferenceUpdatedComplete(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).flatMap{
-          case Some(client) =>
-            clientService.getNewNameFromSession().map( newName =>
-              Ok(update_client_reference_complete(
-                client,
-                clientRef = newName.get
-              )))
-        }
+        clientService
+          .lookupClient(arn)(clientId)
+          .flatMap(maybeClient =>
+            maybeClient.fold(
+              Future.successful(NotFound(client_not_found()))
+            )(client =>
+              sessionCacheRepository.getFromSession(CLIENT_REFERENCE).map(newName =>
+                Ok(update_client_reference_complete(
+                  client,
+                  clientRef = newName.get
+                ))
+              )
+            )
+          )
+
       }
     }
   }

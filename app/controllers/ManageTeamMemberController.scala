@@ -55,26 +55,20 @@ class ManageTeamMemberController @Inject()(
   def showAllTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        teamMemberService.getTeamMembers(arn).flatMap { maybeTeamMembers =>
+        teamMemberService.getFilteredTeamMembersElseAll(arn).flatMap { teamMembers =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold(
             //no filter/clear was applied
-            Ok(manage_team_members_list(teamMembers = maybeTeamMembers, form = SearchAndFilterForm.form()))
+            Ok(manage_team_members_list(teamMembers = teamMembers, form = SearchAndFilterForm.form()))
           )({
             //clear/filter buttons pressed
             case CLEAR_BUTTON =>
               Redirect(routes.ManageTeamMemberController.showAllTeamMembers)
             case FILTER_BUTTON =>
-              val filterByName = maybeTeamMembers.getOrElse(Seq.empty)
-                .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
-              val filterByEmail = maybeTeamMembers.getOrElse(Seq.empty)
-                .filter(_.email.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+              val filterByName = teamMembers.filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
+              val filterByEmail = teamMembers.filter(_.email.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
               val filtered = (filterByName ++ filterByEmail).distinct
-              Ok(
-                manage_team_members_list(teamMembers = Some(filtered),
-                  form = SearchAndFilterForm.form().fill(searchFilter)
-                )
-              )
+              Ok(manage_team_members_list(filtered, SearchAndFilterForm.form().fill(searchFilter)))
           }).toFuture
         }
       }

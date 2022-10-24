@@ -100,8 +100,9 @@ class ManageGroupControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
   val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
+  private val ctrlRoute: ReverseManageGroupController = routes.ManageGroupController
 
-  s"GET ${routes.ManageGroupController.showManageGroups.url}" should {
+  s"GET ${ctrlRoute.showManageGroups.url}" should {
 
     "render correctly the manage groups page" in {
 
@@ -201,7 +202,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectGetGroupSummarySuccess(arn, expectedGroupSummaries)
       val searchTerm = expectedGroupSummaries(0).groupName
       val requestWithQuery = FakeRequest(GET,
-         routes.ManageGroupController.showManageGroups.url + s"?submit=filter&search=$searchTerm")
+         ctrlRoute.showManageGroups.url + s"?submit=filter&search=$searchTerm")
         .withHeaders("AuthorizatiManageGroupControllerSpec.scala:229on" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -252,7 +253,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showRenameGroup(groupId).url}" should {
+  s"GET ${ctrlRoute.showRenameGroup(groupId).url}" should {
 
     "render correctly the manage groups page" in {
       //given
@@ -271,7 +272,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Rename group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Rename group"
-      html.select(Css.form).attr("action") shouldBe routes.ManageGroupController
+      html.select(Css.form).attr("action") shouldBe ctrlRoute
         .submitRenameGroup(groupId)
         .url
       html
@@ -303,11 +304,11 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Back to manage groups page"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+        .attr("href") shouldBe ctrlRoute.showManageGroups.url
     }
   }
 
-  s"POST ${routes.ManageGroupController.submitRenameGroup(groupId).url}" should {
+  s"POST ${ctrlRoute.submitRenameGroup(groupId).url}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
 
@@ -319,7 +320,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    routes.ManageGroupController.submitRenameGroup(groupId).url)
+                    ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -333,7 +334,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupController
+      redirectLocation(result).get shouldBe ctrlRoute
         .showGroupRenamed(groupId)
         .url
     }
@@ -344,7 +345,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    routes.ManageGroupController.submitRenameGroup(groupId).url)
+                    ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -366,14 +367,14 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Back to manage groups page"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+        .attr("href") shouldBe ctrlRoute.showManageGroups.url
     }
 
     "render errors when no group name is specified" in {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          routes.ManageGroupController.submitRenameGroup(groupId).url)
+          ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -390,7 +391,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showGroupRenamed(groupId).url}" should {
+  s"GET ${ctrlRoute.showGroupRenamed(groupId).url}" should {
 
     "render correctly the manage groups page" in {
       //given
@@ -422,11 +423,11 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
       val dashboardLink = html.select("main a#back-to-dashboard")
       dashboardLink.text() shouldBe "Return to manage access groups"
-      dashboardLink.attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups.url
     }
   }
 
-  s"GET ${routes.ManageGroupController.showDeleteGroup(groupId).url}" should {
+  s"GET ${ctrlRoute.showDeleteGroup(groupId).url}" should {
 
     "render correctly the DELETE group page" in {
       //given
@@ -456,7 +457,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupController.submitDeleteGroup(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitDeleteGroup(accessGroup._id.toString).url}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
@@ -465,7 +466,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    routes.ManageGroupController
+                    ctrlRoute
                       .submitDeleteGroup(accessGroup._id.toString)
                       .url)
           .withFormUrlEncodedBody("answer" -> "true")
@@ -483,7 +484,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       //and
       redirectLocation(result) shouldBe Some(
-        routes.ManageGroupController.showGroupDeleted.url)
+        ctrlRoute.showGroupDeleted.url)
 
     }
 
@@ -494,7 +495,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    routes.ManageGroupController
+                    ctrlRoute
                       .submitDeleteGroup(accessGroup._id.toString)
                       .url)
           .withFormUrlEncodedBody("answer" -> "false")
@@ -511,7 +512,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       //and
       redirectLocation(result) shouldBe Some(
-        routes.ManageGroupController.showManageGroups.url)
+        ctrlRoute.showManageGroups.url)
 
     }
 
@@ -519,7 +520,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-        routes.ManageGroupController.submitDeleteGroup(groupId).url)
+        ctrlRoute.submitDeleteGroup(groupId).url)
         .withFormUrlEncodedBody("answer" -> "")
         .withHeaders("Authorization" -> s"Bearer whatever")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -536,7 +537,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupController.showGroupDeleted.url}" should {
+  s"GET ${ctrlRoute.showGroupDeleted.url}" should {
 
     "render correctly" in {
       //given
@@ -567,7 +568,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Return to manage access groups"
       html
         .select("a#returnToDashboard")
-        .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+        .attr("href") shouldBe ctrlRoute.showManageGroups.url
       html.select(Css.backLink).size() shouldBe 0
     }
   }

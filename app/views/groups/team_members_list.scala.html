@@ -27,7 +27,7 @@
 )
 
 @(
-    maybeTeamMembers: Option[Seq[TeamMember]] = None,
+    teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     groupName: String,
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
@@ -61,7 +61,7 @@ withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"group.${msgKey}.members.li
         @p(s"group.${msgKey}.members.list.p1")
     </div>
 
-    @selectable_team_members_table_form(maybeTeamMembers, form, formAction)
+    @selectable_team_members_table_form(teamMembers, form, formAction)
 
 }
 

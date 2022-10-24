@@ -37,13 +37,13 @@
 )
 
 @(
-    clients: Option[Seq[DisplayClient]] = None,
+    clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     form: Form[AddClientsToGroup],
     formAction: Call = routes.CreateGroupController.submitSelectedClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    clients.fold(Seq.empty[Seq[Html]])(_.zipWithIndex.map(client =>
+    clients.zipWithIndex.map(client =>
         Seq(
             Html(
                 checkbox(
@@ -58,7 +58,7 @@
             Html(displayObfuscatedReference(client._1.name, client._1.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client._1.taxService)),
         )
-    )
+
     )
 }
 
@@ -72,7 +72,7 @@
 
     @search_and_filter(form, true)
 
-    @if(clients.getOrElse(Seq.empty).nonEmpty) {
+    @if(clients.nonEmpty) {
 
         @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
             @h2(withSearchPrefix("", form("filter").value, form("search").value))
@@ -120,12 +120,12 @@
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
         @* the following 2 paragraphs are dependent on whether js enabled or not*@
-        @p(key = msgs("common.total.clients.selected", clients.get.count(_.selected), clients.get.length),
+        @p(key = msgs("common.total.clients.selected", clients.count(_.selected), clients.length),
             id = Some("member-count-text"),
             attrs = Map("role" -> "status")
         )
 
-        @p(key = msgs("already.selected.clients.nonjs", clients.get.count(_.selected), clients.get.length),
+        @p(key = msgs("already.selected.clients.nonjs", clients.count(_.selected), clients.length),
             id = Some("member-count-text-non-js"),
         )
 

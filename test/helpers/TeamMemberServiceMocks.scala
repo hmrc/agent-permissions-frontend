@@ -30,10 +30,10 @@ trait TeamMemberServiceMocks extends MockFactory {
   def expectGetTeamMembersFromService(arn: Arn)(teamMembers: Seq[TeamMember])(
     implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
-      .getTeamMembers(_: Arn)(_: HeaderCarrier,
+      .getFilteredTeamMembersElseAll(_: Arn)(_: HeaderCarrier,
         _: ExecutionContext, _: Request[_]))
       .expects(arn, *, *, *)
-      .returning(Future successful Some(teamMembers))
+      .returning(Future successful teamMembers)
 
   def expectLookupTeamMember(arn: Arn)
                             (teamMember: TeamMember)

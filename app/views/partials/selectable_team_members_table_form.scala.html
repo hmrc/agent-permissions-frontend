@@ -16,129 +16,124 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import play.api.libs.json.Json
 @import views.html.main_layout
-@import models.AddClientsToGroup
 @import views.html.partials.search_and_filter
 
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, h2: h2, span: span,
-    caption: caption, table: table,
-    submit_button: submit_button,
-    filter_buttons: filter_buttons,
-    search_and_filter: search_and_filter,
-    textbox: textbox, input_select: input_select,
-    checkbox: checkbox, summaryErrors: SummaryErrors,
-    govukSkipLink: GovukSkipLink, formWithCSRF: FormWithCSRF
+        layout: main_layout,
+        p: p, h1: h1, h2: h2, span: span,
+        caption: caption, table: table,
+        submit_button: submit_button,
+        filter_buttons: filter_buttons,
+        search_and_filter: search_and_filter,
+        textbox: textbox, input_select: input_select,
+        checkbox: checkbox, summaryErrors: SummaryErrors,
+        govukSkipLink: GovukSkipLink, formWithCSRF: FormWithCSRF
 )
 
 @(
-    teamMembers: Option[Seq[TeamMember]] = None,
-    form: Form[AddTeamMembersToGroup],
-    formAction: Call = routes.CreateGroupController.submitSelectedTeamMembers,
+        teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
+        form: Form[AddTeamMembersToGroup],
+        formAction: Call = routes.CreateGroupController.submitSelectedTeamMembers,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@tableRows = @{
-    teamMembers.fold(Seq.empty[Seq[Html]])( _.zipWithIndex.map( member =>
-        Seq(
-            Html(
-                checkbox(
-                    name = Some("members[]"),
-                    id = Some(s"add-member-${member._2}"),
-                    value = Some(member._1.id),
-                    label = member._1.name,
-                    checked = member._1.selected
-                ).toString
-            ),
-            Html(member._1.name),
-            Html(member._1.email),
-            Html(displayTeamMemberRole(member._1.credentialRole.getOrElse("")))
-            )
-        )
-    )
-}
-
-@govukSkipLink(SkipLink(
-    href = "#members",
-    content = Text(msgs("common.skip-to-team-members"))
-))
-
-@formWithCSRF(action = formAction) {
-
-
-    @search_and_filter(form, false)
-
-
-    @if(teamMembers.getOrElse(Seq.empty).nonEmpty) {
-
-        @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
-            @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
-        }
-
-        @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
-        <div class="govuk-form-group govuk-form-group--error">
-            <p id="clients-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">@msgs("error-prefix")</span>
-                @msgs("error.select-members.empty")
-            </p>
-        }
-
-        <fieldset class="govuk-fieldset">
-            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                @msgs("group.select.members.list.h1")
-            </legend>
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
-
-            @table(
-                caption = Some("common.teamMembers"),
-                captionClasses = "govuk-visually-hidden",
-                id = Some("sortable-table"),
-                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-                headings = Seq(
-                    (
-                    span(id=Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
-                    Map("id" -> "select-all")
-                    ),
-                    (
-                    Html(msgs("group.members.list.table.th1")),
-                    Map("aria-sort" -> "ascending")
-                    ),
-                    (
-                    Html(msgs("group.members.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                    ),
-                    (
-                    Html(msgs("group.members.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                    )
+    @tableRows = @{
+        teamMembers.zipWithIndex.map(member =>
+            Seq(
+                Html(
+                    checkbox(
+                        name = Some("members[]"),
+                        id = Some(s"add-member-${member._2}"),
+                        value = Some(member._1.id),
+                        label = member._1.name,
+                        checked = member._1.selected
+                    ).toString
                 ),
-                rows = tableRows,
+                Html(member._1.name),
+                Html(member._1.email),
+                Html(displayTeamMemberRole(member._1.credentialRole.getOrElse("")))
             )
-        </div>
-        </fieldset>
-        @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
-
-        @* the following 2 paragraphs are dependent on whether js enabled or not*@
-        @p(key = msgs("common.total.team-members.selected", teamMembers.get.count(_.selected), teamMembers.get.length),
-            id = Some("member-count-text"),
-            attrs = Map("role" -> "status")
         )
 
-        @p(key = msgs("already.selected.members.nonjs", teamMembers.get.count(_.selected), teamMembers.get.length),
-            id = Some("member-count-text-non-js"),
-            classes = Some(if(teamMembers.get.count(_.selected)> 0) "show-me" else "hide-me")
-        )
-        @*end js /non js dependent messages*@
-
-    } else {
-        <div id="members">
-            @h2("team-members.not-found.heading")
-            @p("team-members.not-found.p")
-        </div>
     }
 
-    @submit_button()
+    @govukSkipLink(SkipLink(
+        href = "#members",
+        content = Text(msgs("common.skip-to-team-members"))
+    ))
 
-}
+    @formWithCSRF(action = formAction) {
+
+
+        @search_and_filter(form, false)
+
+        @if(teamMembers.nonEmpty) {
+
+            @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
+                @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
+            }
+
+            @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
+                <div class="govuk-form-group govuk-form-group--error">
+                    <p id="clients-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">@msgs("error-prefix")</span>
+                        @msgs("error.select-members.empty")
+                    </p>
+                    }
+
+            <fieldset class="govuk-fieldset">
+                <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                @msgs("group.select.members.list.h1")
+                </legend>
+                <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
+
+                @table(
+                    caption = Some("common.teamMembers"),
+                    captionClasses = "govuk-visually-hidden",
+                    id = Some("sortable-table"),
+                    attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
+                    headings = Seq(
+                        (
+                                span(id = Some("no-js"), classes = Some("govuk-visually-hidden"), key = "group.client.list.table.checkbox"),
+                                Map("id" -> "select-all")
+                        ),
+                        (
+                                Html(msgs("group.members.list.table.th1")),
+                                Map("aria-sort" -> "ascending")
+                        ),
+                        (
+                                Html(msgs("group.members.list.table.th2")),
+                                Map("aria-sort" -> "none")
+                        ),
+                        (
+                                Html(msgs("group.members.list.table.th3")),
+                                Map("aria-sort" -> "none")
+                        )
+                    ),
+                    rows = tableRows,
+                )
+                </div>
+            </fieldset>
+            @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
+            @* the following 2 paragraphs are dependent on whether js enabled or not*@
+            @p(key = msgs("common.total.team-members.selected", teamMembers.count(_.selected), teamMembers.length),
+                id = Some("member-count-text"),
+                attrs = Map("role" -> "status")
+            )
+
+            @p(key = msgs("already.selected.members.nonjs", teamMembers.count(_.selected), teamMembers.length),
+                id = Some("member-count-text-non-js"),
+                classes = Some(if(teamMembers.count(_.selected) > 0) "show-me" else "hide-me")
+            )
+            @*end js /non js dependent messages*@
+        } else {
+            <div id="members">
+                @h2("team-members.not-found.heading")
+                @p("team-members.not-found.p")
+            </div>
+        }
+
+        @submit_button()
+
+    }

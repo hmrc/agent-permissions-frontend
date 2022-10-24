@@ -61,14 +61,14 @@ class ManageGroupTeamMembersController @Inject()(
 
   def showExistingGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      val teamMembers = teamMembersInGroup(group)
-      groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers)).map { members =>
+      val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
+      groupService.getTeamMembersFromGroup(group.arn)(convertedTeamMembers).map { members =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
         searchFilter.submit.fold(
           //no filter/clear was applied
           Ok(
             existing_team_members(
-              teamMembers = members.getOrElse(Seq.empty[TeamMember]),
+              teamMembers = members,
               form = SearchAndFilterForm.form(),
               group = group,
             )
@@ -78,7 +78,7 @@ class ManageGroupTeamMembersController @Inject()(
               Redirect(controller.showExistingGroupTeamMembers(groupId))
             case FILTER_BUTTON =>
               val lowerCaseSearchTerm = searchFilter.search.getOrElse("").toLowerCase
-              val filteredMembers = members.getOrElse(Seq.empty)
+              val filteredMembers = members
                 .filter(tm =>
                   tm.name.toLowerCase.contains(lowerCaseSearchTerm) ||
                   tm.email.toLowerCase.contains(lowerCaseSearchTerm)
@@ -98,10 +98,10 @@ class ManageGroupTeamMembersController @Inject()(
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      val teamMembers = teamMembersInGroup(group)
+      val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
-        selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(Some(teamMembers))
-        _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers.get)
+        selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
+        _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
         filteredTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
         maybeFilterTerm <- sessionCacheRepository.getFromSession[String](TEAM_MEMBER_SEARCH_INPUT)
         teamMembersForArn <- teamMemberService.getAllTeamMembers(group.arn)
@@ -114,7 +114,7 @@ class ManageGroupTeamMembersController @Inject()(
           if (filteredTeamMembers.isDefined)
             Ok(
               team_members_list(
-                filteredTeamMembers,
+                filteredTeamMembers.getOrElse(Seq.empty),
                 group.groupName,
                 AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
                   search = teamMembersSearchTerm,
@@ -156,14 +156,14 @@ class ManageGroupTeamMembersController @Inject()(
                   else ().toFuture
                   result <- if (maybeFilteredResult.isDefined)
                     Ok(team_members_list(
-                      maybeFilteredResult,
+                      maybeFilteredResult.getOrElse(Seq.empty),
                       group.groupName,
                       formWithErrors,
                       formAction = controller.submitManageGroupTeamMembers(groupId),
                       backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
                     )).toFuture
-                  else
-                    teamMemberService.getTeamMembers(group.arn).map {
+                  else {
+                    teamMemberService.getFilteredTeamMembersElseAll(group.arn).map {
                       maybeTeamMembers =>
                         Ok(team_members_list(
                           maybeTeamMembers,
@@ -173,6 +173,7 @@ class ManageGroupTeamMembersController @Inject()(
                           backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
                         ))
                     }
+                  }
                 } yield result
               },
               formData => {
@@ -250,7 +251,7 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
-  private def teamMembersInGroup(group: AccessGroup) = {
+  private def agentUsersInGroupAsTeamMembers(group: AccessGroup) = {
     group.teamMembers.map { maybeUsers: Set[AgentUser] =>
       maybeUsers.toSeq
         .map(UserDetails.fromAgentUser)

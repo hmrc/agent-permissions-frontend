@@ -144,22 +144,14 @@ class AgentPermissionsConnectorSpec
         GroupSummary("groupId", "groupName", 33, 9)
       )
 
-      val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/${client.enrolmentKey}/groups"
+      val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/${client.enrolmentKey}/groups"
       val mockJsonResponseBody = Json.toJson(groupSummaries).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
       expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
-      //and
-      val expectedTransformedResponse = Some(
-        groupSummaries
-      )
-
       //then
-      connector
-        .getGroupsForClient(arn, client.enrolmentKey)
-        .futureValue shouldBe expectedTransformedResponse
+      connector.getGroupsForClient(arn, client.enrolmentKey).futureValue shouldBe groupSummaries
     }
 
     "return None 404 if no groups found" in {
@@ -168,9 +160,7 @@ class AgentPermissionsConnectorSpec
       expectHttpClientGET[HttpResponse](mockResponse)
 
       //then
-      connector
-        .getGroupsForClient(arn, client.enrolmentKey)
-        .futureValue shouldBe None
+      connector.getGroupsForClient(arn, client.enrolmentKey).futureValue shouldBe Seq.empty
     }
 
     "throw an exception for any other HTTP response code" in {

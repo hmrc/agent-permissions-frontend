@@ -94,8 +94,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
   val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
+  private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  s"GET ${routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
@@ -136,7 +137,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -172,7 +173,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
           "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -207,7 +208,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
           "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -235,7 +236,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString).url}" should {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
@@ -341,14 +342,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"POST to ${ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url}" should {
 
-    "save selected team members to session" when {
-
-      s"button is Continue and redirect to ${routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" in {
+      s"successful post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" in {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
+          FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
               "members[0]" -> teamMembers.head.id,
               "members[1]" -> teamMembers.last.id,
@@ -365,21 +364,19 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
         expectGetTeamMembers(arn)(userDetails)
 
-
-        val result =
-          controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
+        val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
-          routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(accessGroup._id.toString).url
+          ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url
 
         await(sessionCacheRepo.getFromSession(FILTERED_TEAM_MEMBERS)) shouldBe Option.empty
       }
 
-      "button is Continue with no filters or hidden members AND none selected display error" in {
+      "display error when none selected and CONTINUE button pressed" in {
         // given
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
+          FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
               "members" -> "",
               "search" -> "",
@@ -407,10 +404,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
 
-      "when filter button is pushed with no search value, no error will be shown" in {
+      "NOT display error when filter button is pushed with no search value" in {
         // given
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
+          FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
               "members" -> "",
               "search" -> "",
@@ -420,8 +417,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
 
         // when
@@ -431,11 +428,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       }
 
-
-      s"Filter clicked redirect to ${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString).url}" in {
+      s"Filter clicked redirect to ${ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString).url}" in {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(accessGroup._id.toString).url)
+          FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url)
             .withFormUrlEncodedBody(
               "members" -> "",
               "search" -> "1",
@@ -454,12 +450,11 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
-          routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString).url
+          ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString).url
       }
-    }
   }
 
-  s"GET ${routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
 
 
     "redirect if no team members selected in session" in {
@@ -475,7 +470,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString).url
+        ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString).url
     }
 
     "render correctly the manage group REVIEW SELECTED page" in {
@@ -508,9 +503,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
 
-    s"redirect to '${routes.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
 
       implicit val request =
         FakeRequest(
@@ -528,11 +523,11 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupTeamMembersController
+      redirectLocation(result).get shouldBe ctrlRoute
         .showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString).url
     }
 
-    s"redirect to '${routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString)}'" +
+    s"redirect to '${ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString)}'" +
       s" page with answer 'true'" in {
 
       implicit val request =
@@ -551,7 +546,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupTeamMembersController
+      redirectLocation(result).get shouldBe ctrlRoute
         .showManageGroupTeamMembers(accessGroup._id.toString).url
     }
 
@@ -582,7 +577,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString).url}" should {
 
     "redirect if no team members selected in session" in {
       //given
@@ -597,7 +592,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(accessGroup._id.toString).url
+        ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString).url
     }
 
     "render correctly the manage TEAM MEMBERS UPDATED page" in {

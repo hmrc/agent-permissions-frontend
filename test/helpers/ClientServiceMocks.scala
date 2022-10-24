@@ -33,7 +33,7 @@ trait ClientServiceMocks extends MockFactory {
     (clientService
       .getFilteredClientsElseAll(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful Some(clients)).once()
+      .returning(Future successful clients).once()
 
   def expectGetAllClientsFromService(arn: Arn)
                                  (clients: Seq[DisplayClient])
@@ -41,12 +41,12 @@ trait ClientServiceMocks extends MockFactory {
     (clientService
       .getAllClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful Some(clients)).once()
+      .returning(Future successful clients).once()
 
   def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit clientService: ClientService): Unit =
     (clientService
       .saveSelectedOrFilteredClients(_: Arn)(_: AddClientsToGroup)
-      (_: Arn => Future[Option[Seq[DisplayClient]]])(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      (_: Arn => Future[Seq[DisplayClient]])(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
       .expects(arn, *, *, *, *, *)
       .returning(Future.successful(()))
       .once()
@@ -58,5 +58,13 @@ trait ClientServiceMocks extends MockFactory {
       .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.id, *, *)
       .returning(Future successful Some(client)).once()
+
+  def expectLookupClientNotFound(arn: Arn)
+                                (clientId: String)
+                        (implicit clientService: ClientService): Unit =
+    (clientService
+      .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, clientId, *, *)
+      .returning(Future successful None).once()
 
 }

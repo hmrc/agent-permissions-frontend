@@ -138,7 +138,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     implicit agentPermissionsConnector: AgentPermissionsConnector)=
     (agentPermissionsConnector.updateGroup(_: String, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, updateGroupRequest, *, *)
-      .returning(Future successful Done)
+      .returning(Future successful Done).once()
 
   def expectDeleteGroupSuccess(id: String)(
     implicit agentPermissionsConnector: AgentPermissionsConnector)=

@@ -30,7 +30,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{GroupService, GroupServiceImpl}
+import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -44,7 +44,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
     : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
+  implicit val groupService: GroupService = mock[GroupService]
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -111,7 +111,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
-      expectGetGroupSummarySuccess(arn, groupSummaries)
+      expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
       val result = controller.showManageGroups()(request)
@@ -165,7 +165,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      expectGetGroupSummarySuccess(arn, Seq.empty)
+      expectGetGroupsForArn(arn)(Seq.empty)
 
       //when
       val result = controller.showManageGroups()(request)
@@ -199,7 +199,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
 
       val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", i * 3, i * 4))
-      expectGetGroupSummarySuccess(arn, expectedGroupSummaries)
+      expectGetGroupsForArn(arn)(expectedGroupSummaries)
       val searchTerm = expectedGroupSummaries(0).groupName
       val requestWithQuery = FakeRequest(GET,
          ctrlRoute.showManageGroups.url + s"?submit=filter&search=$searchTerm")
@@ -260,7 +260,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      expectGetGroupSuccess(groupId, Some(accessGroup))
+      expectGetGroupById(groupId, Some(accessGroup))
 
       //when
       val result = controller.showRenameGroup(groupId)(request)
@@ -287,7 +287,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      expectGetGroupSuccess(groupId, Option.empty[AccessGroup])
+      expectGetGroupById(groupId, Option.empty[AccessGroup])
 
       //when
       val result = controller.showRenameGroup(groupId)(request)
@@ -315,7 +315,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(groupId, Some(accessGroup))
+      expectGetGroupById(groupId, Some(accessGroup))
       expectUpdateGroupSuccess(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -350,7 +350,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      expectGetGroupSuccess(groupId, Option.empty[AccessGroup])
+      expectGetGroupById(groupId, Option.empty[AccessGroup])
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -382,7 +382,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(groupId, Some(accessGroup))
+      expectGetGroupById(groupId, Some(accessGroup))
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -399,7 +399,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_RENAMED_FROM, "Previous Name"))
-      expectGetGroupSuccess(groupId, Some(accessGroup))
+      expectGetGroupById(groupId, Some(accessGroup))
 
       //when
       val result = controller.showGroupRenamed(groupId)(request)
@@ -434,7 +434,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      expectGetGroupSuccess(groupId, Some(accessGroup))
+      expectGetGroupById(groupId, Some(accessGroup))
 
       //when
       val result = controller.showDeleteGroup(groupId)(request)
@@ -473,7 +473,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
       expectDeleteGroupSuccess(accessGroup._id.toString)
 
       //when
@@ -502,7 +502,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
       val result =
@@ -528,7 +528,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupSuccess(groupId, Some(accessGroup))
+      expectGetGroupById(groupId, Some(accessGroup))
 
       //when
       val result = controller.submitDeleteGroup(groupId)(request)

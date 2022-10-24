@@ -29,7 +29,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{GroupService, GroupServiceImpl}
+import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -43,7 +43,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
     : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val groupService: GroupService = new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector)
+  implicit val groupService: GroupService = mock[GroupService]
 
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -223,7 +223,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
 
       //when
@@ -252,7 +252,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
@@ -286,7 +286,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
@@ -320,7 +320,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupSuccess(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,

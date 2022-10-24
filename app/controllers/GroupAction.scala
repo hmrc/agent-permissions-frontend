@@ -22,7 +22,7 @@ import play.api.mvc.Results.NotFound
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import repository.SessionCacheRepository
-import services.SessionCacheService
+import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -36,6 +36,7 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
                             val env: Environment,
                             val config: Configuration,
                             authAction: AuthAction,
+                            val groupService: GroupService,
                             val agentPermissionsConnector: AgentPermissionsConnector,
                             val sessionCacheRepository: SessionCacheRepository,
                             val sessionCacheService: SessionCacheService,
@@ -51,7 +52,7 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
   : Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).flatMap(
+        groupService.getGroup(groupId).flatMap(
           _.fold(groupNotFound)(body(_)))
       }
     }
@@ -66,7 +67,7 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
   : Future[Result] = {
     authAction.isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
-        agentPermissionsConnector.getGroup(groupId).flatMap(
+        groupService.getGroup(groupId).flatMap(
           _.fold(groupNotFound)(body(_)))
       }
     }

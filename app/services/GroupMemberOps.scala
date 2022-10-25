@@ -16,7 +16,7 @@
 
 package services
 
-import models.Selectable
+import models.{DisplayClient, Selectable}
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
 import repository.SessionCacheRepository

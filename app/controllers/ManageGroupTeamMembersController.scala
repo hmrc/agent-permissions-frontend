@@ -24,7 +24,6 @@ import models.{AddTeamMembersToGroup, SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -97,7 +96,11 @@ class ManageGroupTeamMembersController @Inject()(
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
-        _ <- sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
+        _ <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(maybeTeamMembers =>
+          if (maybeTeamMembers.isEmpty) {
+            sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
+          }
+        )
         filteredTeamMembers <- sessionCacheService.get[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
         maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
         teamMembersForArn <- teamMemberService.getAllTeamMembers(group.arn)

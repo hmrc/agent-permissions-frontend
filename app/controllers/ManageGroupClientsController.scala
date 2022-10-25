@@ -24,7 +24,6 @@ import models.{AddClientsToGroup, DisplayClient, DisplayGroup, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -35,16 +34,15 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupClientsController @Inject()(
-                                              groupAction: GroupAction,
-                                              mcc: MessagesControllerComponents,
-                                              clientService: ClientService,
-                                              groupService: GroupService,
-                                              val sessionCacheRepository: SessionCacheRepository,
-                                              val sessionCacheService: SessionCacheService,
-                                              review_update_clients: review_update_clients,
-                                              update_client_group_list: update_client_group_list,
-                                              existing_clients: existing_clients,
-                                              clients_update_complete: clients_update_complete
+                groupAction: GroupAction,
+                mcc: MessagesControllerComponents,
+                clientService: ClientService,
+                groupService: GroupService,
+                val sessionCacheService: SessionCacheService,
+                review_update_clients: review_update_clients,
+                update_client_group_list: update_client_group_list,
+                existing_clients: existing_clients,
+                clients_update_complete: clients_update_complete
     )(implicit val appConfig: AppConfig, ec: ExecutionContext,
       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
@@ -93,8 +91,12 @@ class ManageGroupClientsController @Inject()(
       sessionCacheService.withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         sessionCacheService.withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           for {
-            _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS,
-              group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true)))
+            _ <- sessionCacheService.get(SELECTED_CLIENTS).map( maybeSelectedClients =>
+              if (maybeSelectedClients.isEmpty) {
+                val clientsInGroupAlready = group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true))
+                sessionCacheService.put[Seq[DisplayClient]](SELECTED_CLIENTS, clientsInGroupAlready)
+              }
+            )
             clients <- clientService.getFilteredClientsElseAll(group.arn)
           } yield Ok(
             update_client_group_list(
@@ -137,16 +139,16 @@ class ManageGroupClientsController @Inject()(
                   .flatMap(_ =>
                   if (formData.submit == CONTINUE_BUTTON) {
                     for {
-                      maybeSelectedClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
+                      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
                       clientsToSaveToGroup = maybeSelectedClients
                             .map(_.map(dc => Client(dc.enrolmentKey, dc.name)))
                             .map(_.toSet)
 
                       groupRequest = UpdateAccessGroupRequest(clients = clientsToSaveToGroup)
                       _ <- groupService.updateGroup(groupId, groupRequest)
-                      _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
-                      _ <- sessionCacheRepository.deleteFromSession(CLIENT_FILTER_INPUT)
-                      _ <- sessionCacheRepository.deleteFromSession(CLIENT_SEARCH_INPUT)
+                      _ <- sessionCacheService.delete(FILTERED_CLIENTS)
+                      _ <- sessionCacheService.delete(CLIENT_FILTER_INPUT)
+                      _ <- sessionCacheService.delete(CLIENT_SEARCH_INPUT)
                     } yield
                       Redirect(controller.showReviewSelectedClients(groupId))
                   }

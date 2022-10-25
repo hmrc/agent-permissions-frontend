@@ -36,24 +36,24 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupTeamMembersController @Inject()(
-     groupAction: GroupAction,
-     mcc: MessagesControllerComponents,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService,
-     groupService: GroupService,
-     teamMemberService: TeamMemberService,
-     existing_team_members: existing_team_members,
-     team_members_list: team_members_list,
-     review_update_team_members: review_update_team_members,
-     team_members_update_complete: team_members_update_complete,
+                                                  groupAction: GroupAction,
+                                                  mcc: MessagesControllerComponents,
+                                                  val agentPermissionsConnector: AgentPermissionsConnector,
+                                                  val sessionCacheRepository: SessionCacheRepository,
+                                                  val sessionCacheService: SessionCacheService,
+                                                  groupService: GroupService,
+                                                  optInStatusAction: OptInStatusAction,
+                                                  teamMemberService: TeamMemberService,
+                                                  existing_team_members: existing_team_members,
+                                                  team_members_list: team_members_list,
+                                                  review_update_team_members: review_update_team_members,
+                                                  team_members_update_complete: team_members_update_complete,
     )
                                                 (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import groupAction._
 
@@ -144,7 +144,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
-      withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
+      sessionCacheService.withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
           AddTeamMembersToGroupForm
             .form()
             .bindFromRequest()
@@ -203,7 +203,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def showReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
+      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
             Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
@@ -217,7 +217,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
+      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
             Redirect(controller.showExistingGroupTeamMembers(groupId)).toFuture
@@ -242,7 +242,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
+      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         sessionCacheService.clearSelectedTeamMembers().map(_ =>
         if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
         else Redirect(controller.showManageGroupTeamMembers(groupId))

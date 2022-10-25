@@ -16,8 +16,9 @@
 
 package services
 
-import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys, clientFilteringKeys, teamMemberFilteringKeys}
+import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, clientFilteringKeys, creatingGroupKeys, teamMemberFilteringKeys}
 import models.{DisplayClient, TeamMember}
+import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request, Result}
 import repository.SessionCacheRepository
@@ -74,6 +75,12 @@ class SessionCacheService @Inject()(
       SELECTED_TEAM_MEMBERS,
       teamMembers.map(member => member.copy(selected = true))
     )
+  }
+
+  def withSessionItem[T](dataKey: DataKey[T])
+                        (body: Option[T] => Future[Result])
+                        (implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Result] = {
+    sessionCacheRepository.getFromSession[T](dataKey).flatMap(data => body(data))
   }
 
   def clearSelectedTeamMembers()(implicit request: Request[_]): Future[Unit] = {

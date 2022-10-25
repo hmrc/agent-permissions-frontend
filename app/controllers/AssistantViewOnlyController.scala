@@ -24,7 +24,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService}
+import services.{ClientService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.assistant_read_only._
@@ -37,7 +37,7 @@ class AssistantViewOnlyController @Inject()(
                                              authAction: AuthAction,
                                              groupAction: GroupAction,
                                              mcc: MessagesControllerComponents,
-                                             groupService: GroupService,
+                                             optInStatusAction: OptInStatusAction,
                                              clientService: ClientService,
                                              val agentPermissionsConnector: AgentPermissionsConnector,
                                              val sessionCacheRepository: SessionCacheRepository,
@@ -49,11 +49,11 @@ class AssistantViewOnlyController @Inject()(
                                             implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import authAction._
   import groupAction._
+  import optInStatusAction._
 
   def showUnassignedClientsViewOnly: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAssistant { arn =>

@@ -37,11 +37,14 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
                             val config: Configuration,
                             authAction: AuthAction,
                             val groupService: GroupService,
+                            optInStatusAction: OptInStatusAction,
                             val agentPermissionsConnector: AgentPermissionsConnector,
                             val sessionCacheRepository: SessionCacheRepository,
                             val sessionCacheService: SessionCacheService,
                             group_not_found: group_not_found
-                           ) extends Logging with SessionBehaviour {
+                           ) extends Logging  {
+
+  import optInStatusAction._
 
   def withGroupForAuthorisedOptedAgent(groupId: String)
                                               (body: AccessGroup => Future[Result])

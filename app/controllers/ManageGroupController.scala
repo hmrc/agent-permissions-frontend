@@ -41,6 +41,7 @@ class ManageGroupController @Inject()(
                                        val sessionCacheRepository: SessionCacheRepository,
                                        val sessionCacheService: SessionCacheService,
                                        groupService: GroupService,
+                                       optInStatusAction: OptInStatusAction,
                                        dashboard: dashboard,
                                        rename_group: rename_group,
                                        rename_group_complete: rename_group_complete,
@@ -51,11 +52,11 @@ class ManageGroupController @Inject()(
                                       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import authAction._
   import groupAction._
+  import optInStatusAction._
 
   def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>

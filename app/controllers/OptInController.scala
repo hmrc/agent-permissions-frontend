@@ -35,6 +35,7 @@ class OptInController @Inject()(
                                  mcc: MessagesControllerComponents,
                                  val agentPermissionsConnector: AgentPermissionsConnector,
                                  val sessionCacheRepository: SessionCacheRepository,
+                                 optInStatusAction: OptInStatusAction,
                                  optInService: OptInServiceImpl,
                                  start_optIn: start,
                                  want_to_opt_in: want_to_opt_in,
@@ -44,9 +45,10 @@ class OptInController @Inject()(
   implicit override val messagesApi: MessagesApi)
     extends FrontendController(mcc)
     with I18nSupport
-    with SessionBehaviour {
+     {
 
   import authAction._
+  import optInStatusAction._
 
   def start: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>

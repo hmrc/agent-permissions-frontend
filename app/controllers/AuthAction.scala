@@ -47,10 +47,8 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
   @nowarn
-  def isAuthorisedAgent(body: Arn => Future[Result])(
-      implicit ec: ExecutionContext,
-      request: RequestHeader,
-      appConfig: AppConfig): Future[Result] = {
+  def isAuthorisedAgent(body: Arn => Future[Result])
+                       (implicit ec: ExecutionContext, request: RequestHeader, appConfig: AppConfig): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 

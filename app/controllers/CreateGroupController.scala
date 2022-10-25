@@ -50,6 +50,7 @@ class CreateGroupController @Inject()(
                                        val sessionCacheRepository: SessionCacheRepository,
                                        val groupService: GroupService,
                                        clientService: ClientService,
+                                       optInStatusAction: OptInStatusAction,
                                        teamMemberService: TeamMemberService
                                      )(
                                        implicit val appConfig: AppConfig,
@@ -57,10 +58,10 @@ class CreateGroupController @Inject()(
                                        implicit override val messagesApi: MessagesApi
                                      ) extends FrontendController(mcc)
   with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import authAction._
+  import optInStatusAction._
 
   private val controller: ReverseCreateGroupController = routes.CreateGroupController
 
@@ -73,7 +74,7 @@ class CreateGroupController @Inject()(
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        withSessionItem[String](GROUP_NAME) { maybeName =>
+        sessionCacheService.withSessionItem[String](GROUP_NAME) { maybeName =>
           sessionCacheService.clearCreateGroupSession().map(_ =>
             Ok(create(GroupNameForm.form().fill(maybeName.getOrElse(""))))
           )
@@ -139,9 +140,9 @@ class CreateGroupController @Inject()(
 
   def showSelectClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
-        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          withSessionItem[String](RETURN_URL) { returnUrl =>
+      sessionCacheService.withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+        sessionCacheService.withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+          sessionCacheService.withSessionItem[String](RETURN_URL) { returnUrl =>
             clientService.getFilteredClientsElseAll(arn).map { clients =>
               Ok(
                 client_group_list(
@@ -160,7 +161,7 @@ class CreateGroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+      sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         AddClientsToGroupForm
           .form()
           .bindFromRequest()
@@ -192,7 +193,7 @@ class CreateGroupController @Inject()(
 
   def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+      sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
           clients => Ok(review_clients_to_add(clients, groupName, YesNoForm.form())).toFuture)
       }
@@ -201,7 +202,7 @@ class CreateGroupController @Inject()(
 
   def submitReviewSelectedClients(): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
+      sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
           maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
             clients =>
@@ -234,8 +235,8 @@ class CreateGroupController @Inject()(
 
   def showSelectTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
-        withSessionItem[String](RETURN_URL) { returnUrl =>
+      sessionCacheService.withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
+        sessionCacheService.withSessionItem[String](RETURN_URL) { returnUrl =>
           teamMemberService.getFilteredTeamMembersElseAll(arn).map { teamMembers =>
             Ok(
               team_members_list(
@@ -280,7 +281,7 @@ class CreateGroupController @Inject()(
 
   def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
+      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers.fold(
           Redirect(controller.showSelectTeamMembers).toFuture
         )(members =>
@@ -292,7 +293,7 @@ class CreateGroupController @Inject()(
 
   def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
+      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
             Redirect(controller.showSelectTeamMembers).toFuture
@@ -317,8 +318,8 @@ class CreateGroupController @Inject()(
 
   def showCheckYourAnswers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
-        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
+        sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
           Ok(check_your_answers(groupName, maybeTeamMembers.map(_.length), maybeClients.map(_.length))).toFuture
         }
       }

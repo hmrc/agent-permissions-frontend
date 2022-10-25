@@ -109,7 +109,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
       expectGetGroupsForArn(arn)(groupSummaries)
 
@@ -164,7 +164,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetGroupsForArn(arn)(Seq.empty)
 
       //when
@@ -196,7 +196,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", i * 3, i * 4))
       expectGetGroupsForArn(arn)(expectedGroupSummaries)
@@ -259,7 +259,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetGroupById(groupId, Some(accessGroup))
 
       //when
@@ -286,7 +286,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetGroupById(groupId, Option.empty[AccessGroup])
 
       //when
@@ -325,7 +325,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(
         sessionCacheRepo.putSession(GROUP_RENAMED_FROM, accessGroup.groupName))
 
@@ -349,7 +349,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetGroupById(groupId, Option.empty[AccessGroup])
 
       //when
@@ -379,7 +379,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(groupId, Some(accessGroup))
@@ -397,7 +397,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_RENAMED_FROM, "Previous Name"))
       expectGetGroupById(groupId, Some(accessGroup))
 
@@ -433,7 +433,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetGroupById(groupId, Some(accessGroup))
 
       //when
@@ -472,7 +472,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
       expectDeleteGroup(accessGroup._id.toString)
 
@@ -500,7 +500,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
@@ -524,7 +524,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> s"Bearer whatever")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(groupId, Some(accessGroup))
@@ -542,7 +542,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_DELETED_NAME, "Rubbish"))
 
       //when

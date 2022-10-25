@@ -17,13 +17,12 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector}
+import connectors.AddMembersToAccessGroupRequest
 import forms.AddGroupsToClientForm
 import models.DisplayClient
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -34,16 +33,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AddClientToGroupsController @Inject()(
-                                             clientAction: ClientAction,
-                                             mcc: MessagesControllerComponents,
-                                             val agentPermissionsConnector: AgentPermissionsConnector,
-                                             val sessionCacheRepository: SessionCacheRepository,
-                                             val sessionCacheService: SessionCacheService,
-                                             groupService: GroupService,
-                                             select_groups: select_groups,
-                                             confirm_added: confirm_added)
-   (implicit val appConfig: AppConfig, ec: ExecutionContext,
-    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+   clientAction: ClientAction,
+   mcc: MessagesControllerComponents,
+   val sessionCacheService: SessionCacheService,
+   groupService: GroupService,
+   select_groups: select_groups,
+   confirm_added: confirm_added)
+   (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+  extends FrontendController(mcc)
     with I18nSupport
     with Logging {
 
@@ -51,7 +48,7 @@ class AddClientToGroupsController @Inject()(
 
   def showSelectGroupsForClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
-      sessionCacheRepository.deleteFromSession(GROUP_IDS_ADDED_TO)
+      sessionCacheService.delete(GROUP_IDS_ADDED_TO)
       groupService.groups(arn).flatMap { allGroups =>
         groupService.groupSummariesForClient(arn, displayClient).map { clientGroups =>
           Ok(
@@ -90,7 +87,7 @@ class AddClientToGroupsController @Inject()(
             grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))
             ))
         }).map { _ =>
-          sessionCacheRepository.putSession[Seq[String]](GROUP_IDS_ADDED_TO, groupIds)
+          sessionCacheService.put[Seq[String]](GROUP_IDS_ADDED_TO, groupIds)
           Redirect(routes.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId))
         }
       }
@@ -101,7 +98,7 @@ class AddClientToGroupsController @Inject()(
 
   def showConfirmClientAddedToGroups(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
-      sessionCacheRepository.getFromSession[Seq[String]](GROUP_IDS_ADDED_TO)
+      sessionCacheService.get[Seq[String]](GROUP_IDS_ADDED_TO)
         .flatMap { maybeGroupIds =>
         groupService.groups(arn).map { groups =>
           val groupsAddedTo = groups.filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))

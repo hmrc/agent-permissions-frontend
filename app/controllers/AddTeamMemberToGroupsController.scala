@@ -17,14 +17,13 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector}
+import connectors.AddMembersToAccessGroupRequest
 import forms.AddGroupsToClientForm
 import models.TeamMember
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.add_groups_to_team_member.{confirm_added, select_groups}
@@ -34,18 +33,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AddTeamMemberToGroupsController @Inject()(
-                                                 teamMemberAction: TeamMemberAction,
-                                                 mcc: MessagesControllerComponents,
-                                                 val agentPermissionsConnector: AgentPermissionsConnector,
-                                                 val sessionCacheRepository: SessionCacheRepository,
-                                                 val sessionCacheService: SessionCacheService,
-                                                 groupService: GroupService,
-                                                 select_groups: select_groups,
-                                                 confirm_added: confirm_added
-                                               )(implicit val appConfig: AppConfig,
-                                                 ec: ExecutionContext,
-                                                 implicit override val messagesApi: MessagesApi
-                                               ) extends FrontendController(mcc)
+       teamMemberAction: TeamMemberAction,
+       mcc: MessagesControllerComponents,
+       groupService: GroupService,
+       select_groups: select_groups,
+       confirm_added: confirm_added
+     )(implicit val appConfig: AppConfig,
+       ec: ExecutionContext,
+       implicit override val messagesApi: MessagesApi
+     ) extends FrontendController(mcc)
 
     with I18nSupport
     with Logging {

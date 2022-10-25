@@ -17,14 +17,12 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import forms.SearchAndFilterForm
 import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService, TeamMemberService}
+import services.{GroupService, TeamMemberService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
@@ -33,18 +31,14 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageTeamMemberController @Inject()(
-                                            authAction: AuthAction,
-                                            mcc: MessagesControllerComponents,
-                                            groupService: GroupService,
-                                            teamMemberService: TeamMemberService,
-                                            optInStatusAction: OptInStatusAction,
-                                            manage_team_members_list: manage_team_members_list,
-                                            team_member_details: team_member_details,
-                                            val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-                                            val agentPermissionsConnector: AgentPermissionsConnector,
-                                            val sessionCacheRepository: SessionCacheRepository,
-                                            val sessionCacheService: SessionCacheService)
-                                          (implicit val appConfig: AppConfig, ec: ExecutionContext,
+                  authAction: AuthAction,
+                  mcc: MessagesControllerComponents,
+                  groupService: GroupService,
+                  teamMemberService: TeamMemberService,
+                  optInStatusAction: OptInStatusAction,
+                  manage_team_members_list: manage_team_members_list,
+                  team_member_details: team_member_details)
+                (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport

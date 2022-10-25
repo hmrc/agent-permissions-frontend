@@ -17,14 +17,13 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
+import connectors.UpdateAccessGroupRequest
 import forms._
 import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
@@ -34,22 +33,19 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupController @Inject()(
-                                       authAction: AuthAction,
-                                       groupAction: GroupAction,
-                                       mcc: MessagesControllerComponents,
-                                       val agentPermissionsConnector: AgentPermissionsConnector,
-                                       val sessionCacheRepository: SessionCacheRepository,
-                                       val sessionCacheService: SessionCacheService,
-                                       groupService: GroupService,
-                                       optInStatusAction: OptInStatusAction,
-                                       dashboard: dashboard,
-                                       rename_group: rename_group,
-                                       rename_group_complete: rename_group_complete,
-                                       confirm_delete_group: confirm_delete_group,
-                                       delete_group_complete: delete_group_complete
-                                     )
-                                     (implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                      implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+       authAction: AuthAction,
+       groupAction: GroupAction,
+       mcc: MessagesControllerComponents,
+       groupService: GroupService,
+       optInStatusAction: OptInStatusAction,
+       dashboard: dashboard,
+       rename_group: rename_group,
+       rename_group_complete: rename_group_complete,
+       confirm_delete_group: confirm_delete_group,
+       delete_group_complete: delete_group_complete
+     )
+     (implicit val appConfig: AppConfig, ec: ExecutionContext,
+      implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
     with Logging {
@@ -97,7 +93,7 @@ class ManageGroupController @Inject()(
           formWithErrors => Ok(rename_group(formWithErrors, group, groupId)).toFuture,
           (newName: String) => {
             for {
-              _ <- sessionCacheRepository.putSession[String](GROUP_RENAMED_FROM, group.groupName)
+              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, group.groupName)
               patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
               _ <- groupService.updateGroup(groupId, patchRequestBody)
             } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
@@ -111,7 +107,7 @@ class ManageGroupController @Inject()(
       isOptedIn(arn) { _ =>
         for {
           group <- groupService.getGroup(groupId)
-          oldName <- sessionCacheRepository.getFromSession(GROUP_RENAMED_FROM)
+          oldName <- sessionCacheService.get(GROUP_RENAMED_FROM)
         } yield Ok(rename_group_complete(oldName.get, group.get.groupName))
       }
     }
@@ -134,7 +130,7 @@ class ManageGroupController @Inject()(
           (answer: Boolean) => {
             if (answer) {
               for {
-                _ <- sessionCacheRepository.putSession[String](GROUP_DELETED_NAME, group.groupName)
+                _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, group.groupName)
                 _ <- groupService.deleteGroup(groupId)
               } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
@@ -147,9 +143,11 @@ class ManageGroupController @Inject()(
   def showGroupDeleted: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        sessionCacheRepository
-          .getFromSession(GROUP_DELETED_NAME)
-          .map(groupName => Ok(delete_group_complete(groupName.getOrElse(""))))
+        sessionCacheService
+          .get(GROUP_DELETED_NAME)
+          .map(groupName =>
+            Ok(delete_group_complete(groupName.getOrElse("")))
+          )
       }
     }
   }

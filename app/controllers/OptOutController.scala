@@ -17,11 +17,9 @@
 package controllers
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
 import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import repository.SessionCacheRepository
 import services.OptInServiceImpl
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
@@ -33,8 +31,6 @@ import scala.concurrent.ExecutionContext
 class OptOutController @Inject()(
                                   authAction: AuthAction,
                                   mcc: MessagesControllerComponents,
-                                  val agentPermissionsConnector: AgentPermissionsConnector,
-                                  val sessionCacheRepository: SessionCacheRepository,
                                   optInStatusAction: OptInStatusAction,
                                   optInService: OptInServiceImpl,
                                   opt_out_start: opt_out_start,

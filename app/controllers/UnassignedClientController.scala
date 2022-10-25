@@ -17,14 +17,13 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector}
+import connectors.AddMembersToAccessGroupRequest
 import forms._
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.Logging
 import play.api.data.FormError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -37,21 +36,19 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UnassignedClientController @Inject()(
-                                            authAction: AuthAction,
-                                            mcc: MessagesControllerComponents,
-                                            groupService: GroupService,
-                                            clientService: ClientService,
-                                            optInStatusAction: OptInStatusAction,
-                                            val agentPermissionsConnector: AgentPermissionsConnector,
-                                            val sessionCacheRepository: SessionCacheRepository,
-                                            val sessionCacheService: SessionCacheService,
-                                            unassigned_clients_list: unassigned_clients_list,
-                                            review_clients_to_add: review_clients_to_add,
-                                            select_groups_for_clients: select_groups_for_clients,
-                                            clients_added_to_groups_complete: clients_added_to_groups_complete
-                                          )
-                                          (implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                           implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+      authAction: AuthAction,
+      mcc: MessagesControllerComponents,
+      groupService: GroupService,
+      clientService: ClientService,
+      optInStatusAction: OptInStatusAction,
+      val sessionCacheService: SessionCacheService,
+      unassigned_clients_list: unassigned_clients_list,
+      review_clients_to_add: review_clients_to_add,
+      select_groups_for_clients: select_groups_for_clients,
+      clients_added_to_groups_complete: clients_added_to_groups_complete
+    )
+    (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+  extends FrontendController(mcc)
 
   with I18nSupport
     with Logging {
@@ -201,8 +198,8 @@ class UnassignedClientController @Inject()(
               for {
                 allGroups <- groupService.groups(arn)
                 groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId))
-                _ <- sessionCacheRepository.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
-                selectedClients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS)
+                _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
+                selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
                 result <- selectedClients.fold(
                   Redirect(routes.ManageGroupController.showManageGroups).toFuture
                 ) { displayClients =>
@@ -227,9 +224,13 @@ class UnassignedClientController @Inject()(
   def showConfirmClientsAddedToGroups: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        sessionCacheRepository.getFromSession(GROUPS_FOR_UNASSIGNED_CLIENTS).flatMap {
-          case None => Future.successful(Redirect(controller.showSelectGroupsForSelectedUnassignedClients.url))
-          case Some(groups) => sessionCacheRepository.deleteFromSession(SELECTED_CLIENTS).map(_ => Ok(clients_added_to_groups_complete(groups)))
+        sessionCacheService.get(GROUPS_FOR_UNASSIGNED_CLIENTS).flatMap {
+          case None =>
+            Future.successful(Redirect(controller.showSelectGroupsForSelectedUnassignedClients.url))
+          case Some(groups) =>
+            sessionCacheService
+            .delete(SELECTED_CLIENTS)
+            .map(_ => Ok(clients_added_to_groups_complete(groups)))
         }
       }
     }

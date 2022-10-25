@@ -73,7 +73,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
@@ -113,7 +113,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToClient = Seq.empty
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
@@ -148,7 +148,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
@@ -203,7 +203,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
         val result = controller.submitSelectGroupsForClient(client.id)(request)
 
@@ -231,7 +231,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitSelectGroupsForClient(client.id)(request)
 
@@ -254,7 +254,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)

@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
+import connectors.UpdateAccessGroupRequest
 import forms._
 import models.DisplayClient.format
 import models.{AddClientsToGroup, DisplayClient, DisplayGroup, SearchFilter}
@@ -38,7 +38,6 @@ class ManageGroupClientsController @Inject()(
                                               groupAction: GroupAction,
                                               mcc: MessagesControllerComponents,
                                               clientService: ClientService,
-                                              val agentPermissionsConnector: AgentPermissionsConnector,
                                               groupService: GroupService,
                                               val sessionCacheRepository: SessionCacheRepository,
                                               val sessionCacheService: SessionCacheService,

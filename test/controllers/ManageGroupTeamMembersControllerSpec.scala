@@ -91,7 +91,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -125,7 +125,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with name/email searchTerm set" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
@@ -161,7 +161,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with email searchTerm set" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
@@ -196,7 +196,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with filter that matches nothing" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
@@ -231,7 +231,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -265,7 +265,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page filtered results exist" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
       await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -302,7 +302,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(Set(AgentUser("id1", "John"))))))
@@ -350,7 +350,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             .withSession(SessionKeys.sessionId -> "session-x")
 
         await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers.take(1)))
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
@@ -380,7 +380,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         expectGetFilteredTeamMembersElseAll(accessGroup.arn)(teamMembers)
 
@@ -415,7 +415,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         val expectedFormData = AddTeamMembersToGroup(None, None, FILTER_BUTTON)
         expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, expectedFormData)
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
 
         // when
@@ -436,7 +436,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -456,7 +456,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "redirect if no team members selected in session" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -472,7 +472,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage group REVIEW SELECTED page" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -512,7 +512,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -535,7 +535,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -557,7 +557,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -578,7 +578,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "redirect if no team members selected in session" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -594,7 +594,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS UPDATED page" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)

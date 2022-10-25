@@ -18,7 +18,7 @@ package services
 
 import controllers.{GROUP_NAME, GROUP_NAME_CONFIRMED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, clientFilteringKeys, creatingGroupKeys, teamMemberFilteringKeys}
 import models.{DisplayClient, TeamMember}
-import play.api.libs.json.Reads
+import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request, Result}
 import repository.SessionCacheRepository
@@ -85,5 +85,20 @@ class SessionCacheService @Inject()(
 
   def clearSelectedTeamMembers()(implicit request: Request[_]): Future[Unit] = {
     sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
+  }
+
+  def get[T](dataKey: DataKey[T])
+            (implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Option[T]] = {
+    sessionCacheRepository.getFromSession[T](dataKey)
+  }
+
+  def put[T](dataKey: DataKey[T], value: T)
+            (implicit writes: Writes[T], request: Request[_], ec: ExecutionContext): Future[(String, String)] = {
+    sessionCacheRepository.putSession(dataKey, value)
+  }
+
+  def delete[T](dataKey: DataKey[T])
+            (implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
+    sessionCacheRepository.deleteFromSession(dataKey)
   }
 }

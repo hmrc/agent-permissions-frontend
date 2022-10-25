@@ -17,13 +17,11 @@
 package controllers
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
 import models.DisplayClient
 import play.api.mvc.Results.Ok
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
-import repository.SessionCacheRepository
-import services.{ClientService, SessionCacheService}
+import services.ClientService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -33,17 +31,16 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ClientAction @Inject()(val authConnector: AuthConnector,
-                             val env: Environment,
-                             val config: Configuration,
-                             authAction: AuthAction,
-                             val agentPermissionsConnector: AgentPermissionsConnector,
-                             optInStatusAction: OptInStatusAction,
-                             val clientService: ClientService,
-                             val sessionCacheRepository: SessionCacheRepository,
-                             val sessionCacheService: SessionCacheService,
-                             client_not_found: client_not_found,
-                            ) extends Logging  {
+class ClientAction @Inject()(
+  val authConnector: AuthConnector,
+  val env: Environment,
+  val config: Configuration,
+  authAction: AuthAction,
+  optInStatusAction: OptInStatusAction,
+  val clientService: ClientService,
+  client_not_found: client_not_found,
+  )
+  extends Logging  {
 
   import optInStatusAction._
 

@@ -42,7 +42,7 @@ class RootController @Inject()(
 
   val start: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS).flatMap {
+      sessionCacheRepository.getFromSession[OptinStatus](OPT_IN_STATUS).flatMap {
         case Some(status) =>
           if (controllers.isEligibleToOptIn(status))
             Redirect(routes.OptInController.start.url).toFuture
@@ -57,7 +57,7 @@ class RootController @Inject()(
           agentPermissionsConnector.getOptInStatus(arn).flatMap {
             case Some(status) =>
               sessionCacheRepository
-                .putSession(OPTIN_STATUS, status)
+                .putSession(OPT_IN_STATUS, status)
                 .map(_ => Redirect(routes.RootController.start.url))
             case None =>
               throw new RuntimeException(

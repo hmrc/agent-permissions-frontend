@@ -83,7 +83,7 @@ class RootControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(true)
-        await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
+        await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
 
         val result = controller.start()(request)
 
@@ -96,7 +96,7 @@ class RootControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(true)
-        await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
         val result = controller.start()(request)
 
@@ -109,7 +109,7 @@ class RootControllerSpec extends BaseSpec {
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(true)
-        await(sessioncacheRepo.putSession(OPTIN_STATUS, OptedOutSingleUser))
+        await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedOutSingleUser))
 
         val result = controller.start()(request)
 

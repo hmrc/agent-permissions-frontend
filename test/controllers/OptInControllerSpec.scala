@@ -194,7 +194,7 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
 
       expectPostOptInAccepted(arn)
       expectOptInStatusOk(arn)(OptedInReady)
@@ -215,7 +215,7 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
 
       val result = controller.submitDoYouWantToOptIn()(request)
 
@@ -234,7 +234,7 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
 
       val result = controller.submitDoYouWantToOptIn()(request)
 
@@ -264,7 +264,7 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedOutEligible))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
 
       intercept[UpstreamErrorResponse] {
         await(controller.submitDoYouWantToOptIn()(request))
@@ -278,7 +278,7 @@ class OptInControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(
-        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInNotReady))
+        sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInNotReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -315,7 +315,7 @@ class OptInControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       await(
-        sessionCacheRepo.putSession[OptinStatus](OPTIN_STATUS, OptedInReady))
+        sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showYouHaveOptedIn()(request)
 

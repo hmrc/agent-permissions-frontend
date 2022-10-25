@@ -77,7 +77,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
@@ -105,7 +105,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1"))
 
       expectGetUnassignedClientsSuccess(arn, displayClients)
@@ -136,7 +136,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //when
@@ -177,7 +177,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -209,7 +209,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -238,7 +238,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -261,7 +261,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
 
       val result = controller.submitAddUnassignedClients()(request)
@@ -277,7 +277,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "redirect if no clients selected are in session" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectIsArnAllowed(allowed = true)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
@@ -291,7 +291,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "render html when there are groups" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -414,7 +414,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -466,7 +466,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       //given
       val groupSummaries = Seq.empty
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -504,7 +504,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("createNew" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -528,7 +528,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
         ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId)
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -556,7 +556,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -587,7 +587,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("createNew" -> "true", "groups[0]" -> "12412312")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -613,7 +613,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
     "render correctly the select groups for unassigned clients page" in {
       //given
       val groups = Seq("South West", "London")
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUPS_FOR_UNASSIGNED_CLIENTS, groups))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -639,7 +639,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "redirect when no group names in session" in {
       //given
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 

@@ -81,7 +81,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupTeamMember(arn)(teamMember)
@@ -121,7 +121,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToMember = Seq.empty
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupTeamMember(arn)(teamMember)
@@ -158,7 +158,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
 
@@ -222,7 +222,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
         val result = controller.submitSelectGroupsForTeamMember(teamMember.id)(request)
 
@@ -251,7 +251,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitSelectGroupsForTeamMember(teamMember.id)(request)
 
@@ -274,7 +274,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)

@@ -40,13 +40,13 @@ package object controllers {
   final val FILTER_BUTTON: String = "filter"
 
   val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
-  val isOptedIn: OptinStatus => Boolean = status =>
-    status == OptedInReady || status == OptedInNotReady || status == OptedInSingleUser
-  val isOptedOut: OptinStatus => Boolean = status =>
-    status == OptedOutEligible || status == OptedOutSingleUser || status == OptedOutWrongClientCount
+  val optedInStatii = Seq(OptedInReady, OptedInNotReady, OptedInSingleUser)
+  val optedOutStatii = Seq(OptedOutEligible, OptedOutSingleUser, OptedOutWrongClientCount)
+  val isOptedIn: OptinStatus => Boolean = status => optedInStatii.contains(status)
+  val isOptedOut: OptinStatus => Boolean =  status => optedOutStatii.contains(status)
   val isOptedInComplete: OptinStatus => Boolean = status => status == OptedInReady
 
-  val OPTIN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
+  val OPT_IN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
 
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
@@ -67,8 +67,7 @@ package object controllers {
   val GROUP_DELETED_NAME: DataKey[String] = DataKey("groupDeletedName")
   val RETURN_URL: DataKey[String] = DataKey("returnUrl")
 
-  val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]]
-  = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
+  val GROUPS_FOR_UNASSIGNED_CLIENTS: DataKey[Seq[String]] = DataKey("groupsThatUnassignedClientsHaveBeenAddedTo")
 
   val FILTERED_GROUP_SUMMARIES: DataKey[Seq[GroupSummary]] = DataKey("filteredGroupSummaries")
   val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
@@ -103,7 +102,7 @@ package object controllers {
       teamMemberFilteringKeys ++
       creatingGroupKeys ++
       List(
-        OPTIN_STATUS,
+        OPT_IN_STATUS,
         GROUP_NAME,
         GROUP_NAME_CONFIRMED,
         GROUP_CLIENTS,

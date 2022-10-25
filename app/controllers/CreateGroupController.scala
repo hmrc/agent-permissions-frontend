@@ -17,13 +17,11 @@
 package controllers
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
 import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
 import models.{AddClientsToGroup, AddTeamMembersToGroup, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -34,31 +32,28 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CreateGroupController @Inject()(
-                                       authAction: AuthAction,
-                                       mcc: MessagesControllerComponents,
-                                       create: create,
-                                       confirm_group_name: confirm_group_name,
-                                       access_group_name_exists: access_group_name_exists,
-                                       val client_group_list: client_group_list,
-                                       review_clients_to_add: review_clients_to_add,
-                                       team_members_list: team_members_list,
-                                       review_team_members_to_add: review_team_members_to_add,
-                                       check_your_answers: check_your_answers,
-                                       group_created: group_created,
-                                       val agentPermissionsConnector: AgentPermissionsConnector,
-                                       val sessionCacheService: SessionCacheService,
-                                       val sessionCacheRepository: SessionCacheRepository,
-                                       val groupService: GroupService,
-                                       clientService: ClientService,
-                                       optInStatusAction: OptInStatusAction,
-                                       teamMemberService: TeamMemberService
-                                     )(
-                                       implicit val appConfig: AppConfig,
-                                       ec: ExecutionContext,
-                                       implicit override val messagesApi: MessagesApi
-                                     ) extends FrontendController(mcc)
-  with I18nSupport
-    with Logging {
+       authAction: AuthAction,
+       mcc: MessagesControllerComponents,
+       create: create,
+       confirm_group_name: confirm_group_name,
+       access_group_name_exists: access_group_name_exists,
+       val client_group_list: client_group_list,
+       review_clients_to_add: review_clients_to_add,
+       team_members_list: team_members_list,
+       review_team_members_to_add: review_team_members_to_add,
+       check_your_answers: check_your_answers,
+       group_created: group_created,
+       val sessionCacheService: SessionCacheService,
+       val groupService: GroupService,
+       clientService: ClientService,
+       optInStatusAction: OptInStatusAction,
+       teamMemberService: TeamMemberService
+     )(
+       implicit val appConfig: AppConfig,
+       ec: ExecutionContext,
+       implicit override val messagesApi: MessagesApi
+     ) extends FrontendController(mcc)
+  with I18nSupport with Logging {
 
   import authAction._
   import optInStatusAction._
@@ -218,10 +213,10 @@ class CreateGroupController @Inject()(
                         Redirect(controller.showSelectClients)
                       )
                     else {
-                      sessionCacheRepository.getFromSession(RETURN_URL)
+                      sessionCacheService.get(RETURN_URL)
                         .map(returnUrl =>
                           returnUrl.fold(Redirect(controller.showSelectTeamMembers))(url => {
-                            sessionCacheRepository.deleteFromSession(RETURN_URL)
+                            sessionCacheService.delete(RETURN_URL)
                             Redirect(url)
                           })
                         )
@@ -327,7 +322,7 @@ class CreateGroupController @Inject()(
   }
 
   def redirectToEditClients: Action[AnyContent] = Action.async { implicit request =>
-    sessionCacheRepository.putSession(RETURN_URL,
+    sessionCacheService.put(RETURN_URL,
       controllers.routes.CreateGroupController.showCheckYourAnswers.url)
       .map(_ => Redirect(controllers.routes.CreateGroupController.showSelectClients))
 

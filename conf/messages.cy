@@ -242,7 +242,7 @@ error.client-reference.max-length=Mae’n rhaid i’r cyfeirnod cleient fod yn 8
 error.client-reference.invalid=Mae’n rhaid i gyfeirnod y cleient gynnwys y llythrennau a i z, rhifau, bylchau a’r cymeriadau hyn yn unig: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 
 client-reference.updated.title=Cyfeirnod cleient wedi’i ddiweddaru
-client-reference.updated.panel=Cyfeirnod cleient wedi’i ddiweddaru i {0}
+client-reference.updated.panel=Cyfeirnod cleient wedi’i ddiweddaru i
 client-reference.updated.p=Rydych wedi diweddaru’r cyfeirnod cleient hwn yn eich grwpiau mynediad. Ni fydd hyn yn newid y cyfeirnod cleient ar gyfer gwasanaethau eraill Porth y Llywodraeth.
 
 error.group.filter.max.length=Gallwch ond nodi 32 o gymeriadau neu lai

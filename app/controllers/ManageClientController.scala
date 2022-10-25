@@ -17,13 +17,11 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import forms.{ClientReferenceForm, SearchAndFilterForm}
 import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
@@ -34,22 +32,19 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageClientController @Inject()(
-                                        authAction: AuthAction,
-                                        mcc: MessagesControllerComponents,
-                                        groupService: GroupService,
-                                        clientService: ClientService,
-                                        manage_clients_list: manage_clients_list,
-                                        client_details: client_details,
-                                        update_client_reference: update_client_reference,
-                                        update_client_reference_complete: update_client_reference_complete,
-                                        client_not_found: client_not_found,
-                                        val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-                                        val agentPermissionsConnector: AgentPermissionsConnector,
-                                        val sessionCacheRepository: SessionCacheRepository,
-                                        optInStatusAction: OptInStatusAction,
-                                        val sessionCacheService: SessionCacheService)
-                                      (implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+    authAction: AuthAction,
+    mcc: MessagesControllerComponents,
+    val sessionCacheService: SessionCacheService,
+    groupService: GroupService,
+    clientService: ClientService,
+    manage_clients_list: manage_clients_list,
+    client_details: client_details,
+    update_client_reference: update_client_reference,
+    update_client_reference_complete: update_client_reference_complete,
+    client_not_found: client_not_found,
+    optInStatusAction: OptInStatusAction)
+  (implicit val appConfig: AppConfig, ec: ExecutionContext,
+   implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with I18nSupport
     with Logging {
@@ -138,7 +133,7 @@ class ManageClientController @Inject()(
                 },
                 (newName: String) => {
                   for {
-                    _ <- sessionCacheRepository.putSession[String](CLIENT_REFERENCE, newName)
+                    _ <- sessionCacheService.put[String](CLIENT_REFERENCE, newName)
                     _ <- clientService.updateClientReference(arn, client, newName)
                   } yield ()
                   Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId))
@@ -160,7 +155,7 @@ class ManageClientController @Inject()(
             maybeClient.fold(
               Future.successful(NotFound(client_not_found()))
             )(client =>
-              sessionCacheRepository.getFromSession(CLIENT_REFERENCE).map(newName =>
+              sessionCacheService.get(CLIENT_REFERENCE).map(newName =>
                 Ok(update_client_reference_complete(
                   client,
                   clientRef = newName.get

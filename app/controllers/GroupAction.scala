@@ -17,12 +17,10 @@
 package controllers
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
 import play.api.mvc.Results.NotFound
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
-import repository.SessionCacheRepository
-import services.{GroupService, SessionCacheService}
+import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -38,9 +36,6 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
                             authAction: AuthAction,
                             val groupService: GroupService,
                             optInStatusAction: OptInStatusAction,
-                            val agentPermissionsConnector: AgentPermissionsConnector,
-                            val sessionCacheRepository: SessionCacheRepository,
-                            val sessionCacheService: SessionCacheService,
                             group_not_found: group_not_found
                            ) extends Logging  {
 

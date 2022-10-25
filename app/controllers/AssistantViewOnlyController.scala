@@ -17,14 +17,12 @@
 package controllers
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
 import forms._
 import models.{DisplayGroup, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
-import services.{ClientService, SessionCacheService}
+import services.ClientService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.assistant_read_only._
@@ -34,19 +32,15 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class AssistantViewOnlyController @Inject()(
-                                             authAction: AuthAction,
-                                             groupAction: GroupAction,
-                                             mcc: MessagesControllerComponents,
-                                             optInStatusAction: OptInStatusAction,
-                                             clientService: ClientService,
-                                             val agentPermissionsConnector: AgentPermissionsConnector,
-                                             val sessionCacheRepository: SessionCacheRepository,
-                                             val sessionCacheService: SessionCacheService,
-                                             unassigned_client_list: unassigned_client_list,
-                                             existing_group_client_list: existing_group_client_list
-                                           )
-                                           (implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                            implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+         authAction: AuthAction,
+         groupAction: GroupAction,
+         mcc: MessagesControllerComponents,
+         optInStatusAction: OptInStatusAction,
+         clientService: ClientService,
+         unassigned_client_list: unassigned_client_list,
+         existing_group_client_list: existing_group_client_list
+       )(implicit val appConfig: AppConfig, ec: ExecutionContext,
+        implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
     with Logging {

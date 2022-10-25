@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AgentPermissionsConnector, UpdateAccessGroupRequest}
+import connectors.UpdateAccessGroupRequest
 import forms._
 import models.TeamMember.toAgentUser
 import models.{AddTeamMembersToGroup, SearchFilter, TeamMember}
@@ -36,21 +36,17 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupTeamMembersController @Inject()(
-                                                  groupAction: GroupAction,
-                                                  mcc: MessagesControllerComponents,
-                                                  val agentPermissionsConnector: AgentPermissionsConnector,
-                                                  val sessionCacheRepository: SessionCacheRepository,
-                                                  val sessionCacheService: SessionCacheService,
-                                                  groupService: GroupService,
-                                                  optInStatusAction: OptInStatusAction,
-                                                  teamMemberService: TeamMemberService,
-                                                  existing_team_members: existing_team_members,
-                                                  team_members_list: team_members_list,
-                                                  review_update_team_members: review_update_team_members,
-                                                  team_members_update_complete: team_members_update_complete,
+        groupAction: GroupAction,
+        mcc: MessagesControllerComponents,
+        val sessionCacheService: SessionCacheService,
+        groupService: GroupService,
+        teamMemberService: TeamMemberService,
+        existing_team_members: existing_team_members,
+        team_members_list: team_members_list,
+        review_update_team_members: review_update_team_members,
+        team_members_update_complete: team_members_update_complete,
     )
-                                                (implicit val appConfig: AppConfig, ec: ExecutionContext,
-    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+  (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
     with Logging {
@@ -101,9 +97,9 @@ class ManageGroupTeamMembersController @Inject()(
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
-        _ <- sessionCacheRepository.putSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
-        filteredTeamMembers <- sessionCacheRepository.getFromSession[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
-        maybeFilterTerm <- sessionCacheRepository.getFromSession[String](TEAM_MEMBER_SEARCH_INPUT)
+        _ <- sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
+        filteredTeamMembers <- sessionCacheService.get[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
+        maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
         teamMembersForArn <- teamMemberService.getAllTeamMembers(group.arn)
       } yield (filteredTeamMembers, teamMembersForArn, maybeFilterTerm)
       result.map {
@@ -180,8 +176,7 @@ class ManageGroupTeamMembersController @Inject()(
                 teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).map(_ =>
                   if (formData.submit == CONTINUE_BUTTON) {
                     for {
-                      members <- sessionCacheRepository
-                        .getFromSession[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
+                      members <- sessionCacheService.get[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
                         .map { maybeTeamMembers: Option[Seq[TeamMember]] =>
                           maybeTeamMembers
                             .map(tm => tm.map(toAgentUser))
@@ -190,7 +185,7 @@ class ManageGroupTeamMembersController @Inject()(
                       groupRequest = UpdateAccessGroupRequest(teamMembers = members)
                       updated <- groupService.updateGroup(groupId, groupRequest)
                     } yield updated
-                    sessionCacheRepository.deleteFromSession(FILTERED_TEAM_MEMBERS)
+                    sessionCacheService.delete(FILTERED_TEAM_MEMBERS)
                     Redirect(controller.showReviewSelectedTeamMembers(groupId))
                   }
                   else Redirect(controller.showManageGroupTeamMembers(groupId))

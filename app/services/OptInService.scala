@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.AgentPermissionsConnector
-import controllers.OPTIN_STATUS
+import controllers.OPT_IN_STATUS
 import play.api.mvc.Request
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptinStatus}
@@ -67,7 +67,7 @@ class OptInServiceImpl @Inject()(
       maybeStatus <- agentPermissionsConnector.getOptInStatus(arn)
       status = maybeStatus.getOrElse(
         throw new RuntimeException(s"could not get optin-status from backend"))
-      _ <- sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
+      _ <- sessionCacheRepository.putSession[OptinStatus](OPT_IN_STATUS, status)
     } yield Done
   }
 

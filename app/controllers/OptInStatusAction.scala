@@ -21,7 +21,7 @@ import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Request, Result}
 import play.api.{Configuration, Environment, Logging}
-import repository.SessionCacheRepository
+import services.SessionCacheService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedInReady, OptinStatus}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class OptInStatusAction @Inject()(val authConnector: AuthConnector,
                                   val env: Environment,
                                   val config: Configuration,
-                                  val sessionCacheRepository: SessionCacheRepository,
+                                  val sessionCacheService: SessionCacheService,
                                   val agentPermissionsConnector: AgentPermissionsConnector
                             ) extends Logging  {
 
@@ -57,18 +57,16 @@ class OptInStatusAction @Inject()(val authConnector: AuthConnector,
   def isOptedInWithSessionItem[T](dataKey: DataKey[T])
                                  (arn: Arn)(body: Option[T] => Future[Result])
                                  (implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS).flatMap {
+    sessionCacheService.get[OptinStatus](OPT_IN_STATUS).flatMap {
       case Some(status) if status == OptedInReady =>
-        sessionCacheRepository
-          .getFromSession[T](dataKey)
+        sessionCacheService.get[T](dataKey)
           .flatMap(data => body(data))
       case _ =>
         agentPermissionsConnector
           .getOptInStatus(arn)
           .flatMap {
             case Some(status) if status == OptedInReady =>
-              sessionCacheRepository
-                .putSession[OptinStatus](OPTIN_STATUS, status)
+              sessionCacheService.put[OptinStatus](OPT_IN_STATUS, status)
                 .flatMap(_ => body(None))
             case _ => Redirect(routes.RootController.start).toFuture
           }
@@ -78,15 +76,14 @@ class OptInStatusAction @Inject()(val authConnector: AuthConnector,
   private def eligibleFor(predicate: OptinStatus => Boolean)(arn: Arn)
                          (body: OptinStatus => Future[Result])
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    sessionCacheRepository
-      .getFromSession[OptinStatus](OPTIN_STATUS)
+    sessionCacheService.get[OptinStatus](OPT_IN_STATUS)
       .flatMap {
         case Some(status) if predicate(status) => body(status)
         case Some(_) => Redirect(routes.RootController.start.url).toFuture
         case None =>
           initialiseSession(arn)
             .flatMap(_ =>
-              sessionCacheRepository.getFromSession[OptinStatus](OPTIN_STATUS))
+              sessionCacheService.get[OptinStatus](OPT_IN_STATUS))
             .flatMap {
               case Some(status) if predicate(status) => body(status)
               case Some(_) => Redirect(routes.RootController.start).toFuture
@@ -103,14 +100,14 @@ class OptInStatusAction @Inject()(val authConnector: AuthConnector,
       .getOptInStatus(arn)
       .flatMap {
         case Some(status) =>
-          sessionCacheRepository.putSession[OptinStatus](OPTIN_STATUS, status)
+          sessionCacheService.put[OptinStatus](OPT_IN_STATUS, status)
         case None =>
           throw new RuntimeException(
             s"could not initialise session because opt-In status was not returned for ${arn.value}")
       }
 
   def clearSession()(implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
-    Future.sequence(sessionKeys.map(sessionCacheRepository.deleteFromSession(_))).map(_ => ())
+    Future.sequence(sessionKeys.map(sessionCacheService.delete(_))).map(_ => ())
   }
 
 }

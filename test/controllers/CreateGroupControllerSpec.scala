@@ -99,7 +99,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
   def optedInWithGroupName(): Unit = {
 
-    await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+    await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
     await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
     await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -127,7 +127,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     "have correct layout and content" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showGroupName()(request)
 
@@ -153,7 +153,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     "has a cleared session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(RETURN_URL, "WHATEVER"))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq.empty))
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, Seq.empty))
@@ -191,7 +191,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitGroupName()(request)
 
@@ -209,7 +209,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitGroupName()(request)
 
@@ -236,7 +236,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitGroupName()(request)
 
@@ -259,7 +259,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.showConfirmGroupName()(request)
@@ -286,7 +286,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showConfirmGroupName()(request)
 
@@ -307,7 +307,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.submitConfirmGroupName()(request)
@@ -334,7 +334,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -352,7 +352,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.submitConfirmGroupName()(request)
@@ -372,7 +372,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("name" -> groupName, "answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.submitConfirmGroupName()(request)
@@ -391,7 +391,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("name" -> groupName, "answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.submitConfirmGroupName()(request)
@@ -409,7 +409,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -450,7 +450,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetClients(arn)(fakeClients)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -501,7 +501,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(FILTERED_CLIENTS, displayClients))
       await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1"))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -541,7 +541,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetClients(arn)(List.empty)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "blah"))
@@ -569,7 +569,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetClients(arn)(List.empty)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(sessionCacheRepo.putSession(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url))
@@ -589,7 +589,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showSelectClients()(request)
 
@@ -619,7 +619,7 @@ class CreateGroupControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
         await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -652,7 +652,7 @@ class CreateGroupControllerSpec extends BaseSpec {
               "submit"      -> FILTER_BUTTON
             )
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
         await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -688,7 +688,7 @@ class CreateGroupControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
         await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -725,7 +725,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       )
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
 
       // when
@@ -763,7 +763,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       )
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
 
       // when
@@ -789,7 +789,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       )
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       // when
       val result = controller.submitSelectedClients()(request)
 
@@ -819,7 +819,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(
@@ -877,7 +877,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showReviewSelectedClients()(request)
 
@@ -889,7 +889,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
 
       val result = controller.showReviewSelectedClients()(request)
@@ -911,7 +911,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -932,7 +932,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -953,7 +953,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -990,7 +990,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetTeamMembers(arn)(fakeTeamMembers)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1033,7 +1033,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
       await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1074,7 +1074,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetTeamMembers(arn)(Seq.empty)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1106,7 +1106,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetTeamMembers(arn)(Seq.empty)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(sessionCacheRepo.putSession(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url))
@@ -1126,7 +1126,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showSelectTeamMembers()(request)
 
@@ -1155,7 +1155,7 @@ class CreateGroupControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
         await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1189,7 +1189,7 @@ class CreateGroupControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
         await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1227,7 +1227,7 @@ class CreateGroupControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
         await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1264,7 +1264,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       )
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1306,7 +1306,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, "XYZ"))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
 
@@ -1329,7 +1329,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       // when
       val result = controller.submitSelectedTeamMembers()(request)
@@ -1358,7 +1358,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(GROUP_NAME_CONFIRMED, true))
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, selectedTeamMembers))
@@ -1406,7 +1406,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showReviewSelectedTeamMembers()(request)
 
@@ -1427,7 +1427,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -1449,7 +1449,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -1470,7 +1470,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -1510,7 +1510,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(
         sessionCacheRepo.putSession(SELECTED_CLIENTS, selectedClients))
@@ -1558,7 +1558,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.showCheckYourAnswers()(request)
 
@@ -1578,7 +1578,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
       // when
       val result = controller.submitCheckYourAnswers()(request)
@@ -1606,7 +1606,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, clients))
       await(
@@ -1646,7 +1646,7 @@ class CreateGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(GROUP_NAME, groupName))
       await(sessionCacheRepo.putSession(SELECTED_CLIENTS, clients))
       await(
@@ -1685,7 +1685,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepo.putSession(OPTIN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       await(sessionCacheRepo.putSession(NAME_OF_GROUP_CREATED, groupName))
 
       val result = controller.showGroupCreated()(request)

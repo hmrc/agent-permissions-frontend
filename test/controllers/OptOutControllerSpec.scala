@@ -60,7 +60,7 @@ class OptOutControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
+      await(sessionCacheRepository.putSession(OPT_IN_STATUS, OptedInSingleUser))
 
       val result = controller.start()(request)
       status(result) shouldBe OK
@@ -98,7 +98,7 @@ class OptOutControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
-      await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
+      await(sessionCacheRepository.putSession(OPT_IN_STATUS, OptedInSingleUser))
 
       val result = controller.showDoYouWantToOptOut()(request)
 
@@ -138,7 +138,7 @@ class OptOutControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
+      await(sessionCacheRepository.putSession(OPT_IN_STATUS, OptedInSingleUser))
 
       expectPostOptOutAccepted(arn)
 
@@ -157,7 +157,7 @@ class OptOutControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
+      await(sessionCacheRepository.putSession(OPT_IN_STATUS, OptedInSingleUser))
 
       val result = controller.submitDoYouWantToOptOut()(request)
 
@@ -175,7 +175,7 @@ class OptOutControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedInSingleUser))
+      await(sessionCacheRepository.putSession(OPT_IN_STATUS, OptedInSingleUser))
 
       val result = controller.submitDoYouWantToOptOut()(request)
 
@@ -200,7 +200,7 @@ class OptOutControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepository.putSession(OPTIN_STATUS, OptedOutEligible))
+      await(sessionCacheRepository.putSession(OPT_IN_STATUS, OptedOutEligible))
 
       val result = controller.showYouHaveOptedOut()(request)
 

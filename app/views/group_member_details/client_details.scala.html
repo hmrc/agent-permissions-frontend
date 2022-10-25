@@ -54,7 +54,7 @@
             @h2("group.client.list.table.th3", size = "s")
             @p(displayTaxServiceFromServiceKey(client.taxService))
 
-            <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
             @a("common.return.manage-clients", href = routes.ManageClientController.showAllClients.url)
 

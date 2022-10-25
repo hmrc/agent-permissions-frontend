@@ -18,10 +18,11 @@
 
 @this(govukSummaryList: GovukSummaryList)
 
-@(rows: Seq[SummaryListData])(implicit msgs: Messages)
+@(rows: Seq[SummaryListData], htmlId: String = "summary-list-results")(implicit msgs: Messages)
 
     @govukSummaryList(
         SummaryList(
+            attributes = Map("id" -> htmlId),
             rows = rows.map(summaryListRow =>
                 SummaryListRow(
                     Key(Text(msgs(summaryListRow.key))),

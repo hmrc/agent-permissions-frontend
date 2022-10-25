@@ -18,17 +18,15 @@
 @import connectors.GroupSummary
 @import views.components.models.SummaryListData
 @import views.html.main_layout
-@import views.html.partials.selectable_clients_table_form
-@import views.html.helper.CSPNonce
-@import views.html.partials.search_and_filter
+@import views.html.partials.{search_and_filter, selectable_clients_table_form}
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, h2: h2, a: a, span: span,
-    table: table, textbox: textbox, summary_list: summary_list,
-    a_button: link_as_button, search_and_filter: search_and_filter,
-    selectable_clients_table_form: selectable_clients_table_form,
-    summaryErrors: SummaryErrors
+        layout: main_layout, govukSkipLink: GovukSkipLink,
+        p: p, h1: h1, h2: h2, a: a, span: span,
+        table: table, textbox: textbox, summary_list: summary_list,
+        a_button: link_as_button, search_and_filter: search_and_filter,
+        selectable_clients_table_form: selectable_clients_table_form,
+        summaryErrors: SummaryErrors
 )
 
 @(summaries: Seq[GroupSummary], filterGroupSummaryForm: Form[SearchFilter])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -40,61 +38,71 @@
     @h1("group.manage.h1")
 
     <div class="govuk-!-width-two-thirds">
-        @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id= Some("info"))
+    @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id = Some("info"))
     </div>
 
-    @views.html.helper.form(routes.ManageGroupController.showManageGroups){
+    <div class="govuk-!-margin-bottom-5">
+        @govukSkipLink(
+            SkipLink(
+                href = "#summary-list-results",
+                content = Text(msgs("common.skip-to-results"))
+            )
+        )
+    </div>
 
+    @views.html.helper.form(routes.ManageGroupController.showManageGroups) {
         @search_and_filter(
             filterGroupSummaryForm,
-            withFilter =false,
-            searchLabelKey = "group-name-filter.text.label")
-
+            withFilter = false,
+            searchLabelKey = "group-name-filter.text.label"
+        )
     }
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
-                        border-width: 0;
-                        color: #c6c6c6;
-                        background-color: #c6c6c6">
-    @if(summaries.nonEmpty){
+    <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    style="height: 3px;
+        border-width: 0;
+        color: #c6c6c6;
+        background-color: #c6c6c6">
+
+    @if(summaries.nonEmpty) {
 
         @summaries.map { summary =>
 
-        @h2(summary.groupName)
+            @h2(summary.groupName)
 
-        @summary_list(
-            Seq(
-                SummaryListData(
-                    "common.clients",
-                    summary.clientCount.toString,
-                    routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
-                    linkMsgKey = "group.manage.clients",
-                    linkClasses = Some("govuk-!-width-one-half"),
-                    hiddenText = Some(msgs("details.link-hidden", summary.groupName))
-                ),
-                SummaryListData(
-                    "common.teamMembers",
-                    summary.teamMemberCount.toString,
-                    routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId),
-                    linkMsgKey = "group.manage.members",
-                    linkClasses = Some("govuk-!-width-one-half"),
-                    hiddenText = Some(msgs("details.link-hidden", summary.groupName))
-                ),
+            @summary_list(
+                Seq(
+                    SummaryListData(
+                        "common.clients",
+                        summary.clientCount.toString,
+                        routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
+                        linkMsgKey = "group.manage.clients",
+                        linkClasses = Some("govuk-!-width-one-half"),
+                        hiddenText = Some(msgs("details.link-hidden", summary.groupName))
+                    ),
+                    SummaryListData(
+                        "common.teamMembers",
+                        summary.teamMemberCount.toString,
+                        routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId),
+                        linkMsgKey = "group.manage.members",
+                        linkClasses = Some("govuk-!-width-one-half"),
+                        hiddenText = Some(msgs("details.link-hidden", summary.groupName))
+                    ),
+                )
             )
-        )
 
-        @a(key = msgs("group.manage.rename") + span(classes=Some("govuk-visually-hidden"),
-        key = summary.groupName).toString,
-        href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
-        classes = Some("govuk-!-margin-right-9"))
+            @a(key = msgs("group.manage.rename") + span(classes = Some("govuk-visually-hidden"),
+                key = summary.groupName).toString,
+                href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
+                classes = Some("govuk-!-margin-right-9"))
 
-        @a(key = msgs("group.manage.delete") + span(classes=Some("govuk-visually-hidden"),
-        key=summary.groupName).toString,
-        href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
+            @a(key = msgs("group.manage.delete") + span(classes = Some("govuk-visually-hidden"),
+                key = summary.groupName).toString,
+                href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
 
-        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
-                        border-width: 0;
-                        color: #c6c6c6;
-                        background-color: #c6c6c6">
+            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
+                border-width: 0;
+                color: #c6c6c6;
+                background-color: #c6c6c6">
 
         }
 
@@ -103,7 +111,7 @@
         @p("group.manage.no.groups.p", classes = Some("govuk-!-margin-bottom-8"))
     }
 
-    @a_button(key="group.manage.no.groups.button", href=routes.CreateGroupController.showGroupName.url)
+    @a_button(key = "group.manage.no.groups.button", href = routes.CreateGroupController.showGroupName.url)
 
 
 }

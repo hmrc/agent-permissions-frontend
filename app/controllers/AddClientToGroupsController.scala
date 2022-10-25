@@ -34,19 +34,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AddClientToGroupsController @Inject()(
-     clientAction: ClientAction,
-     mcc: MessagesControllerComponents,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService,
-     groupService: GroupService,
-     select_groups: select_groups,
-     confirm_added: confirm_added)
+                                             clientAction: ClientAction,
+                                             mcc: MessagesControllerComponents,
+                                             val agentPermissionsConnector: AgentPermissionsConnector,
+                                             val sessionCacheRepository: SessionCacheRepository,
+                                             val sessionCacheService: SessionCacheService,
+                                             groupService: GroupService,
+                                             select_groups: select_groups,
+                                             confirm_added: confirm_added)
    (implicit val appConfig: AppConfig, ec: ExecutionContext,
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
     with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import clientAction._
 
@@ -102,7 +101,8 @@ class AddClientToGroupsController @Inject()(
 
   def showConfirmClientAddedToGroups(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
-      sessionCacheRepository.getFromSession[Seq[String]](GROUP_IDS_ADDED_TO).flatMap { maybeGroupIds =>
+      sessionCacheRepository.getFromSession[Seq[String]](GROUP_IDS_ADDED_TO)
+        .flatMap { maybeGroupIds =>
         groupService.groups(arn).map { groups =>
           val groupsAddedTo = groups.filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))
           Ok(confirm_added(displayClient, groupsAddedTo))

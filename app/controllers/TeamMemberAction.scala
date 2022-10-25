@@ -37,12 +37,15 @@ class TeamMemberAction @Inject()(val authConnector: AuthConnector,
                                  val env: Environment,
                                  val config: Configuration,
                                  authAction: AuthAction,
+                                 optInStatusAction: OptInStatusAction,
                                  val agentPermissionsConnector: AgentPermissionsConnector,
                                  val teamMemberService: TeamMemberService,
                                  val sessionCacheRepository: SessionCacheRepository,
                                  val sessionCacheService: SessionCacheService,
                                  team_member_not_found: team_member_not_found,
-                            ) extends Logging with SessionBehaviour {
+                            ) extends Logging  {
+
+  import optInStatusAction._
 
   def withTeamMemberForAuthorisedOptedAgent(clientId: String)
                                            (fn: (TeamMember, Arn) => Future[Result])

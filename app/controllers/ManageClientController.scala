@@ -46,15 +46,16 @@ class ManageClientController @Inject()(
                                         val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
                                         val agentPermissionsConnector: AgentPermissionsConnector,
                                         val sessionCacheRepository: SessionCacheRepository,
+                                        optInStatusAction: OptInStatusAction,
                                         val sessionCacheService: SessionCacheService)
                                       (implicit val appConfig: AppConfig, ec: ExecutionContext,
                                        implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import authAction._
+  import optInStatusAction._
 
   // All clients does not include IRV
   def showAllClients: Action[AnyContent] = Action.async { implicit request =>

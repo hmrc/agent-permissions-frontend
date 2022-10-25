@@ -35,23 +35,22 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupClientsController @Inject()(
-     groupAction: GroupAction,
-     mcc: MessagesControllerComponents,
-     clientService: ClientService,
-     val agentPermissionsConnector: AgentPermissionsConnector,
-     groupService: GroupService,
-     val sessionCacheRepository: SessionCacheRepository,
-     val sessionCacheService: SessionCacheService,
-     review_update_clients: review_update_clients,
-     update_client_group_list: update_client_group_list,
-     existing_clients: existing_clients,
-     clients_update_complete: clients_update_complete
+                                              groupAction: GroupAction,
+                                              mcc: MessagesControllerComponents,
+                                              clientService: ClientService,
+                                              val agentPermissionsConnector: AgentPermissionsConnector,
+                                              groupService: GroupService,
+                                              val sessionCacheRepository: SessionCacheRepository,
+                                              val sessionCacheService: SessionCacheService,
+                                              review_update_clients: review_update_clients,
+                                              update_client_group_list: update_client_group_list,
+                                              existing_clients: existing_clients,
+                                              clients_update_complete: clients_update_complete
     )(implicit val appConfig: AppConfig, ec: ExecutionContext,
       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import groupAction._
 
@@ -92,8 +91,8 @@ class ManageGroupClientsController @Inject()(
 
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group =>
-      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
-        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+      sessionCacheService.withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+        sessionCacheService.withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           for {
             _ <- sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS,
               group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true)))
@@ -161,7 +160,7 @@ class ManageGroupClientsController @Inject()(
 
   def showReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+      sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
             Redirect(controller.showManageGroupClients(groupId))
@@ -181,7 +180,7 @@ class ManageGroupClientsController @Inject()(
 
   def submitReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+      sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold(
             Redirect(controller.showExistingGroupClients(groupId)).toFuture
@@ -206,7 +205,7 @@ class ManageGroupClientsController @Inject()(
 
   def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) {group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+      sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         sessionCacheService.clearSelectedClients().map(_ =>
         if(selectedClients.isDefined) Ok(clients_update_complete(group.groupName))
         else Redirect(controller.showManageGroupClients(groupId))

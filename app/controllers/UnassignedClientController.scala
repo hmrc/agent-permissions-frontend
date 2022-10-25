@@ -41,6 +41,7 @@ class UnassignedClientController @Inject()(
                                             mcc: MessagesControllerComponents,
                                             groupService: GroupService,
                                             clientService: ClientService,
+                                            optInStatusAction: OptInStatusAction,
                                             val agentPermissionsConnector: AgentPermissionsConnector,
                                             val sessionCacheRepository: SessionCacheRepository,
                                             val sessionCacheService: SessionCacheService,
@@ -53,19 +54,19 @@ class UnassignedClientController @Inject()(
                                            implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import authAction._
+  import optInStatusAction._
 
   private val controller: ReverseUnassignedClientController = routes.UnassignedClientController
 
   def showUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
-          withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
-            withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
+        sessionCacheService.withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
+          sessionCacheService.withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
+            sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
                 clientService.getUnassignedClients(arn).map(unassignedClients => {
                   val filteredClients =
                     unassignedClients
@@ -119,7 +120,7 @@ class UnassignedClientController @Inject()(
   def showSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+        sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
           selectedClients
             .fold {
               Redirect(controller.showUnassignedClients).toFuture
@@ -142,7 +143,7 @@ class UnassignedClientController @Inject()(
   def submitSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+        sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
           selectedClients
             .fold {
               Redirect(controller.showUnassignedClients).toFuture

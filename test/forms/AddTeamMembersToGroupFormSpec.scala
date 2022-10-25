@@ -176,12 +176,11 @@ class AddTeamMembersToGroupFormSpec
 
     "give expected Map of data Clear" in {
       val model = AddTeamMembersToGroup( None, None, submit = "clear")
-      AddTeamMembersToGroupForm
+      val unboundForm = AddTeamMembersToGroupForm
         .form()
         .mapping
-        .unbind(model) shouldBe Map(
-        "submit" -> CLEAR_BUTTON
-      )
+        .unbind(model)
+      unboundForm shouldBe Map("submit" -> CLEAR_BUTTON)
     }
   }
 

@@ -30,8 +30,9 @@ class TimeoutController @Inject()(
    mcc: MessagesControllerComponents,
    you_have_been_timed_out: you_have_been_timed_out,
    you_have_signed_out: you_have_signed_out
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
-    extends FrontendController(mcc)
+)(implicit val appConfig: AppConfig,
+  ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+  extends FrontendController(mcc)
     with I18nSupport {
 
 

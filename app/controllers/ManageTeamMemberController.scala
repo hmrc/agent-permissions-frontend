@@ -37,6 +37,7 @@ class ManageTeamMemberController @Inject()(
                                             mcc: MessagesControllerComponents,
                                             groupService: GroupService,
                                             teamMemberService: TeamMemberService,
+                                            optInStatusAction: OptInStatusAction,
                                             manage_team_members_list: manage_team_members_list,
                                             team_member_details: team_member_details,
                                             val agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
@@ -47,10 +48,10 @@ class ManageTeamMemberController @Inject()(
     implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
     with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import authAction._
+  import optInStatusAction._
 
   def showAllTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>

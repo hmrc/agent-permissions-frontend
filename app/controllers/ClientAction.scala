@@ -37,12 +37,15 @@ class ClientAction @Inject()(val authConnector: AuthConnector,
                              val env: Environment,
                              val config: Configuration,
                              authAction: AuthAction,
-                            val agentPermissionsConnector: AgentPermissionsConnector,
+                             val agentPermissionsConnector: AgentPermissionsConnector,
+                             optInStatusAction: OptInStatusAction,
                              val clientService: ClientService,
                              val sessionCacheRepository: SessionCacheRepository,
                              val sessionCacheService: SessionCacheService,
                              client_not_found: client_not_found,
-                            ) extends Logging with SessionBehaviour {
+                            ) extends Logging  {
+
+  import optInStatusAction._
 
   def withClientForAuthorisedOptedAgent(clientId: String)
                                        (fn: (DisplayClient, Arn) => Future[Result])

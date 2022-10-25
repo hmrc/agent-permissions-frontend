@@ -48,8 +48,7 @@ class AddTeamMemberToGroupsController @Inject()(
                                                ) extends FrontendController(mcc)
 
     with I18nSupport
-  with SessionBehaviour
-  with Logging {
+    with Logging {
 
   import teamMemberAction._
 

@@ -21,7 +21,7 @@ import play.api.data.Forms._
 
 object GroupNameForm {
 
-  val groupNameRegex = "^[!%*^()_+\\-={}:;@~#,.?\\[\\]/A-Za-z0-9 ]{0,}$"
+  val groupNameRegex = "^[!%*^()_+\\-={}:;@~#,.?\\[\\]A-Za-z0-9 ]{0,}$"
 
   def form(): Form[String] = {
     Form(

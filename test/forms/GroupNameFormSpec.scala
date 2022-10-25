@@ -31,52 +31,76 @@ class GroupNameFormSpec
   "CreateGroupFrom binding" should {
 
     "be successful when non-empty" in {
-      val params = Map(groupNameField -> "XYZ V@L!D")
-      GroupNameForm.form().bind(params).value shouldBe Some("XYZ V@L!D")
+      val validGroupName = "a"
+      val params = Map(groupNameField -> validGroupName)
+      //when
+      val form = GroupNameForm.form().bind(params)
+      form.hasErrors shouldBe false
+      form.value shouldBe Some(validGroupName)
     }
 
     "have errors when empty" in {
+      //given
       val params = Map(groupNameField -> "   ")
-      val validatedForm = GroupNameForm.form().bind(params)
-      validatedForm.hasErrors shouldBe true
-      validatedForm.errors.length shouldBe 1
-      validatedForm
-        .error(groupNameField)
-        .get
-        .message shouldBe "group.name.required"
+      //when
+      val form = GroupNameForm.form().bind(params)
+      //then
+      form.hasErrors shouldBe true
+      form.errors.length shouldBe 1
+      form.error(groupNameField).get.message shouldBe "group.name.required"
     }
 
     "have errors when length exceeds max allowed characters" in {
+      //given
       val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(33))
-      val validatedForm = GroupNameForm.form().bind(params)
-      validatedForm.hasErrors shouldBe true
-      validatedForm.errors.length shouldBe 1
-      validatedForm
-        .error(groupNameField)
-        .get
-        .message shouldBe "group.name.max.length"
+      //when
+      val form = GroupNameForm.form().bind(params)
+      //then
+      form.hasErrors shouldBe true
+      form.errors.length shouldBe 1
+      form.error(groupNameField).get.message shouldBe "group.name.max.length"
+    }
+
+    "be successful when valid characters are used" in {
+      val validGroupName = "hello !%*^()_-+?*={}:;@~#,.?"
+      val params = Map(groupNameField -> validGroupName)
+      //when
+      val form = GroupNameForm.form().bind(params)
+      form.hasErrors shouldBe false
+      form.value shouldBe Some(validGroupName)
     }
 
     "have errors when invalid characters < present" in {
+      //given
       val params = Map(groupNameField -> " invalid <chars")
-      val validatedForm = GroupNameForm.form().bind(params)
-      validatedForm.hasErrors shouldBe true
-      validatedForm.errors.length shouldBe 1
-      validatedForm
-        .error(groupNameField)
-        .get
-        .message shouldBe "group.name.invalid"
+      //when
+      val form = GroupNameForm.form().bind(params)
+      //then
+      form.hasErrors shouldBe true
+      form.errors.length shouldBe 1
+      form.error(groupNameField).get.message shouldBe "group.name.invalid"
     }
 
     "have errors when invalid character \\ present" in {
-      val params = Map(groupNameField -> " invalid \\chars")
-      val validatedForm = GroupNameForm.form().bind(params)
-      validatedForm.hasErrors shouldBe true
-      validatedForm.errors.length shouldBe 1
-      validatedForm
-        .error(groupNameField)
-        .get
-        .message shouldBe "group.name.invalid"
+      //given
+      val params = Map(groupNameField -> "abc \\")
+      //when
+      val form = GroupNameForm.form().bind(params)
+      //then
+      form.hasErrors shouldBe true
+      form.errors.length shouldBe 1
+      form.error(groupNameField).get.message shouldBe "group.name.invalid"
+    }
+
+    "have errors when invalid character / present" in {
+      //given
+      val params = Map(groupNameField -> "/ blah")
+      //when
+      val form = GroupNameForm.form().bind(params)
+      //then
+      form.hasErrors shouldBe true
+      form.errors.length shouldBe 1
+      form.error(groupNameField).get.message shouldBe "group.name.invalid"
     }
 
   }

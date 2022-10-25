@@ -230,7 +230,7 @@ error.client-reference.max-length=Client reference must be 80 characters or fewe
 error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 
 client-reference.updated.title=Client reference updated
-client-reference.updated.panel=Client reference updated to {0}
+client-reference.updated.panel=Client reference updated to
 client-reference.updated.p=You have updated this client reference in your access groups. This will not change the client reference in other Government Gateway services.
 
 error.group.filter.max.length=You can only enter 32 characters or fewer

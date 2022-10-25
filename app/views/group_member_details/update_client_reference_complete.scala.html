@@ -19,27 +19,25 @@
 @import views.html.main_layout
 
 @this(
-layout: main_layout,
-p: p, h1: h1, h2: h2, a: a,
-caption: caption,
-govukPanel: GovukPanel)
+    layout: main_layout, govukPanel: GovukPanel, caption: caption,
+    p: p, h1: h1, h2: h2, a: a, span: span
+)
 
-@(client: DisplayClient,
-clientRef: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(client: DisplayClient, clientRef: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @panelContent = {
     @caption(
-        key=msgs("update-client-reference.caption", displayObfuscatedReference(clientRef, client.hmrcRef)),
+        key = msgs("update-client-reference.caption",
+            displayObfuscatedReference(clientRef, client.hmrcRef)),
         classes=Some("govuk-panel--confirmation")
     )
-    @msgs("client-reference.updated.panel", clientRef)
+    <div class="govuk-!-font-size-36">@msgs("client-reference.updated.panel")</div>
+    <div class="govuk-!-font-size-36" style="word-break: break-word; white-space: break-spaces;">@clientRef</div>
 }
 
-@layout(title = msgs("client-reference.updated.title")) {
+@layout(title = msgs("client-reference.updated.title"), fullWidth = false) {
 
-    @govukPanel(
-        Panel(title = HtmlContent(panelContent))
-    )
+    @govukPanel(Panel(title = HtmlContent(panelContent)))
 
     @h2("common.what.happens.next")
     @p("client-reference.updated.p")

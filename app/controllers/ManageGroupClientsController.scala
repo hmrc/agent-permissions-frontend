@@ -57,11 +57,9 @@ class ManageGroupClientsController @Inject()(
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       val displayGroup = DisplayGroup.fromAccessGroup(group)
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-      searchFilter.submit.fold(
-        //no filter/clear was applied
+      searchFilter.submit.fold( // fresh page load
         Ok(existing_clients(group = displayGroup, form = SearchAndFilterForm.form()))
-      )(submitButton =>
-        //either the 'filter' button or the 'clear' filter button was clicked
+      )(submitButton => //either the 'filter' button or the 'clear' filter button was clicked
         submitButton match {
           case FILTER_BUTTON =>
             val searchTerm = searchFilter.search.getOrElse("")

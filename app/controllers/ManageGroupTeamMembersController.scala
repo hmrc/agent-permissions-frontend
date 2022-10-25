@@ -59,15 +59,8 @@ class ManageGroupTeamMembersController @Inject()(
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
       groupService.getTeamMembersFromGroup(group.arn)(convertedTeamMembers).map { members =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-        searchFilter.submit.fold(
-          //no filter/clear was applied
-          Ok(
-            existing_team_members(
-              teamMembers = members,
-              form = SearchAndFilterForm.form(),
-              group = group,
-            )
-          )
+        searchFilter.submit.fold( //i.e. fresh page load
+          Ok(existing_team_members(members, SearchAndFilterForm.form(), group))
         )(button => button match {
             case CLEAR_BUTTON =>
               Redirect(controller.showExistingGroupTeamMembers(groupId))
@@ -78,13 +71,8 @@ class ManageGroupTeamMembersController @Inject()(
                   tm.name.toLowerCase.contains(lowerCaseSearchTerm) ||
                   tm.email.toLowerCase.contains(lowerCaseSearchTerm)
                 )
-              Ok(
-                existing_team_members(
-                  teamMembers = filteredMembers,
-                  form = SearchAndFilterForm.form().fill(searchFilter),
-                  group = group
-                )
-              )
+              val form = SearchAndFilterForm.form().fill(searchFilter)
+              Ok(existing_team_members(filteredMembers, form, group))
           }
         )
       }

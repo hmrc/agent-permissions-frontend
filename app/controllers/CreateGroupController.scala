@@ -58,8 +58,8 @@ class CreateGroupController @Inject()(
   with I18nSupport with Logging {
 
   import authAction._
-  import sessionAction.withSessionItem
   import optInStatusAction._
+  import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupController = routes.CreateGroupController
 
@@ -325,8 +325,8 @@ class CreateGroupController @Inject()(
   }
 
   def redirectToEditClients: Action[AnyContent] = Action.async { implicit request =>
-    sessionCacheService.put(RETURN_URL,
-      controllers.routes.CreateGroupController.showCheckYourAnswers.url)
+    sessionCacheService
+      .put(RETURN_URL, controllers.routes.CreateGroupController.showCheckYourAnswers.url)
       .map(_ => Redirect(controllers.routes.CreateGroupController.showSelectClients))
 
   }

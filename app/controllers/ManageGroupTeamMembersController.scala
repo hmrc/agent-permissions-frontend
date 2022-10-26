@@ -24,7 +24,6 @@ import models.{AddTeamMembersToGroup, SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import repository.SessionCacheRepository
 import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -60,15 +59,8 @@ class ManageGroupTeamMembersController @Inject()(
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
       groupService.getTeamMembersFromGroup(group.arn)(convertedTeamMembers).map { members =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-        searchFilter.submit.fold(
-          //no filter/clear was applied
-          Ok(
-            existing_team_members(
-              teamMembers = members,
-              form = SearchAndFilterForm.form(),
-              group = group,
-            )
-          )
+        searchFilter.submit.fold( //i.e. fresh page load
+          Ok(existing_team_members(members, SearchAndFilterForm.form(), group))
         )(button => button match {
             case CLEAR_BUTTON =>
               Redirect(controller.showExistingGroupTeamMembers(groupId))
@@ -79,13 +71,8 @@ class ManageGroupTeamMembersController @Inject()(
                   tm.name.toLowerCase.contains(lowerCaseSearchTerm) ||
                   tm.email.toLowerCase.contains(lowerCaseSearchTerm)
                 )
-              Ok(
-                existing_team_members(
-                  teamMembers = filteredMembers,
-                  form = SearchAndFilterForm.form().fill(searchFilter),
-                  group = group
-                )
-              )
+              val form = SearchAndFilterForm.form().fill(searchFilter)
+              Ok(existing_team_members(filteredMembers, form, group))
           }
         )
       }
@@ -97,7 +84,11 @@ class ManageGroupTeamMembersController @Inject()(
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
-        _ <- sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
+        _ <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(maybeTeamMembers =>
+          if (maybeTeamMembers.isEmpty) {
+            sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
+          }
+        )
         filteredTeamMembers <- sessionCacheService.get[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
         maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
         teamMembersForArn <- teamMemberService.getAllTeamMembers(group.arn)

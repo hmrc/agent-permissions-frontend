@@ -24,9 +24,8 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
-import repository.SessionCacheRepository
-import services.{ClientService, GroupService}
+import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -38,7 +37,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
+  implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   override def moduleWithOverrides = new AbstractModule() {
 
@@ -46,9 +45,9 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
-      bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[GroupService]).toInstance(mockGroupService)
       bind(classOf[ClientService]).toInstance(mockClientService)
+      bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
     }
   }
 
@@ -68,15 +67,14 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
     "render correctly the html" in {
       //given
-      val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-
+      val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
+      expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
@@ -113,11 +111,12 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToClient = Seq.empty
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
+      expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
       //when
@@ -148,10 +147,11 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)
+      expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
@@ -203,7 +203,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectPutSessionItem(GROUP_IDS_ADDED_TO, Seq(groupSummaries(3).groupId,groupSummaries(4).groupId))
 
         val result = controller.submitSelectGroupsForClient(client.id)(request)
 
@@ -231,7 +232,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
       val result = controller.submitSelectGroupsForClient(client.id)(request)
 
@@ -254,8 +255,9 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       //given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId)))
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectLookupClient(arn)(client)

@@ -62,7 +62,8 @@ trait ClientService {
 class ClientServiceImpl @Inject()(
                                    agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
                                    agentPermissionsConnector: AgentPermissionsConnector,
-                                   val sessionCacheRepository: SessionCacheRepository
+                                   val sessionCacheRepository: SessionCacheRepository,
+                                   sessionCacheService: SessionCacheService
                                  ) extends ClientService with GroupMemberOps {
 
   // returns the es3 list sorted by name, selecting previously selected clients
@@ -70,7 +71,7 @@ class ClientServiceImpl @Inject()(
                    (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
     for {
       es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
-      maybeSelectedClients <- sessionCacheRepository.getFromSession[Seq[DisplayClient]](SELECTED_CLIENTS)
+      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
       es3WithoutPreSelected = es3AsDisplayClients.filterNot(
           dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef))
       )
@@ -84,7 +85,7 @@ class ClientServiceImpl @Inject()(
   def getFilteredClientsElseAll(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[Seq[DisplayClient]] = {
 
-    val maybeFilteredClients = sessionCacheRepository.getFromSession(FILTERED_CLIENTS)
+    val maybeFilteredClients = sessionCacheService.get(FILTERED_CLIENTS)
     maybeFilteredClients.flatMap { maybeClients =>
       if (maybeClients.isDefined) Future.successful(maybeClients.get)
       else getAllClients(arn)
@@ -120,7 +121,7 @@ class ClientServiceImpl @Inject()(
   }
 
   def clearSessionForFilteringClients()(implicit request: Request[Any], ec: ExecutionContext): Future[Unit] =
-    Future.traverse(clientFilteringKeys)(key => sessionCacheRepository.deleteFromSession(key)).map(_ => ())
+    Future.traverse(clientFilteringKeys)(key => sessionCacheService.delete(key)).map(_ => ())
 
   // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
   def saveSelectedOrFilteredClients(arn: Arn)
@@ -142,16 +143,14 @@ class ClientServiceImpl @Inject()(
             clearSessionForFilteringClients()
           } else {
             for {
-              _ <- sessionCacheRepository.putSession(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
-              _ <- sessionCacheRepository.putSession(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
+              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
+              _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
               _ <- filterClients(formData)(clients)
             } yield ()
           }
         case _ =>
           for {
-            _ <- sessionCacheRepository.deleteFromSession(FILTERED_CLIENTS)
-            _ <- sessionCacheRepository.deleteFromSession(CLIENT_FILTER_INPUT)
-            _ <- sessionCacheRepository.deleteFromSession(CLIENT_SEARCH_INPUT)
+            _ <- sessionCacheService.deleteAll(clientFilteringKeys)
           } yield ()
       }
     }
@@ -179,7 +178,7 @@ class ClientServiceImpl @Inject()(
       }
       consolidatedResult = (resultByName ++ resultByTaxRef).distinct
       result: Vector[DisplayClient] = consolidatedResult.toVector
-      _ <- if(result.nonEmpty) sessionCacheRepository.putSession(FILTERED_CLIENTS, result)
+      _ <- if(result.nonEmpty) sessionCacheService.put(FILTERED_CLIENTS, result)
       else Future.successful(())
     } yield result
   }

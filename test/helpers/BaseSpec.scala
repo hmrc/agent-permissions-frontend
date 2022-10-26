@@ -47,6 +47,7 @@ abstract class BaseSpec
     with GroupServiceMocks
     with TeamMemberServiceMocks
     with ClientServiceMocks
+    with SessionServiceMocks
     with AgentPermissionsConnectorMocks
     with HttpClientMocks
     with CleanMongoCollectionSupport

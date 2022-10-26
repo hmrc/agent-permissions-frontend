@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.AddMembersToAccessGroupRequest
+import controllers.action.SessionAction
 import forms._
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.Logging
@@ -36,16 +37,17 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UnassignedClientController @Inject()(
-      authAction: AuthAction,
-      mcc: MessagesControllerComponents,
-      groupService: GroupService,
-      clientService: ClientService,
-      optInStatusAction: OptInStatusAction,
-      val sessionCacheService: SessionCacheService,
-      unassigned_clients_list: unassigned_clients_list,
-      review_clients_to_add: review_clients_to_add,
-      select_groups_for_clients: select_groups_for_clients,
-      clients_added_to_groups_complete: clients_added_to_groups_complete
+                                            authAction: AuthAction,
+                                            mcc: MessagesControllerComponents,
+                                            groupService: GroupService,
+                                            clientService: ClientService,
+                                            optInStatusAction: OptInStatusAction,
+                                            sessionAction: SessionAction,
+                                            val sessionCacheService: SessionCacheService,
+                                            unassigned_clients_list: unassigned_clients_list,
+                                            review_clients_to_add: review_clients_to_add,
+                                            select_groups_for_clients: select_groups_for_clients,
+                                            clients_added_to_groups_complete: clients_added_to_groups_complete
     )
     (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
   extends FrontendController(mcc)
@@ -53,6 +55,7 @@ class UnassignedClientController @Inject()(
   with I18nSupport
     with Logging {
 
+  import sessionAction.withSessionItem
   import authAction._
   import optInStatusAction._
 
@@ -61,9 +64,9 @@ class UnassignedClientController @Inject()(
   def showUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        sessionCacheService.withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
-          sessionCacheService.withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
-            sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
+        withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
+          withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
+            withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
                 clientService.getUnassignedClients(arn).map(unassignedClients => {
                   val filteredClients =
                     unassignedClients
@@ -117,7 +120,7 @@ class UnassignedClientController @Inject()(
   def showSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
           selectedClients
             .fold {
               Redirect(controller.showUnassignedClients).toFuture
@@ -140,7 +143,7 @@ class UnassignedClientController @Inject()(
   def submitSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        sessionCacheService.withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
           selectedClients
             .fold {
               Redirect(controller.showUnassignedClients).toFuture

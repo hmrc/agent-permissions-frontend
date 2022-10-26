@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.UpdateAccessGroupRequest
+import controllers.action.SessionAction
 import forms._
 import models.TeamMember.toAgentUser
 import models.{AddTeamMembersToGroup, SearchFilter, TeamMember}
@@ -36,6 +37,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class ManageGroupTeamMembersController @Inject()(
         groupAction: GroupAction,
+        sessionAction: SessionAction,
         mcc: MessagesControllerComponents,
         val sessionCacheService: SessionCacheService,
         groupService: GroupService,
@@ -50,6 +52,7 @@ class ManageGroupTeamMembersController @Inject()(
     with I18nSupport
     with Logging {
 
+  import sessionAction.withSessionItem
   import groupAction._
 
   private val controller: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
@@ -131,7 +134,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
-      sessionCacheService.withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
+      withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
           AddTeamMembersToGroupForm
             .form()
             .bindFromRequest()
@@ -189,7 +192,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def showReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
             Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
@@ -203,7 +206,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(
             Redirect(controller.showExistingGroupTeamMembers(groupId)).toFuture
@@ -228,7 +231,7 @@ class ManageGroupTeamMembersController @Inject()(
 
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      sessionCacheService.withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         sessionCacheService.clearSelectedTeamMembers().map(_ =>
         if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
         else Redirect(controller.showManageGroupTeamMembers(groupId))

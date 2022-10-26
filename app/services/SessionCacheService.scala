@@ -67,20 +67,13 @@ class SessionCacheService @Inject()(
     Future.traverse(sessionKeys)(key => sessionCacheRepository.deleteFromSession(key)).map(_ => ())
   }
 
-  def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])(
-    implicit request: Request[_],
-    ec: ExecutionContext): Future[(String, String)] = {
+  def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])
+                             (implicit request: Request[_], ec: ExecutionContext): Future[(String, String)] = {
 
     sessionCacheRepository.putSession[Seq[TeamMember]](
       SELECTED_TEAM_MEMBERS,
       teamMembers.map(member => member.copy(selected = true))
     )
-  }
-
-  def withSessionItem[T](dataKey: DataKey[T])
-                        (body: Option[T] => Future[Result])
-                        (implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Result] = {
-    sessionCacheRepository.getFromSession[T](dataKey).flatMap(data => body(data))
   }
 
   def clearSelectedTeamMembers()(implicit request: Request[_]): Future[Unit] = {
@@ -100,5 +93,10 @@ class SessionCacheService @Inject()(
   def delete[T](dataKey: DataKey[T])
             (implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
     sessionCacheRepository.deleteFromSession(dataKey)
+  }
+
+  def deleteAll(dataKeys: Seq[DataKey[_]])
+            (implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
+    Future.traverse(dataKeys)(key=> sessionCacheRepository.deleteFromSession(key)).map(_ => ())
   }
 }

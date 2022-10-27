@@ -128,6 +128,7 @@ class ClientServiceImpl @Inject()(
         .map(_.copy(selected = true)).toList
       _ <- addSelectablesToSession(selectedClients)(SELECTED_CLIENTS, FILTERED_CLIENTS)
     } yield allClients
+
     clientsMarkedSelected.map { clients =>
       formData.submit.trim match {
         case FILTER_BUTTON =>

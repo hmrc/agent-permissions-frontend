@@ -93,7 +93,7 @@ class TeamMemberServiceImpl @Inject()(
     }
   }
 
-  def   saveSelectedOrFilteredTeamMembers(buttonSelect: String)
+  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
                                        (arn: Arn)
                                        (formData: AddTeamMembersToGroup
                                        )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
@@ -103,21 +103,21 @@ class TeamMemberServiceImpl @Inject()(
       _ <- addSelectablesToSession(teamMembers.map(_.copy(selected = true)))(SELECTED_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS)
     } yield ()
 
-    buttonSelect match {
-      case CLEAR_BUTTON | CONTINUE_BUTTON =>
-        commonTasks.map(_ => sessionCacheService.deleteAll(teamMemberFilteringKeys))
-      case FILTER_BUTTON =>
-        if (formData.search.isEmpty) {
-          commonTasks.map(_ => ())
-        } else {
-          commonTasks.map(_ =>
+    commonTasks.map(_ =>
+      buttonSelect match {
+        case CLEAR_BUTTON | CONTINUE_BUTTON =>
+          sessionCacheService.deleteAll(teamMemberFilteringKeys)
+        case FILTER_BUTTON =>
+          if (formData.search.isEmpty) {
+            Future.successful(())
+          } else {
             for {
               _ <- sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
               _ <- filterTeamMembers(arn)(formData)
             } yield ()
-          )
-        }
-    }
+          }
+      }
+    )
   }
 
   private def filterTeamMembers(arn: Arn)

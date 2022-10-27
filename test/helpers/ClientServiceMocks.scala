@@ -51,6 +51,14 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future.successful(()))
       .once()
 
+  def expectGetUnassignedClients(arn: Arn)
+                        (clients: Seq[DisplayClient])
+                        (implicit clientService: ClientService): Unit =
+    (clientService
+      .getUnassignedClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
+      .returning(Future successful clients).once()
+
   def expectLookupClient(arn: Arn)
                         (client: DisplayClient)
                         (implicit clientService: ClientService): Unit =

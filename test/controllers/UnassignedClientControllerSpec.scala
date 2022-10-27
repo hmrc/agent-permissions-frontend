@@ -28,7 +28,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -40,6 +40,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionService: SessionCacheService = mock[SessionCacheService]
+  implicit val mockClientService: ClientService = mock[ClientService]
 
   private val ctrlRoutes: ReverseUnassignedClientController = routes.UnassignedClientController
 
@@ -53,6 +54,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       bind(classOf[SessionCacheService]).toInstance(mockSessionService)
       bind(classOf[SessionAction]).toInstance(new SessionAction(mockSessionService))
       bind(classOf[GroupService]).toInstance(mockGroupService)
+      bind(classOf[ClientService]).toInstance(mockClientService)
     }
   }
 
@@ -80,8 +82,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       expectGetSessionItemNone(SELECTED_CLIENTS)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetUnassignedClientsSuccess(arn, displayClients)
-
+      expectGetUnassignedClients(arn)(displayClients)
       //when
       val result = controller.showUnassignedClients(request)
 
@@ -109,8 +110,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
       expectGetSessionItemNone(SELECTED_CLIENTS)
+      expectGetUnassignedClients(arn)(displayClients)
 
-      expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //when
       val result = controller.showUnassignedClients(request)
@@ -141,12 +142,6 @@ class UnassignedClientControllerSpec extends BaseSpec {
     s"save selected unassigned clients and redirect to ${ctrlRoutes.showSelectedUnassignedClients} " +
       s"when button is Continue and form is valid" in {
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetUnassignedClientsSuccess(arn, displayClients)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectDeleteSessionItems(clientFilteringKeys)
-
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
@@ -158,6 +153,10 @@ class UnassignedClientControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectSaveSelectedOrFilteredClients(arn)
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -170,12 +169,6 @@ class UnassignedClientControllerSpec extends BaseSpec {
     s"""save selected unassigned clients and redirect to ${ctrlRoutes.showUnassignedClients}
       when button is FILTER (i.e. not CONTINUE)""" in {
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetUnassignedClientsSuccess(arn, displayClients)
-      //we don't expect this as we have selected clients
-      //expectGetUnassignedClientsSuccess(arn, displayClients)
-
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
@@ -187,8 +180,10 @@ class UnassignedClientControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectPutSessionItem(CLIENT_FILTER_INPUT, "VAT")
+      expectSaveSelectedOrFilteredClients(arn)
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -200,11 +195,6 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "present page with errors when form validation fails" in {
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetUnassignedClientsSuccess(arn, Seq.empty[DisplayClient])
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients.url)
           .withFormUrlEncodedBody(
@@ -214,34 +204,14 @@ class UnassignedClientControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-
-      val result = controller.submitAddUnassignedClients()(request)
-
-      status(result) shouldBe OK
-
-    }
-
-    "present page with errors when form validation fails and filtered clients exist" in {
-
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetUnassignedClientsSuccess(arn, Seq.empty[DisplayClient])
+      expectGetUnassignedClients(arn)(displayClients)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients.url)
-          .withFormUrlEncodedBody(
-            "search" -> "",
-            "filter" -> "",
-            "submit" -> CONTINUE_BUTTON
-          )
-          .withSession(SessionKeys.sessionId -> "session-x")
 
       val result = controller.submitAddUnassignedClients()(request)
 
       status(result) shouldBe OK
-
-      //      await(sessionCacheRepo.getFromSession(SELECTED_CLIENTS)) shouldBe None
 
     }
   }

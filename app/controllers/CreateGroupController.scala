@@ -22,6 +22,7 @@ import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, Y
 import models.{AddClientsToGroup, AddTeamMembersToGroup, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -65,7 +66,7 @@ class CreateGroupController @Inject()(
 
   def start: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { _ =>
-      clearSession().map(_ => Redirect(controller.showGroupName))
+      sessionCacheService.deleteAll(sessionKeys).map(_ => Redirect(controller.showGroupName))
     }
   }
 
@@ -73,7 +74,7 @@ class CreateGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[String](GROUP_NAME) { maybeName =>
-          sessionCacheService.clearCreateGroupSession().map(_ =>
+          sessionCacheService.deleteAll(sessionKeys).map(_ =>
             Ok(create(GroupNameForm.form().fill(maybeName.getOrElse(""))))
           )
         }
@@ -89,8 +90,13 @@ class CreateGroupController @Inject()(
           .bindFromRequest
           .fold(
             formWithErrors => Ok(create(formWithErrors)).toFuture,
-            (name: String) =>
-              sessionCacheService.writeGroupNameAndRedirect(name)(controller.showConfirmGroupName)
+            (name: String) =>{
+              val saved = for {
+                _ <- sessionCacheService.put[String](GROUP_NAME, name)
+                _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, false)
+              } yield ()
+               saved.map(_=> Redirect(controller.showConfirmGroupName))
+            }
           )
       }
     }
@@ -118,11 +124,11 @@ class CreateGroupController @Inject()(
                 .flatMap(
                   nameAvailable =>
                     if (nameAvailable)
-                      sessionCacheService.confirmGroupNameAndRedirect(
-                        controller.showSelectClients)
+                      sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true).map(_=>
+                        Redirect(controller.showSelectClients)
+                      )
                     else
-                      Redirect(
-                        controller.showAccessGroupNameExists).toFuture)
+                      Redirect(controller.showAccessGroupNameExists).toFuture)
             else
               Redirect(controller.showGroupName.url).toFuture
           }
@@ -159,7 +165,6 @@ class CreateGroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         AddClientsToGroupForm
           .form()
           .bindFromRequest()
@@ -167,7 +172,7 @@ class CreateGroupController @Inject()(
             formWithErrors => {
               for {
                 _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit").get)
-                  sessionCacheService.clearSelectedClients()
+                  sessionCacheService.delete(SELECTED_CLIENTS)
                 else ().toFuture
                 clients <- clientService.getFilteredClientsElseAll(arn)
               } yield
@@ -185,7 +190,6 @@ class CreateGroupController @Inject()(
                 )
             }
           )
-      }
     }
   }
 
@@ -212,7 +216,7 @@ class CreateGroupController @Inject()(
                     Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
                   }, (yes: Boolean) => {
                     if (yes)
-                      clientService.clearSessionForFilteringClients().map(_ =>
+                      sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
                         Redirect(controller.showSelectClients)
                       )
                     else {
@@ -325,8 +329,8 @@ class CreateGroupController @Inject()(
   }
 
   def redirectToEditClients: Action[AnyContent] = Action.async { implicit request =>
-    sessionCacheService.put(RETURN_URL,
-      controllers.routes.CreateGroupController.showCheckYourAnswers.url)
+    sessionCacheService
+      .put(RETURN_URL, controllers.routes.CreateGroupController.showCheckYourAnswers.url)
       .map(_ => Redirect(controllers.routes.CreateGroupController.showSelectClients))
 
   }

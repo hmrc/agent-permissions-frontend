@@ -106,8 +106,4 @@ class OptInStatusAction @Inject()(val authConnector: AuthConnector,
             s"could not initialise session because opt-In status was not returned for ${arn.value}")
       }
 
-  def clearSession()(implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
-    Future.sequence(sessionKeys.map(sessionCacheService.delete(_))).map(_ => ())
-  }
-
 }

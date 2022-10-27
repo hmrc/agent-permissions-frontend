@@ -16,10 +16,9 @@
 
 package services
 
-import models.{DisplayClient, Selectable}
+import models.Selectable
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
-import repository.SessionCacheRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -27,25 +26,25 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait GroupMemberOps {
 
-  val sessionCacheRepository: SessionCacheRepository
+  val sessionCacheService: SessionCacheService
 
   def addSelectablesToSession[T <: Selectable](selectables: List[T])
-                                              (selectedMembersDataKey: DataKey[Seq[T]],
-                                               filteredMembersDataKey: DataKey[Seq[T]])
+                                              (selectedKey: DataKey[Seq[T]],
+                                               filteredKey: DataKey[Seq[T]])
                                               (implicit hc: HeaderCarrier, request: Request[Any],
                                                ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] = {
 
     for {
-      selectedInSession <- sessionCacheRepository.getFromSession[Seq[T]](selectedMembersDataKey).map(_.map(_.toList))
+      selectedInSession <- sessionCacheService.get[Seq[T]](selectedKey).map(_.map(_.toList))
 
-      filteredSelected <- sessionCacheRepository.getFromSession[Seq[T]](filteredMembersDataKey)
+      filteredSelected <- sessionCacheService.get[Seq[T]](filteredKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
       deSelected = filteredSelected.orElse(selectedInSession).map(_ diff selectables)
       added = selectables.diff(filteredSelected.getOrElse(Nil))
 
       toSave = added ::: selectedInSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
-      _ <- sessionCacheRepository.putSession[Seq[T]](selectedMembersDataKey, toSave.distinct)
+      _ <- sessionCacheService.put[Seq[T]](selectedKey, toSave.distinct)
 
     } yield ()
   }

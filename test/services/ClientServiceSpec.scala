@@ -29,16 +29,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ClientServiceSpec extends BaseSpec {
 
-  implicit val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
-    mock[AgentUserClientDetailsConnector]
-  lazy val sessionCacheRepo: SessionCacheRepository =
-    new SessionCacheRepository(mongoComponent, timestampSupport)
-
-  val mockAgentPermissionsConnector: AgentPermissionsConnector =
-    mock[AgentPermissionsConnector]
-
-  val service =
-    new ClientServiceImpl(mockAgentUserClientDetailsConnector, mockAgentPermissionsConnector,sessionCacheRepo)
+  implicit val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
+  lazy val sessionCacheService: SessionCacheService = new SessionCacheService(sessionCacheRepo)
+  val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  val service = new ClientServiceImpl(mockAgentUserClientDetailsConnector, mockAgentPermissionsConnector,sessionCacheRepo, sessionCacheService)
 
   val fakeClients: Seq[Client] = (1 to 10)
     .map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly name $i"))

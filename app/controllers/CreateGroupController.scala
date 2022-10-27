@@ -22,7 +22,6 @@ import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, Y
 import models.{AddClientsToGroup, AddTeamMembersToGroup, DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn

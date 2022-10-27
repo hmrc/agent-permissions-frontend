@@ -36,12 +36,12 @@ trait GroupMemberOps {
 
     for {
       selectedInSession <- sessionCacheService.get[Seq[T]](selectedKey).map(_.map(_.toList))
-
-      filteredSelected <- sessionCacheService.get[Seq[T]](filteredKey)
+      filteredAndSelectedInSession <- sessionCacheService
+        .get[Seq[T]](filteredKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
-      deSelected = filteredSelected.orElse(selectedInSession).map(_ diff selectables)
-      added = selectables.diff(filteredSelected.getOrElse(Nil))
+      deSelected = filteredAndSelectedInSession.orElse(selectedInSession).map(_ diff selectables)
+      added = selectables.diff(filteredAndSelectedInSession.getOrElse(Nil))
 
       toSave = added ::: selectedInSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
       _ <- sessionCacheService.put[Seq[T]](selectedKey, toSave.distinct)

@@ -93,7 +93,7 @@ class TeamMemberServiceImpl @Inject()(
     }
   }
 
-  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
+  def   saveSelectedOrFilteredTeamMembers(buttonSelect: String)
                                        (arn: Arn)
                                        (formData: AddTeamMembersToGroup
                                        )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
@@ -108,7 +108,7 @@ class TeamMemberServiceImpl @Inject()(
         commonTasks.map(_ => sessionCacheService.deleteAll(teamMemberFilteringKeys))
       case FILTER_BUTTON =>
         if (formData.search.isEmpty) {
-          Future.successful(())
+          commonTasks.map(_ => ())
         } else {
           commonTasks.map(_ =>
             for {

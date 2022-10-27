@@ -128,6 +128,7 @@ class ClientServiceSpec extends BaseSpec {
   }
 
   "lookup clients" should {
+
     "gets clients by id" in {
       //given
       expectGetClients(arn)(fakeClients)
@@ -148,4 +149,38 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
+  "lookup client" should {
+    "return None when nothing returned from agentUserClientConnector" in {
+      //given no clients returned from agentUserClientConnector
+      expectGetClients(arn)(Seq.empty)
+
+      //when
+      val client = await(service.lookupClient(arn)("62f21dd4af97f775cde0b421"))
+
+      //then
+      client shouldBe None
+    }
+
+    "return None when no match for id from clients returned from agentUserClientConnector" in {
+      //given no clients returned from agentUserClientConnector
+      expectGetClients(arn)(fakeClients.take(5))
+
+      //when
+      val client = await(service.lookupClient(arn)("non-matching-id"))
+
+      //then
+      client shouldBe None
+    }
+
+    "get all clients for arn then filter for required one" in {
+      //given no clients returned from agentUserClientConnector
+      expectGetClients(arn)(fakeClients.take(5))
+
+      //when
+      val client = await(service.lookupClient(arn)(displayClients.head.id))
+
+      //then
+      client.get shouldBe displayClients.head
+    }
+  }
 }

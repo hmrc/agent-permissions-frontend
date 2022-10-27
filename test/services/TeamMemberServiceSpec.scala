@@ -194,6 +194,8 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectGetTeamMembers(arn)(users)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, members.take(2))
       expectGetSessionItem(FILTERED_TEAM_MEMBERS, members.takeRight(1))
+      //TODO: this looks like a bug. We can't compare whole objects when
+      //TODO: two with equal ids/names/emails might be selected or unselected
       val expectedPutSelected = List(
         TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None, true),
         TeamMember("Name 2", "bob2@accounting.com", Some("user2"), None, true),
@@ -208,6 +210,29 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, searchTerm)
 
       val formData = AddTeamMembersToGroup(Some(searchTerm), Some(members.map(_.id).toList), FILTER_BUTTON)
+
+      //when
+      await(service.saveSelectedOrFilteredTeamMembers(FILTER_BUTTON)(arn)(formData))
+
+    }
+
+    "work for FILTER_BUTTON with no SEARCH form data" in {
+
+      //expect
+      expectGetTeamMembers(arn)(users)
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectGetSessionItemNone(FILTERED_TEAM_MEMBERS)
+      val selectedTeamMemberIds = members.take(2).map(_.id).toList
+      val formData = AddTeamMembersToGroup(
+        None, // <-- i.e. no search term
+        Some(selectedTeamMemberIds), FILTER_BUTTON
+      )
+      val expectedSelectedTeamMembers =
+        List(
+          TeamMember("Name 1", "bob1@accounting.com", Some("user1"),None,true),
+          TeamMember("Name 2", "bob2@accounting.com", Some("user2"),None,true)
+        )
+      expectPutSessionItem(SELECTED_TEAM_MEMBERS, expectedSelectedTeamMembers)
 
       //when
       await(service.saveSelectedOrFilteredTeamMembers(FILTER_BUTTON)(arn)(formData))

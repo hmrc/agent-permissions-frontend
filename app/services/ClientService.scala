@@ -129,21 +129,19 @@ class ClientServiceImpl @Inject()(
       _ <- addSelectablesToSession(selectedClients)(SELECTED_CLIENTS, FILTERED_CLIENTS)
     } yield allClients
 
-    clientsMarkedSelected.map { clients =>
+    clientsMarkedSelected.flatMap { clients =>
       formData.submit.trim match {
         case FILTER_BUTTON =>
           if (formData.search.isEmpty && formData.filter.isEmpty) {
             sessionCacheService.deleteAll(clientFilteringKeys)
           } else {
-            val tasks =for {
-              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
+            for {
               _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
+              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
               _ <- filterClients(formData)(clients)
             } yield ()
-            tasks.map(_=> ())
           }
-        case _ =>
-          sessionCacheService.deleteAll(clientFilteringKeys)
+        case _ => sessionCacheService.deleteAll(clientFilteringKeys)
       }
     }
   }

@@ -103,7 +103,7 @@ class TeamMemberServiceImpl @Inject()(
       _ <- addSelectablesToSession(teamMembers.map(_.copy(selected = true)))(SELECTED_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS)
     } yield ()
 
-    commonTasks.map(_ =>
+    commonTasks.flatMap(_ =>
       buttonSelect match {
         case CLEAR_BUTTON | CONTINUE_BUTTON =>
           sessionCacheService.deleteAll(teamMemberFilteringKeys)
@@ -111,11 +111,10 @@ class TeamMemberServiceImpl @Inject()(
           if (formData.search.isEmpty) {
             Future.successful(())
           } else {
-            val tasks =for {
+            for {
               _ <- sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
               _ <- filterTeamMembers(arn)(formData)
             } yield ()
-            tasks.map(_=> ())
           }
       }
     )

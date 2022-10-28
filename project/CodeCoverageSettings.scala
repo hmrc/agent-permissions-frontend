@@ -33,6 +33,7 @@ object CodeCoverageSettings {
     ".*ViewUtils.*",
     ".*GroupAction.*",
     ".*ClientAction.*",
+    ".*ClientService.*",
     ".*TeamMemberAction.*",
     ".*TimeoutController.*",
   )

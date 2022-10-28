@@ -254,4 +254,39 @@ class ClientServiceSpec extends BaseSpec {
 
 
   }
+
+  "addSelectablesToSession" should {
+    
+    "work as expected with none set as selected " in{
+      //given existing session state
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(2))
+      expectGetSessionItem(FILTERED_CLIENTS, displayClients.takeRight(1))
+
+      //we expect the sesion to be changed like this
+      expectPutSessionItem(SELECTED_CLIENTS, displayClients.take(3))
+
+      //when
+      await(service.addSelectablesToSession(displayClients.take(3).toList)(SELECTED_CLIENTS, FILTERED_CLIENTS))
+    }
+    
+    "work as expected with selected in session " in{
+      //TODO: don't think this is the desired behaviour
+      //given existing session state
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(2).map(_.copy(selected = true)))
+      expectGetSessionItem(FILTERED_CLIENTS, displayClients.takeRight(1).map(_.copy(selected = true)))
+
+      val expectedPayload = List(
+        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
+        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false),
+        DisplayClient("123456783","friendly name 3","HMRC-MTD-VAT","VRN",false),
+        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true)
+      )
+      //we expect the sesion to be changed like this
+      expectPutSessionItem(SELECTED_CLIENTS, expectedPayload)
+
+      //when
+      await(service.addSelectablesToSession(displayClients.take(3).toList)(SELECTED_CLIENTS, FILTERED_CLIENTS))
+    }
+  }
 }

@@ -103,7 +103,7 @@ class TeamMemberServiceImpl @Inject()(
       _ <- addSelectablesToSession(teamMembers.map(_.copy(selected = true)))(SELECTED_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS)
     } yield ()
 
-    commonTasks.map(_ =>
+    commonTasks.flatMap(_ =>
       buttonSelect match {
         case CLEAR_BUTTON | CONTINUE_BUTTON =>
           sessionCacheService.deleteAll(teamMemberFilteringKeys)

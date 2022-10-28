@@ -23,6 +23,7 @@ import scala.util.hashing.MurmurHash3
 
 sealed trait Selectable {
   val selected: Boolean
+  val id: String
 }
 
 case class TeamMember(

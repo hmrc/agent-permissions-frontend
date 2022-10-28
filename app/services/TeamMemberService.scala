@@ -111,10 +111,11 @@ class TeamMemberServiceImpl @Inject()(
           if (formData.search.isEmpty) {
             Future.successful(())
           } else {
-            for {
+            val tasks =for {
               _ <- sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
               _ <- filterTeamMembers(arn)(formData)
             } yield ()
+            tasks.map(_=> ())
           }
       }
     )

@@ -18,9 +18,9 @@ package services
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{FILTERED_CLIENTS, SELECTED_CLIENTS}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, clientFilteringKeys}
 import helpers.BaseSpec
-import models.DisplayClient
+import models.{AddClientsToGroup, DisplayClient}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -182,5 +182,76 @@ class ClientServiceSpec extends BaseSpec {
       //then
       client.get shouldBe displayClients.head
     }
+  }
+
+  "saveSelectedOrFilteredClients" should {
+
+    "work for CONTINUE_BUTTON" in {
+
+      val CLIENTS = displayClients.take(8)
+      //expect
+      expectGetClients(arn)(fakeClients.take(8))
+      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 2)
+      expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
+      //TODO: this looks like a bug too. Bug is in the GroupMemberOps
+      val expectedPutSelected = List(
+        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456783","friendly name 3","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456784","friendly name 4","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456785","friendly name 5","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456786","friendly name 6","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456787","friendly name 7","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456788","friendly name 8","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
+        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false)
+      )
+      expectDeleteSessionItems(clientFilteringKeys)
+      expectPutSessionItem(SELECTED_CLIENTS, expectedPutSelected)
+
+      val formData = AddClientsToGroup(None, None, Some(CLIENTS.map(_.id).toList), CONTINUE_BUTTON)
+
+      //when
+      await(service.saveSelectedOrFilteredClients(arn)(formData)(service.getAllClients))
+
+    }
+
+    "work for FILTER_BUTTON" in {
+
+      val CLIENTS = displayClients.take(8)
+      //expect
+      expectGetClients(arn)(fakeClients.take(8))
+      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 2)
+      expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
+      val expectedPutSelected = List(
+        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456783","friendly name 3","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456784","friendly name 4","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456785","friendly name 5","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456786","friendly name 6","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456787","friendly name 7","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456788","friendly name 8","HMRC-MTD-VAT","VRN",true),
+        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
+        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false)
+      )
+      expectPutSessionItem(SELECTED_CLIENTS, expectedPutSelected)
+
+      val formData = AddClientsToGroup(
+        Some("searchTerm"),
+        Some("filterTerm"),
+        Some(CLIENTS.map(_.id).toList),
+        FILTER_BUTTON
+      )
+      expectPutSessionItem(CLIENT_SEARCH_INPUT, "searchTerm")
+      expectPutSessionItem(CLIENT_FILTER_INPUT, "filterTerm")
+//      expectDeleteSessionItems(clientFilteringKeys)
+
+      //when
+      await(service.saveSelectedOrFilteredClients(arn)(formData)(service.getAllClients))
+
+    }
+
+
   }
 }

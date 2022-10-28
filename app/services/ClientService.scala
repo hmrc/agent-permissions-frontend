@@ -135,16 +135,15 @@ class ClientServiceImpl @Inject()(
           if (formData.search.isEmpty && formData.filter.isEmpty) {
             sessionCacheService.deleteAll(clientFilteringKeys)
           } else {
-            for {
+            val tasks =for {
               _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
               _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
               _ <- filterClients(formData)(clients)
             } yield ()
+            tasks.map(_=> ())
           }
         case _ =>
-          for {
-            _ <- sessionCacheService.deleteAll(clientFilteringKeys)
-          } yield ()
+          sessionCacheService.deleteAll(clientFilteringKeys)
       }
     }
   }

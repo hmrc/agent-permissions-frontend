@@ -192,7 +192,9 @@ class TeamMemberServiceSpec extends BaseSpec {
 
       //expect
       expectGetTeamMembers(arn)(users)
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, members.take(2))
+      expectGetTeamMembers(arn)(users)
+      // this is being called twice. not very efficient
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, members.take(2), 2)
       expectGetSessionItem(FILTERED_TEAM_MEMBERS, members.takeRight(1))
       //TODO: this looks like a bug. We can't compare whole objects when
       //TODO: two with equal ids/names/emails might be selected or unselected

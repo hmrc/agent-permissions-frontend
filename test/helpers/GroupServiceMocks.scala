@@ -67,6 +67,13 @@ trait GroupServiceMocks extends MockFactory {
       .expects(arn, client, *, *, *)
       .returning(Future.successful(groupsAlreadyAssociatedToClient)).once()
 
+  def expectCreateGroup(arn: Arn)(groupName: String)
+                       (implicit groupService: GroupService): Unit =
+    (groupService
+      .createGroup(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .expects(arn, groupName, *, *, *)
+      .returning(Future.successful(Done)).once()
+
   def expectUpdateGroup(id: String, payload: UpdateAccessGroupRequest)
                        (implicit groupService: GroupService): Unit =
     (groupService

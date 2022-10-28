@@ -21,8 +21,7 @@ import controllers._
 import helpers.BaseSpec
 import models.{DisplayClient, TeamMember}
 import play.api.Application
-import play.api.http.Status.SEE_OTHER
-import play.api.test.Helpers.{await, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
 
 class SessionCacheServiceSpec extends BaseSpec {
@@ -44,75 +43,6 @@ class SessionCacheServiceSpec extends BaseSpec {
 
   val service = fakeApplication.injector.instanceOf[SessionCacheService]
 
-  "writeGroupNameAndRedirect" should {
-    "over-write an existing group name and redirect" in {
-
-      await(sessionCacheRepo.putSession[String](GROUP_NAME, "shady"))
-      val result = service.writeGroupNameAndRedirect("new group name")(
-        routes.OptInController.start)
-
-      status(result) shouldBe SEE_OTHER
-
-      val savedSession =
-        await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
-
-      savedSession.get shouldBe "new group name"
-
-      redirectLocation(result).get shouldBe routes.OptInController.start.url
-    }
-
-    "create new group if none exists and redirect" in {
-
-      val result = service.writeGroupNameAndRedirect("new group name")(
-        routes.OptInController.start)
-
-      status(result) shouldBe SEE_OTHER
-
-      val savedSession =
-        await(sessionCacheRepo.getFromSession[String](GROUP_NAME))
-
-      savedSession.get shouldBe "new group name"
-
-      redirectLocation(result).get shouldBe routes.OptInController.start.url
-    }
-  }
-
-  "confirmGroupNameAndRedirect" should {
-    "update field in session if a group name exists" in {
-
-      await(sessionCacheRepo.putSession[String](GROUP_NAME, "shady"))
-      await(sessionCacheRepo.putSession[Boolean](GROUP_NAME_CONFIRMED, false))
-
-      val result =
-        service.confirmGroupNameAndRedirect(routes.OptInController.start)
-
-      val savedSession =
-        await(sessionCacheRepo.getFromSession[Boolean](GROUP_NAME_CONFIRMED))
-
-      status(result) shouldBe SEE_OTHER
-      savedSession.get shouldBe true
-      redirectLocation(result).get shouldBe routes.OptInController.start.url
-    }
-  }
-
-  "clearSelectedClients" should {
-    "Remove selected clients from SessionCache Repo" in {
-      //given
-      val clients = Seq(DisplayClient("whatever", "", "", ""))
-
-      val (membersInSessionCache, maybeMembers) = (for {
-        _ <- sessionCacheRepo.putSession(SELECTED_CLIENTS, clients)
-        membersInSessionCache <- sessionCacheRepo.getFromSession(
-          SELECTED_CLIENTS)
-        _ <- service.clearSelectedClients()
-        maybeMembers <- sessionCacheRepo.getFromSession(SELECTED_CLIENTS)
-      } yield (membersInSessionCache, maybeMembers)).futureValue
-
-      membersInSessionCache.get.length shouldBe 1
-
-      maybeMembers.isDefined shouldBe false
-    }
-  }
 
   "saveSelectedClients" should {
 

@@ -89,7 +89,7 @@ class OptOutController @Inject()(
     implicit request =>
       isAuthorisedAgent { arn =>
         isOptedOut(arn) { _ =>
-          clearSession()
+          sessionCacheService.deleteAll(sessionKeys)
             .map(_ => Ok(you_have_opted_out()))
         }
       }

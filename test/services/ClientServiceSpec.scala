@@ -18,10 +18,10 @@ package services
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import controllers.{FILTERED_CLIENTS, SELECTED_CLIENTS}
 import helpers.BaseSpec
 import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -30,10 +30,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class ClientServiceSpec extends BaseSpec {
 
   implicit val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
-  lazy val sessionCacheService: SessionCacheService = new SessionCacheService(sessionCacheRepo)
+  implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
   val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  val service = new ClientServiceImpl(mockAgentUserClientDetailsConnector, mockAgentPermissionsConnector,sessionCacheRepo, sessionCacheService)
+  val service = new ClientServiceImpl(mockAgentUserClientDetailsConnector, mockAgentPermissionsConnector,sessionCacheService)
 
   val fakeClients: Seq[Client] = (1 to 10)
     .map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly name $i"))
@@ -55,10 +54,39 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "getClients" should {
-    "Get clients from agentUserClientDetailsConnector and merge selected ones" in {
+  "getFilteredClientsElseAll" should {
+
+    "Get filtered clients from session when available " in {
       //given
+      expectGetSessionItem(FILTERED_CLIENTS, displayClients)
+
+      //when
+      val clients =  await(service.getFilteredClientsElseAll(arn))
+
+      //then
+      clients.size shouldBe 10
+      clients.head.name shouldBe "friendly name 1"
+      clients.head.identifierKey shouldBe "VRN"
+      clients.head.hmrcRef shouldBe "123456781"
+      clients.head.taxService shouldBe "HMRC-MTD-VAT"
+
+      clients(5).name shouldBe "friendly name 6"
+      clients(5).identifierKey shouldBe "VRN"
+      clients(5).hmrcRef shouldBe "123456786"
+      clients(5).taxService shouldBe "HMRC-MTD-VAT"
+
+      clients(9).name shouldBe "friendly name 10"
+      clients(9).hmrcRef shouldBe "1234567810"
+      clients(9).identifierKey shouldBe "VRN"
+      clients(9).taxService shouldBe "HMRC-MTD-VAT"
+
+    }
+
+    "Get clients from session else agentUserClientDetailsConnector" in {
+      //given
+      expectGetSessionItemNone(FILTERED_CLIENTS) // <-- no filtered clients in session
       expectGetClients(arn)(fakeClients)
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(2))
 
       //when
       val clients =  await(service.getFilteredClientsElseAll(arn))
@@ -100,6 +128,7 @@ class ClientServiceSpec extends BaseSpec {
   }
 
   "lookup clients" should {
+
     "gets clients by id" in {
       //given
       expectGetClients(arn)(fakeClients)
@@ -120,4 +149,38 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
+  "lookup client" should {
+    "return None when nothing returned from agentUserClientConnector" in {
+      //given no clients returned from agentUserClientConnector
+      expectGetClients(arn)(Seq.empty)
+
+      //when
+      val client = await(service.lookupClient(arn)("62f21dd4af97f775cde0b421"))
+
+      //then
+      client shouldBe None
+    }
+
+    "return None when no match for id from clients returned from agentUserClientConnector" in {
+      //given no clients returned from agentUserClientConnector
+      expectGetClients(arn)(fakeClients.take(5))
+
+      //when
+      val client = await(service.lookupClient(arn)("non-matching-id"))
+
+      //then
+      client shouldBe None
+    }
+
+    "get all clients for arn then filter for required one" in {
+      //given no clients returned from agentUserClientConnector
+      expectGetClients(arn)(fakeClients.take(5))
+
+      //when
+      val client = await(service.lookupClient(arn)(displayClients.head.id))
+
+      //then
+      client.get shouldBe displayClients.head
+    }
+  }
 }

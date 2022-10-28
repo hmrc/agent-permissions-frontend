@@ -26,11 +26,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait SessionServiceMocks extends MockFactory {
 
-  def expectGetSessionItem[T](key: DataKey[T], mockedResponse: T)
+  def expectGetSessionItem[T](key: DataKey[T], mockedResponse: T, times: Int = 1)
                              (implicit service: SessionCacheService): Unit =
     (service.get(_:DataKey[T])(_: Reads[T], _: Request[_], _: ExecutionContext))
       .expects(key, *, *, *)
-      .returning(Future.successful(Some(mockedResponse)))
+      .returning(Future.successful(Some(mockedResponse))).repeat(times)
 
   def expectGetSessionItemNone[T](key: DataKey[T])
                              (implicit service: SessionCacheService): Unit =

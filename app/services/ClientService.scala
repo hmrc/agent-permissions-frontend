@@ -22,7 +22,6 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, ToFuture, clientFilteringKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
-import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -51,8 +50,6 @@ trait ClientService {
                                    (formData: AddClientsToGroup)(getClients: Arn => Future[Seq[DisplayClient]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
-  def clearSessionForFilteringClients()(implicit request: Request[Any], ec: ExecutionContext): Future[Unit]
-
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
@@ -62,8 +59,7 @@ trait ClientService {
 class ClientServiceImpl @Inject()(
                                    agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
                                    agentPermissionsConnector: AgentPermissionsConnector,
-                                   val sessionCacheRepository: SessionCacheRepository,
-                                   sessionCacheService: SessionCacheService
+                                   val sessionCacheService: SessionCacheService
                                  ) extends ClientService with GroupMemberOps {
 
   // returns the es3 list sorted by name, selecting previously selected clients
@@ -82,9 +78,8 @@ class ClientServiceImpl @Inject()(
   }
 
   // returns clients from es3 OR a filtered list, selecting previously selected clients
-  def getFilteredClientsElseAll(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
-  : Future[Seq[DisplayClient]] = {
-
+  def getFilteredClientsElseAll(arn: Arn)
+                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
     val maybeFilteredClients = sessionCacheService.get(FILTERED_CLIENTS)
     maybeFilteredClients.flatMap { maybeClients =>
       if (maybeClients.isDefined) Future.successful(maybeClients.get)
@@ -120,9 +115,6 @@ class ClientServiceImpl @Inject()(
     } yield es3AsDisplayClients
   }
 
-  def clearSessionForFilteringClients()(implicit request: Request[Any], ec: ExecutionContext): Future[Unit] =
-    Future.traverse(clientFilteringKeys)(key => sessionCacheService.delete(key)).map(_ => ())
-
   // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
   def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)
@@ -136,11 +128,12 @@ class ClientServiceImpl @Inject()(
         .map(_.copy(selected = true)).toList
       _ <- addSelectablesToSession(selectedClients)(SELECTED_CLIENTS, FILTERED_CLIENTS)
     } yield allClients
+
     clientsMarkedSelected.map { clients =>
       formData.submit.trim match {
         case FILTER_BUTTON =>
           if (formData.search.isEmpty && formData.filter.isEmpty) {
-            clearSessionForFilteringClients()
+            sessionCacheService.deleteAll(clientFilteringKeys)
           } else {
             for {
               _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))

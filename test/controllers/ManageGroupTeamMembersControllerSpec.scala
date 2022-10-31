@@ -28,9 +28,8 @@ import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
-import repository.SessionCacheRepository
-import services.{GroupService, TeamMemberService}
+import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
+import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -42,7 +41,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
+  implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
 
@@ -64,8 +63,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
-      bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
       bind(classOf[GroupService]).toInstance(mockGroupService)
+      bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
       bind(classOf[TeamMemberService]).toInstance(mockTeamMemberService)
     }
   }
@@ -91,9 +90,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
-
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
@@ -125,18 +122,19 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with name/email searchTerm set" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
+
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
+
 
       //when
       val result = controller.showExistingGroupTeamMembers(accessGroup._id.toString)(requestWithQueryParams)
@@ -161,14 +159,13 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with email searchTerm set" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
-          "?submit=filter&search=hn2@ab"
+      implicit val requestWithQueryParams = FakeRequest(
+        GET,
+          ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
@@ -196,17 +193,16 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with filter that matches nothing" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(GROUP_NAME, accessGroup.groupName))
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
-          "?submit=filter&search=hn2@ab"
+      implicit val requestWithQueryParams = FakeRequest(
+        GET,
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = None)))
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(agentUsers))))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
       //when
@@ -231,11 +227,15 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectGetSessionItemNone(FILTERED_TEAM_MEMBERS)
+      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
-      expectGetTeamMembersFromGroup(arn)(teamMembers)
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = None)))
+      expectGetTeamMembersFromGroup(arn)(Seq.empty)
+      expectPutSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
       expectGetAllTeamMembers(arn)(teamMembers)
 
       //when
@@ -265,15 +265,17 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page filtered results exist" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(TEAM_MEMBER_SEARCH_INPUT, "John"))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers.take(2))
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
       expectGetAllTeamMembers(arn)(teamMembers)
-      expectGetTeamMembersFromGroup(arn)(teamMembers)
-
+      val membersInGroup = teamMembers.take(4)
+      expectGetTeamMembersFromGroup(arn)(membersInGroup)
+      expectPutSessionItem(SELECTED_TEAM_MEMBERS, membersInGroup)
 
       //when
       val result = controller.showManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -286,28 +288,32 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       html.select(H2).text() shouldBe "Filter results for 'John'"
 
-      val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
-      trs.size() shouldBe 5
+      trs.size() shouldBe 2
 
-      trs.get(0).select("td").get(1).text() shouldBe "John 1 name"
-      trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
+      trs.get(0).select("td").get(1).text() shouldBe teamMembers.head.name
+      trs.get(0).select("td").get(2).text() shouldBe teamMembers.head.email
       trs.get(0).select("td").get(3).text() shouldBe "Administrator"
 
-      trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
-      trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
-      trs.get(4).select("td").get(3).text() shouldBe "Administrator"
+      trs.get(1).select("td").get(1).text() shouldBe teamMembers(1).name
+      trs.get(1).select("td").get(2).text() shouldBe teamMembers(1).email
+      trs.get(1).select("td").get(3).text() shouldBe "Administrator"
     }
 
     "render correctly the manage TEAM MEMBERS LIST page" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup.copy(teamMembers = Some(Set(AgentUser("id1", "John"))))))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItemNone(FILTERED_TEAM_MEMBERS)
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
+      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
       expectGetAllTeamMembers(arn)(teamMembers)
-      expectGetTeamMembersFromGroup(arn)(teamMembers)
+      val membersInGroup = teamMembers.take(4)
+      expectGetTeamMembersFromGroup(arn)(membersInGroup)
+      expectPutSessionItem(SELECTED_TEAM_MEMBERS, membersInGroup)
 
 
       //when
@@ -319,8 +325,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Update team members in this group"
 
-      val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
       trs.size() shouldBe 5
 
@@ -349,22 +354,20 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers.take(1)))
-        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-
+        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers.take(1))
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         val expectedFormData = AddTeamMembersToGroup(None, Some(List(teamMembers.head.id, teamMembers.last.id)), CONTINUE_BUTTON)
         expectSaveSelectedOrFilteredTeamMembers(arn)(CONTINUE_BUTTON, expectedFormData)
+        expectDeleteSessionItem(FILTERED_TEAM_MEMBERS)
 
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe
-          ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url
+        redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url
 
-        await(sessionCacheRepo.getFromSession(FILTERED_TEAM_MEMBERS)) shouldBe Option.empty
       }
 
       "display error when none selected and CONTINUE button pressed" in {
@@ -378,11 +381,11 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
+        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers.take(1))
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
-        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
-        expectGetFilteredTeamMembersElseAll(accessGroup.arn)(teamMembers)
 
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -395,7 +398,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         html.select(Css.H1).text() shouldBe "Select team members"
         html
           .select(Css.errorSummaryForField("members"))
-        await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)).isDefined shouldBe false
       }
 
       "NOT display error when filter button is pushed with no search value" in {
@@ -409,14 +411,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         val expectedFormData = AddTeamMembersToGroup(None, None, FILTER_BUTTON)
         expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, expectedFormData)
+        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers)
 
-        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-        await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
 
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -436,12 +438,13 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         val expectedFormData = AddTeamMembersToGroup(Some("1"), None, FILTER_BUTTON)
         expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, expectedFormData)
+        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers)
 
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -456,10 +459,11 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "redirect if no team members selected in session" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
       //when
       val result = controller.showReviewSelectedTeamMembers(accessGroup._id.toString)(request)
@@ -472,8 +476,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage group REVIEW SELECTED page" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -509,8 +513,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -526,15 +530,13 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     s"redirect to '${ctrlRoute.showManageGroupTeamMembers(accessGroup._id.toString)}'" +
       s" page with answer 'true'" in {
 
-      implicit val request =
-        FakeRequest(
-          "POST",
+      implicit val request = FakeRequest("POST",
           s"${controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -555,8 +557,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
@@ -577,10 +579,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "redirect if no team members selected in session" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
       //when
       val result = controller.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)(request)
@@ -593,31 +597,24 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS UPDATED page" in {
       //given
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
-      await(sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS, teamMembers))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
       //when
       val result = controller.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe OK
-      // selected team members should be cleared from session
-      await(sessionCacheRepo.getFromSession(SELECTED_TEAM_MEMBERS)) shouldBe None
 
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Bananas access group team members updated - Agent services account - GOV.UK"
-      html
-        .select(Css.confirmationPanelH1)
-        .text() shouldBe "Bananas access group team members updated"
-      html
-        .select("a#returnToDashboard")
-        .text() shouldBe "Return to manage access groups"
-      html
-        .select("a#returnToDashboard")
-        .attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+      html.select(Css.confirmationPanelH1).text() shouldBe "Bananas access group team members updated"
+      html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
+      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
       html.select(Css.backLink).size() shouldBe 0
     }
 

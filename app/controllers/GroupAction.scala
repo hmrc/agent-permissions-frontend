@@ -50,8 +50,7 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
   : Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getGroup(groupId).flatMap(
-          _.fold(groupNotFound)(body(_)))
+        groupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
       }
     }
   }

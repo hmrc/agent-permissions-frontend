@@ -66,14 +66,14 @@ class ClientServiceImpl @Inject()(
   def getAllClients(arn: Arn)
                    (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
     for {
-      es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
+      allClientsFromEs3 <- getFromEs3AsDisplayClients(arn)
       maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
-      es3WithoutPreSelected = es3AsDisplayClients.filterNot(
-          dc => maybeSelectedClients.fold(false)(_.map(_.hmrcRef).contains(dc.hmrcRef))
-      )
-      mergedWithPreselected = es3WithoutPreSelected.toList ::: maybeSelectedClients.getOrElse(List.empty).toList
-      maybeClientsSortedByName = mergedWithPreselected.sortBy(_.name)
-    } yield maybeClientsSortedByName
+      existingSelectedClients = maybeSelectedClients.getOrElse(Nil)
+      selectedClientIds = existingSelectedClients.map(_.id)
+      es3ClientsMinusSelectedOnes = allClientsFromEs3.filterNot(dc => selectedClientIds.contains(dc.id))
+      clientsWithSelectedOnesMarkedAsSelected = es3ClientsMinusSelectedOnes.toList ::: existingSelectedClients.toList
+      sortedClients = clientsWithSelectedOnesMarkedAsSelected.sortBy(_.name)
+    } yield sortedClients
 
   }
 
@@ -124,8 +124,8 @@ class ClientServiceImpl @Inject()(
     val selectedClientIds = formData.clients.getOrElse(Seq.empty)
     val clientsMarkedSelected = for {
       allClients <- getClients(arn)
-      selectedClients = allClients.filter(cl => selectedClientIds.contains(cl.id))
-        .map(_.copy(selected = true)).toList
+      selectedClients = allClients
+        .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
       _ <- addSelectablesToSession(selectedClients)(SELECTED_CLIENTS, FILTERED_CLIENTS)
     } yield allClients
 

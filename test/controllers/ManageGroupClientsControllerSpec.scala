@@ -408,11 +408,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
         expectGetClients(arn)(fakeClients)
 
-        expectUpdateGroup(accessGroup._id.toString,
-          UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name)))))
-
-        val result =
-          controller.submitManageGroupClients(accessGroup._id.toString)(request)
+        val result = controller.submitManageGroupClients(accessGroup._id.toString)(request)
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
@@ -560,17 +556,18 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     s"redirect to '${ctrlRoute.showGroupClientsUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients(accessGroup._id.toString)}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients(accessGroup._id.toString)}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients))
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq(displayClients.head, displayClients.last)))
       await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectUpdateGroup(accessGroup._id.toString,
+        UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name))))
+      )
 
       val result = controller.submitReviewSelectedClients(accessGroup._id.toString)(request)
 

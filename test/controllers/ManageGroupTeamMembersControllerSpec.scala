@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.{AddTeamMembersToGroup, TeamMember}
@@ -504,9 +504,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to '${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(accessGroup._id.toString)}' page with answer 'false'" in {
 
-      implicit val request =
-        FakeRequest(
-          "POST",
+      implicit val request = FakeRequest("POST",
           s"${controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -516,6 +514,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectUpdateGroup(accessGroup._id.toString, UpdateAccessGroupRequest(teamMembers = Some(agentUsers)))
 
       val result = controller.submitReviewSelectedTeamMembers(accessGroup._id.toString)(request)
 

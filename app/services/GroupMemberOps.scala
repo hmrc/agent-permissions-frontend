@@ -36,17 +36,28 @@ trait GroupMemberOps {
                                                ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] = {
 
     for {
-      selectedInSession <- sessionCacheService.get[Seq[T]](selectedKey).map(_.map(_.toList))
-      filteredAndSelectedInSession <- sessionCacheService
+      //ALL the existing selected items, whether visible to user or not
+      currentlySelectedInSession <- sessionCacheService.get[Seq[T]](selectedKey).map(_.map(_.toList))
+
+      //if a filter is on, we have these items. The ones that are also
+      // selected are "currentlySelectedInFilteredSession"
+      currentlySelectedInFilteredSession <- sessionCacheService
         .get[Seq[T]](filteredKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
       //we want to remove the previously selected items in session in case they were de-selected by user.
-      toDeSelect = filteredAndSelectedInSession.orElse(selectedInSession).map(_ diff selectables)
+      toRemoveFromSession = currentlySelectedInFilteredSession
 
-      toAdd = selectables.diff(filteredAndSelectedInSession.getOrElse(Nil))
+      //These are the new items to add that were selected by the user but not already in the session
+      toAdd = selectables.diff(currentlySelectedInFilteredSession.getOrElse(Nil))
 
-      toSave = toAdd ::: selectedInSession.getOrElse(Nil) diff toDeSelect.getOrElse(Nil)
+      //the new session is the addition o
+      currentlySelectedMinusThoseToRemove = currentlySelectedInSession
+        .getOrElse(Nil)
+        .diff(toRemoveFromSession.getOrElse(Nil))
+
+      //now add the new ones to the existing session
+      toSave = toAdd ::: currentlySelectedMinusThoseToRemove
 
       //add selected items to session
       _ <- sessionCacheService.put[Seq[T]](selectedKey, toSave.distinct)

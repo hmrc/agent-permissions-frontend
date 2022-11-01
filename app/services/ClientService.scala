@@ -122,6 +122,7 @@ class ClientServiceImpl @Inject()(
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     val selectedClientIds = formData.clients.getOrElse(Seq.empty)
+
     val allClients = for {
       clients <- getClients(arn)
       selectedClientsToAddToSession = clients

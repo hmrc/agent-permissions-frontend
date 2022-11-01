@@ -50,6 +50,7 @@ abstract class BaseSpec
     with SessionServiceMocks
     with AgentPermissionsConnectorMocks
     with HttpClientMocks
+    with OptInServiceMocks
     with CleanMongoCollectionSupport
     with AgentUserClientDetailsConnectorMocks {
 

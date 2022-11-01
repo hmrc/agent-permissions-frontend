@@ -221,8 +221,9 @@ class ClientServiceSpec extends BaseSpec {
       val CLIENTS = displayClients.take(8)
       //expect
       expectGetClients(arn)(fakeClients.take(8))
-      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 2)
+      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 3)
       expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
+
       val expectedPutSelected = List(
         DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
         DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
@@ -245,7 +246,6 @@ class ClientServiceSpec extends BaseSpec {
       )
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "searchTerm")
       expectPutSessionItem(CLIENT_FILTER_INPUT, "filterTerm")
-//      expectDeleteSessionItems(clientFilteringKeys)
 
       //when
       await(service.saveSelectedOrFilteredClients(arn)(formData)(service.getAllClients))

@@ -122,14 +122,14 @@ class ClientServiceImpl @Inject()(
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     val selectedClientIds = formData.clients.getOrElse(Seq.empty)
-    val clientsMarkedSelected = for {
-      allClients <- getClients(arn)
-      selectedClients = allClients
+    val allClients = for {
+      clients <- getClients(arn)
+      selectedClientsToAddToSession = clients
         .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
-      _ <- addSelectablesToSession(selectedClients)(SELECTED_CLIENTS, FILTERED_CLIENTS)
-    } yield allClients
+      _ <- addSelectablesToSession(selectedClientsToAddToSession)(SELECTED_CLIENTS, FILTERED_CLIENTS)
+    } yield clients
 
-    clientsMarkedSelected.flatMap { clients =>
+    allClients.flatMap { clients =>
       formData.submit.trim match {
         case FILTER_BUTTON =>
           if (formData.search.isEmpty && formData.filter.isEmpty) {
@@ -147,30 +147,40 @@ class ClientServiceImpl @Inject()(
   }
 
   private def filterClients(formData: AddClientsToGroup)
-                           (selectedClients : Seq[DisplayClient])
+                           (selectedClients: Seq[DisplayClient])
                            (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext)
   : Future[Seq[DisplayClient]] = {
 
     val filterTerm = formData.filter
     val searchTerm = formData.search
+    val eventualSelectedClientIds = sessionCacheService.get(SELECTED_CLIENTS).map(_.map(_.map(_.id)))
 
-    for {
-      clients <- Future.successful(selectedClients)
-      resultByTaxService = filterTerm.fold(clients)(term =>
-        if (term == "TRUST") clients.filter(_.taxService.contains("HMRC-TERS"))
-        else clients.filter(_.taxService == term)
-      )
-      resultByName = searchTerm.fold(resultByTaxService) { term =>
-        resultByTaxService.filter(_.name.toLowerCase.contains(term.toLowerCase))
-      }
-      resultByTaxRef = searchTerm.fold(resultByTaxService) {
-        term => resultByTaxService.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase))
-      }
-      consolidatedResult = (resultByName ++ resultByTaxRef).distinct
-      result: Vector[DisplayClient] = consolidatedResult.toVector
-      _ <- if(result.nonEmpty) sessionCacheService.put(FILTERED_CLIENTS, result)
-      else Future.successful(())
-    } yield result
+    eventualSelectedClientIds.flatMap(maybeSelectedClientIds =>{
+
+      val selectedClientIds = maybeSelectedClientIds.getOrElse(Nil)
+
+      for {
+        clients <- Future.successful(selectedClients)
+        resultByTaxService = filterTerm.fold(clients)(term =>
+          if (term == "TRUST") clients.filter(_.taxService.contains("HMRC-TERS"))
+          else clients.filter(_.taxService == term)
+        )
+        resultByName = searchTerm.fold(resultByTaxService) { term =>
+          resultByTaxService.filter(_.name.toLowerCase.contains(term.toLowerCase))
+        }
+        resultByTaxRef = searchTerm.fold(resultByTaxService) {
+          term => resultByTaxService.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase))
+        }
+        consolidatedResult = (resultByName ++ resultByTaxRef).distinct
+        result = consolidatedResult
+          .map(dc => if (selectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
+          .toVector
+        _ <- if (result.nonEmpty) sessionCacheService.put(FILTERED_CLIENTS, result)
+        else Future.successful(())
+      } yield result
+    }
+    )
+
   }
 
 

@@ -35,21 +35,21 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ManageGroupClientsController @Inject()(
-                groupAction: GroupAction,
-                sessionAction: SessionAction,
-                mcc: MessagesControllerComponents,
-                clientService: ClientService,
-                groupService: GroupService,
-                val sessionCacheService: SessionCacheService,
-                review_update_clients: review_update_clients,
-                update_client_group_list: update_client_group_list,
-                existing_clients: existing_clients,
-                clients_update_complete: clients_update_complete
-    )(implicit val appConfig: AppConfig, ec: ExecutionContext,
-      implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+                                              groupAction: GroupAction,
+                                              sessionAction: SessionAction,
+                                              mcc: MessagesControllerComponents,
+                                              clientService: ClientService,
+                                              groupService: GroupService,
+                                              val sessionCacheService: SessionCacheService,
+                                              review_update_clients: review_update_clients,
+                                              update_client_group_list: update_client_group_list,
+                                              existing_clients: existing_clients,
+                                              clients_update_complete: clients_update_complete
+                                            )(implicit val appConfig: AppConfig, ec: ExecutionContext,
+                                              implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-    with I18nSupport
-    with Logging {
+  with I18nSupport
+  with Logging {
 
   import groupAction._
   import sessionAction.withSessionItem
@@ -88,11 +88,11 @@ class ManageGroupClientsController @Inject()(
   }
 
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId){ group =>
+    withGroupForAuthorisedOptedAgent(groupId) { group =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           for {
-            _ <- sessionCacheService.get(SELECTED_CLIENTS).map( maybeSelectedClients =>
+            _ <- sessionCacheService.get(SELECTED_CLIENTS).map(maybeSelectedClients =>
               if (maybeSelectedClients.isEmpty) {
                 val clientsInGroupAlready = group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true))
                 sessionCacheService.put[Seq[DisplayClient]](SELECTED_CLIENTS, clientsInGroupAlready)
@@ -114,84 +114,74 @@ class ManageGroupClientsController @Inject()(
   }
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-          AddClientsToGroupForm
-            .form()
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-                clientService.getFilteredClientsElseAll(group.arn).map{maybeFilteredClients =>
-                  Ok(update_client_group_list(
-                    maybeFilteredClients,
-                    group.groupName,
-                    formWithErrors,
-                    formAction = controller.submitManageGroupClients(groupId),
-                    backUrl = Some(controller.showExistingGroupClients(groupId).url)
-                  ))
+    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+      AddClientsToGroupForm
+        .form()
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            clientService.getFilteredClientsElseAll(group.arn).map { maybeFilteredClients =>
+              Ok(update_client_group_list(
+                maybeFilteredClients,
+                group.groupName,
+                formWithErrors,
+                formAction = controller.submitManageGroupClients(groupId),
+                backUrl = Some(controller.showExistingGroupClients(groupId).url)
+              ))
+            }
+          },
+          formData => {
+            clientService
+              .saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients)
+              .flatMap(_ =>
+                if (formData.submit == CONTINUE_BUTTON) {
+                  sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
+                    Redirect(controller.showReviewSelectedClients(groupId))
+                  )
                 }
-              },
-              formData => {
-                clientService
-                  .saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients)
-                  .flatMap(_ =>
-                  if (formData.submit == CONTINUE_BUTTON) {
-                    for {
-                      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
-                      clientsToSaveToGroup = maybeSelectedClients
-                            .map(_.map(dc => Client(dc.enrolmentKey, dc.name)))
-                            .map(_.toSet)
-
-                      groupRequest = UpdateAccessGroupRequest(clients = clientsToSaveToGroup)
-                      _ <- groupService.updateGroup(groupId, groupRequest)
-                      _ <- sessionCacheService.deleteAll(clientFilteringKeys)
-                    } yield
-                      Redirect(controller.showReviewSelectedClients(groupId))
-                  }
-                  else Redirect(controller.showManageGroupClients(groupId)).toFuture
-                )
-              }
-            )
+                else Redirect(controller.showManageGroupClients(groupId)).toFuture
+              )
+          }
+        )
     }
   }
 
   def showReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId){group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
             Redirect(controller.showManageGroupClients(groupId))
           } { clients =>
-            Ok(
-              review_update_clients(
-                clients = clients,
-                group = group,
-                form = YesNoForm.form()
-              )
-            )
-          }
-          .toFuture
+            Ok(review_update_clients(clients, group, YesNoForm.form()))
+          }.toFuture
       }
     }
   }
 
   def submitReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold(
             Redirect(controller.showExistingGroupClients(groupId)).toFuture
-          ){ clients =>
+          ) { clients =>
             YesNoForm
               .form("group.clients.review.error")
               .bindFromRequest
               .fold(
-                formWithErrors =>{
+                formWithErrors => {
                   Ok(review_update_clients(clients, group, formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showManageGroupClients(group._id.toString)).toFuture
-                  else
-                    Redirect(controller.showGroupClientsUpdatedConfirmation(groupId)).toFuture
+                  else {
+                    val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
+                    val updateGroupRequest = UpdateAccessGroupRequest(clients = Some(toSave))
+                    groupService.updateGroup(groupId, updateGroupRequest).map(_ =>
+                      Redirect(controller.showGroupClientsUpdatedConfirmation(groupId))
+                    )
+                  }
                 }
               )
           }
@@ -200,12 +190,13 @@ class ManageGroupClientsController @Inject()(
   }
 
   def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) {group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
-        sessionCacheService.delete(SELECTED_CLIENTS).map(_ =>
-        if(selectedClients.isDefined) Ok(clients_update_complete(group.groupName))
-        else Redirect(controller.showManageGroupClients(groupId))
-        )
+        if (selectedClients.isDefined) {
+            sessionCacheService.delete(SELECTED_CLIENTS)
+              .map(_ => Ok(clients_update_complete(group.groupName)))
+          }
+          else Redirect(controller.showManageGroupClients(groupId)).toFuture
       }
     }
   }

@@ -20,7 +20,7 @@ import config.AppConfig
 import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.OptInServiceImpl
+import services.OptinService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -28,19 +28,18 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class OptOutController @Inject()(
-                                  authAction: AuthAction,
-                                  mcc: MessagesControllerComponents,
-                                  optInStatusAction: OptInStatusAction,
-                                  optInService: OptInServiceImpl,
-                                  opt_out_start: opt_out_start,
-                                  want_to_opt_out: want_to_opt_out,
-                                  you_have_opted_out: you_have_opted_out,
-                                )(implicit val appConfig: AppConfig,
-                                  ec: ExecutionContext,
-                                  implicit override val messagesApi: MessagesApi)
-  extends FrontendController(mcc)
-    with I18nSupport {
+class OptOutController @Inject()
+(
+  authAction: AuthAction,
+  mcc: MessagesControllerComponents,
+  optInStatusAction: OptInStatusAction,
+  optInService: OptinService,
+  opt_out_start: opt_out_start,
+  want_to_opt_out: want_to_opt_out,
+  you_have_opted_out: you_have_opted_out,
+)(implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi) extends FrontendController(mcc) with I18nSupport {
 
   import authAction._
   import optInStatusAction._
@@ -75,8 +74,7 @@ class OptOutController @Inject()(
                 if (iWantToOptOut) {
                   optInService
                     .optOut(arn)
-                    .map(_ =>
-                      Redirect(routes.OptOutController.showYouHaveOptedOut.url))
+                    .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut.url))
                 } else
                   Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
               }

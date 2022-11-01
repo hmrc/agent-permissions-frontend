@@ -46,12 +46,10 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
                                               (implicit ec: ExecutionContext,
                                                hc: HeaderCarrier,
                                                request: MessagesRequest[AnyContent],
-                                               appConfig: AppConfig)
-  : Future[Result] = {
+                                               appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getGroup(groupId).flatMap(
-          _.fold(groupNotFound)(body(_)))
+        groupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
       }
     }
   }

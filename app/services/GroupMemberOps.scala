@@ -40,10 +40,14 @@ trait GroupMemberOps {
         .get[Seq[T]](filteredKey)
         .map(_.map(_.filter(_.selected == true).toList))
 
-      deSelected = filteredAndSelectedInSession.orElse(selectedInSession).map(_ diff selectables)
-      added = selectables.diff(filteredAndSelectedInSession.getOrElse(Nil))
+      //we want to remove the previously selected items in session in case they were de-selected by user.
+      toDeSelect = filteredAndSelectedInSession.orElse(selectedInSession).map(_ diff selectables)
 
-      toSave = added ::: selectedInSession.getOrElse(Nil) diff deSelected.getOrElse(Nil)
+      toAdd = selectables.diff(filteredAndSelectedInSession.getOrElse(Nil))
+
+      toSave = toAdd ::: selectedInSession.getOrElse(Nil) diff toDeSelect.getOrElse(Nil)
+
+      //add selected items to session
       _ <- sessionCacheService.put[Seq[T]](selectedKey, toSave.distinct)
 
     } yield ()

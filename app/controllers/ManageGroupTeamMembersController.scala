@@ -169,16 +169,6 @@ class ManageGroupTeamMembersController @Inject()(
               formData => {
                 teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).map(_ =>
                   if (formData.submit == CONTINUE_BUTTON) {
-                    for {
-                      members <- sessionCacheService.get[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
-                        .map { maybeTeamMembers: Option[Seq[TeamMember]] =>
-                          maybeTeamMembers
-                            .map(tm => tm.map(toAgentUser))
-                            .map(_.toSet)
-                        }
-                      groupRequest = UpdateAccessGroupRequest(teamMembers = members)
-                      updated <- groupService.updateGroup(groupId, groupRequest)
-                    } yield updated
                     sessionCacheService.delete(FILTERED_TEAM_MEMBERS)
                     Redirect(controller.showReviewSelectedTeamMembers(groupId))
                   }
@@ -206,8 +196,8 @@ class ManageGroupTeamMembersController @Inject()(
 
   def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId){ group: AccessGroup =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
-        selectedMembers
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
+        maybeSelectedTeamMembers
           .fold(
             Redirect(controller.showExistingGroupTeamMembers(groupId)).toFuture
           ){ members =>
@@ -220,8 +210,13 @@ class ManageGroupTeamMembersController @Inject()(
                 }, (yes: Boolean) => {
                   if (yes)
                       Redirect(controller.showManageGroupTeamMembers(group._id.toString)).toFuture
-                  else
-                    Redirect(controller.showGroupTeamMembersUpdatedConfirmation(groupId)).toFuture
+                  else {
+                      val selectedMembers = Some(members.map(tm => toAgentUser(tm)).toSet)
+                       val groupRequest = UpdateAccessGroupRequest(teamMembers = selectedMembers)
+                      groupService.updateGroup(groupId, groupRequest).map(_=>
+                        Redirect(controller.showGroupTeamMembersUpdatedConfirmation(groupId))
+                      )
+                  }
                 }
               )
           }
@@ -232,7 +227,7 @@ class ManageGroupTeamMembersController @Inject()(
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
-        sessionCacheService.clearSelectedTeamMembers().map(_ =>
+        sessionCacheService.delete(SELECTED_TEAM_MEMBERS).map(_ =>
         if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
         else Redirect(controller.showManageGroupTeamMembers(groupId))
         )

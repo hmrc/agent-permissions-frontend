@@ -196,8 +196,7 @@ class TeamMemberServiceSpec extends BaseSpec {
       // this is being called twice. not very efficient
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, members.take(2), 2)
       expectGetSessionItem(FILTERED_TEAM_MEMBERS, members.takeRight(1))
-      //TODO: this looks like a bug. We can't compare whole objects when
-      //TODO: two with equal ids/names/emails might be selected or unselected
+
       val expectedPutSelected = List(
         TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None, true),
         TeamMember("Name 2", "bob2@accounting.com", Some("user2"), None, true),

@@ -193,7 +193,7 @@ class ClientServiceSpec extends BaseSpec {
       expectGetClients(arn)(fakeClients.take(8))
       expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 2)
       expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
-      //TODO: this looks like a bug too. Bug is in the GroupMemberOps
+
       val expectedPutSelected = List(
         DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
         DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
@@ -217,12 +217,15 @@ class ClientServiceSpec extends BaseSpec {
     }
 
     "work for FILTER_BUTTON" in {
-
+      //given
       val CLIENTS = displayClients.take(8)
-      //expect
-      expectGetClients(arn)(fakeClients.take(8))
-      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 3)
-      expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
+
+      val formData = AddClientsToGroup(
+        Some("searchTerm"),
+        Some("filterTerm"),
+        Some(CLIENTS.map(_.id).toList),
+        FILTER_BUTTON
+      )
 
       val expectedPutSelected = List(
         DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
@@ -236,14 +239,12 @@ class ClientServiceSpec extends BaseSpec {
         DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
         DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false)
       )
-      expectPutSessionItem(SELECTED_CLIENTS, expectedPutSelected)
 
-      val formData = AddClientsToGroup(
-        Some("searchTerm"),
-        Some("filterTerm"),
-        Some(CLIENTS.map(_.id).toList),
-        FILTER_BUTTON
-      )
+      //expect
+      expectGetClients(arn)(fakeClients.take(8))
+      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 3)
+      expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
+      expectPutSessionItem(SELECTED_CLIENTS, expectedPutSelected)
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "searchTerm")
       expectPutSessionItem(CLIENT_FILTER_INPUT, "filterTerm")
 
@@ -251,7 +252,6 @@ class ClientServiceSpec extends BaseSpec {
       await(service.saveSelectedOrFilteredClients(arn)(formData)(service.getAllClients))
 
     }
-
 
   }
 
@@ -270,7 +270,6 @@ class ClientServiceSpec extends BaseSpec {
     }
     
     "work as expected with selected in session " in{
-      //TODO: don't think this is the desired behaviour
       //given existing session state
       expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(2).map(_.copy(selected = true)))
       expectGetSessionItem(FILTERED_CLIENTS, displayClients.takeRight(1).map(_.copy(selected = true)))

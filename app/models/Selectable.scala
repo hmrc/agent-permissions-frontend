@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 
 import scala.util.hashing.MurmurHash3
@@ -34,11 +34,11 @@ case class TeamMember(
                        selected: Boolean = false
                      ) extends Selectable {
   private val hashKey = s"$name$email${userId.getOrElse(throw new RuntimeException("userId missing from TeamMember"))}"
-  val id = MurmurHash3.stringHash(hashKey).toString
+  val id: String = MurmurHash3.stringHash(hashKey).toString
 }
 
 case object TeamMember {
-  implicit val format = Json.format[TeamMember]
+  implicit val format: OFormat[TeamMember] = Json.format[TeamMember]
 
   def fromUserDetails(user: UserDetails): TeamMember =
     TeamMember(
@@ -60,12 +60,12 @@ case class DisplayClient(
                           selected: Boolean = false
                         ) extends Selectable {
   val enrolmentKey = s"$taxService~$identifierKey~$hmrcRef"
-  val id = MurmurHash3.stringHash(enrolmentKey).toString
+  val id: String = MurmurHash3.stringHash(enrolmentKey).toString
 }
 
 case object DisplayClient {
 
-  implicit val format = Json.format[DisplayClient]
+  implicit val format: OFormat[DisplayClient] = Json.format[DisplayClient]
 
 
   def fromClient(client: Client, selected: Boolean = false): DisplayClient = {

@@ -27,6 +27,7 @@
     govukPhaseBanner: GovukPhaseBanner,
     standardBetaBanner: StandardBetaBanner,
     hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
+    hmrcReportTechnicalIssue: HmrcReportTechnicalIssue,
     summaryErrors: SummaryErrors,
     head: head
 )
@@ -45,6 +46,8 @@
 @gtmNoScript = {
     <noscript><iframe src="@gtmUrl" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 }
+<link rel="stylesheet" href="@controllers.routes.Assets.versioned("stylesheets/application.css")" media="screen">
+
 
 @mainContentWithTechIssueHelper = {
     @if(!appConfig.isTest) { @gtmNoScript }
@@ -53,7 +56,7 @@
             @summaryErrors(formErrors, customError)
             @mainContent
             <div class="govuk-!-margin-bottom-9 govuk-!-margin-top-9">
-            @hmrcReportTechnicalIssueHelper()
+                @hmrcReportTechnicalIssueHelper()
             </div>
         </div>
     </div>

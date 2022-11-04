@@ -122,6 +122,10 @@ class ManageClientControllerSpec extends BaseSpec {
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
       trs.size() shouldBe 3
+
+      html.select(".hmrc-report-technical-issue").text() shouldBe "Is this page not working properly? (opens in new tab)"
+      html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
+
     }
 
     "render the manage clients list with search params" in {

@@ -127,6 +127,9 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.labelFor("name")).text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
       html.select(Css.submitButton).text() shouldBe "Continue"
+
+      html.select(".hmrc-report-technical-issue").text() shouldBe "Is this page not working properly? (opens in new tab)"
+      html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
     }
 
   }

@@ -50,23 +50,15 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: E
     extends AppConfig {
   def isTest: Boolean = environment.mode == Mode.Test
   lazy val appName: String = servicesConfig.getString("appName")
-  lazy val welshLanguageSupportEnabled: Boolean =
-    servicesConfig.getBoolean("features.welsh-language-support")
-  lazy val contactFrontendBaseUrl: String =
-    servicesConfig.getString("microservice.services.contact-frontend.external-url")
-  lazy val contactFrontendServiceId: String =
-    servicesConfig.getString("microservice.services.contact-frontend.serviceId")
+  lazy val welshLanguageSupportEnabled: Boolean = servicesConfig.getBoolean("features.welsh-language-support")
+  lazy val contactFrontendBaseUrl: String = servicesConfig.getString("contact-frontend.external-url")
+  lazy val contactFrontendServiceId: String = servicesConfig.getString("contact-frontend.serviceId")
   lazy val betaFeedbackUrl: String = s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
-  lazy val basGatewayUrl: String =
-    servicesConfig.getString("microservice.services.bas-gateway.external-url")
-  lazy val loginContinueUrl: String =
-    servicesConfig.getString("microservice.services.bas-gateway.login-continue")
-  lazy val agentServicesAccountExternalUrl: String = servicesConfig.getString(
-    "microservice.services.agent-services-account-frontend.external-url")
-  lazy val agentServicesAccountManageAccountPath: String = servicesConfig.getString(
-    "microservice.services.agent-services-account-frontend.manage-account-path")
-  lazy val agentServicesAccountYourAccountPath: String = servicesConfig.getString(
-    "microservice.services.agent-services-account-frontend.your-account-path")
+  lazy val basGatewayUrl: String = servicesConfig.getString("microservice.services.bas-gateway.external-url")
+  lazy val loginContinueUrl: String = servicesConfig.getString("microservice.services.bas-gateway.login-continue")
+  lazy val agentServicesAccountExternalUrl: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.external-url")
+  lazy val agentServicesAccountManageAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.manage-account-path")
+  lazy val agentServicesAccountYourAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.your-account-path")
   lazy val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
   lazy val agentServicesAccountYourAssistantAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountYourAccountPath
   lazy val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")

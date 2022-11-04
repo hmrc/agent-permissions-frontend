@@ -46,7 +46,7 @@ trait GroupMemberOps {
         .map(_.map(_.filter(_.selected == true).toList))
 
       //we want to remove the previously selected items in session in case they were de-selected by user.
-      toRemoveFromSession = currentlySelectedInFilteredSession
+      toRemoveFromSession = currentlySelectedInFilteredSession.orElse(currentlySelectedInSession).map(_ diff selectables)
 
       //These are the new items to add that were selected by the user but not already in the session
       toAdd = selectables.diff(currentlySelectedInFilteredSession.getOrElse(Nil))

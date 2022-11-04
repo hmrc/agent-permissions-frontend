@@ -59,8 +59,10 @@ class ManageGroupController @Inject()(
       isOptedIn(arn) { _ =>
         groupService.groups(arn).map { groupSummaries =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-          searchFilter.submit.fold( //i.e. regular page load with no params
-            Ok(dashboard(groupSummaries, SearchAndFilterForm.form()))
+          searchFilter.submit.fold( {//i.e. regular page load with no params{
+              sessionCacheService.deleteAll(teamMemberFilteringKeys ++ clientFilteringKeys)
+              Ok(dashboard(groupSummaries, SearchAndFilterForm.form()))
+            }
           )(submitButton =>
             //either the 'filter' button or the 'clear' filter button was clicked
             submitButton match {

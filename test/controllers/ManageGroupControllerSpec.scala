@@ -106,7 +106,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
       expectGetGroupsForArn(arn)(groupSummaries)
-
+      expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
       //when
       val result = controller.showManageGroups()(request)
 
@@ -160,6 +160,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetGroupsForArn(arn)(Seq.empty)
+      expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
 
       //when
       val result = controller.showManageGroups()(request)

@@ -13,7 +13,7 @@ Each agent must meet an eligibility criteria before they can use access groups. 
 
 
 ### FE Dependencies
-The [sortable table](https://design-patterns.service.justice.gov.uk/components/sortable-table/) & [multi-select](https://design-patterns.service.justice.gov.uk/components/multi-select/) components have been adapted from [MOJ frontend](https://github.com/ministryofjustice/moj-frontend/releases) via importing compiled files - currently using version 1.4.2
+The [sortable table](https://design-patterns.service.justice.gov.uk/components/sortable-table/) & [multi-select](https://design-patterns.service.justice.gov.uk/components/multi-select/) components have been adapted from [MOJ frontend](https://github.com/ministryofjustice/moj-frontend/releases) via importing compiled files - currently using version 1.4.2 (modified)
 
 ### Running the tests
 

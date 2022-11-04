@@ -113,6 +113,10 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
       html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")
       html.select(Css.submitButton).text() shouldBe "Save and continue"
+
+      html.select(".hmrc-report-technical-issue").text() shouldBe "Is this page not working properly? (opens in new tab)"
+      html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
+
     }
 
     "render correctly when member is not in any groups yet" in {

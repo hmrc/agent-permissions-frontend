@@ -106,10 +106,10 @@ class TeamMemberServiceImpl @Inject()(
     commonTasks.flatMap(_ =>
       buttonSelect match {
         case CLEAR_BUTTON | CONTINUE_BUTTON =>
-          sessionCacheService.deleteAll(teamMemberFilteringKeys)
+          sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
         case FILTER_BUTTON =>
           if (formData.search.isEmpty) {
-            Future.successful(())
+            sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
           } else {
             for {
               _ <- sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))

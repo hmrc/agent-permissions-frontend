@@ -53,7 +53,7 @@ withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"group.${msgKey}.members.li
     fullWidth = true,
 ) {
 
-    @summaryErrors(form.errors, Some(errorHref.toString))
+    @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", groupName))

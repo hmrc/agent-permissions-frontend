@@ -134,7 +134,7 @@ class ClientServiceImpl @Inject()(
       formData.submit.trim match {
         case FILTER_BUTTON =>
           if (formData.search.isEmpty && formData.filter.isEmpty) {
-            sessionCacheService.deleteAll(clientFilteringKeys)
+            sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
           } else {
             for {
               _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))

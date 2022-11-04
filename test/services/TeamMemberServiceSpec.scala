@@ -17,7 +17,7 @@
 package services
 
 import connectors.AgentUserClientDetailsConnector
-import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, teamMemberFilteringKeys}
+import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT}
 import helpers.BaseSpec
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -153,7 +153,7 @@ class TeamMemberServiceSpec extends BaseSpec {
         TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None, false),
         TeamMember("Name 2", "bob2@accounting.com", Some("user2"), None, false)
       )
-      expectDeleteSessionItems(teamMemberFilteringKeys)
+      expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, expectedPutSelected)
 
       val formData = AddTeamMembersToGroup(None, Some(members.map(_.id).toList), CONTINUE_BUTTON)
@@ -178,7 +178,7 @@ class TeamMemberServiceSpec extends BaseSpec {
         TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None, false),
         TeamMember("Name 2", "bob2@accounting.com", Some("user2"), None, false)
       )
-      expectDeleteSessionItems(teamMemberFilteringKeys)
+      expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, expectedPutSelected)
 
       val formData = AddTeamMembersToGroup(None, Some(members.map(_.id).toList), CLEAR_BUTTON)
@@ -233,6 +233,7 @@ class TeamMemberServiceSpec extends BaseSpec {
           TeamMember("Name 1", "bob1@accounting.com", Some("user1"),None,true),
           TeamMember("Name 2", "bob2@accounting.com", Some("user2"),None,true)
         )
+      expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, expectedSelectedTeamMembers)
 
       //when

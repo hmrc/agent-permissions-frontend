@@ -140,11 +140,7 @@ class ManageGroupTeamMembersController @Inject()(
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              for {
-                //                  _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit"))
-                ////                    sessionCacheService.clearSelectedTeamMembers()
-                //                  else ().toFuture
-                result <- if (maybeFilteredResult.isDefined)
+             if (maybeFilteredResult.isDefined) {
                   Ok(
                     team_members_list(
                       maybeFilteredResult.getOrElse(Seq.empty),
@@ -154,7 +150,7 @@ class ManageGroupTeamMembersController @Inject()(
                       backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
                     )
                   ).toFuture
-                else {
+             } else {
                   teamMemberService.getFilteredTeamMembersElseAll(group.arn).map {
                     maybeTeamMembers =>
                       Ok(team_members_list(
@@ -166,7 +162,6 @@ class ManageGroupTeamMembersController @Inject()(
                       ))
                   }
                 }
-              } yield result
             },
             formData => {
               teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).map(_ =>

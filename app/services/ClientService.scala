@@ -147,9 +147,9 @@ class ClientServiceImpl @Inject()(
     }
   }
 
-  private def filterClients(formData: AddClientsToGroup)
-                           (selectedClients: Seq[DisplayClient])
-                           (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext)
+  def filterClients(formData: AddClientsToGroup)
+                   (displayClients: Seq[DisplayClient])
+                   (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext)
   : Future[Seq[DisplayClient]] = {
 
     val filterTerm = formData.filter
@@ -161,7 +161,7 @@ class ClientServiceImpl @Inject()(
       val selectedClientIds = maybeSelectedClientIds.getOrElse(Nil)
 
       for {
-        clients <- Future.successful(selectedClients)
+        clients <- Future.successful(displayClients)
         resultByTaxService = filterTerm.fold(clients)(term =>
           if (term == "TRUST") clients.filter(_.taxService.contains("HMRC-TERS"))
           else clients.filter(_.taxService == term)
@@ -176,8 +176,7 @@ class ClientServiceImpl @Inject()(
         result = consolidatedResult
           .map(dc => if (selectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
           .toVector
-        _ <- if (result.nonEmpty) sessionCacheService.put(FILTERED_CLIENTS, result)
-        else Future.successful(())
+        _ <-  sessionCacheService.put(FILTERED_CLIENTS, result)
       } yield result
     }
     )

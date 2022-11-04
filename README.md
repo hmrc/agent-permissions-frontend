@@ -12,6 +12,8 @@ Any client that is added to an access group is accessible only by the team membe
 Each agent must meet an eligibility criteria before they can use access groups. The criteria is the agent must have at least 1 team member and 1 client and no more than a maximum number of clients.
 
 
+### FE Dependencies
+The [sortable table](https://design-patterns.service.justice.gov.uk/components/sortable-table/) & [multi-select](https://design-patterns.service.justice.gov.uk/components/multi-select/) components have been adapted from [MOJ frontend](https://github.com/ministryofjustice/moj-frontend/releases) via importing compiled files - currently using version 1.4.2
 
 ### Running the tests
 

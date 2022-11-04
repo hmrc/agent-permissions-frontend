@@ -247,6 +247,7 @@ class ClientServiceSpec extends BaseSpec {
       expectPutSessionItem(SELECTED_CLIENTS, expectedPutSelected)
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "searchTerm")
       expectPutSessionItem(CLIENT_FILTER_INPUT, "filterTerm")
+      expectPutSessionItem(FILTERED_CLIENTS, Nil)
 
       //when
       await(service.saveSelectedOrFilteredClients(arn)(formData)(service.getAllClients))
@@ -286,6 +287,52 @@ class ClientServiceSpec extends BaseSpec {
 
       //when
       await(service.addSelectablesToSession(displayClients.take(3).toList)(SELECTED_CLIENTS, FILTERED_CLIENTS))
+    }
+  }
+
+  "filteredClients save filtered clients to session and return filtered clients" should {
+    "WHEN the search term doesn't match any" in {
+      //given
+      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("zzzzzz"))
+      val selectedClients = displayClients.take(1)
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.takeRight(2))
+      expectPutSessionItem(FILTERED_CLIENTS, Nil)
+
+      //when
+      val filteredClients = await(service.filterClients(formData)(selectedClients))
+
+      filteredClients shouldBe Nil
+    }
+
+    "WHEN the search term DOES MATCH SOME" in {
+      //given
+      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("friendly name"))
+      val clients = displayClients.take(1)
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.takeRight(2))
+      expectPutSessionItem(FILTERED_CLIENTS, displayClients.take(1))
+
+      //when
+      val filteredClients = await(service.filterClients(formData)(clients))
+
+      filteredClients shouldBe displayClients.take(1)
+
+    }
+
+    "WHEN the search term DOES MATCH SOME and there are SELECTED clients that match those passed in" in {
+      //given
+      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("friendly name"))
+      val clients = displayClients.take(5)
+      //the ones that match the SELECTED_CLIENTS session items will be marked as selected = true
+      val expectedClients = clients.zipWithIndex.map(zip => if(zip._2 < 3) zip._1.copy(selected = true) else zip._1)
+      expectGetSessionItem(SELECTED_CLIENTS, clients.take(3))
+      expectPutSessionItem(FILTERED_CLIENTS, expectedClients)
+
+      //when
+      val filteredClients = await(service.filterClients(formData)(clients))
+
+      //first 2 clients should be
+      filteredClients shouldBe expectedClients
+
     }
   }
 }

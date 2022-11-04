@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
-import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
+import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture}
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn

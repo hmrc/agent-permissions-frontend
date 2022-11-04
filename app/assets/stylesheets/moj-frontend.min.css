@@ -3,8 +3,7 @@
 *  2022-05-18 - version 1.4.2
 *  (prettified)
 *  Modified 2022-11-04
-*   - updated [aria-sort] button hover state
-*   - TODO update psuedo ::before & ::after
+*   - updated [aria-sort] button hover state & psuedo ::before & ::after (a11y fixes)
 *
 */
 
@@ -2748,20 +2747,30 @@ span.moj-header__link:hover {
 	right: auto
 }
 
+/* down arrow */
 [aria-sort] button:before {
-	content: " ▼";
-	font-size: .5em;
+    content: "";
 	position: absolute;
 	right: -1px;
-	top: 9px
+	top: 11px;
+    border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    border-width: 7px 3.5px 0 3.5px;
 }
 
+/* up arrow */
 [aria-sort] button:after {
-	content: " ▲";
-	font-size: .5em;
+    content: "";
 	position: absolute;
 	right: -1px;
-	top: 1px
+	top: 3px;
+	border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    border-width: 7px 3.5px 0 3.5px;
 }
 
 [aria-sort=ascending] button:before,
@@ -2769,20 +2778,30 @@ span.moj-header__link:hover {
 	content: none
 }
 
+/* up arrow */
 [aria-sort=ascending] button:after {
-	content: " ▲";
-	font-size: .8em;
+    content: "";
 	position: absolute;
 	right: -5px;
-	top: 2px
+	top: 6px;
+	border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    border-width: 10px 5px 0 5px;
 }
 
+/* down arrow */
 [aria-sort=descending] button:after {
-	content: " ▼";
-	font-size: .8em;
+    content: "";
 	position: absolute;
 	right: -5px;
-	top: 2px
+	top: 6px;
+    border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    border-width: 10px 5px 0 5px;
 }
 
 .moj-sub-navigation {

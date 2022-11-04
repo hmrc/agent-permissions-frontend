@@ -2705,8 +2705,7 @@ span.moj-header__link:hover {
 	}
 }
 
-[aria-sort] button,
-[aria-sort] button:hover {
+[aria-sort] button {
 	background-color: transparent;
 	border-width: 0;
 	box-shadow: 0 0 0 0;
@@ -2720,6 +2719,12 @@ span.moj-header__link:hover {
 	padding: 0 10px 0 0;
 	position: relative;
 	text-align: inherit
+}
+
+[aria-sort] button:hover {
+	box-shadow: 0 0 , 0 2px #0b0c0c;
+	background-color: #f3f2f1;
+	color: #0b0c0c;
 }
 
 [aria-sort] button:focus {

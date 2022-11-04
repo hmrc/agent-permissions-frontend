@@ -1,3 +1,13 @@
+/*
+*  Source: https://github.com/ministryofjustice/moj-frontend/releases
+*  2022-05-18 - version 1.4.2
+*  (prettified)
+*  Modified 2022-11-04
+*   - updated [aria-sort] button hover state
+*   - TODO update psuedo ::before & ::after
+*
+*/
+
 @charset "UTF-8";
 
 .moj-filter-layout:after {

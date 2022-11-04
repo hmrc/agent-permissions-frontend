@@ -146,13 +146,7 @@ class CreateGroupController @Inject()(
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           withSessionItem[String](RETURN_URL) { returnUrl =>
-            println("***************")
-            println(clientSearchTerm)
-            println("***************")
             clientService.getFilteredClientsElseAll(arn).map { clients =>
-              println("***************")
-              println(clients)
-              println("***************")
               Ok(
                 client_group_list(
                   clients,

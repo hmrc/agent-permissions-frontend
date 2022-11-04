@@ -304,7 +304,7 @@ class ClientServiceSpec extends BaseSpec {
       filteredClients shouldBe Nil
     }
 
-    "WHEN the search term DOES MATCH SOME" in {
+    "WHEN the search term DOES MATCH SOME but none are selected" in {
       //given
       val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("friendly name"))
       val clients = displayClients.take(1)

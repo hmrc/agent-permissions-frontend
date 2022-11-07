@@ -2747,7 +2747,7 @@ span.moj-header__link:hover {
 	right: auto
 }
 
-/* down arrow */
+/* down arrow small */
 [aria-sort] button:before {
     content: "";
 	position: absolute;
@@ -2760,7 +2760,7 @@ span.moj-header__link:hover {
     border-width: 7px 3.5px 0 3.5px;
 }
 
-/* up arrow */
+/* up arrow small */
 [aria-sort] button:after {
     content: "";
 	position: absolute;
@@ -2778,7 +2778,7 @@ span.moj-header__link:hover {
 	content: none
 }
 
-/* up arrow */
+/* up arrow big */
 [aria-sort=ascending] button:after {
     content: "";
 	position: absolute;
@@ -2791,7 +2791,7 @@ span.moj-header__link:hover {
     border-width: 10px 5px 0 5px;
 }
 
-/* down arrow */
+/* down arrow big */
 [aria-sort=descending] button:after {
     content: "";
 	position: absolute;

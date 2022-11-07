@@ -1,3 +1,12 @@
+/*
+*  Source: https://github.com/ministryofjustice/moj-frontend/releases
+*  2022-05-18 - version 1.4.2
+*  (prettified)
+*  Modified 2022-11-04
+*   - updated [aria-sort] button hover state & psuedo ::before & ::after (a11y fixes)
+*
+*/
+
 @charset "UTF-8";
 
 .moj-filter-layout:after {
@@ -2705,8 +2714,7 @@ span.moj-header__link:hover {
 	}
 }
 
-[aria-sort] button,
-[aria-sort] button:hover {
+[aria-sort] button {
 	background-color: transparent;
 	border-width: 0;
 	box-shadow: 0 0 0 0;
@@ -2722,6 +2730,12 @@ span.moj-header__link:hover {
 	text-align: inherit
 }
 
+[aria-sort] button:hover {
+	box-shadow: 0 0 , 0 2px #0b0c0c;
+	background-color: #f3f2f1;
+	color: #0b0c0c;
+}
+
 [aria-sort] button:focus {
 	background-color: #fd0;
 	box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
@@ -2733,20 +2747,30 @@ span.moj-header__link:hover {
 	right: auto
 }
 
+/* down arrow small */
 [aria-sort] button:before {
-	content: " ▼";
-	font-size: .5em;
+    content: "";
 	position: absolute;
 	right: -1px;
-	top: 9px
+	top: 11px;
+    border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    border-width: 7px 3.5px 0 3.5px;
 }
 
+/* up arrow small */
 [aria-sort] button:after {
-	content: " ▲";
-	font-size: .5em;
+    content: "";
 	position: absolute;
 	right: -1px;
-	top: 1px
+	top: 3px;
+	border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    border-width: 7px 3.5px 0 3.5px;
 }
 
 [aria-sort=ascending] button:before,
@@ -2754,20 +2778,30 @@ span.moj-header__link:hover {
 	content: none
 }
 
+/* up arrow big */
 [aria-sort=ascending] button:after {
-	content: " ▲";
-	font-size: .8em;
+    content: "";
 	position: absolute;
 	right: -5px;
-	top: 2px
+	top: 6px;
+	border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    clip-path: polygon(50% 0%, 100% 100%,0% 100%);
+    border-width: 10px 5px 0 5px;
 }
 
+/* down arrow big */
 [aria-sort=descending] button:after {
-	content: " ▼";
-	font-size: .8em;
+    content: "";
 	position: absolute;
 	right: -5px;
-	top: 2px
+	top: 6px;
+    border-style: solid;
+    border-color: #005ea5;
+    -webkit-clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    border-width: 10px 5px 0 5px;
 }
 
 .moj-sub-navigation {

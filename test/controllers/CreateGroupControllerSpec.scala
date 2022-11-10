@@ -32,6 +32,7 @@ import services.{ClientService, GroupService, SessionCacheService, TeamMemberSer
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
+import repository.SessionCacheRepository
 
 class CreateGroupControllerSpec extends BaseSpec {
 
@@ -42,7 +43,8 @@ class CreateGroupControllerSpec extends BaseSpec {
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockTeamService: TeamMemberService = mock[TeamMemberService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
-
+  lazy val sessionCacheRepo: SessionCacheRepository =
+    new SessionCacheRepository(mongoComponent, timestampSupport)
   private val groupName = "XYZ"
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
@@ -513,7 +515,35 @@ class CreateGroupControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetSessionItem(GROUP_NAME, "XYZ")
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
         expectSaveSelectedOrFilteredClients(arn)
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+
+        val result = controller.submitSelectedClients()(request)
+
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients.url
+      }
+
+      s"button is Continue with selected in session and redirect to ${ctrlRoute.showReviewSelectedClients.url}" in {
+        // given
+        implicit val request =
+          FakeRequest("POST", ctrlRoute.submitSelectedClients.url)
+            .withFormUrlEncodedBody(
+              "clients[]" -> "",
+              "search" -> "",
+              "filter" -> "",
+              "submit" -> CONTINUE_BUTTON
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(allowed = true)
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectGetSessionItem(GROUP_NAME, "XYZ")
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+        expectSaveSelectedOrFilteredClients(arn)
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients) // nothing de-selected
 
         val result = controller.submitSelectedClients()(request)
 
@@ -539,7 +569,9 @@ class CreateGroupControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetSessionItem(GROUP_NAME, "XYZ")
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
         expectSaveSelectedOrFilteredClients(arn)
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients) // TODO remove on filter
 
         val result = controller.submitSelectedClients()(request)
 
@@ -565,7 +597,9 @@ class CreateGroupControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetSessionItem(GROUP_NAME, "XYZ")
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
         expectSaveSelectedOrFilteredClients(arn)
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)//TODO: remove, only needed for continue case
 
         val result = controller.submitSelectedClients()(request)
 
@@ -575,7 +609,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       }
     }
 
-    "display error when button is Continue, no filtered clients, no hidden clients exist and no clients were selected" in {
+    "display error when button is Continue, no selected clients in session and no clients were selected" in {
 
       // given
       implicit val request = FakeRequest(
@@ -592,10 +626,46 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, "XYZ")
-      expectDeleteSessionItem(SELECTED_CLIENTS)
+      expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
       expectGetFilteredClientsFromService(arn)(displayClients)
 
       // when
+      val result = controller.submitSelectedClients()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      // then
+      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients"
+      html.select(Css.errorSummaryForField("clients"))
+
+    }
+
+    "display error when button is Continue, selected clients in session but ALL clients deselected" in {
+      // given
+      implicit val request = FakeRequest(
+        "POST",
+        ctrlRoute.submitSelectedClients.url
+      ).withFormUrlEncodedBody(
+        "clients" -> "",
+        "search" -> "",
+        "filter" -> "",
+        "submit" -> CONTINUE_BUTTON
+      ).withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(GROUP_NAME, "XYZ")
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      expectSaveSelectedOrFilteredClients(arn)
+      expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
+      expectGetAllClientsFromService(arn)(displayClients)
+      expectGetSessionItemNone(RETURN_URL)
+
+      // when
+      await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients)) // hasPreSelected is true
       val result = controller.submitSelectedClients()(request)
 
       status(result) shouldBe OK
@@ -626,7 +696,9 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, "XYZ")
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectSaveSelectedOrFilteredClients(arn)
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)//TODO: remove, not needed for filter case
 
       // when
       val result = controller.submitSelectedClients()(request)
@@ -1021,11 +1093,13 @@ class CreateGroupControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetSessionItem(GROUP_NAME, "XYZ")
-        val form = AddTeamMembersToGroup(
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
+        val formData = AddTeamMembersToGroup(
           members = Some(List(teamMembersIds.head, teamMembersIds.last)),
           submit = CONTINUE_BUTTON
         )
-        expectSaveSelectedOrFilteredTeamMembers(arn)(CONTINUE_BUTTON, form)
+        expectSaveSelectedOrFilteredTeamMembers(arn)(CONTINUE_BUTTON, formData)
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers) // check after save selected
 
         val result = controller.submitSelectedTeamMembers()(request)
 
@@ -1050,12 +1124,14 @@ class CreateGroupControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetSessionItem(GROUP_NAME, "XYZ")
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
         val form = AddTeamMembersToGroup(
           search = Some("10"),
           members = Some(List(teamMembersIds.head, teamMembersIds.last)),
           submit = FILTER_BUTTON
         )
         expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, form)
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers) //TODO remove, not needed for filter
 
 
         val result = controller.submitSelectedTeamMembers()(request)
@@ -1083,6 +1159,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, "XYZ")
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
       expectGetFilteredTeamMembersElseAll(arn)(teamMembers)
 
       // when
@@ -1102,7 +1179,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     "not show any errors when button is Filter and no filter term was provided" in {
 
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers.url)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers.url)
           .withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
             "members" -> "",
@@ -1115,7 +1192,9 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, "XYZ")
       val form = AddTeamMembersToGroup(submit = FILTER_BUTTON)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, form)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers) //TODO remove, not needed in filter case
 
       // when
       val result = controller.submitSelectedTeamMembers()(request)

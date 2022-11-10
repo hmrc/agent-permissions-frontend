@@ -55,7 +55,7 @@ class AddClientsToGroupFormSpec
           Some(List(client1.id, client2.id)), "continue"))
     }
 
-    "be successful when clients are non-empty" in {
+    "be successful when button is Continue and clients are non-empty" in {
       val params = Map(
         search -> List.empty,
         filter -> List.empty,
@@ -105,9 +105,31 @@ class AddClientsToGroupFormSpec
       )
     }
 
-    "have errors when clients is empty and hiddenClients is false" in {
+    "be successful when button is Continue, clients is empty but hasPreSelected is true" in {
       val params =
-        Map(hasSelectedClients -> List("false"),
+        Map(
+          search -> List.empty,
+          filter -> List.empty,
+          clients -> List.empty,
+          "submit" -> List("continue"),
+        )
+
+      val boundForm = AddClientsToGroupForm.form(true).bindFromRequest(params)
+
+      boundForm.hasErrors shouldBe false
+      boundForm.value shouldBe Some(
+        AddClientsToGroup(
+          None,
+          None,
+          None,
+          "continue"
+        )
+      )
+    }
+
+    "have errors when button is Continue, clients is empty and hasPreSelected is false" in {
+      val params =
+        Map(
           search -> List.empty,
           filter -> List.empty,
           clients -> List.empty,

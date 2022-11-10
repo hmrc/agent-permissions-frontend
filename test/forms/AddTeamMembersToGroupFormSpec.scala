@@ -69,6 +69,24 @@ class AddTeamMembersToGroupFormSpec
       )
     }
 
+    "be successful when button is Continue, team members are empty but has preselected" in {
+      val params = Map(
+        search -> List.empty,
+        members -> List.empty,
+        "submit" -> List("continue")
+      )
+      val boundForm = AddTeamMembersToGroupForm
+        .form(true)
+        .bindFromRequest(params)
+
+      boundForm.value shouldBe Some(
+        AddTeamMembersToGroup(
+          None,
+          None,
+          submit = "continue")
+      )
+    }
+
     "have errors when team members is empty and submit is continue" in {
       val params = Map(
         search -> List.empty,

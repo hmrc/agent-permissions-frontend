@@ -23,7 +23,7 @@ import play.api.data.Forms._
 
 object AddClientsToGroupForm {
 
-  def form(): Form[AddClientsToGroup] = Form(
+  def form(hasPreSelected: Boolean = false): Form[AddClientsToGroup] = Form(
     mapping(
       "search" -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
       "filter" -> optional(text),
@@ -32,7 +32,7 @@ object AddClientsToGroupForm {
     )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
       .verifying("error.select-clients.empty", data => {
         data.submit != CONTINUE_BUTTON ||
-        (data.submit == CONTINUE_BUTTON && data.clients.getOrElse(Seq.empty).nonEmpty)
+        (data.submit == CONTINUE_BUTTON && (data.clients.getOrElse(Seq.empty).nonEmpty || hasPreSelected))
       })
   )
 }

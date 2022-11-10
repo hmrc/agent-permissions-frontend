@@ -164,15 +164,16 @@ class CreateGroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+        // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
+        val hasPreSelected = maybeClients.getOrElse(Seq.empty).nonEmpty
         AddClientsToGroupForm
-          .form()
+          // if pre-selected exist will not empty error until after .saveSelectedOrFilteredClient to deselect if needed
+          .form(hasPreSelected)
           .bindFromRequest()
           .fold(
             formWithErrors => {
               for {
-                _ <- if (CONTINUE_BUTTON == formWithErrors.data.get("submit").get)
-                  sessionCacheService.delete(SELECTED_CLIENTS)
-                else ().toFuture
                 clients <- clientService.getFilteredClientsElseAll(arn)
               } yield
                 Ok(client_group_list(clients, groupName, formWithErrors))
@@ -180,15 +181,40 @@ class CreateGroupController @Inject()(
             formData => {
               clientService
                 .saveSelectedOrFilteredClients(arn)(formData)(clientService.getAllClients)
-                .map(_ => {
-                  if (formData.submit == CONTINUE_BUTTON)
-                    Redirect(controller.showReviewSelectedClients)
-                  else
-                    Redirect(controller.showSelectClients)
+                .flatMap(_ => {
+                  // check selected clients from session cache AFTER saving (removed de-selections)
+                  val hasSelectedClients = for {
+                    selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
+                    // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
+                  } yield selectedClients.getOrElse(Seq.empty).nonEmpty
+
+                  hasSelectedClients.flatMap(selectedNotEmpty => {
+                    if (formData.submit == CONTINUE_BUTTON && selectedNotEmpty) {
+                      Redirect(controller.showReviewSelectedClients).toFuture
+                    } else {
+                      if (formData.submit != CONTINUE_BUTTON || selectedNotEmpty) {
+                        Redirect(controller.showSelectClients).toFuture
+                      } else { // render page with empty client error on continue
+                        for {
+                          clients <- clientService.getAllClients(arn) // filtered clients cleared
+                          returnUrl <- sessionCacheService.get(RETURN_URL)
+                        } yield
+                        Ok(
+                          client_group_list(
+                            clients,
+                            groupName,
+                            backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
+                            form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty")
+                          )
+                        )
+                      }
+                    }
+                  })
                 }
                 )
             }
           )
+      }
     }
   }
 
@@ -202,7 +228,7 @@ class CreateGroupController @Inject()(
   }
 
   def submitReviewSelectedClients(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
           maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
@@ -259,24 +285,53 @@ class CreateGroupController @Inject()(
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
+        val hasPreSelected = maybeTeamMembers.getOrElse(Seq.empty).nonEmpty
+        AddTeamMembersToGroupForm
+          .form(hasPreSelected)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              teamMemberService.getFilteredTeamMembersElseAll(arn).map(tm =>
+                Ok(team_members_list(tm, groupName, formWithErrors))
+              )
+            },
+            formData => {
+              teamMemberService
+                .saveSelectedOrFilteredTeamMembers(formData.submit)(arn)(formData).flatMap(_ => {
+                // check selected from session AFTER saving (removed de-selections)
+                // TODO only check if button is continue
+                val hasSelected = for {
+                  selected <- sessionCacheService.get(SELECTED_TEAM_MEMBERS)
+                  // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
+                } yield selected.getOrElse(Seq.empty).nonEmpty
 
-      AddTeamMembersToGroupForm
-        .form()
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
-            teamMemberService.getFilteredTeamMembersElseAll(arn).map(tm =>
-              Ok(team_members_list(tm, groupName, formWithErrors))
-            )
-          },
-          formData => {
-            teamMemberService
-              .saveSelectedOrFilteredTeamMembers(formData.submit)(arn)(formData).map(_ =>
-              if (formData.submit == CONTINUE_BUTTON)
-                Redirect(controller.showReviewSelectedTeamMembers)
-              else Redirect(controller.showSelectTeamMembers))
-          }
-        )
+                hasSelected.flatMap(selectedNotEmpty => {
+                  if (formData.submit == CONTINUE_BUTTON && selectedNotEmpty) {
+                    Redirect(controller.showReviewSelectedTeamMembers).toFuture
+                  } else {
+                    if (formData.submit != CONTINUE_BUTTON || selectedNotEmpty) {
+                      Redirect(controller.showSelectTeamMembers).toFuture
+                    } else { // render page with empty error on continue
+                      for {
+                        teamMembers <- teamMemberService.getAllTeamMembers(arn) // filtered have been cleared
+                        returnUrl <- sessionCacheService.get(RETURN_URL)
+                      } yield
+                        Ok(
+                          team_members_list(
+                            teamMembers,
+                            groupName,
+                            backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showReviewSelectedClients.url)),
+                            form = AddTeamMembersToGroupForm.form().withError("members", "error.select-members.empty")
+                          )
+                        )
+                    }
+                  }
+                })
+              })
+            }
+          )
+      }
     }
   }
 

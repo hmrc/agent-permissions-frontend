@@ -354,14 +354,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers.take(1))
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
         val expectedFormData = AddTeamMembersToGroup(None, Some(List(teamMembers.head.id, teamMembers.last.id)), CONTINUE_BUTTON)
         expectSaveSelectedOrFilteredTeamMembers(arn)(CONTINUE_BUTTON, expectedFormData)
-        expectDeleteSessionItem(FILTERED_TEAM_MEMBERS)
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
 
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
 
@@ -381,11 +381,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers.take(1))
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
+        expectGetFilteredTeamMembersElseAll(arn)(teamMembers)
 
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
@@ -415,9 +416,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
         val expectedFormData = AddTeamMembersToGroup(None, None, FILTER_BUTTON)
         expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, expectedFormData)
-        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers)
 
 
         // when
@@ -438,13 +439,13 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        expectIsArnAllowed(allowed = true)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(allowed = true)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
         expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+        expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
         val expectedFormData = AddTeamMembersToGroup(Some("1"), None, FILTER_BUTTON)
         expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, expectedFormData)
-        expectGetSessionItem(FILTERED_TEAM_MEMBERS, teamMembers)
 
         // when
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)

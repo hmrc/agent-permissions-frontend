@@ -23,7 +23,7 @@ import play.api.data.Forms._
 
 object AddTeamMembersToGroupForm {
 
-  def form(): Form[AddTeamMembersToGroup] = Form(
+  def form(hasPreSelected: Boolean = false): Form[AddTeamMembersToGroup] = Form(
     mapping(
     "search" -> optional(text.verifying("error.search-members.invalid", s => !(s.contains('<') || s.contains('>')))),
     "members" -> optional(list(text)),
@@ -31,7 +31,7 @@ object AddTeamMembersToGroupForm {
   )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
       .verifying("error.select-members.empty", data => {
         data.submit != CONTINUE_BUTTON ||
-          (data.submit == CONTINUE_BUTTON && data.members.getOrElse(Seq.empty).nonEmpty)
+          (data.submit == CONTINUE_BUTTON && (data.members.getOrElse(Seq.empty).nonEmpty || hasPreSelected))
       })
   )
 }

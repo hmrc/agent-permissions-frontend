@@ -28,7 +28,8 @@ import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -45,6 +46,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit lazy val mockGroupService: GroupService = mock[GroupService]
   implicit lazy val mockClientService: ClientService = mock[ClientService]
+  lazy val sessionCacheRepo: SessionCacheRepository =
+    new SessionCacheRepository(mongoComponent, timestampSupport)
 
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
   val accessGroup: AccessGroup = AccessGroup(new ObjectId(),
@@ -365,9 +368,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectSaveSelectedOrFilteredClients(arn)
         expectDeleteSessionItems(clientFilteringKeys)
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
 
         val result = controller.submitManageGroupClients(grpId)(request)
 
@@ -376,7 +381,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           ctrlRoute.showReviewSelectedClients(grpId).url
       }
 
-      "display error when button is CONTINUE_BUTTON, no filtered clients and no clients were selected" in {
+      "display error when button is CONTINUE_BUTTON, no clients were selected" in {
         // given
 
         implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url
@@ -391,6 +396,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectGetFilteredClientsFromService(arn)(displayClients)
 
@@ -406,6 +412,42 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         html
           .select(Css.errorSummaryForField("clients"))
       }
+
+      "display error when button is CONTINUE_BUTTON, selected in session and ALL deselected" in {
+        // given
+        implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url
+        ).withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "clients" -> "",
+            "search" -> "",
+            "filter" -> "",
+            "submit" -> CONTINUE_BUTTON
+          )
+
+        expectIsArnAllowed(allowed = true)
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+        expectSaveSelectedOrFilteredClients(arn)
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
+        expectGetFilteredClientsFromService(arn)(displayClients)
+
+        // when
+        await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients)) // hasPreSelected is true
+        val result = controller.submitManageGroupClients(grpId)(request)
+
+        status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+
+        // then
+        html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Update clients in this group"
+        html
+          .select(Css.errorSummaryForField("clients"))
+      }
+
+
 
       "NOT display error when search & filter empty and FILTER_BUTTON pressed" in {
 
@@ -423,6 +465,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectSaveSelectedOrFilteredClients(arn)
 
@@ -448,6 +491,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectIsArnAllowed(allowed = true)
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectSaveSelectedOrFilteredClients(arn)
 

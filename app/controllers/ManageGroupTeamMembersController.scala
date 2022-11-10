@@ -134,42 +134,53 @@ class ManageGroupTeamMembersController @Inject()(
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      withSessionItem[Seq[TeamMember]](FILTERED_TEAM_MEMBERS) { maybeFilteredResult =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
+        val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
-          .form()
+          .form(hasPreSelected)
           .bindFromRequest()
           .fold(
             formWithErrors => {
-             if (maybeFilteredResult.isDefined) {
-                  Ok(
-                    team_members_list(
-                      maybeFilteredResult.getOrElse(Seq.empty),
+                teamMemberService.getFilteredTeamMembersElseAll(group.arn).map {
+                  maybeTeamMembers =>
+                    Ok(team_members_list(
+                      maybeTeamMembers,
                       group.groupName,
                       formWithErrors,
                       formAction = controller.submitManageGroupTeamMembers(groupId),
                       backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
-                    )
-                  ).toFuture
-             } else {
-                  teamMemberService.getFilteredTeamMembersElseAll(group.arn).map {
-                    maybeTeamMembers =>
-                      Ok(team_members_list(
-                        maybeTeamMembers,
-                        group.groupName,
-                        formWithErrors,
-                        formAction = controller.submitManageGroupTeamMembers(groupId),
-                        backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
-                      ))
-                  }
+                    ))
                 }
             },
             formData => {
-              teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).map(_ =>
+              teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).flatMap(_ =>
                 if (formData.submit == CONTINUE_BUTTON) {
-                  sessionCacheService.delete(FILTERED_TEAM_MEMBERS)
-                  Redirect(controller.showReviewSelectedTeamMembers(groupId))
+                  // checks selected from session AFTER saving (removed de-selections)
+                  val hasSelected = for {
+                    selected <- sessionCacheService.get(SELECTED_TEAM_MEMBERS)
+                    // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
+                  } yield selected.getOrElse(Seq.empty).nonEmpty
+
+                  hasSelected.flatMap(selectedNotEmpty => {
+                    if (selectedNotEmpty) {
+                      Redirect(controller.showReviewSelectedTeamMembers(groupId)).toFuture
+                    } else { // render page with empty error
+                      for {
+                        teamMembers <- teamMemberService.getAllTeamMembers(group.arn)
+                      } yield
+                        Ok(
+                          team_members_list(
+                            teamMembers,
+                            group.groupName,
+                            AddTeamMembersToGroupForm.form().withError("members", "error.select-members.empty"),
+                            formAction = controller.submitManageGroupTeamMembers(groupId),
+                            backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url),
+                           )
+                        )
+                    }
+                  })
                 }
-                else Redirect(controller.showManageGroupTeamMembers(groupId))
+                else Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
               )
             }
           )

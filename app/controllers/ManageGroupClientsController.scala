@@ -115,8 +115,11 @@ class ManageGroupClientsController @Inject()(
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
+        // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
+        val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
       AddClientsToGroupForm
-        .form()
+        .form(hasPreSelected)
         .bindFromRequest()
         .fold(
           formWithErrors => {
@@ -135,14 +138,36 @@ class ManageGroupClientsController @Inject()(
               .saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients)
               .flatMap(_ =>
                 if (formData.submit == CONTINUE_BUTTON) {
-                  sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
-                    Redirect(controller.showReviewSelectedClients(groupId))
-                  )
-                }
-                else Redirect(controller.showManageGroupClients(groupId)).toFuture
+                  // check selected clients from session cache AFTER saving (removed de-selections)
+                  val hasSelectedClients = for {
+                    selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
+                    // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
+                  } yield selectedClients.getOrElse(Seq.empty).nonEmpty
+
+                  hasSelectedClients.flatMap(selectedNotEmpty => {
+                    if(selectedNotEmpty) {
+                      sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
+                        Redirect(controller.showReviewSelectedClients(groupId))
+                      )
+                    } else {
+                      for {
+                        clients <- clientService.getFilteredClientsElseAll(group.arn)
+                      } yield {
+                        val form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty")
+                        Ok(
+                          update_client_group_list(clients, group.groupName, form,
+                            formAction = controller.submitManageGroupClients(groupId),
+                            backUrl = Some(controller.showExistingGroupClients(groupId).url)
+                          )
+                        )
+                      }
+                    }
+                  })
+                } else Redirect(controller.showManageGroupClients(groupId)).toFuture
               )
           }
         )
+      }
     }
   }
 

@@ -164,9 +164,9 @@ class CreateGroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
-        val hasPreSelected = maybeClients.getOrElse(Seq.empty).nonEmpty
+        val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddClientsToGroupForm
           // if pre-selected exist will not empty error
           .form(hasPreSelected)
@@ -282,8 +282,8 @@ class CreateGroupController @Inject()(
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
-        val hasPreSelected = maybeTeamMembers.getOrElse(Seq.empty).nonEmpty
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
+        val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
           .form(hasPreSelected)
           .bindFromRequest()

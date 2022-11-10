@@ -115,9 +115,9 @@ class ManageGroupClientsController @Inject()(
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
-        val hasPreSelected = maybeClients.getOrElse(Seq.empty).nonEmpty
+        val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
       AddClientsToGroupForm
         .form(hasPreSelected)
         .bindFromRequest()

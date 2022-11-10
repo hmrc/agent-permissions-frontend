@@ -571,7 +571,6 @@ class CreateGroupControllerSpec extends BaseSpec {
         expectGetSessionItem(GROUP_NAME, "XYZ")
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
         expectSaveSelectedOrFilteredClients(arn)
-        expectGetSessionItem(SELECTED_CLIENTS, displayClients) // TODO remove on filter
 
         val result = controller.submitSelectedClients()(request)
 
@@ -599,7 +598,6 @@ class CreateGroupControllerSpec extends BaseSpec {
         expectGetSessionItem(GROUP_NAME, "XYZ")
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
         expectSaveSelectedOrFilteredClients(arn)
-        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)//TODO: remove, only needed for continue case
 
         val result = controller.submitSelectedClients()(request)
 
@@ -698,7 +696,6 @@ class CreateGroupControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, "XYZ")
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectSaveSelectedOrFilteredClients(arn)
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)//TODO: remove, not needed for filter case
 
       // when
       val result = controller.submitSelectedClients()(request)
@@ -1131,7 +1128,6 @@ class CreateGroupControllerSpec extends BaseSpec {
           submit = FILTER_BUTTON
         )
         expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, form)
-        expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers) //TODO remove, not needed for filter
 
 
         val result = controller.submitSelectedTeamMembers()(request)
@@ -1194,7 +1190,6 @@ class CreateGroupControllerSpec extends BaseSpec {
       val form = AddTeamMembersToGroup(submit = FILTER_BUTTON)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectSaveSelectedOrFilteredTeamMembers(arn)(FILTER_BUTTON, form)
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers) //TODO remove, not needed in filter case
 
       // when
       val result = controller.submitSelectedTeamMembers()(request)

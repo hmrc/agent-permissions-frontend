@@ -28,14 +28,14 @@ trait SessionServiceMocks extends MockFactory {
 
   def expectGetSessionItem[T](key: DataKey[T], mockedResponse: T, times: Int = 1)
                              (implicit service: SessionCacheService): Unit =
-    (service.get(_:DataKey[T])(_: Reads[T], _: Request[_], _: ExecutionContext))
-      .expects(key, *, *, *)
+    (service.get(_:DataKey[T])(_: Reads[T], _: Request[_]))
+      .expects(key, *, *)
       .returning(Future.successful(Some(mockedResponse))).repeat(times)
 
   def expectGetSessionItemNone[T](key: DataKey[T])
                              (implicit service: SessionCacheService): Unit =
-    (service.get(_:DataKey[T])(_: Reads[T], _: Request[_], _: ExecutionContext))
-      .expects(key, *, *, *)
+    (service.get(_:DataKey[T])(_: Reads[T], _: Request[_]))
+      .expects(key, *, *)
       .returning(Future.successful(None))
 
   def expectPutSessionItem[T](key: DataKey[T], value: T)
@@ -46,8 +46,8 @@ trait SessionServiceMocks extends MockFactory {
 
   def expectDeleteSessionItem[T](key: DataKey[T])
                              (implicit service: SessionCacheService): Unit =
-    (service.delete(_: DataKey[T])(_: Request[_], _: ExecutionContext))
-      .expects(key, *, *)
+    (service.delete(_: DataKey[T])(_: Request[_]))
+      .expects(key, *)
       .returning(Future.successful(None))
 
   def expectDeleteSessionItems(key: Seq[DataKey[_]])

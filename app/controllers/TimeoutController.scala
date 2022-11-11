@@ -23,19 +23,18 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.timeout._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
 
 @Singleton
 class TimeoutController @Inject()(
    mcc: MessagesControllerComponents,
    you_have_been_timed_out: you_have_been_timed_out,
    you_have_signed_out: you_have_signed_out
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, implicit override val messagesApi: MessagesApi)
   extends FrontendController(mcc)
     with I18nSupport {
 
 
-  def keepAlive: Action[AnyContent] = Action { implicit request =>
+  def keepAlive: Action[AnyContent] = Action { _ =>
     Ok("Ok")
   }
 

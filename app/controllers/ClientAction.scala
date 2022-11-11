@@ -60,7 +60,7 @@ class ClientAction @Inject()(
     }
   }
 
-  def clientNotFound(implicit request: MessagesRequest[AnyContent], ec: ExecutionContext, appConfig: AppConfig): Future[Result] = {
+  def clientNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     Ok(client_not_found()).toFuture
   }
 

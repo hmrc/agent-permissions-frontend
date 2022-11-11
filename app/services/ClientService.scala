@@ -149,7 +149,7 @@ class ClientServiceImpl @Inject()(
 
   def filterClients(formData: AddClientsToGroup)
                    (displayClients: Seq[DisplayClient])
-                   (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext)
+                   (implicit request: Request[Any], ec: ExecutionContext)
   : Future[Seq[DisplayClient]] = {
 
     val filterTerm = formData.filter

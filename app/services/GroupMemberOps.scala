@@ -19,7 +19,6 @@ package services
 import models.Selectable
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,7 +30,7 @@ trait GroupMemberOps {
   def addSelectablesToSession[T <: Selectable](selectables: List[T])
                                               (selectedKey: DataKey[Seq[T]],
                                                filteredKey: DataKey[Seq[T]])
-                                              (implicit hc: HeaderCarrier, request: Request[Any],
+                                              (implicit request: Request[Any],
                                                ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] = {
 
     for {

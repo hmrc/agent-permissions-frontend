@@ -64,7 +64,7 @@ class TeamMemberAction @Inject()(val authConnector: AuthConnector,
     }
   }
 
-  def teamMemberNotFound(implicit request: MessagesRequest[AnyContent], ec: ExecutionContext, appConfig: AppConfig): Future[Result] = {
+  def teamMemberNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     Ok(team_member_not_found()).toFuture
   }
 

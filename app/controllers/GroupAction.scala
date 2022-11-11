@@ -69,7 +69,7 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
     }
   }
 
-  def groupNotFound(implicit request: MessagesRequest[AnyContent], ec: ExecutionContext, appConfig: AppConfig): Future[Result] = {
+  def groupNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     NotFound(group_not_found()).toFuture
   }
 }

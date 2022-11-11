@@ -48,7 +48,7 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
   }
 
   def get[T](dataKey: DataKey[T])
-            (implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Option[T]] = {
+            (implicit reads: Reads[T], request: Request[_]): Future[Option[T]] = {
     sessionCacheRepository.getFromSession[T](dataKey)
   }
 
@@ -58,7 +58,7 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
   }
 
   def delete[T](dataKey: DataKey[T])
-            (implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
+            (implicit request: Request[_]): Future[Unit] = {
     sessionCacheRepository.deleteFromSession(dataKey)
   }
 

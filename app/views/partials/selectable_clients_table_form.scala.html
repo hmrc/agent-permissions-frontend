@@ -16,10 +16,11 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import play.api.libs.json.Json
 @import views.html.main_layout
 @import models.AddClientsToGroup
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.partials.search_and_filter
+@import views.html.partials.pagination
 
 @this(
     layout: main_layout,
@@ -28,18 +29,20 @@
     table: table,
     submit_button: submit_button,
     search_and_filter: search_and_filter,
+    pagination: pagination,
     textbox: textbox,
     input_select: input_select,
     checkbox: checkbox,
     summaryErrors: SummaryErrors,
     govukSkipLink: GovukSkipLink,
-    formWithCSRF: FormWithCSRF
+    formWithCSRF: FormWithCSRF,
 )
 
 @(
     clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     form: Form[AddClientsToGroup],
     formAction: Call = routes.CreateGroupController.submitSelectedClients,
+    paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -117,6 +120,13 @@
             )
             </div>
         </fieldset>
+        @if(paginationMetaData.isDefined) {
+            @pagination(
+                pagination = paginationMetaData.get,
+                baseUrl = "./select-clients",
+                formAction = formAction
+            )
+        }
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
         @* the following 2 paragraphs are dependent on whether js enabled or not*@

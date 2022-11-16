@@ -24,9 +24,9 @@ import config.AppConfig
 import play.api.Logging
 import play.api.http.Status.{ACCEPTED, NO_CONTENT, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, UserDetails, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,24 +35,24 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   val http: HttpClient
 
-  def getClients(arn: Arn)(implicit hc: HeaderCarrier,
-                           ec: ExecutionContext): Future[Seq[Client]]
+  def getClients(arn: Arn)
+                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]]
 
-  def getTeamMembers(arn: Arn)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Seq[UserDetails]]
+  def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
 
-  def updateClientReference(arn: Arn, client: Client)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Done]
+  def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[UserDetails]]
+
+  def updateClientReference(arn: Arn, client: Client)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
 }
 
 @Singleton
 class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
-    implicit metrics: Metrics,
-    appConfig: AppConfig)
-    extends AgentUserClientDetailsConnector
+  implicit metrics: Metrics,
+  appConfig: AppConfig)
+  extends AgentUserClientDetailsConnector
     with HttpAPIMonitor
     with Logging {
 
@@ -61,17 +61,29 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
   private lazy val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
   def getClients(arn: Arn)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Seq[Client]] = {
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Seq[Client]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"
     monitor("ConsumedAPI-getClientList-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
           case ACCEPTED => Seq.empty[Client]
-          case OK       => response.json.as[Seq[Client]]
+          case OK => response.json.as[Seq[Client]]
           case e =>
             throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
-                                        e)
+              e)
+        }
+      }
+    }
+  }
+
+  def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]] = {
+    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/clients?page=${page}&pageSize=${pageSize}"
+    monitor("ConsumedAPI-getClientList-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK => response.json.as[PaginatedList[Client]]
+          case e => throw UpstreamErrorResponse(s"error getClientList for ${arn.value}", e)
         }
       }
     }
@@ -83,10 +95,10 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
       http.GET[HttpResponse](url).map { response =>
         response.status match {
           case ACCEPTED => Seq.empty[UserDetails]
-          case OK       => response.json.as[Seq[UserDetails]]
+          case OK => response.json.as[Seq[UserDetails]]
           case e =>
             throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}",
-                                        e)
+              e)
         }
       }
     }

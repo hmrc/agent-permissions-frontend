@@ -38,6 +38,7 @@ package object controllers {
   final val CONTINUE_BUTTON: String = "continue"
   final val CLEAR_BUTTON: String = "clear"
   final val FILTER_BUTTON: String = "filter"
+  final val PAGINATION_BUTTON: String = "pagination"
 
   val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
   val optedInStatii = Seq(OptedInReady, OptedInNotReady, OptedInSingleUser)
@@ -52,6 +53,7 @@ package object controllers {
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
 
   val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
+  val CURRENT_PAGE_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
   val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")

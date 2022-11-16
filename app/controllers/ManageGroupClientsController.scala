@@ -135,7 +135,7 @@ class ManageGroupClientsController @Inject()(
           },
           formData => {
             clientService
-              .saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients)
+              .saveSelectedOrFilteredClients(group.arn)(formData)(clientService.getAllClients(group.arn))
               .flatMap(_ =>
                 if (formData.submit == CONTINUE_BUTTON) {
                   // check selected clients from session cache AFTER saving (removed de-selections)

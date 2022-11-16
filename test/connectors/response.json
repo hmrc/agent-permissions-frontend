@@ -1,0 +1,22 @@
+{
+  "pageContent": [
+    {
+      "id": 123,
+      "name": "A Client"
+    },
+    {
+      "id": 124,
+      "name": "Another Client"
+    }
+  ],
+  "pagination": {
+    "lastPage": false,
+    "firstPage": true,
+    "totalSize": 20,
+    "totalPages": 4,
+    "pageSize": 5,
+    "currentPageNumber": 0,
+    "sort": null,
+    "currentPageSize": 5
+  }
+}

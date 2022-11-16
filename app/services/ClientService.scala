@@ -19,10 +19,10 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, ToFuture, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, ToFuture, clientFilteringKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -37,6 +37,11 @@ trait ClientService {
   def getFilteredClientsElseAll(arn: Arn)
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
+  def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
+                         (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[PaginatedList[DisplayClient]]
+
+
   def getUnassignedClients(arn: Arn)
                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
@@ -47,7 +52,7 @@ trait ClientService {
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[DisplayClient]]
 
   def saveSelectedOrFilteredClients(arn: Arn)
-                                   (formData: AddClientsToGroup)(getClients: Arn => Future[Seq[DisplayClient]])
+                                   (formData: AddClientsToGroup)(eventualClients: Future[Seq[DisplayClient]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
@@ -87,6 +92,23 @@ class ClientServiceImpl @Inject()(
     }
   }
 
+  def getPaginatedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20)
+                         (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
+    for {
+      pageOfClients: PaginatedList[Client] <- agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize)
+      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
+      existingSelectedClients = maybeSelectedClients.getOrElse(Nil)
+      selectedClientIds = existingSelectedClients.map(_.id)
+      pageOfClientsMinusSelectedOnes = pageOfClients
+        .pageContent
+        .map(cl => DisplayClient.fromClient(cl))
+        .filterNot(dc => selectedClientIds.contains(dc.id))
+      clientsWithSelectedOnesMarkedAsSelected = pageOfClientsMinusSelectedOnes.toList ::: existingSelectedClients.toList
+      pageOfDisplayClients = PaginatedList(clientsWithSelectedOnesMarkedAsSelected, pageOfClients.paginationMetaData)
+      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS,clientsWithSelectedOnesMarkedAsSelected)
+    } yield pageOfDisplayClients
+  }
+
   def getUnassignedClients(arn: Arn)
                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] =
     agentPermissionsConnector.unassignedClients(arn)
@@ -118,16 +140,21 @@ class ClientServiceImpl @Inject()(
   // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
   def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)
-                                   (getClients: Arn => Future[Seq[DisplayClient]])
+                                   (eventualClients: Future[Seq[DisplayClient]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     val selectedClientIds = formData.clients.getOrElse(Seq.empty)
 
     val allClients = for {
-      clients <- getClients(arn)
+      clients <- eventualClients
+      _ = println("***************")
+      _ = println(clients.map(_.name))
       selectedClientsToAddToSession = clients
         .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
       _ <- addSelectablesToSession(selectedClientsToAddToSession)(SELECTED_CLIENTS, FILTERED_CLIENTS)
+      _ = println("***************")
+      _ = println(selectedClientsToAddToSession)
+      _ = println("***************")
     } yield clients
 
     allClients.flatMap { clients =>
@@ -156,7 +183,7 @@ class ClientServiceImpl @Inject()(
     val searchTerm = formData.search
     val eventualSelectedClientIds = sessionCacheService.get(SELECTED_CLIENTS).map(_.map(_.map(_.id)))
 
-    eventualSelectedClientIds.flatMap(maybeSelectedClientIds =>{
+    eventualSelectedClientIds.flatMap(maybeSelectedClientIds => {
 
       val selectedClientIds = maybeSelectedClientIds.getOrElse(Nil)
 
@@ -176,7 +203,7 @@ class ClientServiceImpl @Inject()(
         result = consolidatedResult
           .map(dc => if (selectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
           .toVector
-        _ <-  sessionCacheService.put(FILTERED_CLIENTS, result)
+        _ <- sessionCacheService.put(FILTERED_CLIENTS, result)
       } yield result
     }
     )

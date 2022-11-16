@@ -32,10 +32,10 @@
 
     @if(!pagination.firstPage) {
      <span class="pagination_item  pagination_item--prev">
-      <a class="pagination_link"
-         href="@baseUrl?page=@{pagination.currentPageNumber - 1}&pageSize=@{pagination.pageSize}">
-       <span aria-hidden="true">&lt;</span>
-       <span class="govuk-visually-hidden">@msgs("fctb.results.pagination.previous.hidden")</span></a>
+             @submit_as_link(
+       key = """<span aria-hidden="true" >&lt;</span>
+       <span class="govuk-visually-hidden">@msgs("pagination.next")</span>""".toString,
+       value =s"${PAGINATION_BUTTON}_${1}")
      </span>
     }
 
@@ -53,10 +53,10 @@
 
     @if(!pagination.lastPage) {
      <span class="pagination_item  pagination_item--next">
-      <a class="pagination_link"
-         href="@baseUrl?page=@{pagination.currentPageNumber + 1}&pageSize=@{pagination.pageSize}">
-       <span aria-hidden="true" >&gt;</span>
-       <span class="govuk-visually-hidden">@msgs("fctb.results.pagination.next.hidden")</span></a>
+       @submit_as_link(
+       key = """<span class="govuk-visually-hidden">@msgs("pagination.next")</span>
+         <span aria-hidden="true" >&gt;</span>""".toString,
+       value =s"${PAGINATION_BUTTON}_${pagination.totalPages}")
      </span>
     }
 

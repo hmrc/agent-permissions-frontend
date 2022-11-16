@@ -147,12 +147,12 @@ class ClientServiceImpl @Inject()(
 
     val allClients = for {
       clients <- eventualClients
-      _ = println("***************")
+      _ = println("*******clients********")
       _ = println(clients.map(_.name))
       selectedClientsToAddToSession = clients
         .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
       _ <- addSelectablesToSession(selectedClientsToAddToSession)(SELECTED_CLIENTS, FILTERED_CLIENTS)
-      _ = println("***************")
+      _ = println("******selected added to session******")
       _ = println(selectedClientsToAddToSession)
       _ = println("***************")
     } yield clients

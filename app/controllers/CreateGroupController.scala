@@ -186,7 +186,7 @@ class CreateGroupController @Inject()(
                 )
             },
             formData => {
-              println("**********************")
+              println("********form data**********")
               println (formData.submit)
               println("**********************")
               clientService

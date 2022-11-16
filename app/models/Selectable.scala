@@ -82,3 +82,7 @@ case object DisplayClient {
   }
 
 }
+
+// only the hash id - name retrieved later from BE
+case class SelectionsFor1000plus(selectedIds : List[String])
+

@@ -186,9 +186,6 @@ class CreateGroupController @Inject()(
                 )
             },
             formData => {
-              println("**********************")
-              println (formData.submit)
-              println("**********************")
               clientService
                 .saveSelectedOrFilteredClients(arn)(formData)(
                   sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty))

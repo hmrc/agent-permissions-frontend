@@ -99,13 +99,16 @@ class ClientServiceImpl @Inject()(
       maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
       existingSelectedClients = maybeSelectedClients.getOrElse(Nil)
       selectedClientIds = existingSelectedClients.map(_.id)
-      pageOfClientsMinusSelectedOnes = pageOfClients
+      pageOfClientsMarkedSelected = pageOfClients
         .pageContent
         .map(cl => DisplayClient.fromClient(cl))
-        .filterNot(dc => selectedClientIds.contains(dc.id))
-      clientsWithSelectedOnesMarkedAsSelected = pageOfClientsMinusSelectedOnes.toList ::: existingSelectedClients.toList
+        .map(dc => if(selectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc )
+      _ = println("******************")
+      _ = println(pageOfClientsMarkedSelected.map(_.selected))
+      _ = println("******************")
+      clientsWithSelectedOnesMarkedAsSelected = pageOfClientsMarkedSelected.toList ::: existingSelectedClients.toList
       pageOfDisplayClients = PaginatedList(clientsWithSelectedOnesMarkedAsSelected, pageOfClients.paginationMetaData)
-      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS,clientsWithSelectedOnesMarkedAsSelected)
+      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, clientsWithSelectedOnesMarkedAsSelected)
     } yield pageOfDisplayClients
   }
 

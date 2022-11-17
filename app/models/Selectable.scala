@@ -18,6 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.util.hashing.MurmurHash3
 
@@ -35,6 +36,7 @@ case class TeamMember(
                      ) extends Selectable {
   private val hashKey = s"$name$email${userId.getOrElse(throw new RuntimeException("userId missing from TeamMember"))}"
   val id: String = MurmurHash3.stringHash(hashKey).toString
+
 }
 
 case object TeamMember {

@@ -53,6 +53,7 @@ package object controllers {
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
 
   val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
+  val SELECTED_CLIENT_IDS: DataKey[Seq[String]] = DataKey("SELECTED_CLIENT_IDS")
   val CURRENT_PAGE_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("CURRENT_PAGE_CLIENTS")
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
@@ -82,6 +83,7 @@ package object controllers {
       FILTERED_CLIENTS,
       CLIENT_FILTER_INPUT,
       CLIENT_SEARCH_INPUT,
+      SELECTED_CLIENT_IDS,
     )
 
   val teamMemberFilteringKeys =

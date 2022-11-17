@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, SELECTED_CLIENT_IDS, ToFuture, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, SELECTED_CLIENT_IDS, ToFuture, clientFilteringKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
@@ -148,14 +148,9 @@ class ClientServiceImpl @Inject()(
 
     val allClients = for {
       clients <- eventualClients
-      _ = println("*******clients********")
-      _ = println(clients.map(_.name))
       selectedClientsToAddToSession = clients
         .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
       _ <- addSelectablesToSession(selectedClientsToAddToSession)(SELECTED_CLIENTS, FILTERED_CLIENTS)
-      _ = println("******selected added to session******")
-      _ = println(selectedClientsToAddToSession)
-      _ = println("***************")
     } yield clients
 
     allClients.flatMap { clients =>
@@ -195,10 +190,9 @@ class ClientServiceImpl @Inject()(
             for {
               _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
               _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
-//              _ <- filterClients(formData)(clients)
             } yield ()
           }
-        case _ => sessionCacheService.deleteAll(clientFilteringKeys)
+        case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys)
       }
     }
   }

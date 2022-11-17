@@ -165,7 +165,7 @@ class CreateGroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
+      withSessionItem[Seq[String]](SELECTED_CLIENT_IDS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddClientsToGroupForm
@@ -192,9 +192,9 @@ class CreateGroupController @Inject()(
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected clients from session cache AFTER saving (removed de-selections)
                     val hasSelectedClients = for {
-                      selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
+                      selectedClientIds <- sessionCacheService.get(SELECTED_CLIENT_IDS)
                       // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
-                    } yield selectedClients.getOrElse(Seq.empty).nonEmpty
+                    } yield selectedClientIds.getOrElse(Seq.empty).nonEmpty
                     hasSelectedClients.flatMap(selectedNotEmpty => {
                       if (selectedNotEmpty) {
                         Redirect(controller.showReviewSelectedClients).toFuture
@@ -215,9 +215,11 @@ class CreateGroupController @Inject()(
                       }
                     })
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
-                    val pageAsString = formData.submit.replace(s"${PAGINATION_BUTTON}_", "")
-                    Redirect(controller.showSelectClients(Some(pageAsString.toInt), Some(20))).toFuture
-                  } else Redirect(controller.showSelectClients(None, None)).toFuture
+                    val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
+                    Redirect(controller.showSelectClients(Some(pageToShow), Some(20))).toFuture
+                  } else {
+                    Redirect(controller.showSelectClients(None, None)).toFuture
+                  }
                 }
                 )
             }

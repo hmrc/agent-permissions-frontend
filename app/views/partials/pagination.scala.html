@@ -34,8 +34,8 @@
      <span class="pagination_item  pagination_item--prev">
              @submit_as_link(
        key = """<span aria-hidden="true" >&lt;</span>
-       <span class="govuk-visually-hidden">@msgs("pagination.next")</span>""".toString,
-       value =s"${PAGINATION_BUTTON}_${1}")
+       <span class="govuk-visually-hidden">@msgs("pagination.previous")</span>""".toString,
+       value =s"${PAGINATION_BUTTON}_${(pagination.currentPageNumber - 1)}")
      </span>
     }
 
@@ -56,7 +56,7 @@
        @submit_as_link(
        key = """<span class="govuk-visually-hidden">@msgs("pagination.next")</span>
          <span aria-hidden="true" >&gt;</span>""".toString,
-       value =s"${PAGINATION_BUTTON}_${pagination.totalPages}")
+       value =s"${PAGINATION_BUTTON}_${(pagination.currentPageNumber + 1)}")
      </span>
     }
 

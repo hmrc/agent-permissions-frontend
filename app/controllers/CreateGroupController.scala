@@ -186,6 +186,10 @@ class CreateGroupController @Inject()(
                 )
             },
             formData => {
+              println("********form data**********")
+              println (formData)
+              println("**********************")
+              // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
               clientService
                 .savePageOfClients(formData)
                 .flatMap(_ => {
@@ -229,10 +233,14 @@ class CreateGroupController @Inject()(
   }
 
   def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
-        maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(
-          clients => Ok(review_clients_to_add(clients, groupName, YesNoForm.form())).toFuture)
+    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+      withSessionItem[Seq[String]](SELECTED_CLIENT_IDS) { maybeClients =>
+          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(_ =>
+            // need to call BE for '1st page' display clients using the selected ids
+            clientService.getPaginatedClients(arn)(1, 20).flatMap { paginatedClients =>
+              // include pagination
+              Ok(review_clients_to_add(Seq.empty, groupName, YesNoForm.form())).toFuture
+        })
       }
     }
   }

@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, SELECTED_CLIENT_IDS, ToFuture, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, PAGINATION_BUTTON, SELECTED_CLIENTS, SELECTED_CLIENT_IDS, ToFuture, clientFilteringKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
@@ -174,25 +174,17 @@ class ClientServiceImpl @Inject()(
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     sessionCacheService.get(SELECTED_CLIENT_IDS).map(_.getOrElse(Seq.empty)).map(existingSelectedIds =>
-      sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty)).map(currentPageClients =>{
+      sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty)).map(currentPageClients => {
         val clientIdsToAdd = formData.clients.getOrElse(Seq.empty)
         val idsToRemove = currentPageClients.map(_.id).diff(clientIdsToAdd)
         val newSelectedIds = existingSelectedIds.filterNot(r => idsToRemove.contains(r)) ++ clientIdsToAdd
-        sessionCacheService.put(SELECTED_CLIENT_IDS, newSelectedIds)
+        sessionCacheService.put(SELECTED_CLIENT_IDS, newSelectedIds.distinct)
       }
       )
     ).map { _ =>
       formData.submit.trim match {
-        case FILTER_BUTTON =>
-          if (formData.search.isEmpty && formData.filter.isEmpty) {
-            sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
-          } else {
-            for {
-              _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
-              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
-            } yield ()
-          }
         case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys)
+        case _ => Future.successful()
       }
     }
   }

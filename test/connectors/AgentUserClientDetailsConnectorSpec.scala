@@ -22,12 +22,13 @@ import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.TeamMember
 import play.api.Application
 import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
+import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, PaginatedList, PaginationMetaData, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 class AgentUserClientDetailsConnectorSpec
-    extends BaseSpec
+  extends BaseSpec
     with HttpClientMocks
     with AgentUserClientDetailsConnectorMocks {
 
@@ -53,16 +54,16 @@ class AgentUserClientDetailsConnectorSpec
         HttpResponse.apply(
           OK,
           """[
-          |{
-          |"enrolmentKey": "HMRC-MTD-IT~MTDITID~XX12345",
-          |"friendlyName": "Rapunzel"
-          |}
-          |]""".stripMargin
+            |{
+            |"enrolmentKey": "HMRC-MTD-IT~MTDITID~XX12345",
+            |"friendlyName": "Rapunzel"
+            |}
+            |]""".stripMargin
         ))
 
       connector.getClients(arn).futureValue shouldBe
         Seq(Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
-                   friendlyName = "Rapunzel"))
+          friendlyName = "Rapunzel"))
     }
 
     "return None when status response is Accepted" in {
@@ -82,23 +83,60 @@ class AgentUserClientDetailsConnectorSpec
     }
   }
 
+  "getPaginatedClientsList" should {
+    "return a Some[Seq[Client]] when status response is OK" in {
+      val clients = Seq(
+        Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Bob"),
+        Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12347", friendlyName = "Builder"),
+      )
+      val meta = PaginationMetaData(
+        lastPage = false,
+        firstPage = true,
+        totalSize = 2,
+        totalPages = 1,
+        pageSize = 20,
+        currentPageNumber = 1,
+        currentPageSize = 2
+      )
+      val paginatedList = PaginatedList[Client](pageContent = clients, paginationMetaData = meta)
+
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(
+        OK,
+        Json.toJson(paginatedList).toString())
+      )
+
+      connector.getPaginatedClients(arn)(1, 20).futureValue shouldBe paginatedList
+    }
+
+    "throw error when status response is 5xx" in {
+
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(503, ""))
+
+      intercept[UpstreamErrorResponse] {
+        await(connector.getPaginatedClients(arn)(1, 20))
+      }
+    }
+
+  }
+
+
   "getTeamMembers" should {
     "return a Some[Seq[UserDetails]] when status response is OK" in {
       expectHttpClientGET[HttpResponse](
         HttpResponse.apply(
           OK,
           """[
-          |{
-          |"userId": "uid",
-          |"credentialRole": "cred-role",
-          |"name": "name",
-          |"email": "x@y.com"
-          |}
-          |]""".stripMargin
+            |{
+            |"userId": "uid",
+            |"credentialRole": "cred-role",
+            |"name": "name",
+            |"email": "x@y.com"
+            |}
+            |]""".stripMargin
         ))
 
       connector.getTeamMembers(arn).futureValue shouldBe
-        Seq(UserDetails( Some("uid"),Some("cred-role"),  Some("name"), Some("x@y.com")))
+        Seq(UserDetails(Some("uid"), Some("cred-role"), Some("name"), Some("x@y.com")))
     }
 
     "return None when status response is Accepted" in {

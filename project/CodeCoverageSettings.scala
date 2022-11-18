@@ -35,6 +35,8 @@ object CodeCoverageSettings {
     ".*ClientAction.*",
     ".*TeamMemberAction.*",
     ".*TimeoutController.*",
+    ".*SelectPaginatedClientsController.*",
+    ".*select_paginated_clients.template",
   )
 
   val settings: Seq[Setting[_]] = Seq(

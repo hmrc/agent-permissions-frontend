@@ -19,19 +19,18 @@
 @this(button: GovukButton)
 
 @(
-        messageKey: String = "common.continue",
-        id: String = "continue",
-        name: String = "submit",
-        value: String = "continue",
-        classes: Option[String] = None
+    key: String = "common.continue",
+    name: String = "submit",
+    value: String = "continue",
+    classes: String = "submit-as-link",
+    id: Option[String] = None,
+    attrs: Map[String, String] = Map.empty,
 )(implicit msgs: Messages)
 
 
-    @button(
-        Button(
-            attributes = Map("id" -> s"$id", "name" -> s"$name", "value" -> s"$value"),
-            classes = s"${classes.getOrElse("")}",
-            inputType = Some("submit"),
-            content = Text(msgs(messageKey))
-        )
-    )
+<button type="submit"
+    name="@name"
+    class="govuk-body @classes"
+    value="@value"
+    @id.map(i => { s"id =${i}"})
+    @attrs.map(a => a._1 + "=" + a._2)>@Html(msgs(key))</button>

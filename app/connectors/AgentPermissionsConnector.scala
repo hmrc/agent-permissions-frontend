@@ -359,8 +359,7 @@ case class AccessGroupSummaries(groups: Seq[GroupSummary],
                                 unassignedClients: Set[Client])
 
 object AccessGroupSummaries {
-  implicit val format: OFormat[AccessGroupSummaries] =
-    Json.format[AccessGroupSummaries]
+  implicit val format: OFormat[AccessGroupSummaries] = Json.format[AccessGroupSummaries]
 }
 
 case class UpdateAccessGroupRequest(

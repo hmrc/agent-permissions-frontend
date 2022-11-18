@@ -33,28 +33,28 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CreateGroupController @Inject()(
-       authAction: AuthAction,
-       sessionAction: SessionAction,
-       mcc: MessagesControllerComponents,
-       create: create,
-       confirm_group_name: confirm_group_name,
-       access_group_name_exists: access_group_name_exists,
-       val client_group_list: client_group_list,
-       review_clients_to_add: review_clients_to_add,
-       team_members_list: team_members_list,
-       review_team_members_to_add: review_team_members_to_add,
-       check_your_answers: check_your_answers,
-       group_created: group_created,
-       val sessionCacheService: SessionCacheService,
-       val groupService: GroupService,
-       clientService: ClientService,
-       optInStatusAction: OptInStatusAction,
-       teamMemberService: TeamMemberService
-     )(
-       implicit val appConfig: AppConfig,
-       ec: ExecutionContext,
-       implicit override val messagesApi: MessagesApi
-     ) extends FrontendController(mcc)
+                                       authAction: AuthAction,
+                                       sessionAction: SessionAction,
+                                       mcc: MessagesControllerComponents,
+                                       group_name: group_name,
+                                       confirm_group_name: confirm_group_name,
+                                       access_group_name_exists: access_group_name_exists,
+                                       val select_clients: select_clients,
+                                       review_clients_to_add: review_clients_to_add,
+                                       team_members_list: team_members_list,
+                                       review_team_members_to_add: review_team_members_to_add,
+                                       check_your_answers: check_your_answers,
+                                       group_created: group_created,
+                                       val sessionCacheService: SessionCacheService,
+                                       val groupService: GroupService,
+                                       clientService: ClientService,
+                                       optInStatusAction: OptInStatusAction,
+                                       teamMemberService: TeamMemberService
+                                     )(
+                                       implicit val appConfig: AppConfig,
+                                       ec: ExecutionContext,
+                                       implicit override val messagesApi: MessagesApi
+                                     ) extends FrontendController(mcc)
   with I18nSupport with Logging {
 
   import authAction._
@@ -74,7 +74,7 @@ class CreateGroupController @Inject()(
       isOptedInComplete(arn) { _ =>
         withSessionItem[String](GROUP_NAME) { maybeName =>
           sessionCacheService.deleteAll(sessionKeys).map(_ =>
-            Ok(create(GroupNameForm.form().fill(maybeName.getOrElse(""))))
+            Ok(group_name(GroupNameForm.form().fill(maybeName.getOrElse(""))))
           )
         }
       }
@@ -88,13 +88,13 @@ class CreateGroupController @Inject()(
           .form()
           .bindFromRequest
           .fold(
-            formWithErrors => Ok(create(formWithErrors)).toFuture,
+            formWithErrors => Ok(group_name(formWithErrors)).toFuture,
             (name: String) =>{
               val saved = for {
                 _ <- sessionCacheService.put[String](GROUP_NAME, name)
                 _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, false)
               } yield ()
-               saved.map(_=> Redirect(controller.showConfirmGroupName))
+              saved.map(_=> Redirect(controller.showConfirmGroupName))
             }
           )
       }
@@ -148,7 +148,7 @@ class CreateGroupController @Inject()(
           withSessionItem[String](RETURN_URL) { returnUrl =>
             clientService.getFilteredClientsElseAll(arn).map { clients =>
               Ok(
-                client_group_list(
+                select_clients(
                   clients,
                   groupName,
                   backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
@@ -176,7 +176,7 @@ class CreateGroupController @Inject()(
               for {
                 clients <- clientService.getFilteredClientsElseAll(arn)
               } yield
-                Ok(client_group_list(clients, groupName, formWithErrors))
+                Ok(select_clients(clients, groupName, formWithErrors))
             },
             formData => {
               clientService
@@ -192,18 +192,18 @@ class CreateGroupController @Inject()(
                       if (selectedNotEmpty) {
                         Redirect(controller.showReviewSelectedClients).toFuture
                       } else { // render page with empty client error
-                          for {
-                            clients <- clientService.getAllClients(arn)
-                            returnUrl <- sessionCacheService.get(RETURN_URL)
-                          } yield
-                            Ok(
-                              client_group_list(
-                                clients,
-                                groupName,
-                                backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
-                                form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty")
-                              )
+                        for {
+                          clients <- clientService.getAllClients(arn)
+                          returnUrl <- sessionCacheService.get(RETURN_URL)
+                        } yield
+                          Ok(
+                            select_clients(
+                              clients,
+                              groupName,
+                              backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
+                              form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty")
                             )
+                          )
                       }
                     })
                   } else Redirect(controller.showSelectClients).toFuture

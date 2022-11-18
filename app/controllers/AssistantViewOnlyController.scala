@@ -17,6 +17,7 @@
 package controllers
 
 import config.AppConfig
+import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
 import forms._
 import models.{DisplayGroup, SearchFilter}
 import play.api.Logging

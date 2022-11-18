@@ -18,7 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.UpdateAccessGroupRequest
-import controllers.action.SessionAction
+import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.TeamMember.toAgentUser
 import models.{AddTeamMembersToGroup, SearchFilter, TeamMember}

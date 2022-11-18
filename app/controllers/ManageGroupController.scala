@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.UpdateAccessGroupRequest
+import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
 import forms._
 import models.SearchFilter
 import play.api.Logging

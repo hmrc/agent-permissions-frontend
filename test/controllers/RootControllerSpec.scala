@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.AgentPermissionsConnector
+import controllers.actions.AuthAction
 import helpers.BaseSpec
 import play.api.Application
 import play.api.http.Status.SEE_OTHER

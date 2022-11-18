@@ -18,7 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.UpdateAccessGroupRequest
-import controllers.action.SessionAction
+import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.DisplayClient.format
 import models.{AddClientsToGroup, DisplayClient, DisplayGroup, SearchFilter}

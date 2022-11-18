@@ -18,7 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.AddMembersToAccessGroupRequest
-import controllers.action.SessionAction
+import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
 import forms._
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.Logging

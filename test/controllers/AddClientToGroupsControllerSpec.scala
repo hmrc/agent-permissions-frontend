@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary}
+import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import models.DisplayClient
 import org.jsoup.Jsoup

@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.AgentPermissionsConnector
+import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
 import play.api.Application

@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import controllers.action.SessionAction
+import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
 import forms.{AddClientsToGroupForm, AddTeamMembersToGroupForm, GroupNameForm, YesNoForm}
 import models.{AddClientsToGroup, AddTeamMembersToGroup, DisplayClient, TeamMember}
 import play.api.Logging

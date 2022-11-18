@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
+import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}

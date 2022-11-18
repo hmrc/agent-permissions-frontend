@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.AddMembersToAccessGroupRequest
+import controllers.actions.ClientAction
 import forms.AddGroupsToClientForm
 import models.DisplayClient
 import play.api.Logging

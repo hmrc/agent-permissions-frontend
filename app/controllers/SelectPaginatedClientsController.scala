@@ -101,9 +101,6 @@ class SelectPaginatedClientsController @Inject()(
                 )
             },
             formData => {
-              println("********form data**********")
-              println (formData)
-              println("**********************")
               // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
               clientService
                 .savePageOfClients(formData)

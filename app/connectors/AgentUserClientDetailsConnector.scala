@@ -38,7 +38,8 @@ trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   def getClients(arn: Arn)
                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]]
 
-  def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
+  def getPaginatedClients(arn: Arn)
+                         (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
 
   def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[UserDetails]]
@@ -77,8 +78,14 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
     }
   }
 
-  def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]] = {
-    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/clients?page=${page}&pageSize=${pageSize}"
+  def getPaginatedClients(arn: Arn)
+                         (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[PaginatedList[Client]] = {
+    val searchParam = search.fold("")(searchTerm => s"&search=${searchTerm}")
+    val filterParam = filter.fold("")(filterTerm => s"&filter=${filterTerm}")
+    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/clients" +
+      s"?page=${page}&pageSize=${pageSize}$searchParam$filterParam"
     monitor("ConsumedAPI-getClientList-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
@@ -96,9 +103,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
         response.status match {
           case ACCEPTED => Seq.empty[UserDetails]
           case OK => response.json.as[Seq[UserDetails]]
-          case e =>
-            throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}",
-              e)
+          case e => throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}", e)
         }
       }
     }
@@ -108,8 +113,7 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
   override def updateClientReference(arn: Arn, client: Client)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Done] = {
-    val url =
-      s"$baseUrl/agent-user-client-details/arn/${arn.value}/update-friendly-name"
+    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/update-friendly-name"
 
     monitor("ConsumedAPI-update-friendly-name-PUT") {
       http

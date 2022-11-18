@@ -114,7 +114,10 @@ class ClientServiceImpl @Inject()(
   def getPaginatedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
     for {
-      pageOfClients: PaginatedList[Client] <- agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize)
+      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+      pageOfClients <-
+        agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize, searchTerm, filterTerm)
       maybeSelectedClientIds <- sessionCacheService.get[Seq[String]](SELECTED_CLIENT_IDS)
       existingSelectedClientIds = maybeSelectedClientIds.getOrElse(Nil)
       pageOfClientsMarkedSelected = pageOfClients
@@ -190,6 +193,8 @@ class ClientServiceImpl @Inject()(
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     for{
+      _ <- formData.search.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
+      _ <- formData.filter.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
       existingSelectedIds <- sessionCacheService.get(SELECTED_CLIENT_IDS).map(_.getOrElse(Seq.empty))
       currentPageClients <- sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty))
       clientIdsToAdd = formData.clients.getOrElse(Seq.empty)

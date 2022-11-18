@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import models.AddClientsToGroup
-@import views.html.partials.selectable_clients_table_form
+@import views.html.partials.paginated_selectable_clients_table_form
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
@@ -26,14 +26,14 @@
     p: p, h1: h1, span: span, caption: caption,
     summaryErrors: SummaryErrors,
     table: table,
-    selectable_clients_table_form: selectable_clients_table_form
+    paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
 )
 
 @(
     clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     groupName: String,
     form: Form[AddClientsToGroup],
-    formAction: Call = routes.CreateGroupController.submitSelectedClients,
+    formAction: Call = routes.SelectPaginatedClientsController.submitSelectedClients,
     backUrl: Option[String] = Some(routes.CreateGroupController.showConfirmGroupName.url),
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -59,7 +59,7 @@
         @p("group.client.list.p1")
     </div>
 
-    @selectable_clients_table_form(clients, form, formAction, paginationMetaData)
+    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData)
 
 }
 

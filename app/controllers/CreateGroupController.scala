@@ -33,33 +33,33 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CreateGroupController @Inject()(
-       authAction: AuthAction,
-       sessionAction: SessionAction,
-       mcc: MessagesControllerComponents,
-       create: create,
-       confirm_group_name: confirm_group_name,
-       access_group_name_exists: access_group_name_exists,
-       val client_group_list: client_group_list,
-       review_clients_to_add: review_clients_to_add,
-       team_members_list: team_members_list,
-       review_team_members_to_add: review_team_members_to_add,
-       check_your_answers: check_your_answers,
-       group_created: group_created,
-       val sessionCacheService: SessionCacheService,
-       val groupService: GroupService,
-       clientService: ClientService,
-       optInStatusAction: OptInStatusAction,
-       teamMemberService: TeamMemberService
-     )(
-       implicit val appConfig: AppConfig,
-       ec: ExecutionContext,
-       implicit override val messagesApi: MessagesApi
-     ) extends FrontendController(mcc)
+                                       authAction: AuthAction,
+                                       sessionAction: SessionAction,
+                                       mcc: MessagesControllerComponents,
+                                       group_name: group_name,
+                                       confirm_group_name: confirm_group_name,
+                                       access_group_name_exists: access_group_name_exists,
+                                       val select_clients: select_clients,
+                                       review_clients_to_add: review_clients_to_add,
+                                       team_members_list: team_members_list,
+                                       review_team_members_to_add: review_team_members_to_add,
+                                       check_your_answers: check_your_answers,
+                                       group_created: group_created,
+                                       val sessionCacheService: SessionCacheService,
+                                       val groupService: GroupService,
+                                       clientService: ClientService,
+                                       optInStatusAction: OptInStatusAction,
+                                       teamMemberService: TeamMemberService
+                                     )(
+                                       implicit val appConfig: AppConfig,
+                                       ec: ExecutionContext,
+                                       implicit override val messagesApi: MessagesApi
+                                     ) extends FrontendController(mcc)
   with I18nSupport with Logging {
 
   import authAction._
-  import optInStatusAction._
   import sessionAction.withSessionItem
+  import optInStatusAction._
 
   private val controller: ReverseCreateGroupController = routes.CreateGroupController
 
@@ -74,7 +74,7 @@ class CreateGroupController @Inject()(
       isOptedInComplete(arn) { _ =>
         withSessionItem[String](GROUP_NAME) { maybeName =>
           sessionCacheService.deleteAll(sessionKeys).map(_ =>
-            Ok(create(GroupNameForm.form().fill(maybeName.getOrElse(""))))
+            Ok(group_name(GroupNameForm.form().fill(maybeName.getOrElse(""))))
           )
         }
       }
@@ -88,13 +88,13 @@ class CreateGroupController @Inject()(
           .form()
           .bindFromRequest
           .fold(
-            formWithErrors => Ok(create(formWithErrors)).toFuture,
+            formWithErrors => Ok(group_name(formWithErrors)).toFuture,
             (name: String) =>{
               val saved = for {
                 _ <- sessionCacheService.put[String](GROUP_NAME, name)
                 _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, false)
               } yield ()
-               saved.map(_=> Redirect(controller.showConfirmGroupName))
+              saved.map(_=> Redirect(controller.showConfirmGroupName))
             }
           )
       }
@@ -124,7 +124,7 @@ class CreateGroupController @Inject()(
                   nameAvailable =>
                     if (nameAvailable)
                       sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true).map(_=>
-                        Redirect(controller.showSelectClients(None, None))
+                        Redirect(controller.showSelectClients)
                       )
                     else
                       Redirect(controller.showAccessGroupNameExists).toFuture)
@@ -141,19 +141,18 @@ class CreateGroupController @Inject()(
     }
   }
 
-  def showSelectClients(page: Option[Int] = None , pageSize: Option[Int] = None ): Action[AnyContent] = Action.async { implicit request =>
+  def showSelectClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           withSessionItem[String](RETURN_URL) { returnUrl =>
-            clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(20)).map { paginatedClients =>
+            clientService.getFilteredClientsElseAll(arn).map { clients =>
               Ok(
-                client_group_list(
-                  paginatedClients.pageContent,
+                select_clients(
+                  clients,
                   groupName,
                   backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
-                  form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
-                  paginationMetaData = Some(paginatedClients.paginationMetaData)
+                  form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm))
                 )
               )
             }
@@ -165,7 +164,7 @@ class CreateGroupController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[String]](SELECTED_CLIENT_IDS) { maybeSelected =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddClientsToGroupForm
@@ -175,55 +174,39 @@ class CreateGroupController @Inject()(
           .fold(
             formWithErrors => {
               for {
-                paginatedClients <- clientService.getPaginatedClients(arn)(1, 20)
+                clients <- clientService.getFilteredClientsElseAll(arn)
               } yield
-                Ok(
-                  client_group_list(
-                    clients = paginatedClients.pageContent,
-                    groupName = groupName,
-                    form = formWithErrors,
-                    paginationMetaData = Some(paginatedClients.paginationMetaData))
-                )
+                Ok(select_clients(clients, groupName, formWithErrors))
             },
             formData => {
-              println("********form data**********")
-              println (formData)
-              println("**********************")
-              // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
               clientService
-                .savePageOfClients(formData)
+                .saveSelectedOrFilteredClients(arn)(formData)(clientService.getAllClients)
                 .flatMap(_ => {
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected clients from session cache AFTER saving (removed de-selections)
                     val hasSelectedClients = for {
-                      selectedClientIds <- sessionCacheService.get(SELECTED_CLIENT_IDS)
+                      selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
                       // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
-                    } yield selectedClientIds.getOrElse(Seq.empty).nonEmpty
+                    } yield selectedClients.getOrElse(Seq.empty).nonEmpty
                     hasSelectedClients.flatMap(selectedNotEmpty => {
                       if (selectedNotEmpty) {
                         Redirect(controller.showReviewSelectedClients).toFuture
                       } else { // render page with empty client error
-                          for {
-                            paginatedClients <- clientService.getPaginatedClients(arn)(1, 20)
-                            returnUrl <- sessionCacheService.get(RETURN_URL)
-                          } yield
-                            Ok(
-                              client_group_list(
-                                paginatedClients.pageContent,
-                                groupName,
-                                backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
-                                form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
-                                paginationMetaData = Some(paginatedClients.paginationMetaData)
-                              )
+                        for {
+                          clients <- clientService.getAllClients(arn)
+                          returnUrl <- sessionCacheService.get(RETURN_URL)
+                        } yield
+                          Ok(
+                            select_clients(
+                              clients,
+                              groupName,
+                              backUrl = Some(returnUrl.getOrElse(routes.CreateGroupController.showConfirmGroupName.url)),
+                              form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty")
                             )
+                          )
                       }
                     })
-                  } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
-                    val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                    Redirect(controller.showSelectClients(Some(pageToShow), Some(20))).toFuture
-                  } else {
-                    Redirect(controller.showSelectClients(None, None)).toFuture
-                  }
+                  } else Redirect(controller.showSelectClients).toFuture
                 }
                 )
             }
@@ -233,14 +216,10 @@ class CreateGroupController @Inject()(
   }
 
   def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[String]](SELECTED_CLIENT_IDS) { maybeClients =>
-          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(_ =>
-            // need to call BE for '1st page' display clients using the selected ids
-            clientService.getPaginatedClients(arn)(1, 20).flatMap { paginatedClients =>
-              // include pagination
-              Ok(review_clients_to_add(Seq.empty, groupName, YesNoForm.form())).toFuture
-        })
+    withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+        maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
+          clients => Ok(review_clients_to_add(clients, groupName, YesNoForm.form())).toFuture)
       }
     }
   }
@@ -249,7 +228,7 @@ class CreateGroupController @Inject()(
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
-          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(
+          maybeClients.fold(Redirect(controller.showSelectClients).toFuture)(
             clients =>
               YesNoForm
                 .form("group.clients.review.error")
@@ -260,7 +239,7 @@ class CreateGroupController @Inject()(
                   }, (yes: Boolean) => {
                     if (yes)
                       sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
-                        Redirect(controller.showSelectClients(None, None))
+                        Redirect(controller.showSelectClients)
                       )
                     else {
                       sessionCacheService.get(RETURN_URL)
@@ -400,7 +379,7 @@ class CreateGroupController @Inject()(
   def redirectToEditClients: Action[AnyContent] = Action.async { implicit request =>
     sessionCacheService
       .put(RETURN_URL, controllers.routes.CreateGroupController.showCheckYourAnswers.url)
-      .map(_ => Redirect(controllers.routes.CreateGroupController.showSelectClients(None, None)))
+      .map(_ => Redirect(controllers.routes.CreateGroupController.showSelectClients))
 
   }
 

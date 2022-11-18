@@ -52,8 +52,8 @@ trait ClientService {
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[DisplayClient]]
 
   def saveSelectedOrFilteredClients(arn: Arn)
-                                   (formData: AddClientsToGroup)(eventualClients: Future[Seq[DisplayClient]])
-                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
+                                   (formData: AddClientsToGroup)(getClients: Arn => Future[Seq[DisplayClient]])
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
   def savePageOfClients(formData: AddClientsToGroup)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
@@ -141,13 +141,13 @@ class ClientServiceImpl @Inject()(
   // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
   def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)
-                                   (eventualClients: Future[Seq[DisplayClient]])
+                                   (getClients: Arn => Future[Seq[DisplayClient]])
                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     val selectedClientIds = formData.clients.getOrElse(Seq.empty)
 
     val allClients = for {
-      clients <- eventualClients
+      clients <- getClients(arn)
       selectedClientsToAddToSession = clients
         .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
       _ <- addSelectablesToSession(selectedClientsToAddToSession)(SELECTED_CLIENTS, FILTERED_CLIENTS)

@@ -16,136 +16,125 @@
 
 @import config.AppConfig
 @import controllers.routes
+@import play.api.libs.json.Json
 @import views.html.main_layout
 @import models.AddClientsToGroup
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.partials.search_and_filter
-@import views.html.partials.pagination
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, h2: h2, span: span,
-    caption: caption,
-    table: table,
-    submit_button: submit_button,
-    search_and_filter: search_and_filter,
-    pagination: pagination,
-    textbox: textbox,
-    input_select: input_select,
-    checkbox: checkbox,
-    summaryErrors: SummaryErrors,
-    govukSkipLink: GovukSkipLink,
-    formWithCSRF: FormWithCSRF,
+        layout: main_layout,
+        p: p, h1: h1, h2: h2, span: span,
+        caption: caption,
+        table: table,
+        submit_button: submit_button,
+        search_and_filter: search_and_filter,
+        textbox: textbox,
+        input_select: input_select,
+        checkbox: checkbox,
+        summaryErrors: SummaryErrors,
+        govukSkipLink: GovukSkipLink,
+        formWithCSRF: FormWithCSRF
 )
 
 @(
-    clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
-    form: Form[AddClientsToGroup],
-    formAction: Call = routes.CreateGroupController.submitSelectedClients,
-    paginationMetaData: Option[PaginationMetaData] = None
+        clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
+        form: Form[AddClientsToGroup],
+        formAction: Call = routes.CreateGroupController.submitSelectedClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@tableRows = @{
-    clients.zipWithIndex.map(client =>
-        Seq(
-            Html(
-                checkbox(
-                    name = Some("clients[]"),
-                    id = Some(s"add-client-${client._2}"),
-                    label = displayNameOrFullReference(client._1.name, client._1.hmrcRef),
-                    value = Some(client._1.id),
-                    checked = client._1.selected
-                ).toString
-            ),
-            Html(client._1.name),
-            Html(displayObfuscatedReference(client._1.name, client._1.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client._1.taxService)),
-        )
-
-    )
-}
-
-@govukSkipLink(SkipLink(
-    href = "#clients",
-    content = Text(msgs("common.skip-to-clients"))
-))
-
-@formWithCSRF(action = formAction) {
-
-@* no longer needed
-    @search_and_filter(form, true)
-*@
-    @if(clients.nonEmpty) {
-
-        @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
-            @h2(withSearchPrefix("", form("filter").value, form("search").value))
-        }
-
-        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-                <p id="clients-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
-                </p>
-                }
-
-        <fieldset class="govuk-fieldset">
-            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                @msgs("group.client.list.h1")
-            </legend>
-            @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
-            <div id="clients" tabindex="0">
-
-            @table(
-                caption = Some("common.clients"),
-                captionClasses = "govuk-visually-hidden",
-                id = Some("sortable-table"),
-                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-                headings = Seq(
-                    (
-                            span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
-                            Map("id" -> "select-all")
-                    ),
-                    (
-                            Html(msgs("group.client.list.table.th1")),
-                            Map("aria-sort" -> "none")
-                    ),
-                    (
-                            Html(msgs("group.client.list.table.th2")),
-                            Map("aria-sort" -> "none")
-                    ),
-                    (
-                            Html(msgs("group.client.list.table.th3")),
-                            Map("aria-sort" -> "none")
-                    )),
-                rows = tableRows,
+    @tableRows = @{
+        clients.zipWithIndex.map(client =>
+            Seq(
+                Html(
+                    checkbox(
+                        name = Some("clients[]"),
+                        id = Some(s"add-client-${client._2}"),
+                        label = displayNameOrFullReference(client._1.name, client._1.hmrcRef),
+                        value = Some(client._1.id),
+                        checked = client._1.selected
+                    ).toString
+                ),
+                Html(client._1.name),
+                Html(displayObfuscatedReference(client._1.name, client._1.hmrcRef)),
+                Html(displayTaxServiceFromServiceKey(client._1.taxService)),
             )
-            </div>
-        </fieldset>
-        @if(paginationMetaData.isDefined) {
-            @pagination(
-                pagination = paginationMetaData.get,
-                baseUrl = "./select-clients",
-                formAction = formAction
-            )
-        }
-        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
-        @* the following 2 paragraphs are dependent on whether js enabled or not*@
-        @p(key = msgs("common.total.clients.selected", clients.count(_.selected), clients.length),
-            id = Some("member-count-text"),
-            attrs = Map("role" -> "status")
         )
-
-        @p(key = msgs("already.selected.clients.nonjs", clients.count(_.selected), clients.length),
-            id = Some("member-count-text-non-js"),
-        )
-
-    } else {
-        <div id="clients">
-            @h2("clients.not-found.heading")
-            @p("clients.not-found.p")
-        </div>
     }
 
-    @submit_button()
-}
+    @govukSkipLink(SkipLink(
+        href = "#clients",
+        content = Text(msgs("common.skip-to-clients"))
+    ))
+
+    @formWithCSRF(action = formAction) {
+
+
+        @search_and_filter(form, true)
+
+        @if(clients.nonEmpty) {
+
+            @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
+                @h2(withSearchPrefix("", form("filter").value, form("search").value))
+            }
+
+            @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
+                <div class="govuk-form-group govuk-form-group--error">
+                    <p id="clients-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
+                    </p>
+                    }
+
+            <fieldset class="govuk-fieldset">
+                <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                @msgs("group.client.list.h1")
+                </legend>
+                <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
+
+                @table(
+                    caption = Some("common.clients"),
+                    captionClasses = "govuk-visually-hidden",
+                    id = Some("sortable-table"),
+                    attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
+                    headings = Seq(
+                        (
+                                span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
+                                Map("id" -> "select-all")
+                        ),
+                        (
+                                Html(msgs("group.client.list.table.th1")),
+                                Map("aria-sort" -> "none")
+                        ),
+                        (
+                                Html(msgs("group.client.list.table.th2")),
+                                Map("aria-sort" -> "none")
+                        ),
+                        (
+                                Html(msgs("group.client.list.table.th3")),
+                                Map("aria-sort" -> "none")
+                        )),
+                    rows = tableRows,
+                )
+                </div>
+            </fieldset>
+            @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
+
+            @* the following 2 paragraphs are dependent on whether js enabled or not*@
+            @p(key = msgs("common.total.clients.selected", clients.count(_.selected), clients.length),
+                id = Some("member-count-text"),
+                attrs = Map("role" -> "status")
+            )
+
+            @p(key = msgs("already.selected.clients.nonjs", clients.count(_.selected), clients.length),
+                id = Some("member-count-text-non-js"),
+            )
+
+        } else {
+            <div id="clients">
+                @h2("clients.not-found.heading")
+                @p("clients.not-found.p")
+            </div>
+        }
+
+        @submit_button()
+    }

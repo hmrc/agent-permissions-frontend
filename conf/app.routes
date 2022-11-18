@@ -2,51 +2,58 @@
 
 ->      /hmrc-frontend                              hmrcfrontend.Routes
 
-GET     /assets/*file                   controllers.Assets.versioned(path = "/public", file: Asset)
+GET     /assets/*file                               controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET     /                               controllers.RootController.start
+GET     /                                           controllers.RootController.start
 
 # opt-in/out
-GET     /turn-on-guide                  controllers.OptInController.start
-GET     /confirm-turn-on                controllers.OptInController.showDoYouWantToOptIn
-POST    /confirm-turn-on                controllers.OptInController.submitDoYouWantToOptIn
+GET     /turn-on-guide                              controllers.OptInController.start
+GET     /confirm-turn-on                            controllers.OptInController.showDoYouWantToOptIn
+POST    /confirm-turn-on                            controllers.OptInController.submitDoYouWantToOptIn
 
-GET     /access-groups-turned-on        controllers.OptInController.showYouHaveOptedIn
+GET     /access-groups-turned-on                    controllers.OptInController.showYouHaveOptedIn
 
-GET     /turn-off-guide                 controllers.OptOutController.start
-GET     /confirm-turn-off               controllers.OptOutController.showDoYouWantToOptOut
-POST    /confirm-turn-off               controllers.OptOutController.submitDoYouWantToOptOut
+GET     /turn-off-guide                             controllers.OptOutController.start
+GET     /confirm-turn-off                           controllers.OptOutController.showDoYouWantToOptOut
+POST    /confirm-turn-off                           controllers.OptOutController.submitDoYouWantToOptOut
 
-GET     /access-groups-turned-off       controllers.OptOutController.showYouHaveOptedOut
+GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut
+
+#paginated
+GET     /paginated/select-clients       controllers.SelectPaginatedClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
+POST    /paginated/select-clients       controllers.SelectPaginatedClientsController.submitSelectedClients
+
+GET     /paginated/clients-selected     controllers.SelectPaginatedClientsController.showReviewSelectedClients
+POST    /paginated/clients-selected     controllers.SelectPaginatedClientsController.submitReviewSelectedClients
 
 # create group
-GET     /group/create-access-group      controllers.CreateGroupController.start
+GET     /group/create-access-group            controllers.CreateGroupController.start
 
-GET     /create-access-group-name       controllers.CreateGroupController.showGroupName
-POST    /create-access-group-name       controllers.CreateGroupController.submitGroupName
+GET     /create-access-group-name             controllers.CreateGroupController.showGroupName
+POST    /create-access-group-name             controllers.CreateGroupController.submitGroupName
 
-GET     /confirm-access-group-name      controllers.CreateGroupController.showConfirmGroupName
-POST    /confirm-access-group-name      controllers.CreateGroupController.submitConfirmGroupName
+GET     /confirm-access-group-name            controllers.CreateGroupController.showConfirmGroupName
+POST    /confirm-access-group-name            controllers.CreateGroupController.submitConfirmGroupName
 
-GET     /access-group-name-exists       controllers.CreateGroupController.showAccessGroupNameExists
+GET     /access-group-name-exists             controllers.CreateGroupController.showAccessGroupNameExists
 
-GET     /select-clients                 controllers.CreateGroupController.showSelectClients(page: Option[Int], pageSize: Option[Int])
-POST    /select-clients                 controllers.CreateGroupController.submitSelectedClients
+GET     /select-clients                       controllers.CreateGroupController.showSelectClients
+POST    /select-clients                       controllers.CreateGroupController.submitSelectedClients
 
-GET     /clients-selected               controllers.CreateGroupController.showReviewSelectedClients
-POST    /clients-selected               controllers.CreateGroupController.submitReviewSelectedClients
+GET     /clients-selected                     controllers.CreateGroupController.showReviewSelectedClients
+POST    /clients-selected                     controllers.CreateGroupController.submitReviewSelectedClients
 
-GET     /select-team-members            controllers.CreateGroupController.showSelectTeamMembers
-POST    /select-team-members            controllers.CreateGroupController.submitSelectedTeamMembers
+GET     /select-team-members                  controllers.CreateGroupController.showSelectTeamMembers
+POST    /select-team-members                  controllers.CreateGroupController.submitSelectedTeamMembers
 
-GET     /team-members-selected          controllers.CreateGroupController.showReviewSelectedTeamMembers
-POST    /team-members-selected          controllers.CreateGroupController.submitReviewSelectedTeamMembers
+GET     /team-members-selected                controllers.CreateGroupController.showReviewSelectedTeamMembers
+POST    /team-members-selected                controllers.CreateGroupController.submitReviewSelectedTeamMembers
 
-GET     /confirm-clients-team-members   controllers.CreateGroupController.showCheckYourAnswers
-POST    /confirm-clients-team-members   controllers.CreateGroupController.submitCheckYourAnswers
-GET     /reselect-clients               controllers.CreateGroupController.redirectToEditClients
+GET     /confirm-clients-team-members         controllers.CreateGroupController.showCheckYourAnswers
+POST    /confirm-clients-team-members         controllers.CreateGroupController.submitCheckYourAnswers
+GET     /reselect-clients                     controllers.CreateGroupController.redirectToEditClients
 
-GET     /group-created                  controllers.CreateGroupController.showGroupCreated
+GET     /group-created                        controllers.CreateGroupController.showGroupCreated
 
 # Manage groups
 GET     /manage-access-groups                controllers.ManageGroupController.showManageGroups

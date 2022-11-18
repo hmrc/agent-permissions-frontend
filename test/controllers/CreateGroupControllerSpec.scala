@@ -336,7 +336,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(
-        ctrlRoute.showSelectClients(None, None).url)
+        ctrlRoute.showSelectClients.url)
     }
 
     "redirect to /group/group-name when Confirm access group name 'no' selected" in {
@@ -389,7 +389,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET selected clients on ${ctrlRoute.showSelectClients(None, None).url}" should {
+  s"GET selected clients on ${ctrlRoute.showSelectClients.url}" should {
 
     "render with clients from client service" in {
 
@@ -551,7 +551,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients.url
       }
 
-      s"button is Filter and redirect to ${ctrlRoute.showSelectClients(None, None).url}" in {
+      s"button is Filter and redirect to ${ctrlRoute.showSelectClients.url}" in {
 
 
         implicit val request =
@@ -575,11 +575,11 @@ class CreateGroupControllerSpec extends BaseSpec {
         val result = controller.submitSelectedClients()(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe ctrlRoute.showSelectClients(None, None).url
+        redirectLocation(result).get shouldBe ctrlRoute.showSelectClients.url
 
       }
 
-      s"button is Clear and redirect to ${ctrlRoute.showSelectClients(None, None).url}" in {
+      s"button is Clear and redirect to ${ctrlRoute.showSelectClients.url}" in {
 
         implicit val request =
           FakeRequest("POST", ctrlRoute.submitSelectedClients.url)
@@ -602,7 +602,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         val result = controller.submitSelectedClients()(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe ctrlRoute.showSelectClients(None, None).url
+        redirectLocation(result).get shouldBe ctrlRoute.showSelectClients.url
 
       }
     }
@@ -701,7 +701,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       val result = controller.submitSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showSelectClients(None, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showSelectClients.url)
 
     }
 
@@ -750,7 +750,7 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Review selected clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 3 clients"
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectClients(None, None).url
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectClients.url
 
       val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
       th.size() shouldBe 3
@@ -804,7 +804,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       val result = controller.showReviewSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showSelectClients(None, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showSelectClients.url
     }
   }
 
@@ -857,7 +857,7 @@ class CreateGroupControllerSpec extends BaseSpec {
     }
 
 
-    s"redirect to '${ctrlRoute.showSelectClients(None, None).url}' page with answer 'true'" in {
+    s"redirect to '${ctrlRoute.showSelectClients.url}' page with answer 'true'" in {
 
       implicit val request =
         FakeRequest(
@@ -876,7 +876,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showSelectClients(None, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showSelectClients.url
     }
 
     s"render errors when no radio button selected" in {

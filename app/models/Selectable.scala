@@ -18,7 +18,6 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.util.hashing.MurmurHash3
 

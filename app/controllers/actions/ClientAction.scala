@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.actions
 
+import controllers._
 import config.AppConfig
 import models.DisplayClient
 import play.api.mvc.Results.Ok

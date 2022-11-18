@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.AgentPermissionsConnector
+import controllers.actions.AuthAction
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository

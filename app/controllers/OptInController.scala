@@ -17,6 +17,7 @@
 package controllers
 
 import config.AppConfig
+import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

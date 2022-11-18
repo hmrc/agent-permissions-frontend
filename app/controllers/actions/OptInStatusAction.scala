@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.actions
 
+import controllers._
 import connectors.AgentPermissionsConnector
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Results.Redirect

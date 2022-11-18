@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.action
+package controllers.actions
 
 import play.api.libs.json.Reads
 import play.api.mvc.{Request, Result}

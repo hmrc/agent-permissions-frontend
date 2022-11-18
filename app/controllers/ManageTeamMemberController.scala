@@ -17,6 +17,7 @@
 package controllers
 
 import config.AppConfig
+import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.SearchAndFilterForm
 import models.SearchFilter
 import play.api.Logging

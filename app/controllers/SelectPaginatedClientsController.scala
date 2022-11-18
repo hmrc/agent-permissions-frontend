@@ -17,9 +17,9 @@
 package controllers
 
 import config.AppConfig
-import controllers.action.SessionAction
-import forms.{AddClientsToGroupForm, YesNoForm}
-import models.{AddClientsToGroup, DisplayClient}
+import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
+import forms.{AddClientsToGroupForm, SearchAndFilterForm, YesNoForm}
+import models.{AddClientsToGroup, DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -37,6 +37,7 @@ class SelectPaginatedClientsController @Inject()(
        authAction: AuthAction,
        sessionAction: SessionAction,
        mcc: MessagesControllerComponents,
+       search_clients: search_clients,
        select_paginated_clients: select_paginated_clients,
        review_clients_to_add: review_clients_to_add,
        val sessionCacheService: SessionCacheService,
@@ -55,6 +56,44 @@ class SelectPaginatedClientsController @Inject()(
   import sessionAction.withSessionItem
 
   private val controller: ReverseSelectPaginatedClientsController = routes.SelectPaginatedClientsController
+
+
+  def showSearchClients: Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+          withSessionItem[String](RETURN_URL) { returnUrl =>
+              Ok(
+                search_clients(
+                  form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+                  groupName = groupName,
+                  backUrl = Some(returnUrl.getOrElse("/"))
+                )
+              ).toFuture
+          }
+        }
+      }
+    }
+  }
+
+  def submitSearchClients: Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+      SearchAndFilterForm
+        .form()
+        .bindFromRequest
+        .fold(
+          formWithErrors => {
+            Ok(search_clients(formWithErrors, groupName, None)).toFuture
+          }, formData => {
+            println("********form data**********")
+            println (formData)
+            println("**********************")
+            clientService.searchForPaginatedClients(arn)(formData.search, formData.filter).flatMap(_ => {
+              Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture
+            })
+        })
+    }
+  }
 
    def showSelectClients(page: Option[Int] = None , pageSize: Option[Int] = None ): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>

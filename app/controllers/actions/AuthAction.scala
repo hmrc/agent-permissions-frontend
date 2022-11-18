@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.actions
 
 import config.AppConfig
 import connectors.AgentPermissionsConnector

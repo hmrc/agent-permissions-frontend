@@ -37,6 +37,9 @@ trait ClientService {
   def getFilteredClientsElseAll(arn: Arn)
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
+  def searchForPaginatedClients(arn: Arn)(searchTerm: Option[String], filterTerm: Option[String])
+                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
+
   def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[DisplayClient]]
@@ -92,6 +95,19 @@ class ClientServiceImpl @Inject()(
     maybeFilteredClients.flatMap { maybeClients =>
       if (maybeClients.isDefined) Future.successful(maybeClients.get)
       else getAllClients(arn)
+    }
+  }
+
+  def searchForPaginatedClients(arn: Arn)(searchTerm: Option[String], filterTerm: Option[String])
+                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    if (searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty) {
+      sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
+    } else {
+      for {
+        _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchTerm.getOrElse(""))
+        _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, filterTerm.getOrElse(""))
+       // _ <- agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize)
+      } yield ()
     }
   }
 

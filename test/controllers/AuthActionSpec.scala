@@ -19,6 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import config.AppConfig
 import connectors.AgentPermissionsConnector
+import controllers.actions.AuthAction
 import helpers.BaseSpec
 import play.api.Application
 import play.api.http.Status.{FORBIDDEN, SEE_OTHER}

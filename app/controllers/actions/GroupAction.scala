@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.actions
 
+import controllers._
 import config.AppConfig
 import play.api.mvc.Results.NotFound
 import play.api.mvc.{AnyContent, MessagesRequest, Result}

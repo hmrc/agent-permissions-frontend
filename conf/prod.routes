@@ -1,6 +1,6 @@
 # Add all the application routes to the app.routes file
-->         /                            health.Routes
-->         /agent-permissions           app.Routes
-->         /agent-permissions/paged     createAccessGroup.Routes
+->         /                                          health.Routes
+->         /agent-permissions                         app.Routes
+->         /agent-permissions/create-access-group     createAccessGroup.Routes
 
 GET        /admin/metrics             com.kenshoo.play.metrics.MetricsController.metrics

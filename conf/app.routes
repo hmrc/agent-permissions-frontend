@@ -1,7 +1,5 @@
 # microservice specific routes
-
 ->      /hmrc-frontend                              hmrcfrontend.Routes
-
 GET     /assets/*file                               controllers.Assets.versioned(path = "/public", file: Asset)
 
 GET     /                                           controllers.RootController.start
@@ -20,6 +18,9 @@ POST    /confirm-turn-off                           controllers.OptOutController
 GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut
 
 #paginated
+GET     /paginated/search-clients       controllers.SelectPaginatedClientsController.showSearchClients
+POST    /paginated/search-clients       controllers.SelectPaginatedClientsController.submitSearchClients
+
 GET     /paginated/select-clients       controllers.SelectPaginatedClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
 POST    /paginated/select-clients       controllers.SelectPaginatedClientsController.submitSelectedClients
 

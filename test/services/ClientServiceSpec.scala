@@ -336,6 +336,32 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
+  "searchForPaginatedClients" should {
+
+    "PUT search terms to session" in {
+      //expect
+      val searchTerm = Some("blah")
+      val filterTerm = Some("MTD-VAT")
+      expectPutSessionItem[String](CLIENT_SEARCH_INPUT, searchTerm.get)
+      expectPutSessionItem[String](CLIENT_FILTER_INPUT, filterTerm.get)
+
+      //when
+      await(service.searchForPaginatedClients(arn)(searchTerm, filterTerm))
+
+    }
+
+    "delete session items if both are empty" in {
+      //expect
+      val searchTerm = Some("")
+      val filterTerm = Some("")
+      expectDeleteSessionItems(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
+
+      //when
+      await(service.searchForPaginatedClients(arn)(searchTerm, filterTerm))
+
+    }
+  }
+
   "savePageOfClients" should {
 
     "ADD selected clients to SELECTED_CLIENT_IDS for current page" in {

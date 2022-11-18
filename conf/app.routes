@@ -18,14 +18,14 @@ POST    /confirm-turn-off                           controllers.OptOutController
 GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut
 
 #paginated
-GET     /paginated/search-clients       controllers.SelectPaginatedClientsController.showSearchClients
-POST    /paginated/search-clients       controllers.SelectPaginatedClientsController.submitSearchClients
+GET     /test-only/search-clients       controllers.SelectPaginatedClientsController.showSearchClients
+POST    /test-only/search-clients       controllers.SelectPaginatedClientsController.submitSearchClients
 
-GET     /paginated/select-clients       controllers.SelectPaginatedClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
-POST    /paginated/select-clients       controllers.SelectPaginatedClientsController.submitSelectedClients
+GET     /test-only/select-clients       controllers.SelectPaginatedClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
+POST    /test-only/select-clients       controllers.SelectPaginatedClientsController.submitSelectedClients
 
-GET     /paginated/clients-selected     controllers.SelectPaginatedClientsController.showReviewSelectedClients
-POST    /paginated/clients-selected     controllers.SelectPaginatedClientsController.submitReviewSelectedClients
+GET     /test-only/clients-selected     controllers.SelectPaginatedClientsController.showReviewSelectedClients
+POST    /test-only/clients-selected     controllers.SelectPaginatedClientsController.submitReviewSelectedClients
 
 # create group
 GET     /group/create-access-group            controllers.CreateGroupController.start

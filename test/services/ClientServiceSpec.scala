@@ -336,7 +336,7 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "searchForPaginatedClients" should {
+  "saveSearch" should {
 
     "PUT search terms to session" in {
       //expect
@@ -346,7 +346,7 @@ class ClientServiceSpec extends BaseSpec {
       expectPutSessionItem[String](CLIENT_FILTER_INPUT, filterTerm.get)
 
       //when
-      await(service.searchForPaginatedClients(arn)(searchTerm, filterTerm))
+      await(service.saveSearch(arn)(searchTerm, filterTerm))
 
     }
 
@@ -357,7 +357,7 @@ class ClientServiceSpec extends BaseSpec {
       expectDeleteSessionItems(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
 
       //when
-      await(service.searchForPaginatedClients(arn)(searchTerm, filterTerm))
+      await(service.saveSearch(arn)(searchTerm, filterTerm))
 
     }
   }

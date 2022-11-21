@@ -85,10 +85,7 @@ class SelectPaginatedClientsController @Inject()(
           formWithErrors => {
             Ok(search_clients(formWithErrors, groupName, None)).toFuture
           }, formData => {
-            println("********form data**********")
-            println (formData)
-            println("**********************")
-            clientService.searchForPaginatedClients(arn)(formData.search, formData.filter).flatMap(_ => {
+            clientService.saveSearch(arn)(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture
             })
         })

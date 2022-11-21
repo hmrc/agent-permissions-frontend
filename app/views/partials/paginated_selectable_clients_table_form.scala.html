@@ -94,24 +94,23 @@
             @table(
                 caption = Some("common.clients"),
                 captionClasses = "govuk-visually-hidden",
-                id = Some("sortable-table"),
+                id = Some("multi-select-table"),
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
                     (
-                            span(id = Some("no-js"), classes=Some("govuk-visually-hidden"), key="group.client.list.table.checkbox"),
-                            Map("id" -> "select-all")
+                        span(""), Map("id" -> "select-all")
                     ),
                     (
-                            Html(msgs("group.client.list.table.th1")),
-                            Map("aria-sort" -> "none")
+                        Html(msgs("group.client.list.table.th1")),
+                        Map("aria-sort" -> "none")
                     ),
                     (
-                            Html(msgs("group.client.list.table.th2")),
-                            Map("aria-sort" -> "none")
+                        Html(msgs("group.client.list.table.th2")),
+                        Map("aria-sort" -> "none")
                     ),
                     (
-                            Html(msgs("group.client.list.table.th3")),
-                            Map("aria-sort" -> "none")
+                        Html(msgs("group.client.list.table.th3")),
+                        Map("aria-sort" -> "none")
                     )),
                 rows = tableRows,
             )

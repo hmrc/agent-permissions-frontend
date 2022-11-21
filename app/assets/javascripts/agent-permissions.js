@@ -14,6 +14,15 @@ $(document).ready(function () {
         if (table !== null) {
             new SortableTable(table);       // Needed because table has multi-select data module
         }
+        if (multiSelectTable !== null) {
+            var tbl = document.querySelectorAll('#multi-select-table tbody input[type="checkbox"]:not(:checked)')
+            //the config for this moj multi select doesn't seem to work. only way to
+            //make it selected and ready to unselect seems to be this
+            if(tbl.length === 0){
+                $("#checkboxes-all").prop('checked',true);
+                $("#checkboxes-all").click();
+            }
+       }
     }
 
     //---------------------------------------

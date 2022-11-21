@@ -7,9 +7,13 @@ $(document).ready(function () {
 
     // MOJ multi-select & sortable table
     const table = document.getElementById('sortable-table');
-    if (table !== null) {
+    const multiSelectTable = document.getElementById("multi-select-table");
+
+    if(table !== null || multiSelectTable !== null){
         window.MOJFrontend.initAll();   // activates multi-select
-        new SortableTable(table);       // Needed because table has multi-select data module
+        if (table !== null) {
+            new SortableTable(table);       // Needed because table has multi-select data module
+        }
     }
 
     //---------------------------------------

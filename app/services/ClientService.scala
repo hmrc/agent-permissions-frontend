@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, SELECTED_CLIENT_IDS, ToFuture, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, ToFuture, clientFilteringKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
@@ -59,7 +59,7 @@ trait ClientService {
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
   def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
@@ -117,8 +117,8 @@ class ClientServiceImpl @Inject()(
       filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
       pageOfClients <-
         agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize, searchTerm, filterTerm)
-      maybeSelectedClientIds <- sessionCacheService.get[Seq[String]](SELECTED_CLIENT_IDS)
-      existingSelectedClientIds = maybeSelectedClientIds.getOrElse(Nil)
+      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
+      existingSelectedClientIds = maybeSelectedClients.getOrElse(Nil).map(_.id)
       pageOfClientsMarkedSelected = pageOfClients
         .pageContent
         .map(cl => DisplayClient.fromClient(cl))
@@ -189,21 +189,29 @@ class ClientServiceImpl @Inject()(
   }
 
   def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 
-    for{
+    val clientsInSession = for{
       _ <- formData.search.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
       _ <- formData.filter.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
-      existingSelectedIds <- sessionCacheService.get(SELECTED_CLIENT_IDS).map(_.getOrElse(Seq.empty))
+      existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
       currentPageClients <- sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty))
       clientIdsToAdd = formData.clients.getOrElse(Seq.empty)
+      currentClientsToAddOrKeep = currentPageClients.filter(cl => clientIdsToAdd.contains(cl.id))
       idsToRemove = currentPageClients.map(_.id).diff(clientIdsToAdd)
-      newSelectedIds = existingSelectedIds.filterNot(r => idsToRemove.contains(r)) ++ clientIdsToAdd
-      _ <- sessionCacheService.put(SELECTED_CLIENT_IDS, newSelectedIds.distinct.sorted)
-    } yield formData.submit.trim match {
-      case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys)
-      case _ => Future.successful()
+      newSelectedClients = (existingSelectedClients ++ currentClientsToAddOrKeep)
+        .map(_.copy(selected = true))
+        .distinct
+        .filterNot(cl => idsToRemove.contains(cl.id))
+        .sortBy(_.name)
+      _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
+    } yield (newSelectedClients)
+    clientsInSession.flatMap(_=>
+    formData.submit.trim match {
+      case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_=> clientsInSession)
+      case _ => clientsInSession
     }
+    )
 
   }
 

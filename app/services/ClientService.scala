@@ -59,7 +59,7 @@ trait ClientService {
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
   def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
@@ -189,9 +189,9 @@ class ClientServiceImpl @Inject()(
   }
 
   def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 
-    for{
+    val clientsInSession = for{
       _ <- formData.search.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
       _ <- formData.filter.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
       existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
@@ -203,11 +203,15 @@ class ClientServiceImpl @Inject()(
         .map(_.copy(selected = true))
         .distinct
         .filterNot(cl => idsToRemove.contains(cl.id))
-      _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients.sortBy(_.name))
-    } yield formData.submit.trim match {
-      case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_=> Future.successful())
-      case _ => Future.successful()
+        .sortBy(_.name)
+      _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
+    } yield (newSelectedClients)
+    clientsInSession.flatMap(_=>
+    formData.submit.trim match {
+      case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_=> clientsInSession)
+      case _ => clientsInSession
     }
+    )
 
   }
 

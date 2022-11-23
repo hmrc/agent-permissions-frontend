@@ -140,10 +140,10 @@ class SelectPaginatedClientsController @Inject()(
               // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
               clientService
                 .savePageOfClients(formData)
-                .flatMap(_ => {
+                .flatMap(nowSelectedClients => {
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected clients from session cache AFTER saving (removed de-selections)
-                    if (maybeSelected.getOrElse(Seq.empty).nonEmpty) {
+                    if (nowSelectedClients.nonEmpty) {
                         Redirect(controller.showReviewSelectedClients).toFuture
                       } else { // render page with empty client error
                           for {
@@ -221,10 +221,7 @@ class SelectPaginatedClientsController @Inject()(
                                                   (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        println("******************")
         val groupName = maybeGroupName.getOrElse("Carrots")
-        println(groupName)
-        println("******************")
         body(groupName, arn)
       }
     }

@@ -36,7 +36,8 @@
     teamMembers: Seq[TeamMember],
     groupName: String,
     form: Form[Boolean],
-    backUrl: Option[String] = Some(routes.CreateGroupController.showSelectTeamMembers.url)
+    backUrl: Option[String] = Some(routes.CreateGroupController.showSelectTeamMembers.url),
+    formAction: Call =  routes.CreateGroupController.submitReviewSelectedTeamMembers
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -66,7 +67,7 @@
     @table(
         caption = Some("common.teamMembers"),
         captionClasses = "govuk-visually-hidden",
-        id = Some("sortable-table"),
+        id = Some("selected-team-members"),
         headings = Seq(
             (
                     Html(msgs("group.members.list.table.th1")),
@@ -84,7 +85,7 @@
         rows = tableRows,
     )
     </div>
-    @formWithCSRF(action = routes.CreateGroupController.submitReviewSelectedTeamMembers) {
+    @formWithCSRF(action = formAction) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

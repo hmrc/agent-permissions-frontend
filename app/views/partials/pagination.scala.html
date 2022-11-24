@@ -40,7 +40,7 @@
     }
 
     @for(pageNum <- 1 to pagination.totalPages ) {
-     <span class="pagination_item govuk-pagination__item">
+     <span class="pagination_item">
      @if(pagination.currentPageNumber != pageNum) {
       @submit_as_link(
        key = pageNum.toString,

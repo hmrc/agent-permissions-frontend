@@ -74,16 +74,7 @@ fieldset#search-and-filter {
   }
 }
 
-.submit-as-link{
-  background: none;
-  border: none;
-  color: #1a0dab;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 /* Search pagination START */
-
 
 @media (min-width: 48.0625em) {
   nav.pagination-nav {
@@ -132,27 +123,47 @@ fieldset#search-and-filter {
   display: inline-block;
   margin-left: 10px;
 
-  a.pagination_link, span.current-page {
+  span.current-page {
     display: block;
     padding: 0.263em;
     text-align: center;
     text-decoration: none;
     min-width: 1.3em;
+    font-weight: 700;
+    outline: 1px solid rgba(0,0,0,0);
+    background-color: #1d70b8;
+    color: white;
   }
 
-  a.pagination_link {
-    &:link, &:visited {
-      color: #1d70b8;
-    }
+  .submit-as-link{
+     &:hover {
+     background-color: #f3f2f1;
+     }
+  }
+
+}
+
+.submit-as-link{
+  padding: 0.263em;
+  background: none;
+  border: none;
+  color: #1a0dab;
+  text-decoration: underline;
+  cursor: pointer;
 
     &:hover {
-      color: #5694ca;
+    color: #1a0dab;
+    text-decoration-thickness: 3px;
     }
 
     &:focus {
-      color: #0b0c0c;
+    outline: 3px solid rgba(0,0,0,0);
+    color: #0b0c0c;
+    background-color: #fd0;
+    -webkit-box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+    box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+    text-decoration: none;
     }
-  }
 }
 
 @media print {

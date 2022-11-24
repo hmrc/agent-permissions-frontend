@@ -28,6 +28,9 @@ filter.legend=Hidlwyr
 filter.apply=Gweithredu hidlyddion
 filter.clear=Clirio hidlyddion
 
+common.next=Nesaf
+common.previous=Blaenorol
+
 common.return.to.dashboard=Yn ôl i reoli grwpiau mynediad
 common.return.to.unassigned.clients=Yn ôl i gleientiaid sydd heb eu neilltuo
 common.return.manage-account=Yn ôl i reoli’r cyfrif

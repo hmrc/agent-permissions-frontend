@@ -28,6 +28,9 @@ filter.legend=Filters
 filter.apply=Apply filters
 filter.clear=Clear filters
 
+common.next=Next
+common.previous=Previous
+
 common.return.to.dashboard=Return to manage access groups
 common.return.to.unassigned.clients=Return to unassigned clients
 common.return.manage-account=Return to manage account

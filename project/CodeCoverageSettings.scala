@@ -35,7 +35,7 @@ object CodeCoverageSettings {
     ".*ClientAction.*",
     ".*TeamMemberAction.*",
     ".*TimeoutController.*",
-    ".*SelectPaginatedClientsController.*",
+    ".*CreateGroupSelectClientsController.*",
     ".*select_paginated_clients.template",
     ".*search_clients.template"
   )

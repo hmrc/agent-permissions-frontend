@@ -18,14 +18,17 @@ POST    /confirm-turn-off                           controllers.OptOutController
 GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut
 
 #paginated
-GET     /test-only/search-clients       controllers.SelectPaginatedClientsController.showSearchClients
-POST    /test-only/search-clients       controllers.SelectPaginatedClientsController.submitSearchClients
+GET     /create-group/search-clients       controllers.CreateGroupSelectClientsController.showSearchClients
+POST    /create-group/search-clients       controllers.CreateGroupSelectClientsController.submitSearchClients
+GET     /create-group/select-clients       controllers.CreateGroupSelectClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
+POST    /create-group/select-clients       controllers.CreateGroupSelectClientsController.submitSelectedClients
+GET     /create-group/clients-selected     controllers.CreateGroupSelectClientsController.showReviewSelectedClients
+POST    /create-group/clients-selected     controllers.CreateGroupSelectClientsController.submitReviewSelectedClients
 
-GET     /test-only/select-clients       controllers.SelectPaginatedClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
-POST    /test-only/select-clients       controllers.SelectPaginatedClientsController.submitSelectedClients
-
-GET     /test-only/clients-selected     controllers.SelectPaginatedClientsController.showReviewSelectedClients
-POST    /test-only/clients-selected     controllers.SelectPaginatedClientsController.submitReviewSelectedClients
+GET     /create-group/select-team-members    controllers.CreateGroupSelectTeamMembersController.showSelectTeamMembers(page: Option[Int], pageSize: Option[Int])
+POST    /create-group/select-team-members    controllers.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers
+GET     /create-group/team-members-selected  controllers.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers
+POST    /create-group/team-members-selected  controllers.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers
 
 # create group
 GET     /group/create-access-group            controllers.CreateGroupController.start

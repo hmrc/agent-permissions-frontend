@@ -16,44 +16,54 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import models.AddClientsToGroup
-@import views.html.partials.paginated_selectable_clients_table_form
-@import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import views.html.main_layout
+@import views.html.partials.paginated_selectable_team_members_table_form
 
 @this(
     layout: main_layout,
     p: p, h1: h1, span: span, caption: caption,
     summaryErrors: SummaryErrors,
     table: table,
-    paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
+    paginated_selectable_team_members_table_form: paginated_selectable_team_members_table_form
 )
 
 @(
-    clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
+    teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     groupName: String,
-    form: Form[AddClientsToGroup],
-    formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
-    backUrl: Option[String] = Some(routes.CreateGroupController.showConfirmGroupName.url),
+    form: Form[AddTeamMembersToGroup],
+    msgKey: String = "select",
+    formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers,
+    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url),
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-
 @errorHref = @{
-    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
+    if(form.errors.map(error => error.message).contains("error.select-members.empty"))
+        "members"
+    else "search"
 }
 
-@layout(title = msgs("group.client.list.h1"), backLinkHref = backUrl, formErrors = Seq.empty, fullWidth = true) {
+@pageTitle = @{
+    withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"group.${msgKey}.members.list.h1", groupName), None, form("search").value)
+}
+
+@layout(
+    title = pageTitle,
+    backLinkHref = backUrl,
+    formErrors = Seq.empty,
+    fullWidth = true,
+) {
 
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", groupName))
-        @h1(msgs("group.client.list.h1", groupName))
-        @p("group.client.list.p1")
+        @h1(msgs(s"group.${msgKey}.members.list.h1",groupName))
+        @p(s"group.${msgKey}.members.list.p1")
     </div>
 
-    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData)
+    @paginated_selectable_team_members_table_form(teamMembers, form, formAction, paginationMetaData)
 
 }
 

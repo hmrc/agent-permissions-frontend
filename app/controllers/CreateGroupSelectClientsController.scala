@@ -33,7 +33,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SelectPaginatedClientsController @Inject()(
+class CreateGroupSelectClientsController @Inject()(
        authAction: AuthAction,
        sessionAction: SessionAction,
        mcc: MessagesControllerComponents,
@@ -55,7 +55,7 @@ class SelectPaginatedClientsController @Inject()(
   import optInStatusAction._
   import sessionAction.withSessionItem
 
-  private val controller: ReverseSelectPaginatedClientsController = routes.SelectPaginatedClientsController
+  private val controller: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
 
 
   def showSearchClients: Action[AnyContent] = Action.async { implicit request =>
@@ -221,8 +221,9 @@ class SelectPaginatedClientsController @Inject()(
                                                   (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        val groupName = maybeGroupName.getOrElse("Carrots")
-        body(groupName, arn)
+        maybeGroupName.fold(Redirect(routes.CreateGroupController.showGroupName).toFuture) {
+          groupName => body(groupName, arn)
+        }
       }
     }
   }

@@ -1,7 +1,20 @@
 @import "lib/govuk-frontend/govuk/base";
 @import "moj-frontend.min.css";
 
-div.scrollable-table-container {
+.govuk-back-link{
+  margin:0 !important;
+}
+main.govuk-main-wrapper{
+  padding-top: 30px !important;
+}
+.govuk-heading-xl{
+  margin-bottom: 35px !important;
+}
+#search-filter-wrapper .govuk-form-group {
+  margin-bottom: 10px;
+}
+
+ div.scrollable-table-container {
   max-height: 300px;
   overflow-y: auto;
   border-top: 1px solid lightgray;

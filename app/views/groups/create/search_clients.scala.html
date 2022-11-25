@@ -59,7 +59,7 @@
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)
 ) {
 
-    @formWithCSRF(action = routes.SelectPaginatedClientsController.submitSearchClients) {
+    @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitSearchClients) {
 
         @caption(msgs("common.caption.group.name", groupName))
         @govukFieldset(Fieldset(

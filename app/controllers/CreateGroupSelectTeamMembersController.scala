@@ -24,10 +24,9 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.select_paginated_team_members
-import views.html.groups.review_team_members_to_add
+import views.html.groups.create.{review_members_paginated, select_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,7 +42,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   val groupService: GroupService,
   optInStatusAction: OptInStatusAction,
   select_paginated_team_members: select_paginated_team_members,
-  review_team_members_to_add: review_team_members_to_add,
+  review_members_paginated: review_members_paginated,
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
@@ -106,10 +105,11 @@ class CreateGroupSelectTeamMembersController @Inject()
                 .savePageOfTeamMembers(formData)
                 .flatMap(nowSelectedMembers => {
                   if (formData.submit == CONTINUE_BUTTON) {
-                    // check selected clients from session cache AFTER saving (removed de-selections)
+                    // check selected there are still selections after saving
                     if (nowSelectedMembers.nonEmpty) {
-                      Redirect(controller.showReviewSelectedTeamMembers).toFuture
-                    } else { // render page with empty selection error
+                      Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
+                    } else {
+                      // render page with empty selection error
                       for {
                         paginatedList <- teamMemberService.getPageOfTeamMembers(arn)()
                         returnUrl <- sessionCacheService.get(RETURN_URL)
@@ -141,21 +141,38 @@ class CreateGroupSelectTeamMembersController @Inject()
     }
   }
 
-  def showReviewSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
+  def showReviewSelectedTeamMembers(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers.fold(
           Redirect(controller.showSelectTeamMembers(None, None)).toFuture
-        )(members =>
+        )(members => {
+          val pageSize = maybePageSize.getOrElse(10)
+          val page = maybePage.getOrElse(1)
+          val firstMemberInPage = (page - 1) * pageSize
+          val lastMemberInPage = page * pageSize
+          val currentPageOfMembers = members.slice(firstMemberInPage, lastMemberInPage)
+          val numPages = Math.ceil(members.length.toDouble / maybePageSize.getOrElse(10).toDouble).toInt
+          val meta = PaginationMetaData(
+            page == numPages,
+            page == 1,
+            members.length,
+            numPages,
+            pageSize,
+            page,
+            currentPageOfMembers.length
+          )
           Ok(
-            review_team_members_to_add(
-              teamMembers = members,
+            review_members_paginated(
+              teamMembers = currentPageOfMembers,
               groupName = groupName,
               form = YesNoForm.form(),
               backUrl = Some(controller.showSelectTeamMembers(None, None).url),
-              formAction = controller.submitReviewSelectedTeamMembers
+              formAction = controller.submitReviewSelectedTeamMembers,
+              paginationMetaData = Some(meta)
             )
           ).toFuture
+        }
         )
       }
     }
@@ -174,7 +191,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               .fold(
                 formWithErrors => {
                   Ok(
-                    review_team_members_to_add(
+                    review_members_paginated(
                       teamMembers = members,
                       groupName = groupName,
                       form = formWithErrors,

@@ -17,6 +17,8 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.components.models.{LegendData, RadioData}
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import views.html.partials.GET_pagination
 @import views.html.main_layout
 
 @this(
@@ -30,6 +32,7 @@
     radioButtons: radioButtons,
     formWithCSRF: FormWithCSRF,
     summaryErrors: SummaryErrors,
+    GET_pagination: GET_pagination,
 )
 
 @(
@@ -37,8 +40,9 @@
     groupName: String,
     form: Form[Boolean],
     backUrl: Option[String] = Some(routes.CreateGroupController.showSelectTeamMembers.url),
-    formAction: Call =  routes.CreateGroupController.submitReviewSelectedTeamMembers
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+    formAction: Call =  routes.CreateGroupController.submitReviewSelectedTeamMembers,
+    paginationMetaData: Option[PaginationMetaData] = None
+    )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     teamMembers.map(teamMember =>
@@ -62,8 +66,6 @@
         @h1(msgs("group.teamMembers.review.h1", teamMembers.size))
     </div>
 
-    <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
-
     @table(
         caption = Some("common.teamMembers"),
         captionClasses = "govuk-visually-hidden",
@@ -84,7 +86,13 @@
         ),
         rows = tableRows,
     )
-    </div>
+
+    @if(paginationMetaData.isDefined) {
+        @GET_pagination(
+            pagination = paginationMetaData.get,
+            baseUrl = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None, None))
+    }
+
     @formWithCSRF(action = formAction) {
         @radioButtons(
             field = form("answer"),

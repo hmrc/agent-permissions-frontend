@@ -250,7 +250,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     "save selected team members to session" when {
 
-      s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedTeamMembers.url}" in {
+      s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}" in {
 
         implicit val request = FakeRequest("POST",
             ctrlRoute.submitSelectedTeamMembers.url)
@@ -274,7 +274,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         val result = controller.submitSelectedTeamMembers()(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers.url
+        redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(None, None).url
       }
 
       s"button is Filter and redirect to ${ctrlRoute.showSelectTeamMembers(None, None).url}" in {
@@ -430,7 +430,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${ctrlRoute.showReviewSelectedTeamMembers.url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}" should {
 
     "render with selected team members" in {
 
@@ -451,7 +451,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, selectedTeamMembers)
 
-      val result = controller.showReviewSelectedTeamMembers()(request)
+      val result = controller.showReviewSelectedTeamMembers(None, None)(request)
 
       status(result) shouldBe OK
 
@@ -492,7 +492,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
-      val result = controller.showReviewSelectedTeamMembers()(request)
+      val result = controller.showReviewSelectedTeamMembers(None, None)(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
@@ -506,7 +506,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItemNone(GROUP_NAME) // <- NO GROUP NAME IN SESSION
 
-      val result = controller.showReviewSelectedTeamMembers()(request)
+      val result = controller.showReviewSelectedTeamMembers(None, None)(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url

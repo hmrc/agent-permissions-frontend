@@ -402,6 +402,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       // when
       val result = controller.submitSelectedTeamMembers()(request)
 
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(ctrlRoute.showSelectTeamMembers(None, None).url)
     }

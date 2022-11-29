@@ -148,7 +148,7 @@ fieldset#search-and-filter {
     color: white;
   }
 
-  .submit-as-link{
+  a.pagination_link, .submit-as-link{
      &:hover {
      background-color: #f3f2f1;
      }
@@ -156,7 +156,7 @@ fieldset#search-and-filter {
 
 }
 
-.submit-as-link{
+a.pagination_link, .submit-as-link{
   padding: 0.263em;
   background: none;
   border: none;

@@ -62,6 +62,7 @@ package object controllers {
   val CURRENT_PAGE_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("CURRENT_PAGE_TEAM_MEMBERS")
   val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
   val TEAM_MEMBER_SEARCH_INPUT: DataKey[String] = DataKey("TeamMemberSearchInputValue")
+  val GROUP_SERVICE_TYPE: DataKey[String] = DataKey("GROUP_SERVICE_TYPE")
 
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
 

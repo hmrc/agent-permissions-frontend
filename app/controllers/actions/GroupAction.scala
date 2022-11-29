@@ -16,13 +16,13 @@
 
 package controllers.actions
 
-import controllers._
 import config.AppConfig
-import play.api.mvc.Results.NotFound
+import controllers._
+import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import views.html.groups.manage.group_not_found
@@ -31,23 +31,25 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class GroupAction @Inject()(val authConnector: AuthConnector,
-                            val env: Environment,
-                            val config: Configuration,
-                            authAction: AuthAction,
-                            val groupService: GroupService,
-                            optInStatusAction: OptInStatusAction,
-                            group_not_found: group_not_found
-                           ) extends Logging  {
+class GroupAction @Inject()
+(
+  val authConnector: AuthConnector,
+  val env: Environment,
+  val config: Configuration,
+  authAction: AuthAction,
+  val groupService: GroupService,
+  optInStatusAction: OptInStatusAction,
+  group_not_found: group_not_found
+) extends Logging {
 
   import optInStatusAction._
 
   def withGroupForAuthorisedOptedAgent(groupId: String)
-                                              (body: AccessGroup => Future[Result])
-                                              (implicit ec: ExecutionContext,
-                                               hc: HeaderCarrier,
-                                               request: MessagesRequest[AnyContent],
-                                               appConfig: AppConfig): Future[Result] = {
+                                      (body: AccessGroup => Future[Result])
+                                      (implicit ec: ExecutionContext,
+                                       hc: HeaderCarrier,
+                                       request: MessagesRequest[AnyContent],
+                                       appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         groupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
@@ -55,12 +57,24 @@ class GroupAction @Inject()(val authConnector: AuthConnector,
     }
   }
 
+  def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])
+                                                  (implicit ec: ExecutionContext, hc: HeaderCarrier,
+                                                   request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+    authAction.isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+        maybeGroupName.fold(Redirect(controllers.routes.CreateGroupController.showGroupName).toFuture) {
+          groupName => body(groupName, arn)
+        }
+      }
+    }
+  }
+
   def withGroupForAuthorisedOptedAssistant(groupId: String)
-                                      (body: AccessGroup => Future[Result])
-                                      (implicit ec: ExecutionContext,
-                                       hc: HeaderCarrier,
-                                       request: MessagesRequest[AnyContent],
-                                       appConfig: AppConfig)
+                                          (body: AccessGroup => Future[Result])
+                                          (implicit ec: ExecutionContext,
+                                           hc: HeaderCarrier,
+                                           request: MessagesRequest[AnyContent],
+                                           appConfig: AppConfig)
   : Future[Result] = {
     authAction.isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>

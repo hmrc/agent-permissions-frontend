@@ -60,10 +60,10 @@
     fullWidth = true,
     formErrors = form.errors
 ) {
-    
+
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", groupName))
-        @h1(msgs("group.teamMembers.review.h1", teamMembers.size))
+        @h1(msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize))
     </div>
 
     @table(

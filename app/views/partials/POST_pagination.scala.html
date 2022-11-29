@@ -31,10 +31,10 @@
    <div class="pagination_list">
 
     @if(!pagination.firstPage) {
-     <span class="pagination_item  pagination_item--prev">
+     <span class="pagination_item pagination_item--prev">
              @submit_as_link(
-       key = """<span aria-hidden="true" >&lt;</span>
-       <span class="govuk-visually-hidden">@msgs("pagination.previous")</span>""".toString,
+       key = s"""<span aria-hidden="true">&lt;</span>
+       <span>${msgs("common.previous")}</span>""".toString,
        value =s"${PAGINATION_BUTTON}_${(pagination.currentPageNumber - 1)}")
      </span>
     }
@@ -52,9 +52,9 @@
     }
 
     @if(!pagination.lastPage) {
-     <span class="pagination_item  pagination_item--next">
+     <span class="pagination_item pagination_item--next">
        @submit_as_link(
-       key = """<span class="govuk-visually-hidden">@msgs("pagination.next")</span>
+       key = s"""<span>${msgs("common.next")}</span>
          <span aria-hidden="true" >&gt;</span>""".toString,
        value =s"${PAGINATION_BUTTON}_${(pagination.currentPageNumber + 1)}")
      </span>

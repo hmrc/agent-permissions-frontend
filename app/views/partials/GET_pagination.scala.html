@@ -31,9 +31,9 @@
 
     @if(!pagination.firstPage) {
       <span class="pagination_item  pagination_item--prev">
-        <a href="@{baseUrl}?page=@{pagination.currentPageNumber - 1}&pageSize=@{pagination.pageSize}">
+        <a class="pagination_link" href="@{baseUrl}?page=@{pagination.currentPageNumber - 1}&pageSize=@{pagination.pageSize}">
           <span aria-hidden="true" >&lt;</span>
-          <span class="govuk-visually-hidden">@msgs("pagination.previous")</span>
+          <span>@msgs("common.previous")</span>
         </a>
       </span>
     }
@@ -41,7 +41,7 @@
     @for(pageNum <- 1 to pagination.totalPages ) {
      <span class="pagination_item">
      @if(pagination.currentPageNumber != pageNum) {
-      <a href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}">
+      <a class="pagination_link" href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}">
         <span>@pageNum</span>
       </a>
       } else {
@@ -51,10 +51,9 @@
     }
 
     @if(!pagination.lastPage) {
-      <span class="pagination_item  pagination_item--next">
-        <a href="@{baseUrl}?page=@{pagination.currentPageNumber + 1}&pageSize=@{pagination.pageSize}">
-          <span aria-hidden="true" >&gt;</span>
-          <span class="govuk-visually-hidden">@msgs("pagination.previous")</span>
+      <span class="pagination_item pagination_item--next">
+        <a class="pagination_link" href="@{baseUrl}?page=@{pagination.currentPageNumber + 1}&pageSize=@{pagination.pageSize}">
+          <span>@msgs("common.next")</span><span aria-hidden="true" >&gt;</span>
         </a>
       </span>
     }

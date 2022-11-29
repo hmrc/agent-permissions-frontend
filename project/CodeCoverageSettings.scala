@@ -38,6 +38,7 @@ object CodeCoverageSettings {
     ".*CreateGroupSelectClientsController.*",
     ".*select_paginated_clients.template",
     ".*review_members_paginated.template",
+    ".*review_clients_paginated.template",
     ".*search_clients.template"
   )
 

@@ -27,7 +27,7 @@ GET     /create-group/search-clients         controllers.CreateGroupSelectClient
 POST    /create-group/search-clients         controllers.CreateGroupSelectClientsController.submitSearchClients
 GET     /create-group/select-clients         controllers.CreateGroupSelectClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
 POST    /create-group/select-clients         controllers.CreateGroupSelectClientsController.submitSelectedClients
-GET     /create-group/clients-selected       controllers.CreateGroupSelectClientsController.showReviewSelectedClients
+GET     /create-group/clients-selected     controllers.CreateGroupSelectClientsController.showReviewSelectedClients(page: Option[Int], pageSize: Option[Int])
 POST    /create-group/clients-selected       controllers.CreateGroupSelectClientsController.submitReviewSelectedClients
 
 GET     /create-group/select-team-members    controllers.CreateGroupSelectTeamMembersController.showSelectTeamMembers(page: Option[Int], pageSize: Option[Int])

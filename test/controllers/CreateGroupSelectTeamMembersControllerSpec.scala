@@ -65,7 +65,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     
   val controller: CreateGroupSelectTeamMembersController = fakeApplication.injector.instanceOf[CreateGroupSelectTeamMembersController]
 
-  val users: Seq[UserDetails] = (1 to 10)
+  val users: Seq[UserDetails] = (1 to 11)
     .map { i =>
       UserDetails(
         Some(s"John $i"),
@@ -115,7 +115,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Select team members"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showReviewSelectedClients.url
+        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -328,7 +328,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, "XYZ")
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
-      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients.url)
+      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       // when
@@ -360,7 +360,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, "XYZ")
       //this currently selected team member will be unselected as part of the post
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
-      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients.url)
+      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)
       val emptyForm = AddTeamMembersToGroup(submit = CONTINUE_BUTTON)
       //now no selected members
       expectSavePageOfTeamMembers(emptyForm, Seq.empty[TeamMember])
@@ -520,7 +520,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers}")
+          s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -541,7 +541,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers}")
+          s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -562,7 +562,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers}")
+          s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -598,7 +598,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 10 team members"
+      html.select(H1).text() shouldBe "You have selected 11 team members"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected team members"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected team members"
 

@@ -41,7 +41,7 @@
     form: Form[Boolean],
     backUrl: Option[String] = Some(routes.CreateGroupController.showSelectTeamMembers.url),
     formAction: Call =  routes.CreateGroupController.submitReviewSelectedTeamMembers,
-    paginationMetaData: Option[PaginationMetaData] = None
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
     )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -69,7 +69,6 @@
         } else {
             @h1("group.teamMembers.review.h1")
         }
-
     </div>
 
     @table(
@@ -93,7 +92,7 @@
         rows = tableRows,
     )
 
-    @if(paginationMetaData.isDefined) {
+    @if(paginationMetaData.get.totalPages > 1) {
         @GET_pagination(
             pagination = paginationMetaData.get,
             baseUrl = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None, None))

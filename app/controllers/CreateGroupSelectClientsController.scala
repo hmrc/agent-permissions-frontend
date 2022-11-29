@@ -24,7 +24,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.create._
@@ -39,6 +39,7 @@ class CreateGroupSelectClientsController @Inject()(
        mcc: MessagesControllerComponents,
        search_clients: search_clients,
        select_paginated_clients: select_paginated_clients,
+       review_clients_paginated: review_clients_paginated,
        review_clients_to_add: review_clients_to_add,
        val sessionCacheService: SessionCacheService,
        val groupService: GroupService,
@@ -144,7 +145,7 @@ class CreateGroupSelectClientsController @Inject()(
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected clients from session cache AFTER saving (removed de-selections)
                     if (nowSelectedClients.nonEmpty) {
-                        Redirect(controller.showReviewSelectedClients).toFuture
+                        Redirect(controller.showReviewSelectedClients(None, None)).toFuture
                       } else { // render page with empty client error
                           for {
                             paginatedClients <- clientService.getPaginatedClients(arn)(1, 20)
@@ -174,11 +175,39 @@ class CreateGroupSelectClientsController @Inject()(
     }
   }
 
-  def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
+  def showReviewSelectedClients(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
-          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(clients =>
-            Ok(review_clients_to_add(clients, groupName, YesNoForm.form())).toFuture
+        maybeClients.fold(
+          Redirect(controller.showSelectClients(None, None)).toFuture
+        )(clients => {
+         // val clientDetails = clientService.lookupClients(arn)(Some(clientsIds.toList)).map(clients => {
+            val pageSize = maybePageSize.getOrElse(10)
+            val page = maybePage.getOrElse(1)
+            val firstMemberInPage = (page - 1) * pageSize
+            val lastMemberInPage = page * pageSize
+            val currentPageOfClients = clients.slice(firstMemberInPage, lastMemberInPage)
+            val numPages = Math.ceil(clients.length.toDouble / maybePageSize.getOrElse(10).toDouble).toInt
+            val meta = PaginationMetaData(
+              page == numPages,
+              page == 1,
+              clients.length,
+              numPages,
+              pageSize,
+              page,
+              currentPageOfClients.length
+            )
+          Ok(
+            review_clients_paginated(
+              currentPageOfClients,
+              groupName,
+              YesNoForm.form(),
+              backUrl = Some(controller.showSelectClients(None, None).url),
+              formAction = controller.submitReviewSelectedClients,
+              paginationMetaData = Some(meta)
+            )
+          ).toFuture
+        }
         )
       }
     }

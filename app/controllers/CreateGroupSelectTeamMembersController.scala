@@ -62,7 +62,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               select_paginated_team_members(
                 paginatedList.pageContent,
                 groupName,
-                backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients.url)),
+                backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
                 form = AddTeamMembersToGroupForm.form().fill(
                   AddTeamMembersToGroup(
                     search = teamMemberSearchTerm
@@ -92,7 +92,7 @@ class CreateGroupSelectTeamMembersController @Inject()
                     select_paginated_team_members(
                       paginatedList.pageContent,
                       groupName,
-                      backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients.url)),
+                      backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
                       form = formWithErrors,
                       paginationMetaData = Some(paginatedList.paginationMetaData)
                     )
@@ -118,7 +118,7 @@ class CreateGroupSelectTeamMembersController @Inject()
                           select_paginated_team_members(
                             paginatedList.pageContent,
                             groupName,
-                            backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients.url)),
+                            backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
                             form = AddTeamMembersToGroupForm
                               .form()
                               .fill(AddTeamMembersToGroup(search = formData.search))

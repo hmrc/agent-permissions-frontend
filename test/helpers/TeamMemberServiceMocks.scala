@@ -20,20 +20,41 @@ import models.{AddTeamMembersToGroup, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.TeamMemberService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait TeamMemberServiceMocks extends MockFactory {
 
-  def expectGetFilteredTeamMembersElseAll(arn: Arn)(teamMembers: Seq[TeamMember])(
-    implicit teamMemberService: TeamMemberService): Unit =
+  def expectGetFilteredTeamMembersElseAll(arn: Arn)
+                                         (teamMembers: Seq[TeamMember])
+                                         (implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
       .getFilteredTeamMembersElseAll(_: Arn)(_: HeaderCarrier,
         _: ExecutionContext, _: Request[_]))
       .expects(arn, *, *, *)
       .returning(Future successful teamMembers)
+
+  def expectSavePageOfTeamMembers(formData: AddTeamMembersToGroup, teamMembers: Seq[TeamMember] = Seq.empty)
+                                 (implicit teamMemberService: TeamMemberService): Unit =
+    (teamMemberService
+      .savePageOfTeamMembers(_: AddTeamMembersToGroup)
+      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .expects(formData, *, *, *)
+      .returning(Future successful teamMembers)
+
+  def expectGetPageOfTeamMembers(arn: Arn, page: Int = 1, pageSize: Int = 10)
+                                (teamMembers: Seq[TeamMember])
+                                (implicit teamMemberService: TeamMemberService): Unit = {
+    val paginatedList = PaginatedList(pageContent = teamMembers,
+      paginationMetaData = PaginationMetaData(false, page == 1, 40, 40 / pageSize, pageSize, page, teamMembers.length))
+    (teamMemberService
+      .getPageOfTeamMembers(_: Arn)(_: Int, _: Int)(_: HeaderCarrier,
+        _: ExecutionContext, _: Request[_]))
+      .expects(arn, page, pageSize, *, *, *)
+      .returning(Future successful paginatedList)
+  }
 
   def expectLookupTeamMember(arn: Arn)
                             (teamMember: TeamMember)
@@ -44,8 +65,8 @@ trait TeamMemberServiceMocks extends MockFactory {
       .returning(Future successful Some(teamMember)).once()
 
   def expectGetAllTeamMembers(arn: Arn)
-                            (teamMembers: Seq[TeamMember])
-                            (implicit teamMemberService: TeamMemberService): Unit =
+                             (teamMembers: Seq[TeamMember])
+                             (implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
       .getAllTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
       .expects(arn, *, *, *)
@@ -53,7 +74,7 @@ trait TeamMemberServiceMocks extends MockFactory {
 
   def expectSaveSelectedOrFilteredTeamMembers(arn: Arn)
                                              (buttonSelect: String, formData: AddTeamMembersToGroup)
-                             (implicit teamMemberService: TeamMemberService): Unit =
+                                             (implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
       .saveSelectedOrFilteredTeamMembers(_: String)(_: Arn)(_: AddTeamMembersToGroup)
       (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))

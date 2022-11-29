@@ -18,7 +18,7 @@ package services
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, SELECTED_CLIENT_IDS, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, clientFilteringKeys}
 import helpers.BaseSpec
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -364,36 +364,41 @@ class ClientServiceSpec extends BaseSpec {
 
   "savePageOfClients" should {
 
-    "ADD selected clients to SELECTED_CLIENT_IDS for current page" in {
+    "ADD selected clients to SELECTED_CLIENTS for current page" in {
 
       //expect
-      val selectedClientsPosted = displayClients.take(4).map(_.id).toList
-      val alreadySelectedClientIds = displayClients.takeRight(2).map(_.id).toList
-      expectGetSessionItem(SELECTED_CLIENT_IDS, alreadySelectedClientIds)
+      val clientsSelectedOnThisPage = displayClients.take(4)
+      val selectedClientIdsPosted = clientsSelectedOnThisPage.map(_.id).toList
+      val alreadySelectedClients = displayClients.takeRight(2)
+      expectGetSessionItem(SELECTED_CLIENTS, alreadySelectedClients)
       expectGetSessionItem(CURRENT_PAGE_CLIENTS, displayClients.take(6))
       expectDeleteSessionItems(clientFilteringKeys)
-      val expectedToBeSaved = (selectedClientsPosted ++ alreadySelectedClientIds).sorted
-      expectPutSessionItem(SELECTED_CLIENT_IDS, expectedToBeSaved)
+      val expectedToBeSaved = (alreadySelectedClients ++ clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
 
-      val formData = AddClientsToGroup(None, None, Some(selectedClientsPosted), CONTINUE_BUTTON)
+      expectPutSessionItem(SELECTED_CLIENTS, expectedToBeSaved)
+
+      val formData = AddClientsToGroup(None, None, Some(selectedClientIdsPosted), CONTINUE_BUTTON)
 
       //when
       await(service.savePageOfClients(formData))
 
     }
 
-    "ADD selected clients to SELECTED_CLIENT_IDS for current page and REMOVE existing ones on page that are not selected" in {
+    "ADD selected clients to SELECTED_CLIENTS for current page and REMOVE existing ones on page that are not selected" in {
 
       //expect
-      val selectedClientsPosted = displayClients.take(4).map(_.id).toList
-      val alreadySelectedClientIds = displayClients.takeRight(2).map(_.id).toList
-      expectGetSessionItem(SELECTED_CLIENT_IDS, alreadySelectedClientIds)
-      expectGetSessionItem(CURRENT_PAGE_CLIENTS, displayClients)
+      val clientsSelectedOnThisPage = displayClients.take(4).takeRight(2)
+      val selectedClientIdsPosted = clientsSelectedOnThisPage.map(_.id).toList
+      val alreadySelectedClients = displayClients.take(2) // <-- these were the already selected clients
+      expectGetSessionItem(SELECTED_CLIENTS, alreadySelectedClients)
+      expectGetSessionItem(CURRENT_PAGE_CLIENTS, displayClients.take(6))
       expectDeleteSessionItems(clientFilteringKeys)
-      val expectedToBeSaved = (selectedClientsPosted).sorted
-      expectPutSessionItem(SELECTED_CLIENT_IDS, expectedToBeSaved)
+      //we expect to save in session ordered by name and 'selected = true'
+      val expectedToBeSaved = (clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
+      expectPutSessionItem(SELECTED_CLIENTS, expectedToBeSaved)
 
-      val formData = AddClientsToGroup(None, None, Some(selectedClientsPosted), CONTINUE_BUTTON)
+
+      val formData = AddClientsToGroup(None, None, Some(selectedClientIdsPosted), CONTINUE_BUTTON)
 
       //when
       await(service.savePageOfClients(formData))

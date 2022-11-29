@@ -33,7 +33,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SelectPaginatedClientsController @Inject()(
+class CreateGroupSelectClientsController @Inject()(
        authAction: AuthAction,
        sessionAction: SessionAction,
        mcc: MessagesControllerComponents,
@@ -55,7 +55,7 @@ class SelectPaginatedClientsController @Inject()(
   import optInStatusAction._
   import sessionAction.withSessionItem
 
-  private val controller: ReverseSelectPaginatedClientsController = routes.SelectPaginatedClientsController
+  private val controller: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
 
 
   def showSearchClients: Action[AnyContent] = Action.async { implicit request =>
@@ -116,7 +116,7 @@ class SelectPaginatedClientsController @Inject()(
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[String]](SELECTED_CLIENT_IDS) { maybeSelected =>
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddClientsToGroupForm
@@ -140,15 +140,10 @@ class SelectPaginatedClientsController @Inject()(
               // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
               clientService
                 .savePageOfClients(formData)
-                .flatMap(_ => {
+                .flatMap(nowSelectedClients => {
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected clients from session cache AFTER saving (removed de-selections)
-                    val hasSelectedClients = for {
-                      selectedClientIds <- sessionCacheService.get(SELECTED_CLIENT_IDS)
-                      // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
-                    } yield selectedClientIds.getOrElse(Seq.empty).nonEmpty
-                    hasSelectedClients.flatMap(selectedNotEmpty => {
-                      if (selectedNotEmpty) {
+                    if (nowSelectedClients.nonEmpty) {
                         Redirect(controller.showReviewSelectedClients).toFuture
                       } else { // render page with empty client error
                           for {
@@ -165,7 +160,6 @@ class SelectPaginatedClientsController @Inject()(
                               )
                             )
                       }
-                    })
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                     Redirect(controller.showSelectClients(Some(pageToShow), Some(20))).toFuture
@@ -182,13 +176,10 @@ class SelectPaginatedClientsController @Inject()(
 
   def showReviewSelectedClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[String]](SELECTED_CLIENT_IDS) { maybeClients =>
-          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(_ =>
-            // need to call BE for '1st page' display clients using the selected ids
-            clientService.getPaginatedClients(arn)(1, 20).flatMap { paginatedClients =>
-              // include pagination
-              Ok(review_clients_to_add(Seq.empty, groupName, YesNoForm.form())).toFuture
-        })
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(clients =>
+            Ok(review_clients_to_add(clients, groupName, YesNoForm.form())).toFuture
+        )
       }
     }
   }
@@ -230,11 +221,9 @@ class SelectPaginatedClientsController @Inject()(
                                                   (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        println("******************")
-        val groupName = maybeGroupName.getOrElse("Carrots")
-        println(groupName)
-        println("******************")
-        body(groupName, arn)
+        maybeGroupName.fold(Redirect(routes.CreateGroupController.showGroupName).toFuture) {
+          groupName => body(groupName, arn)
+        }
       }
     }
   }

@@ -17,24 +17,25 @@
 package controllers
 
 import config.AppConfig
-import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
+import controllers.actions.{AuthAction, GroupAction, OptInStatusAction, SessionAction}
 import forms.{AddClientsToGroupForm, SearchAndFilterForm, YesNoForm}
 import models.{AddClientsToGroup, DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.model.{PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.create._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CreateGroupSelectClientsController @Inject()(
-       authAction: AuthAction,
+                                                    groupAction: GroupAction,
+                                                    authAction: AuthAction,
        sessionAction: SessionAction,
        mcc: MessagesControllerComponents,
        search_clients: search_clients,
@@ -52,8 +53,7 @@ class CreateGroupSelectClientsController @Inject()(
      ) extends FrontendController(mcc)
   with I18nSupport with Logging {
 
-  import authAction._
-  import optInStatusAction._
+  import groupAction._
   import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
@@ -241,17 +241,6 @@ class CreateGroupSelectClientsController @Inject()(
                   }
                 )
           )
-      }
-    }
-  }
-
-  private def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])
-                                                  (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.CreateGroupController.showGroupName).toFuture) {
-          groupName => body(groupName, arn)
-        }
       }
     }
   }

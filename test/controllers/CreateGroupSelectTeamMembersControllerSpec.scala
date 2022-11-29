@@ -598,8 +598,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
-      // there is no pagination meta data since team members is mocked so it defaults to the template value
-      html.select(H1).text() shouldBe "You have selected 0 team members"
+      html.select(H1).text() shouldBe "You have selected 11 team members"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected team members"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected team members"
 

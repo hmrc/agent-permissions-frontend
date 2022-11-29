@@ -181,7 +181,6 @@ class CreateGroupSelectClientsController @Inject()(
         maybeClients.fold(
           Redirect(controller.showSelectClients(None, None)).toFuture
         )(clients => {
-         // val clientDetails = clientService.lookupClients(arn)(Some(clientsIds.toList)).map(clients => {
             val pageSize = maybePageSize.getOrElse(10)
             val page = maybePage.getOrElse(1)
             val firstMemberInPage = (page - 1) * pageSize

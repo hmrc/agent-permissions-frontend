@@ -17,6 +17,7 @@
 package controllers
 
 import config.AppConfig
+import controllers.actions.SessionAction
 import forms.{TaxServiceGroupTypeForm, YesNoForm}
 import models.TaxServiceGroupType
 import play.api.Logging
@@ -24,7 +25,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.{select_group_tax_type, select_group_type}
+import views.html.groups.create.{review_group_type, select_group_tax_type, select_group_type}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -36,12 +37,17 @@ class CreateGroupSelectGroupTypeController @Inject()
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
   val groupService: GroupService,
+  sessionAction: SessionAction,
   select_group_type: select_group_type,
   select_group_tax_type: select_group_tax_type,
+  review_group_type: review_group_type,
 )(implicit val appConfig: AppConfig, ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
+  val ctrlRoutes = controllers.routes.CreateGroupSelectGroupTypeController
+
+  import sessionAction.withSessionItem
 
   def showSelectGroupType: Action[AnyContent] = Action.async { implicit request =>
     Ok(select_group_type(YesNoForm.form())).toFuture
@@ -58,7 +64,7 @@ class CreateGroupSelectGroupTypeController @Inject()
           if (isCustomGroupType) {
             Redirect(controllers.routes.CreateGroupController.showGroupName)
           } else {
-            Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType)
+            Redirect(ctrlRoutes.showSelectTaxServiceGroupType)
           }
         }
       ).toFuture
@@ -76,15 +82,35 @@ class CreateGroupSelectGroupTypeController @Inject()
         (formData: TaxServiceGroupType) => {
           sessionCacheService
             .put(GROUP_SERVICE_TYPE, formData.groupType)
-            .map(_ =>
-              if (formData.addAutomatically) {
-                Redirect(routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers)
-              } else {
-                Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None))
-              }
-            )
+            .map(_ => Redirect(ctrlRoutes.showReviewTaxServiceGroupType))
         }
       )
+  }
 
+  def showReviewTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
+    withSessionItem[String](GROUP_SERVICE_TYPE) { maybeTaxServiceGroupType =>
+      maybeTaxServiceGroupType.fold(Redirect(ctrlRoutes.showSelectTaxServiceGroupType))(taxGroupType =>
+        Ok(review_group_type(YesNoForm.form(""), taxGroupType))
+      ).toFuture
+    }
+  }
+
+  def submitReviewTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
+    YesNoForm.form("group.tax-service.review.error").bindFromRequest()
+      .fold(formWithErrors =>{
+        withSessionItem[String](GROUP_SERVICE_TYPE) { maybeTaxServiceGroupType =>
+          maybeTaxServiceGroupType.fold(Redirect(ctrlRoutes.showSelectTaxServiceGroupType))(taxGroupType =>
+            Ok(review_group_type(formWithErrors, taxGroupType))
+          ).toFuture
+        }
+      },
+        (continue: Boolean) => {
+          if(continue){
+            Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None))
+          } else {
+            Redirect(ctrlRoutes.showSelectGroupType)
+          }
+        }.toFuture
+      )
   }
 }

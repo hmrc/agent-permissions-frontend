@@ -164,7 +164,6 @@ class CreateGroupSelectTeamMembersController @Inject()
     }
   }
 
-
   def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>

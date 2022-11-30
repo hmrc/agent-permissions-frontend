@@ -23,13 +23,17 @@ import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
+import services.SessionCacheService
 import uk.gov.hmrc.http.SessionKeys
 
 class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
+  implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
+
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
+      bind(classOf[SessionCacheService]).toInstance(sessionCacheService)
     }
   }
 
@@ -37,6 +41,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
   val controller: CreateGroupSelectGroupTypeController = fakeApplication.injector.instanceOf[CreateGroupSelectGroupTypeController]
   private val ctrlRoute: ReverseCreateGroupSelectGroupTypeController = routes.CreateGroupSelectGroupTypeController
+  private val VAT = "HMRC-MTD-VAT"
 
   "showSelectGroupType" should {
     "render correctly" in {
@@ -161,6 +166,9 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
+  }
+
+  "submitSelectTaxServiceGroupType" should {
 
     "render errors when empty form submitted" in {
 
@@ -193,36 +201,130 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         ctrlRoute.submitSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
-          "taxType" -> "HMRC-MTD-VAT",
+          "taxType" -> VAT,
           "addAutomatically" -> "true"
         )
+      expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
 
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showReviewTaxServiceGroupType.url)
     }
 
     "redirect to select team members page when add automatically NOT selected" in {
 
       //given
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
-          "taxType" -> "HMRC-MTD-VAT",
+          "taxType" -> VAT,
           "addAutomatically" -> "false"
         )
+      expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
 
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)
-        .url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showReviewTaxServiceGroupType.url)
+    }
+  }
+
+  "showReviewTaxServiceGroupType" should {
+
+    "render correctly" in {
+      //given
+      implicit val request = FakeRequest("GET",
+        ctrlRoute.showReviewTaxServiceGroupType.url)
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(GROUP_SERVICE_TYPE, "HMRC-CGT-PD")
+
+      //when
+      val result = controller.showReviewTaxServiceGroupType()(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "All “Capital Gains Tax on UK Property account” clients have been selected - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "All “Capital Gains Tax on UK Property account” clients have been selected"
+
+      val form = html.select("form")
+      form.attr("method") shouldBe "POST"
+      form.attr("action") shouldBe ctrlRoute.submitReviewTaxServiceGroupType.url
+      form.select(Css.legend).text() shouldBe "Continue with selected clients?"
+
+      val radios = html.select(Css.radioButtonsField("answer-radios"))
+      radios.select("label[for=answer]").text() shouldBe "Yes, continue to adding team members"
+      radios.select("label[for=answer-no]").text() shouldBe "No, start again"
+
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+    }
+  }
+
+  "submitReviewTaxServiceGroupType" should {
+
+    "render errors when empty form submitted" in {
+
+      //given
+      implicit val request = FakeRequest("POST",
+        ctrlRoute.submitReviewTaxServiceGroupType.url)
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(GROUP_SERVICE_TYPE, VAT)
+
+      //when
+      val result = controller.submitReviewTaxServiceGroupType()(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Error: All “VAT” clients have been selected - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "All “VAT” clients have been selected"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you would like to create a group of this type"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you would like to create a group of this type"
+     }
+
+    "redirect to select team members page when 'yes' selected" in {
+
+      //given
+      implicit val request = FakeRequest("POST",
+        ctrlRoute.submitReviewTaxServiceGroupType.url)
+        .withSession(SessionKeys.sessionId -> "session-x")
+        .withFormUrlEncodedBody("answer" -> "true"
+        )
+
+      //when
+      val result = controller.submitReviewTaxServiceGroupType()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url)
+    }
+
+    "redirect to create group type when 'no' selected" in {
+
+      //given
+      implicit val request = FakeRequest("POST",
+        ctrlRoute.submitReviewTaxServiceGroupType.url)
+        .withSession(SessionKeys.sessionId -> "session-x")
+        .withFormUrlEncodedBody("answer" -> "false")
+
+
+      //when
+      val result = controller.submitReviewTaxServiceGroupType()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(ctrlRoute.showSelectGroupType.url)
     }
   }
 }

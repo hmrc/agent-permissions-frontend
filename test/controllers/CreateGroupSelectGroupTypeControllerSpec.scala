@@ -150,7 +150,6 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetGroupTaxTypeInfo(arn)(List(13, 85, 38, 22, 108))
-      expectGetSessionItem(GROUP_NAME, "Carrots")
 
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
@@ -194,7 +193,6 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("taxType" -> "")
 
-      expectGetSessionItem(GROUP_NAME, "Carrots")
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetGroupTaxTypeInfo(arn)(List(13, 85, 38, 22, 108))
       expectIsArnAllowed(allowed = true)
@@ -224,6 +222,10 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
           "taxType" -> VAT,
           "addAutomatically" -> "true"
         )
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
 
       //when
@@ -246,7 +248,10 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
           "addAutomatically" -> "false"
         )
       expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
-
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)
 

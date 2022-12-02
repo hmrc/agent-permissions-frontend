@@ -17,23 +17,33 @@
 package controllers
 
 import com.google.inject.AbstractModule
+import connectors.AgentPermissionsConnector
 import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.SessionCacheService
+import services.{ClientService, SessionCacheService}
+import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
 class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
+  implicit lazy val clientService: ClientService = mock[ClientService]
+  implicit lazy val authConnector: AuthConnector = mock[AuthConnector]
+  implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[SessionCacheService]).toInstance(sessionCacheService)
+      bind(classOf[ClientService]).toInstance(clientService)
+      bind(classOf[AuthConnector]).toInstance(authConnector)
+      bind(classOf[AgentPermissionsConnector]).toInstance(agentPermissionsConnector)
+
     }
   }
 
@@ -136,6 +146,12 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         ctrlRoute.showSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetGroupTaxTypeInfo(arn)(List(13, 85, 38, 22, 108))
+      expectGetSessionItem(GROUP_NAME, "Carrots")
+
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
 
@@ -153,11 +169,11 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       form.select("label[for=taxType]").text() shouldBe "Select clients by tax service"
       val taxTypeOptions = form.select("select#taxType option")
       taxTypeOptions.get(0).text() shouldBe "Select tax service"
-      taxTypeOptions.get(1).text() shouldBe "Making Tax Digital for Income Tax"
-      taxTypeOptions.get(2).text() shouldBe "VAT"
-      taxTypeOptions.get(3).text() shouldBe "Capital Gains Tax on UK Property account"
-      taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax"
-      taxTypeOptions.get(5).text() shouldBe "Maintain a Trust or Estate"
+      taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
+      taxTypeOptions.get(2).text() shouldBe "Maintain a Trust or Estate (108)"
+      taxTypeOptions.get(3).text() shouldBe "Making Tax Digital for Income Tax (13)"
+      taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax (22)"
+      taxTypeOptions.get(5).text() shouldBe "VAT (85)"
 
       form.select("#addAutomatically-hint").text() shouldBe "If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service."
       val radios = html.select(Css.radioButtonsField("addAutomatically-radios"))
@@ -176,9 +192,13 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "taxType" -> ""
-        )
+        .withFormUrlEncodedBody("taxType" -> "")
+
+      expectGetSessionItem(GROUP_NAME, "Carrots")
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetGroupTaxTypeInfo(arn)(List(13, 85, 38, 22, 108))
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)

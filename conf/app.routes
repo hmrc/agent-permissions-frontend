@@ -25,17 +25,17 @@ POST    /create-group/select-tax-service            controllers.CreateGroupSelec
 GET     /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.showReviewTaxServiceGroupType
 POST    /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType
 
-GET     /create-group/search-clients            controllers.CreateGroupSelectClientsController.showSearchClients
-POST    /create-group/search-clients            controllers.CreateGroupSelectClientsController.submitSearchClients
-GET     /create-group/select-clients            controllers.CreateGroupSelectClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/select-clients            controllers.CreateGroupSelectClientsController.submitSelectedClients
-GET     /create-group/clients-selected          controllers.CreateGroupSelectClientsController.showReviewSelectedClients(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/clients-selected          controllers.CreateGroupSelectClientsController.submitReviewSelectedClients
-
-GET     /create-group/select-team-members       controllers.CreateGroupSelectTeamMembersController.showSelectTeamMembers(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/select-team-members       controllers.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers
-GET     /create-group/team-members-selected     controllers.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/team-members-selected     controllers.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers
+GET     /create-group/search-clients                controllers.CreateGroupSelectClientsController.showSearchClients
+POST    /create-group/search-clients                controllers.CreateGroupSelectClientsController.submitSearchClients
+GET     /create-group/select-clients                controllers.CreateGroupSelectClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
+POST    /create-group/select-clients                controllers.CreateGroupSelectClientsController.submitSelectedClients
+GET     /create-group/clients-selected              controllers.CreateGroupSelectClientsController.showReviewSelectedClients(page: Option[Int], pageSize: Option[Int])
+POST    /create-group/clients-selected              controllers.CreateGroupSelectClientsController.submitReviewSelectedClients
+                                                    
+GET     /create-group/select-team-members           controllers.CreateGroupSelectTeamMembersController.showSelectTeamMembers(page: Option[Int], pageSize: Option[Int])
+POST    /create-group/select-team-members           controllers.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers
+GET     /create-group/team-members-selected         controllers.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(page: Option[Int], pageSize: Option[Int])
+POST    /create-group/team-members-selected         controllers.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers
 
 # create group
 GET     /group/create-access-group            controllers.CreateGroupController.start

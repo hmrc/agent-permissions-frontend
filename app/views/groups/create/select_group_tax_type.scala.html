@@ -28,7 +28,10 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[TaxServiceGroupType])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    form: Form[TaxServiceGroupType],
+    data: Map[String, Int]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("group.tax-service.h1"),
@@ -43,7 +46,7 @@
             field = form("taxType"),
             label = msgs("group.tax-service.select.label"),
             emptyOptionText = msgs("Select tax service"),
-            options = getFiltersByTaxService()
+            options = getFiltersTaxServiceListWithClientCount(data)
         )
 
         @radioButtons(

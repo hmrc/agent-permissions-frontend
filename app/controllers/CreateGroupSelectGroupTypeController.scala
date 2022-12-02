@@ -17,13 +17,13 @@
 package controllers
 
 import config.AppConfig
-import controllers.actions.SessionAction
+import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
 import forms.{TaxServiceGroupTypeForm, YesNoForm}
 import models.TaxServiceGroupType
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.{GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.{review_group_type, select_group_tax_type, select_group_type}
 
@@ -37,6 +37,9 @@ class CreateGroupSelectGroupTypeController @Inject()
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
   val groupService: GroupService,
+  authAction: AuthAction,
+  optInStatusAction: OptInStatusAction,
+  clientService: ClientService,
   sessionAction: SessionAction,
   select_group_type: select_group_type,
   select_group_tax_type: select_group_tax_type,
@@ -47,6 +50,8 @@ class CreateGroupSelectGroupTypeController @Inject()
 
   val ctrlRoutes = controllers.routes.CreateGroupSelectGroupTypeController
 
+  import authAction.isAuthorisedAgent
+  import optInStatusAction.isOptedIn
   import sessionAction.withSessionItem
 
   def showSelectGroupType: Action[AnyContent] = Action.async { implicit request =>
@@ -72,19 +77,32 @@ class CreateGroupSelectGroupTypeController @Inject()
   }
 
   def showSelectTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
-    Ok(select_group_tax_type(TaxServiceGroupTypeForm.form)).toFuture
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        clientService.getGroupTaxTypeInfo(arn).map(info =>
+          Ok(select_group_tax_type(TaxServiceGroupTypeForm.form, info))
+        )
+      }
+    }
   }
 
   def submitSelectTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
-    TaxServiceGroupTypeForm.form.bindFromRequest()
-      .fold(formWithErrors =>
-        Ok(select_group_tax_type(formWithErrors)).toFuture,
-        (formData: TaxServiceGroupType) => {
-          sessionCacheService
-            .put(GROUP_SERVICE_TYPE, formData.groupType)
-            .map(_ => Redirect(ctrlRoutes.showReviewTaxServiceGroupType))
-        }
-      )
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        TaxServiceGroupTypeForm.form.bindFromRequest()
+          .fold(formWithErrors => {
+            clientService.getGroupTaxTypeInfo(arn).map(info =>
+              Ok(select_group_tax_type(formWithErrors, info))
+            )
+          },
+            (formData: TaxServiceGroupType) => {
+              sessionCacheService
+                .put(GROUP_SERVICE_TYPE, formData.groupType)
+                .map(_ => Redirect(ctrlRoutes.showReviewTaxServiceGroupType))
+            }
+          )
+      }
+    }
   }
 
   def showReviewTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
@@ -97,7 +115,7 @@ class CreateGroupSelectGroupTypeController @Inject()
 
   def submitReviewTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
     YesNoForm.form("group.tax-service.review.error").bindFromRequest()
-      .fold(formWithErrors =>{
+      .fold(formWithErrors => {
         withSessionItem[String](GROUP_SERVICE_TYPE) { maybeTaxServiceGroupType =>
           maybeTaxServiceGroupType.fold(Redirect(ctrlRoutes.showSelectTaxServiceGroupType))(taxGroupType =>
             Ok(review_group_type(formWithErrors, taxGroupType))
@@ -105,7 +123,7 @@ class CreateGroupSelectGroupTypeController @Inject()
         }
       },
         (continue: Boolean) => {
-          if(continue){
+          if (continue) {
             Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None))
           } else {
             Redirect(ctrlRoutes.showSelectGroupType)

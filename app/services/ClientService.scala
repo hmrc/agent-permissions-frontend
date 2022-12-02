@@ -64,6 +64,9 @@ trait ClientService {
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
+  def getGroupTaxTypeInfo(arn: Arn)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+
 }
 
 @Singleton
@@ -257,6 +260,11 @@ class ClientServiceImpl @Inject()(
                                                                                      ec: ExecutionContext): Future[Done] = {
     val client = Client(displayClient.enrolmentKey, newName)
     agentUserClientDetailsConnector.updateClientReference(arn, client)
+  }
+
+  def getGroupTaxTypeInfo(arn: Arn)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+    agentUserClientDetailsConnector.getGroupTaxTypeInfo(arn)
   }
 
 }

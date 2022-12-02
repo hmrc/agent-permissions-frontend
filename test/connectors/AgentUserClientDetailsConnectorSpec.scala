@@ -119,6 +119,29 @@ class AgentUserClientDetailsConnectorSpec
 
   }
 
+  "getGroupTaxTypeInfo" should {
+
+    "return a Map[String, Int]] when status response is OK" in {
+
+      val expectedData = Map("HMRC-CGT-PD" -> 93, "HMRC-MTD-VAT" -> 34, "HMRC-MTD-IT" -> 123)
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(
+        OK,
+        Json.toJson(expectedData).toString())
+      )
+
+      connector.getGroupTaxTypeInfo(arn).futureValue shouldBe expectedData
+    }
+
+    "throw error when status response is 5xx" in {
+
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(503, ""))
+
+      intercept[UpstreamErrorResponse] {
+        await(connector.getGroupTaxTypeInfo(arn))
+      }
+    }
+
+  }
 
   "getTeamMembers" should {
     "return a Some[Seq[UserDetails]] when status response is OK" in {
@@ -155,7 +178,6 @@ class AgentUserClientDetailsConnectorSpec
       }
     }
   }
-
 
   "updateClientReference" should {
 

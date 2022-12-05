@@ -20,7 +20,7 @@ import models.{AddClientsToGroup, DisplayClient}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.ClientService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -74,5 +74,18 @@ trait ClientServiceMocks extends MockFactory {
       .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, clientId, *, *)
       .returning(Future successful None).once()
+
+
+  def expectGetPageOfClients(arn: Arn, page: Int = 1, pageSize: Int = 10)
+                                (clients: Seq[DisplayClient])
+                                (implicit clientService: ClientService): Unit = {
+    val paginatedList = PaginatedList(pageContent = clients,
+      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length))
+    (clientService
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)( _: Request[_], _: HeaderCarrier,
+        _: ExecutionContext))
+      .expects(arn, page, pageSize, *, *, *)
+      .returning(Future successful paginatedList)
+  }
 
 }

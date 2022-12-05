@@ -227,6 +227,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
+      expectPutSessionItem(GROUP_NAME, "VAT")
 
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)
@@ -251,7 +252,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      
+      expectPutSessionItem(GROUP_NAME, "VAT")
+
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)
 

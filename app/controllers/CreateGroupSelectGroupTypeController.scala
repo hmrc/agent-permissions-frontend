@@ -25,6 +25,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.ViewUtils
 import views.html.groups.create.{review_group_type, select_group_tax_type, select_group_type}
 
 import javax.inject.{Inject, Singleton}
@@ -98,7 +99,14 @@ class CreateGroupSelectGroupTypeController @Inject()
             (formData: TaxServiceGroupType) => {
               sessionCacheService
                 .put(GROUP_SERVICE_TYPE, formData.groupType)
-                .map(_ => Redirect(ctrlRoutes.showReviewTaxServiceGroupType))
+                .flatMap(_ => {
+                  sessionCacheService
+                    .put(GROUP_NAME, ViewUtils.getTaxServiceName(formData.groupType))
+                    .map(_=>
+                      Redirect(ctrlRoutes.showReviewTaxServiceGroupType)
+                    )
+                })
+
             }
           )
       }

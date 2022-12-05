@@ -67,7 +67,7 @@ class CreateGroupSelectClientsController @Inject()
               search_clients(
                 form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
                 groupName = groupName,
-                backUrl = Some(returnUrl.getOrElse("/"))
+                backUrl = Some(returnUrl.getOrElse(controllers.routes.CreateGroupController.showConfirmGroupName.url))
               )
             ).toFuture
           }
@@ -102,7 +102,7 @@ class CreateGroupSelectClientsController @Inject()
                 select_paginated_clients(
                   paginatedClients.pageContent,
                   groupName,
-                  backUrl = Some(returnUrl.getOrElse("/")),
+                  backUrl = Some(returnUrl.getOrElse(controller.showSearchClients.url)),
                   form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
                   paginationMetaData = Some(paginatedClients.paginationMetaData)
                 )
@@ -154,7 +154,6 @@ class CreateGroupSelectClientsController @Inject()
                           select_paginated_clients(
                             paginatedClients.pageContent,
                             groupName,
-                            backUrl = Some(returnUrl.getOrElse("/")),
                             form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
                             paginationMetaData = Some(paginatedClients.paginationMetaData)
                           )

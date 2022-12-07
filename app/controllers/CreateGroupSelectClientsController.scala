@@ -157,8 +157,8 @@ class CreateGroupSelectClientsController @Inject()
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                     Redirect(controller.showSelectClients(Some(pageToShow), Some(20))).toFuture
-                  } else {
-                    Redirect(controller.showSelectClients(None, None)).toFuture
+                  } else { //bad submit
+                    Redirect(controller.showSearchClients).toFuture
                   }
                 }
                 )
@@ -172,7 +172,7 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(
-          Redirect(controller.showSelectClients(None, None)).toFuture
+          Redirect(controller.showSearchClients).toFuture
         )(clients => {
           val pageSize = maybePageSize.getOrElse(10)
           val page = maybePage.getOrElse(1)
@@ -209,7 +209,7 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
-          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(
+          maybeClients.fold(Redirect(controller.showSearchClients).toFuture)(
             clients =>
               YesNoForm
                 .form("group.clients.review.error")

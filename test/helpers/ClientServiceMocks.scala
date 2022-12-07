@@ -112,4 +112,12 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful paginatedList)
   }
 
+  def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
+                                 (implicit clientService: ClientService): Unit =
+    (clientService
+      .savePageOfClients(_: AddClientsToGroup)
+      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .expects(formData, *, *, *)
+      .returning(Future successful members)
+
 }

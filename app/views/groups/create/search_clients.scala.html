@@ -56,7 +56,7 @@
 @layout(
     title = msgs("group.client.search.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)
+    backLinkHref = Some(routes.CreateGroupController.showConfirmGroupName.url)
 ) {
 
     @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitSearchClients) {

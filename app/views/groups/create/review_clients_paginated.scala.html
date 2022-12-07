@@ -71,19 +71,19 @@
         @table(
             caption = Some("common.clients"),
             captionClasses = "govuk-visually-hidden",
-            id = Some("sortable-table"),
+            id = Some("selected-clients"),
             headings = Seq(
                 (
                     Html(msgs("group.client.list.table.th1")),
-                    Map("aria-sort" -> "ascending")
+                    Map.empty
                 ),
                 (
                     Html(msgs("group.client.list.table.th2")),
-                    Map("aria-sort" -> "none")
+                    Map.empty
                 ),
                 (
                     Html(msgs("group.client.list.table.th3")),
-                    Map("aria-sort" -> "none")
+                    Map.empty
                 ),
             ),
             rows = tableRows,

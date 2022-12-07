@@ -36,12 +36,28 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful clients).once()
 
   def expectGetAllClientsFromService(arn: Arn)
-                                 (clients: Seq[DisplayClient])
-                                 (implicit clientService: ClientService): Unit =
+                                    (clients: Seq[DisplayClient])
+                                    (implicit clientService: ClientService): Unit =
     (clientService
       .getAllClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful clients).once()
+
+  def expectGetGroupTaxTypeInfo(arn: Arn)
+                               (numberOfEachService: List[Int])
+                               (implicit clientService: ClientService): Unit = {
+    val data : Map[String, Int] = Map(
+      "HMRC-MTD-IT" -> numberOfEachService(0),
+      "HMRC-MTD-VAT" -> numberOfEachService(1),
+      "HMRC-CGT-PD" -> numberOfEachService(2),
+      "HMRC-PPT-ORG" -> numberOfEachService(3),
+      "TRUST" -> numberOfEachService(4)
+    )
+    (clientService
+      .getGroupTaxTypeInfo(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful data).once()
+  }
 
   def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit clientService: ClientService): Unit =
     (clientService
@@ -52,8 +68,8 @@ trait ClientServiceMocks extends MockFactory {
       .once()
 
   def expectGetUnassignedClients(arn: Arn)
-                        (clients: Seq[DisplayClient])
-                        (implicit clientService: ClientService): Unit =
+                                (clients: Seq[DisplayClient])
+                                (implicit clientService: ClientService): Unit =
     (clientService
       .getUnassignedClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
@@ -63,15 +79,15 @@ trait ClientServiceMocks extends MockFactory {
                         (client: DisplayClient)
                         (implicit clientService: ClientService): Unit =
     (clientService
-      .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
+      .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.id, *, *)
       .returning(Future successful Some(client)).once()
 
   def expectLookupClientNotFound(arn: Arn)
                                 (clientId: String)
-                        (implicit clientService: ClientService): Unit =
+                                (implicit clientService: ClientService): Unit =
     (clientService
-      .lookupClient(_: Arn)(_: String)( _: HeaderCarrier, _: ExecutionContext))
+      .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, clientId, *, *)
       .returning(Future successful None).once()
 

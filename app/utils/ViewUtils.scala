@@ -29,6 +29,26 @@ object ViewUtils {
       ("TRUST", mgs("tax-service.trusts"))
     )
 
+  def getTaxServiceName(taxService: String)(implicit mgs: Messages): String =
+    taxService match{
+      case "HMRC-MTD-IT" => mgs("tax-service.mdt-it")
+      case "HMRC-MTD-VAT" => mgs("tax-service.vat")
+      case "HMRC-CGT-PD" => mgs("tax-service.cgt")
+      case "HMRC-PPT-ORG" => mgs("tax-service.ppt")
+      case "TRUST" => mgs("tax-service.trusts")
+      case _ => throw new IllegalArgumentException()
+    }
+
+
+  def getFiltersTaxServiceListWithClientCount(data: Map[String, Int])
+                                             (implicit mgs: Messages): Seq[(String, String)] ={
+    data
+      .map(entry => (entry._1, displayTaxServiceFromServiceKey(entry._1) + s" (${entry._2})" ))
+      .toSeq
+      .sortBy(x => displayTaxServiceFromServiceKey(x._1))
+  }
+
+
   def displayTaxServiceFromServiceKey(serviceKey: String)(
       implicit mgs: Messages): String = {
     serviceKey match {

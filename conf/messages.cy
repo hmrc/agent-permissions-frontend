@@ -110,6 +110,13 @@ you-have-opted-out.h1=Rydych wedi analluogi grwpiau mynediad
 you-have-opted-out.p1=Mae angen i chi allgofnodi a mewngofnodi eto i weld y newid hwn – ar ôl hynny bydd pob aelod o’r tîm yn gallu gweld a rheoli materion treth pob cleient.
 you-have-opted-out.p2=Bydd eich cyfrif yn dangos eich bod wedi dewis analluogi grwpiau mynediad. Os ydych am ailalluogi’r nodwedd hon, gallwch wneud hynny o’ch tudalen ‘Rheoli cyfrif’ yn eich gwasanaethau asiant.
 
+group.type.h1=Create an access group
+group.type.label=How would you like to create this group?
+group.type.custom.label=Custom access group
+group.type.custom.hint=Select clients based on any criteria. 
+group.type.tax.service.label=Access group based on tax service
+group.type.tax.service.hint=Select all clients for one tax service. <br>These groups can be set to update automatically when you get new clients.
+
 group.create.h1=Creu grŵp mynediad
 group.create.name.label=Beth hoffech alw’r grŵp mynediad hwn?
 group.name.max.length=Mae’n rhaid i enw’r grŵp mynediad fod yn 32 o gymeriadau neu lai

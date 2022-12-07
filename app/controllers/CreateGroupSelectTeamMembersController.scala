@@ -17,37 +17,35 @@
 package controllers
 
 import config.AppConfig
-import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
+import controllers.actions.{GroupAction, SessionAction}
 import forms.{AddTeamMembersToGroupForm, YesNoForm}
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.{review_members_paginated, select_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CreateGroupSelectTeamMembersController @Inject()
 (
-  authAction: AuthAction,
+  groupAction: GroupAction,
   sessionAction: SessionAction,
   teamMemberService: TeamMemberService,
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
   val groupService: GroupService,
-  optInStatusAction: OptInStatusAction,
   select_paginated_team_members: select_paginated_team_members,
   review_members_paginated: review_members_paginated,
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
-  import authAction._
-  import optInStatusAction._
+  import groupAction._
   import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
@@ -149,19 +147,7 @@ class CreateGroupSelectTeamMembersController @Inject()
         )(members => {
           val pageSize = maybePageSize.getOrElse(10)
           val page = maybePage.getOrElse(1)
-          val firstMemberInPage = (page - 1) * pageSize
-          val lastMemberInPage = page * pageSize
-          val currentPageOfMembers = members.slice(firstMemberInPage, lastMemberInPage)
-          val numPages = Math.ceil(members.length.toDouble / maybePageSize.getOrElse(10).toDouble).toInt
-          val meta = PaginationMetaData(
-            page == numPages,
-            page == 1,
-            members.length,
-            numPages,
-            pageSize,
-            page,
-            currentPageOfMembers.length
-          )
+          val (currentPageOfMembers: Seq[TeamMember], meta: PaginationMetaData) = paginationForSelectedMembers(members, pageSize, page)
           Ok(
             review_members_paginated(
               teamMembers = currentPageOfMembers,
@@ -179,9 +165,9 @@ class CreateGroupSelectTeamMembersController @Inject()
   }
 
   def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
-        selectedMembers
+    withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
+      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
+        maybeTeamMembers
           .fold(
             Redirect(controller.showSelectTeamMembers(None, None)).toFuture
           ) { members =>
@@ -190,13 +176,15 @@ class CreateGroupSelectTeamMembersController @Inject()
               .bindFromRequest
               .fold(
                 formWithErrors => {
+                  val (currentPageOfMembers, meta) = paginationForSelectedMembers(members, 10, 1)
                   Ok(
                     review_members_paginated(
-                      teamMembers = members,
+                      teamMembers = currentPageOfMembers,
                       groupName = groupName,
                       form = formWithErrors,
                       backUrl = Some(controller.showSelectTeamMembers(None, None).url),
-                      formAction = controller.submitReviewSelectedTeamMembers
+                      formAction = controller.submitReviewSelectedTeamMembers,
+                      paginationMetaData = Some(meta)
                     )
                   ).toFuture
                 }, (yes: Boolean) => {
@@ -211,15 +199,21 @@ class CreateGroupSelectTeamMembersController @Inject()
     }
   }
 
-  private def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])
-                                                  (implicit ec: ExecutionContext, request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
-    isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(routes.CreateGroupController.showGroupName).toFuture) {
-          groupName => body(groupName, arn)
-        }
-      }
-    }
+  private def paginationForSelectedMembers(members: Seq[TeamMember], pageSize: Int, page: Int) = {
+    val firstMemberInPage = (page - 1) * pageSize
+    val lastMemberInPage = page * pageSize
+    val currentPageOfMembers = members.slice(firstMemberInPage, lastMemberInPage)
+    val numPages = Math.ceil(members.length.toDouble / pageSize.toDouble).toInt
+    val meta = PaginationMetaData(
+      lastPage = page == numPages,
+      firstPage = page == 1,
+      totalSize = members.length,
+      totalPages = numPages,
+      pageSize = pageSize,
+      currentPageNumber = page,
+      currentPageSize = currentPageOfMembers.length
+    )
+    (currentPageOfMembers, meta)
   }
 
 }

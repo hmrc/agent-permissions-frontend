@@ -63,7 +63,12 @@
     
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", groupName))
-        @h1(msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize))
+
+        @if(paginationMetaData.isDefined){
+            @h1(msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize))
+        } else {
+            @h1("group.teamMembers.review.h1")
+        }
     </div>
 
     @table(

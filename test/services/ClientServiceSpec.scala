@@ -405,4 +405,18 @@ class ClientServiceSpec extends BaseSpec {
 
     }
   }
+
+  "getGroupTaxTypeInfo" should {
+
+    "delegate to AUCD connector" in {
+
+      //expect
+      expectGetGroupTaxTypeInfoFromConnector(arn)
+
+      //when
+      await(service.getGroupTaxTypeInfo(arn))
+
+    }
+
+  }
 }

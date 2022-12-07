@@ -59,6 +59,14 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful data).once()
   }
 
+  def expectSaveSearch(arn: Arn)(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit clientService: ClientService): Unit =
+    (clientService
+      .saveSearch(_: Arn)(_: Option[String], _: Option[String])
+      (_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, searchTerm, filterTerm, *, *, *)
+      .returning(Future.successful(()))
+      .once()
+
   def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit clientService: ClientService): Unit =
     (clientService
       .saveSelectedOrFilteredClients(_: Arn)(_: AddClientsToGroup)
@@ -92,7 +100,7 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful None).once()
 
 
-  def expectGetPageOfClients(arn: Arn, page: Int = 1, pageSize: Int = 10)
+  def expectGetPageOfClients(arn: Arn, page: Int = 1, pageSize: Int = 20)
                                 (clients: Seq[DisplayClient])
                                 (implicit clientService: ClientService): Unit = {
     val paginatedList = PaginatedList(pageContent = clients,

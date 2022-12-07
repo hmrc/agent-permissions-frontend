@@ -54,7 +54,7 @@
 }
 
 @layout(
-    title = msgs("group.create.h1"),
+    title = msgs("group.client.search.h1"),
     formErrors = form.errors,
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)
 ) {
@@ -64,7 +64,7 @@
         @caption(msgs("common.caption.group.name", groupName))
         @govukFieldset(Fieldset(
         legend = Some(Legend(
-            content = Text(msgs("filter.legend")),
+            content = Text(msgs("group.client.search.h1")),
             classes = "govuk-fieldset__legend--l",
             isPageHeading = true)),
         html = fieldsetHtml

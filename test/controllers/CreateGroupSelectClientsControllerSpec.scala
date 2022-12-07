@@ -21,7 +21,7 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css.{H1, H2, paragraphs}
 import helpers.{BaseSpec, Css}
-import models.{AddTeamMembersToGroup, DisplayClient, TeamMember}
+import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
@@ -29,8 +29,8 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.{FakeRequest, Helpers}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady, UserDetails}
+import services.{ClientService, GroupService, SessionCacheService}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -61,8 +61,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
   override implicit lazy val fakeApplication: Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
     
-  val controller: CreateGroupSelectTeamMembersController = fakeApplication.injector.instanceOf[CreateGroupSelectTeamMembersController]
-
+  val controller: CreateGroupSelectClientsController = fakeApplication.injector.instanceOf[CreateGroupSelectClientsController]
 
   val fakeClients: Seq[Client] = List.tabulate(11)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
 
@@ -70,32 +69,106 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   val displayClientsIds: Seq[String] = displayClients.map(_.id)
 
-
   private val ctrlRoute: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
+
+  def expectAuthArnAllowedOptedInReadyWithGroupName(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectGetSessionItem(GROUP_NAME, groupName)
+  }
 
   s"GET ${ctrlRoute.showSearchClients.url}" should {
     "render the client search page" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
+      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+
+      val result = controller.showSearchClients()(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Search for clients"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe routes.CreateGroupController.showConfirmGroupName.url
+
+      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+
+      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+
     }
 
-    "render the inputs saved in session" in {
+    "render the client search page with inputs saved in session" in {
+      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(CLIENT_SEARCH_INPUT, "Harry")
+      expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
+
+      val result = controller.showSearchClients()(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Search for clients"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe routes.CreateGroupController.showConfirmGroupName.url
+
+      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+      html.select("#search").attr("value") shouldBe "Harry"
+      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+      html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
 
     }
 
   }
 
-    s"GET ${ctrlRoute.showSelectClients(None, None).url}" should {
+  s"POST ${ctrlRoute.submitSearchClients.url}" should {
+    // TODO - using fully optional form atm, clarify expected error behaviour
+    "render errors on client search page" in {
+      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectSaveSearch(arn)()
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitSearchClients()}")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      val result = controller.submitSearchClients()(request)
+      status(result) shouldBe OK
+    }
+
+    "save search terms and redirect" in {
+      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectSaveSearch(arn)(Some("Harry"), Some("HMRC-MTD-VAT"))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(
+          "POST",
+          s"${controller.submitSearchClients()}")
+          .withFormUrlEncodedBody("search" -> "Harry", "filter" -> "HMRC-MTD-VAT")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitSearchClients()(request)
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showSelectClients(Some(1),Some(20)).url
+    }
+
+  }
+
+  s"GET ${ctrlRoute.showSelectClients(None, None).url}" should {
 
     "render a page of clients" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
-      expectGetSessionItemNone(RETURN_URL)
+      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetPageOfClients(arn)(displayClients)
 
       val result = controller.showSelectClients()(request)
@@ -104,11 +177,11 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url
+        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showSearchClients.url
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -130,25 +203,20 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
 
-    "render with filtered team members held in session when a filter was applied" in {
+    "render with filtered clients held in session when a filter was applied" in {
+      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+      expectGetSessionItem(CLIENT_SEARCH_INPUT, "John")
+      expectGetPageOfClients(arn)(displayClients)
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-
-      expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
-      expectGetSessionItemNone(RETURN_URL)
-      expectGetPageOfTeamMembers(arn)(teamMembers)
-
-      val result = controller.showSelectTeamMembers()(request)
+      val result = controller.showSelectClients()(request)
 
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'John' Select team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Filter results for 'John' Select clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients"
 
       html.select(H2).text() shouldBe "Filter results for 'John'"
 
@@ -171,24 +239,20 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(3).text() shouldBe "Administrator"
     }
 
-    "render with NO Team Members" in {
+    "render with NO Clients" in {
+      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetPageOfClients(arn)(Seq.empty) // <- nothing returned from session
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
-      expectGetSessionItemNone(RETURN_URL)
-      expectGetPageOfTeamMembers(arn)(Seq.empty) // <- no team members returned from session
-
-      val result = controller.showSelectTeamMembers()(request)
+      val result = controller.showSelectClients()(request)
 
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients"
 
       // No table
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
@@ -198,41 +262,18 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.size() shouldBe 0
 
       // Not found content
-      html.select(Css.H2).text() shouldBe "No team members found"
-      html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
-
-    }
-
-    "render correct back link when coming from check you answers page" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
-      expectGetPageOfTeamMembers(arn)(teamMembers)
-      // <-- we expect RETURN_URL to be the backLink url
-      expectGetSessionItem(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url)
-
-      val result = controller.showSelectTeamMembers()(request)
-
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupController.showCheckYourAnswers.url
+      html.select(Css.H2).text() shouldBe "No clients found"
+      html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
 
     }
 
     "redirect when no group name is in session" in {
-
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItemNone(GROUP_NAME) // <- NO GROUP NAME IN SESSION
 
-      val result = controller.showSelectTeamMembers()(request)
+      val result = controller.showSelectClients()(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
@@ -321,7 +362,6 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 //      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 //      expectGetSessionItem(GROUP_NAME, "XYZ")
 //      expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
-//      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)
 //      expectGetPageOfTeamMembers(arn)(teamMembers)
 //
 //      // when
@@ -353,7 +393,6 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 //      expectGetSessionItem(GROUP_NAME, "XYZ")
 //      //this currently selected team member will be unselected as part of the post
 //      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
-//      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)
 //      val emptyForm = AddTeamMembersToGroup(submit = CONTINUE_BUTTON)
 //      //now no selected members
 //      expectSavePageOfTeamMembers(emptyForm, Seq.empty[TeamMember])

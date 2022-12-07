@@ -226,7 +226,7 @@ class CreateGroupSelectClientsController @Inject()
                     if (yes) {
                       sessionCacheService
                         .deleteAll(clientFilteringKeys)
-                        .map(_ => Redirect(controller.showSelectClients(None, None)))
+                        .map(_ => Redirect(controller.showSearchClients))
                     } else {
                       sessionCacheService.get(RETURN_URL)
                         .map(returnUrl =>

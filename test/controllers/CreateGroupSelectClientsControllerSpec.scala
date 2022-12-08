@@ -71,7 +71,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   private val ctrlRoute: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
 
-  def expectAuthArnAllowedOptedInReadyWithGroupName(): Unit = {
+  def expectAuthOkArnAllowedOptedInReadyWithGroupName(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -80,7 +80,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showSearchClients.url}" should {
     "render the client search page" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
 
@@ -103,7 +103,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
 
     "render the client search page with inputs saved in session" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "Harry")
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
 
@@ -132,7 +132,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
   s"POST ${ctrlRoute.submitSearchClients.url}" should {
     // TODO - using fully optional form atm, clarify expected error behaviour
 //    "render errors on client search page" in {
-//      expectAuthArnAllowedOptedInReadyWithGroupName()
+//      expectAuthOkArnAllowedOptedInReadyWithGroupName()
 //      expectSaveSearch(arn)()
 //      implicit val request =
 //        FakeRequest(
@@ -145,7 +145,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 //    }
 
     "save search terms and redirect" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectSaveSearch(arn)(Some("Harry"), Some("HMRC-MTD-VAT"))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -167,7 +167,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showSelectClients(None, None).url}" should {
 
     "render a page of clients" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetPageOfClients(arn)(displayClients)
@@ -206,7 +206,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
 
     "render with filtered clients held in session when a filter was applied" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "John")
       expectGetPageOfClients(arn)(displayClients)
@@ -243,7 +243,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
 
     "render with NO Clients" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetPageOfClients(arn)(Seq.empty) // <- nothing returned from session
@@ -297,7 +297,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
               "clients[]" -> displayClientsIds.last,
               "submit" -> CONTINUE_BUTTON
             )
-        expectAuthArnAllowedOptedInReadyWithGroupName()
+        expectAuthOkArnAllowedOptedInReadyWithGroupName()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
         val formData = AddClientsToGroup(
           clients = Some(List(displayClientsIds.head, displayClientsIds.last)),
@@ -323,7 +323,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
               "submit" -> PAGINATION_BUTTON.concat("_2")
             )
 
-        expectAuthArnAllowedOptedInReadyWithGroupName()
+        expectAuthOkArnAllowedOptedInReadyWithGroupName()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
 
         val formData = AddClientsToGroup(
@@ -352,7 +352,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
               "submit" -> "tamperedWithOrMissing"
             )
 
-        expectAuthArnAllowedOptedInReadyWithGroupName()
+        expectAuthOkArnAllowedOptedInReadyWithGroupName()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
 
         val formData = AddClientsToGroup(
@@ -381,7 +381,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
           "submit" -> CONTINUE_BUTTON
         )
 
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
       expectGetPageOfClients(arn)(displayClients)
 
@@ -407,7 +407,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
           "submit" -> CONTINUE_BUTTON
         )
 
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       //this currently selected member will be unselected as part of the post
       expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(1))
       val emptyForm = AddClientsToGroup(submit = CONTINUE_BUTTON)
@@ -454,8 +454,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showReviewSelectedClients(None, None).url}" should {
 
-    "render with selected team members" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+    "render with selected clients" in {
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(5))
 
       val result = controller.showReviewSelectedClients(None, None)(request)
@@ -482,9 +482,9 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
 
       // last row
-      trs.get(4).select("td").get(1).text() shouldBe "friendly4"
-      trs.get(4).select("td").get(2).text() shouldBe "ending in 6784"
-      trs.get(4).select("td").get(3).text() shouldBe "VAT"
+      trs.get(4).select("td").get(0).text() shouldBe "friendly4"
+      trs.get(4).select("td").get(1).text() shouldBe "ending in 6784"
+      trs.get(4).select("td").get(2).text() shouldBe "VAT"
 
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios.select("label[for=answer]").text() shouldBe "Yes, add or remove clients"
@@ -492,7 +492,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
 
     "redirect when no selected clients in session" in {
-      expectAuthArnAllowedOptedInReadyWithGroupName()
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(SELECTED_CLIENTS)
 
       val result = controller.showReviewSelectedClients(None, None)(request)
@@ -515,97 +515,86 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
     }
   }
-//
-//  s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers.url}" should {
-//
-//    s"redirect to '${routes.CreateGroupController.showCheckYourAnswers.url}' page with answer 'false'" in {
-//
-//      implicit val request =
-//        FakeRequest(
-//          "POST",
-//          s"${controller.submitReviewSelectedTeamMembers}")
-//          .withFormUrlEncodedBody("answer" -> "false")
-//          .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-//      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-//      expectGetSessionItem(GROUP_NAME, groupName)
-//      expectAuthorisationGrantsAccess(mockedAuthResponse)
-//      expectIsArnAllowed(allowed = true)
-//
-//      val result = controller.submitReviewSelectedTeamMembers()(request)
-//
-//      status(result) shouldBe SEE_OTHER
-//      redirectLocation(result).get shouldBe routes.CreateGroupController.showCheckYourAnswers.url
-//    }
-//
-//    s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' page with answer 'true'" in {
-//
-//      implicit val request =
-//        FakeRequest(
-//          "POST",
-//          s"${controller.submitReviewSelectedTeamMembers}")
-//          .withFormUrlEncodedBody("answer" -> "true")
-//          .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-//      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-//      expectGetSessionItem(GROUP_NAME, groupName)
-//      expectAuthorisationGrantsAccess(mockedAuthResponse)
-//      expectIsArnAllowed(allowed = true)
-//
-//      val result = controller.submitReviewSelectedTeamMembers()(request)
-//
-//      status(result) shouldBe SEE_OTHER
-//      redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
-//    }
-//
-//    s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' with no SELECTED in session" in {
-//
-//      implicit val request =
-//        FakeRequest(
-//          "POST",
-//          s"${controller.submitReviewSelectedTeamMembers}")
-//          .withFormUrlEncodedBody("answer" -> "true")
-//          .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
-//      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-//      expectGetSessionItem(GROUP_NAME, groupName)
-//      expectAuthorisationGrantsAccess(mockedAuthResponse)
-//      expectIsArnAllowed(allowed = true)
-//
-//      val result = controller.submitReviewSelectedTeamMembers()(request)
-//
-//      status(result) shouldBe SEE_OTHER
-//      redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
-//    }
-//
-//    s"render errors when no radio button selected" in {
-//
-//      implicit val request =
-//        FakeRequest(
-//          "POST",
-//          s"${controller.submitReviewSelectedTeamMembers()}")
-//          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
-//          .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-//      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-//      expectGetSessionItem(GROUP_NAME, groupName)
-//      expectAuthorisationGrantsAccess(mockedAuthResponse)
-//      expectIsArnAllowed(allowed = true)
-//
-//      val result = controller.submitReviewSelectedTeamMembers()(request)
-//
-//      status(result) shouldBe OK
-//      val html = Jsoup.parse(contentAsString(result))
-//      html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
-//      html.select(H1).text() shouldBe "You have selected 10 team members"
-//      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected team members"
-//      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected team members"
-//
-//    }
-//  }
-//
+
+  s"POST ${routes.CreateGroupSelectClientsController.submitReviewSelectedClients.url}" should {
+
+    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url}' page with answer 'false'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedClients()}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url
+    }
+
+    s"redirect to '${ctrlRoute.showSearchClients.url}' page with answer 'true'" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedClients()}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      expectDeleteSessionItems(clientFilteringKeys)
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+    }
+
+    s"redirect to '${ctrlRoute.showSearchClients.url}' with no SELECTED in session" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedClients()}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItemNone(SELECTED_CLIENTS)
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+    }
+
+    s"render errors when no radio button selected" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedClients()}")
+          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(10))
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 10 clients"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected clients"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected clients"
+
+    }
+  }
+
 }

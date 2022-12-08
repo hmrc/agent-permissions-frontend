@@ -62,15 +62,13 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          withSessionItem[String](RETURN_URL) { returnUrl =>
-            Ok(
-              search_clients(
-                form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
-                groupName = groupName,
-                backUrl = Some(returnUrl.getOrElse(controllers.routes.CreateGroupController.showConfirmGroupName.url))
-              )
-            ).toFuture
-          }
+          Ok(
+            search_clients(
+              form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+              groupName = groupName,
+              backUrl = Some(controllers.routes.CreateGroupController.showConfirmGroupName.url)
+            )
+          ).toFuture
         }
       }
     }
@@ -96,18 +94,16 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          withSessionItem[String](RETURN_URL) { returnUrl =>
-            clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(20)).map { paginatedClients =>
-              Ok(
-                select_paginated_clients(
-                  paginatedClients.pageContent,
-                  groupName,
-                  backUrl = Some(returnUrl.getOrElse(controller.showSearchClients.url)),
-                  form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
-                  paginationMetaData = Some(paginatedClients.paginationMetaData)
-                )
+          clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(20)).map { paginatedClients =>
+            Ok(
+              select_paginated_clients(
+                paginatedClients.pageContent,
+                groupName,
+                backUrl = Some(controller.showSearchClients.url),
+                form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
+                paginationMetaData = Some(paginatedClients.paginationMetaData)
               )
-            }
+            )
           }
         }
       }
@@ -148,7 +144,6 @@ class CreateGroupSelectClientsController @Inject()
                     } else { // render page with empty client error
                       for {
                         paginatedClients <- clientService.getPaginatedClients(arn)(1, 20)
-                        returnUrl <- sessionCacheService.get(RETURN_URL)
                       } yield
                         Ok(
                           select_paginated_clients(
@@ -162,8 +157,8 @@ class CreateGroupSelectClientsController @Inject()
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                     Redirect(controller.showSelectClients(Some(pageToShow), Some(20))).toFuture
-                  } else {
-                    Redirect(controller.showSelectClients(None, None)).toFuture
+                  } else { //bad submit
+                    Redirect(controller.showSearchClients).toFuture
                   }
                 }
                 )
@@ -177,7 +172,7 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(
-          Redirect(controller.showSelectClients(None, None)).toFuture
+          Redirect(controller.showSearchClients).toFuture
         )(clients => {
           val pageSize = maybePageSize.getOrElse(10)
           val page = maybePage.getOrElse(1)
@@ -214,7 +209,7 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
-          maybeClients.fold(Redirect(controller.showSelectClients(None, None)).toFuture)(
+          maybeClients.fold(Redirect(controller.showSearchClients).toFuture)(
             clients =>
               YesNoForm
                 .form("group.clients.review.error")
@@ -228,15 +223,7 @@ class CreateGroupSelectClientsController @Inject()
                         .deleteAll(clientFilteringKeys)
                         .map(_ => Redirect(controller.showSearchClients))
                     } else {
-                      sessionCacheService.get(RETURN_URL)
-                        .map(returnUrl =>
-                          returnUrl.fold(
-                            Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None))
-                          )(url => {
-                            sessionCacheService.delete(RETURN_URL)
-                            Redirect(url)
-                          })
-                        )
+                      Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
                     }
                   }
                 )

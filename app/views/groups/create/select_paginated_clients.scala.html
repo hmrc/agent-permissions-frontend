@@ -43,7 +43,11 @@
     if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
 }
 
-@layout(title = msgs("group.client.list.h1"), backLinkHref = backUrl, formErrors = Seq.empty, fullWidth = true) {
+@layout(
+title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+backLinkHref = backUrl,
+formErrors = Seq.empty,
+fullWidth = true) {
 
     @summaryErrors(form.errors, Some(errorHref))
 

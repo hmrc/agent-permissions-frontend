@@ -129,6 +129,8 @@ group.confirm.name.label=Ydy enw’r grŵp mynediad ‘{0}’ yn gywir?
 
 group.name.confirm.required.error=Dewiswch ‘Iawn’ os yw enw’r grŵp mynediad yn gywir
 
+group.client.search.h1=Search for clients
+
 group.client.list.h1=Dewiswch gleientiaid
 group.client.list.p1=Dewiswch gleientiaid ar gyfer y grŵp mynediad hwn drwy dicio’r blychau. Gallwch dicio’r blwch yn rhes y pennyn i ddewis pob un. Gallwch hefyd hidlo yn ôl y cyfeirnod treth, y cyfeirnod cleient neu’r gwasanaeth treth.
 client-filter.text.label=Hidlo yn ôl y cyfeirnod treth neu’r cyfeirnod cleient

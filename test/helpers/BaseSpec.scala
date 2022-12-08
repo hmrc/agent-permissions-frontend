@@ -22,7 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.Result
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
 import play.api.{Configuration, Environment}
@@ -57,7 +57,7 @@ abstract class BaseSpec
   implicit val ec: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
 
-  implicit val request = FakeRequest()
+  implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
     .withHeaders("Authorization" -> "Bearer XYZ")
     .withSession(SessionKeys.sessionId -> "session-x")
 

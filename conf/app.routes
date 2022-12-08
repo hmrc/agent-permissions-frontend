@@ -31,7 +31,7 @@ GET     /create-group/select-clients                controllers.CreateGroupSelec
 POST    /create-group/select-clients                controllers.CreateGroupSelectClientsController.submitSelectedClients
 GET     /create-group/clients-selected              controllers.CreateGroupSelectClientsController.showReviewSelectedClients(page: Option[Int], pageSize: Option[Int])
 POST    /create-group/clients-selected              controllers.CreateGroupSelectClientsController.submitReviewSelectedClients
-                                                    
+
 GET     /create-group/select-team-members           controllers.CreateGroupSelectTeamMembersController.showSelectTeamMembers(page: Option[Int], pageSize: Option[Int])
 POST    /create-group/select-team-members           controllers.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers
 GET     /create-group/team-members-selected         controllers.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(page: Option[Int], pageSize: Option[Int])

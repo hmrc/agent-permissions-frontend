@@ -20,7 +20,7 @@ import models.{AddClientsToGroup, DisplayClient}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.ClientService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -59,6 +59,14 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful data).once()
   }
 
+  def expectSaveSearch(arn: Arn)(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit clientService: ClientService): Unit =
+    (clientService
+      .saveSearch(_: Arn)(_: Option[String], _: Option[String])
+      (_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, searchTerm, filterTerm, *, *, *)
+      .returning(Future.successful(()))
+      .once()
+
   def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit clientService: ClientService): Unit =
     (clientService
       .saveSelectedOrFilteredClients(_: Arn)(_: AddClientsToGroup)
@@ -90,5 +98,26 @@ trait ClientServiceMocks extends MockFactory {
       .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, clientId, *, *)
       .returning(Future successful None).once()
+
+
+  def expectGetPageOfClients(arn: Arn, page: Int = 1, pageSize: Int = 20)
+                                (clients: Seq[DisplayClient])
+                                (implicit clientService: ClientService): Unit = {
+    val paginatedList = PaginatedList(pageContent = clients,
+      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length))
+    (clientService
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)( _: Request[_], _: HeaderCarrier,
+        _: ExecutionContext))
+      .expects(arn, page, pageSize, *, *, *)
+      .returning(Future successful paginatedList)
+  }
+
+  def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
+                                 (implicit clientService: ClientService): Unit =
+    (clientService
+      .savePageOfClients(_: AddClientsToGroup)
+      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .expects(formData, *, *, *)
+      .returning(Future successful members)
 
 }

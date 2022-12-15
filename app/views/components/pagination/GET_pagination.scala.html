@@ -52,39 +52,31 @@
                 @pagination_li(pagination, pageNum, baseUrl)
             }
         } else {
-            @defining(2: Int){ numPagesAtEnds =>
-
+            @defining(2: Int) { numPagesAtEnds =>
                 @for(pageNum <- 1 to numPagesAtEnds) {
                     @pagination_li(pagination, pageNum, baseUrl)
                 }
                 @if(pagination.currentPageNumber > (numPagesAtEnds + 2)) {
                     <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
                 }
-                    @for(pageNum <- Math.max(numPagesAtEnds + 1, pagination.currentPageNumber - numPagesAtEnds) to
-                            Math.min(pagination.totalPages - (numPagesAtEnds + 1),
-                                pagination.currentPageNumber + numPagesAtEnds) ) {
-                        @pagination_li(pagination, pageNum, baseUrl)
-                    }
-                @if(pagination.currentPageNumber < pagination.totalPages  - (numPagesAtEnds + 2)) {
+                @for(pageNum <- Math.max(numPagesAtEnds + 1, pagination.currentPageNumber - numPagesAtEnds) to
+                        Math.min(pagination.totalPages - (numPagesAtEnds + 1),
+                            pagination.currentPageNumber + numPagesAtEnds)) {
+                    @pagination_li(pagination, pageNum, baseUrl)
+                }
+                @if(pagination.currentPageNumber < pagination.totalPages - (numPagesAtEnds + 2)) {
                     <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
                 }
-                @for(pageNum <- (pagination.totalPages - numPagesAtEnds) to pagination.totalPages) {
+                @for(pageNum <- (pagination.totalPages - numPagesAtEnds + 1 ) to pagination.totalPages) {
                     @pagination_li(pagination, pageNum, baseUrl)
                 }
             }
         }
-
     </ul>
     @if(!pagination.lastPage) {
         <div class="govuk-pagination__next">
             <a class="govuk-link govuk-pagination__link"
-            href="@{
-                baseUrl
-            }?page=@{
-                pagination.currentPageNumber + 1
-            }&pageSize=@{
-                pagination.pageSize
-            }" rel="next">
+                href="@{baseUrl}?page=@{pagination.currentPageNumber + 1}&pageSize=@{pagination.pageSize}" rel="next">
                 <span class="govuk-pagination__link-title">@msgs("common.next")</span>
                 <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                     <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>

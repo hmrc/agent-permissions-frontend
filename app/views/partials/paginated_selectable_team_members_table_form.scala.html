@@ -18,7 +18,9 @@
 @import controllers.routes
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.main_layout
-@import views.html.partials.{POST_pagination, search_and_filter}
+
+@import views.html.components.pagination.POST_pagination
+@import views.html.partials.search_and_filter
 
 @this(
     layout: main_layout,
@@ -70,7 +72,7 @@
 @formWithCSRF(action = formAction) {
 
     @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
-
+    <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
     @if(teamMembers.nonEmpty) {
 
         @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {

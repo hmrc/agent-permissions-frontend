@@ -14,23 +14,20 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.govukfrontend.views.html.components.{Button, GovukButton, Text}
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
-@this(button: GovukButton)
+@this(submit_as_link: submit_as_link)
 
-@(
-    key: String = "common.continue",
-    name: String = "submit",
-    value: String = "continue",
-    classes: String = "submit-as-link",
-    id: Option[String] = None,
-    attrs: Map[String, String] = Map.empty,
-)(implicit msgs: Messages)
+@(pagination: PaginationMetaData, pageNum: Int)(implicit msgs: Messages)
 
-
-<button type="submit"
-    name="@name"
-    class="@classes"
-    value="@value"
-    @id.map(i => { s"id =${i}"})
-    @attrs.map(a => a._1 + "=" + a._2)>@Html(msgs(key))</button>
+@if(pagination.currentPageNumber != pageNum) {
+    <li class="govuk-pagination__item">
+        @submit_as_link(
+            key = pageNum.toString,
+            value = s"${PAGINATION_BUTTON}_${pageNum}",
+            classes = "pagination__link"
+        )
+    </li>
+} else {
+    <li class="govuk-pagination__item govuk-pagination__item--current">@{pageNum}</li>
+}

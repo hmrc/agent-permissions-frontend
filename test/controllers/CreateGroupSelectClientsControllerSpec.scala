@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
-import helpers.Css.{H1, H2, paragraphs}
+import helpers.Css.{H1, paragraphs}
 import helpers.{BaseSpec, Css}
 import models.{AddClientsToGroup, DisplayClient}
 import org.jsoup.Jsoup

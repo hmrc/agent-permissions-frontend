@@ -38,6 +38,8 @@ object CodeCoverageSettings {
     ".*select_paginated_clients.template",
     ".*review_members_paginated.template",
     ".*review_clients_paginated.template",
+    ".*GET_pagination.template",
+    ".*POST_pagination.template",
     ".*search_clients.template"
   )
 

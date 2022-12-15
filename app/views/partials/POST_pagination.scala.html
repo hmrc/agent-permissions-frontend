@@ -39,17 +39,48 @@
      </span>
     }
 
-    @for(pageNum <- 1 to pagination.totalPages ) {
-     <span class="pagination_item">
-     @if(pagination.currentPageNumber != pageNum) {
-      @submit_as_link(
-       key = pageNum.toString,
-       value =s"${PAGINATION_BUTTON}_${pageNum}")
+    @if(pagination.totalPages < 20){
+     @for(pageNum <- 1 to pagination.totalPages ) {
+       <span class="pagination_item">
+       @if(pagination.currentPageNumber != pageNum) {
+        @submit_as_link(key = pageNum.toString, value =s"${PAGINATION_BUTTON}_${pageNum}")
+       } else {
+         <span class="current-page">@{pageNum}</span>
+       }
+       </span>
+      }
+    } else {
+     @for(pageNum <- 1 to 4 ) {
+      <span class="pagination_item">
+      @if(pagination.currentPageNumber != pageNum) {
+       @submit_as_link(key = pageNum.toString, value =s"${PAGINATION_BUTTON}_${pageNum}")
       } else {
        <span class="current-page">@{pageNum}</span>
+      }
+      </span>
      }
-     </span>
-    }
+    <span class="pagination_item">...</span>
+     @for(pageNum <- Math.ceil(pagination.totalPages/2).toInt - 3 to Math.ceil(pagination.totalPages/2).toInt + 3 ) {
+      <span class="pagination_item">
+      @if(pagination.currentPageNumber != pageNum) {
+       @submit_as_link(key = pageNum.toString, value =s"${PAGINATION_BUTTON}_${pageNum}")
+      } else {
+       <span class="current-page">@{pageNum}</span>
+      }
+      </span>
+     }
+     <span class="pagination_item ellipsis">...</span>
+
+     @for(pageNum <- pagination.totalPages - 4 to pagination.totalPages ) {
+      <span class="pagination_item">
+      @if(pagination.currentPageNumber != pageNum) {
+       @submit_as_link(key = pageNum.toString, value =s"${PAGINATION_BUTTON}_${pageNum}")
+      } else {
+       <span class="current-page">@{pageNum}</span>
+      }
+      </span>
+     }
+   }
 
     @if(!pagination.lastPage) {
      <span class="pagination_item pagination_item--next">

@@ -200,56 +200,13 @@ a.pagination_link, .submit-as-link{
   }
 }
 
-.pagination_item--active,
-.pagination_item--dots {
-  font-weight: bold;
-  height: 25px;
-  padding: 5px 10px;
-  text-align: center;
+
+
+.govuk-pagination__item.govuk-pagination__item--current{
+  color:white;
 }
 
 
-.pagination_item--dots {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.pagination_item--prev .pagination_link:before,
-.pagination_item--prev .pagination_link:after,
-.pagination_item--next .pagination_link:before,
-.pagination_item--next .pagination_link:after {
-  background-image: url(../images/icon-pagination.svg);
-  background-repeat: no-repeat;
-  background-size: 22px 36px;
-  background-position: 0 0;
-  display: inline-block;
-  height: 18px;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-  width: 11px;
-}
-
-.pagination_item--prev .pagination_link:before {
-  background-position: 0 0;
-  content: "";
-  margin-right: 10px;
-}
-
-.pagination_item--next .pagination_link:after {
-  background-position: -11px -18px;
-  content: "";
-  margin-left: 10px;
-}
-
-
-.pagination_item--active .pagination_link, .pagination_item--active .pagination_link:visited {
-  color: #0b0c0c;
-}
-
-.pagination-nav__results {
-  padding: 0.263em;
-}
 /* Search pagination END */
 
 

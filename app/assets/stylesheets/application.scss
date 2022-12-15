@@ -1,20 +1,23 @@
 @import "lib/govuk-frontend/govuk/base";
 @import "moj-frontend.min.css";
 
-.govuk-back-link{
-  margin:0 !important;
+.govuk-back-link {
+  margin: 0 !important;
 }
-main.govuk-main-wrapper{
+
+main.govuk-main-wrapper {
   padding-top: 30px !important;
 }
-.govuk-heading-xl{
+
+.govuk-heading-xl {
   margin-bottom: 35px !important;
 }
+
 #search-filter-wrapper .govuk-form-group {
   margin-bottom: 10px;
 }
 
- div.scrollable-table-container {
+div.scrollable-table-container {
   max-height: 300px;
   overflow-y: auto;
   border-top: 1px solid lightgray;
@@ -143,20 +146,20 @@ fieldset#search-and-filter {
     text-decoration: none;
     min-width: 1.3em;
     font-weight: 700;
-    outline: 1px solid rgba(0,0,0,0);
+    outline: 1px solid rgba(0, 0, 0, 0);
     background-color: #1d70b8;
     color: white;
   }
 
-  a.pagination_link, .submit-as-link{
-     &:hover {
-     background-color: #f3f2f1;
-     }
+  a.pagination_link, .submit-as-link {
+    &:hover {
+      background-color: #f3f2f1;
+    }
   }
 
 }
 
-a.pagination_link, .submit-as-link{
+a.pagination_link, .submit-as-link {
   padding: 0.263em;
   background: none;
   border: none;
@@ -164,19 +167,19 @@ a.pagination_link, .submit-as-link{
   text-decoration: underline;
   cursor: pointer;
 
-    &:hover {
+  &:hover {
     color: #1a0dab;
     text-decoration-thickness: 3px;
-    }
+  }
 
-    &:focus {
-    outline: 3px solid rgba(0,0,0,0);
+  &:focus {
+    outline: 3px solid rgba(0, 0, 0, 0);
     color: #0b0c0c;
     background-color: #fd0;
     -webkit-box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
     box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
     text-decoration: none;
-    }
+  }
 }
 
 @media print {
@@ -201,12 +204,30 @@ a.pagination_link, .submit-as-link{
 }
 
 
-
-.govuk-pagination__item.govuk-pagination__item--current{
-  color:white;
+.govuk-pagination__item.govuk-pagination__item--current {
+  color: white;
 }
 
 
 /* Search pagination END */
-
-
+.govuk-pagination__item{
+  &:hover{
+    button.pagination__link{
+        text-decoration-thickness: 3px;
+    }
+  }
+  button.pagination__link{
+    padding: 0.263em;
+    background: none;
+    border: none;
+    color: #1a0dab;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0 5px;
+    margin: 0;
+    font-size: 19px;
+    &:hover{
+      text-decoration-thickness: 3px;
+    }
+  }
+}

@@ -55,7 +55,9 @@ class CreateGroupSelectTeamMembersController @Inject()
     withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
         withSessionItem[String](RETURN_URL) { returnUrl =>
-          teamMemberService.getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(10)).map { paginatedList =>
+          teamMemberService
+            .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(10))
+            .map { paginatedList =>
             Ok(
               select_paginated_team_members(
                 paginatedList.pageContent,
@@ -84,19 +86,21 @@ class CreateGroupSelectTeamMembersController @Inject()
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              teamMemberService.getPageOfTeamMembers(arn)(1, 10).flatMap(paginatedList =>
-                sessionCacheService.get(RETURN_URL).map(returnUrl =>
-                  Ok(
-                    select_paginated_team_members(
-                      paginatedList.pageContent,
-                      groupName,
-                      backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
-                      form = formWithErrors,
-                      paginationMetaData = Some(paginatedList.paginationMetaData)
+              teamMemberService
+                .getPageOfTeamMembers(arn)(1, 10)
+                .flatMap(paginatedList =>
+                  sessionCacheService.get(RETURN_URL).map(returnUrl =>
+                    Ok(
+                      select_paginated_team_members(
+                        paginatedList.pageContent,
+                        groupName,
+                        backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
+                        form = formWithErrors,
+                        paginationMetaData = Some(paginatedList.paginationMetaData)
+                      )
                     )
                   )
                 )
-              )
             },
             formData => {
               teamMemberService

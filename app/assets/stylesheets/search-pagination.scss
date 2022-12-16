@@ -1,0 +1,118 @@
+/* Search pagination START */
+
+@media (min-width: 48.0625em) {
+  nav.pagination-nav {
+    margin-left: -5px;
+    margin-right: -5px;
+    font-size: 0;
+    /* text-align: justify; */
+    &:after {
+      content: '';
+      display: inline-block;
+      width: 100%;
+    }
+  }
+}
+
+.pagination_list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 48.0625em) {
+  .pagination_list {
+    display: inline-block;
+    margin-bottom: 0;
+    vertical-align: middle;
+  }
+}
+
+@media (min-width: 48.0625em) {
+  nav.pagination-nav__results {
+    display: inline-block;
+    margin-bottom: 0;
+    vertical-align: middle;
+  }
+}
+
+.pagination_item {
+  font-family: "GDS Transport", arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  font-size: 16px;
+  font-size: 1rem;
+  line-height: 1.25;
+  display: inline-block;
+  margin-left: 10px;
+
+  span.current-page {
+    display: block;
+    padding: 0.263em;
+    text-align: center;
+    text-decoration: none;
+    min-width: 1.3em;
+    font-weight: 700;
+    outline: 1px solid rgba(0, 0, 0, 0);
+    background-color: #1d70b8;
+    color: white;
+  }
+
+  a.pagination_link, .submit-as-link {
+    &:hover {
+      background-color: #f3f2f1;
+    }
+  }
+
+}
+
+a.pagination_link, .submit-as-link {
+  padding: 0.263em;
+  background: none;
+  border: none;
+  color: #1a0dab;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: #1a0dab;
+    text-decoration-thickness: 3px;
+  }
+
+  &:focus {
+    outline: 3px solid rgba(0, 0, 0, 0);
+    color: #0b0c0c;
+    background-color: #fd0;
+    -webkit-box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+    box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+    text-decoration: none;
+  }
+}
+
+@media print {
+  .pagination_item {
+    font-family: sans-serif;
+  }
+}
+
+@media (min-width: 40.0625em) {
+  .pagination_item {
+    font-size: 19px;
+    font-size: 1.1875rem;
+    line-height: 1.31579;
+  }
+}
+
+@media print {
+  .pagination_item {
+    font-size: 14pt;
+    line-height: 1.15;
+  }
+}
+
+
+.govuk-pagination__item.govuk-pagination__item--current {
+  color: white;
+}
+/* Search pagination END */

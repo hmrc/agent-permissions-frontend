@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.components.pagination.POST_pagination_li
 
-@this(p: p, submit_as_link: submit_as_link,pagination_li: POST_pagination_li)
+@this(p: p, submit_as_link: submit_as_link,POST_pagination_li: POST_pagination_li)
 
 @(
     pagination: PaginationMetaData,
@@ -44,12 +44,12 @@
 
   @if(pagination.totalPages < 20) {
    @for(pageNum <- 1 to pagination.totalPages) {
-    @pagination_li(pagination, pageNum)
+    @POST_pagination_li(pagination, pageNum)
    }
   } else {
    @defining(2: Int) { numPagesAtEnds =>
     @for(pageNum <- 1 to numPagesAtEnds) {
-     @pagination_li(pagination, pageNum)
+     @POST_pagination_li(pagination, pageNum)
     }
     @if(pagination.currentPageNumber > (numPagesAtEnds + 2)) {
      <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
@@ -57,13 +57,13 @@
     @for(pageNum <- Math.max(numPagesAtEnds + 1, pagination.currentPageNumber - numPagesAtEnds) to
             Math.min(pagination.totalPages - (numPagesAtEnds + 1),
              pagination.currentPageNumber + numPagesAtEnds)) {
-     @pagination_li(pagination, pageNum)
+     @POST_pagination_li(pagination, pageNum)
     }
     @if(pagination.currentPageNumber < pagination.totalPages - (numPagesAtEnds + 2)) {
      <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
     }
     @for(pageNum <- (pagination.totalPages - numPagesAtEnds + 1) to pagination.totalPages) {
-     @pagination_li(pagination, pageNum)
+     @POST_pagination_li(pagination, pageNum)
     }
    }
   }

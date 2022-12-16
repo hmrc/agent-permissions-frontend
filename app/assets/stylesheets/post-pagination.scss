@@ -1,0 +1,28 @@
+
+/* Make Pagination as per design system work for buttons that POST rather than just links */
+.govuk-pagination__item, .govuk-pagination__next, .govuk-pagination__prev{
+  &:hover{
+    button.pagination__link{
+      text-decoration-thickness: 3px;
+    }
+  }
+  button.govuk-pagination__link{
+    font-weight: bold;
+  }
+
+  button.pagination__link, button.govuk-pagination__link{
+    padding: 0.263em;
+    background: none;
+    border: none;
+    color: #1a0dab;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0 5px;
+    margin: 0;
+    font-size: 19px;
+    &:hover{
+      text-decoration-thickness: 3px;
+    }
+  }
+}
+/* end POST pagination for buttons */

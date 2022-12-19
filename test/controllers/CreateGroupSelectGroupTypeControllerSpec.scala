@@ -118,7 +118,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupController.showGroupName.url)
+      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectNameController.showGroupName.url)
     }
 
     "redirect when answer is 'false'/'Access group based on tax service'" in {

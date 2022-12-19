@@ -86,8 +86,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   val memberId: String = teamMembers.head.id
 
   val groupSummaries = Seq(
-    GroupSummary("groupId", "groupName", 33, 9),
-    GroupSummary("groupId-1", "groupName-1", 3, 0)
+    GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true),
+    GroupSummary("groupId-1", "groupName-1", Some(3), 1, isCustomGroup = true)
   )
   private val ctrlRoute: ReverseManageTeamMemberController = routes.ManageTeamMemberController
 

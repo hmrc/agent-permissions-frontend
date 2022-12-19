@@ -141,7 +141,7 @@ class AgentPermissionsConnectorSpec
     "return groups successfully" in {
       //given
       val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", 33, 9)
+        GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true)
       )
 
       val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/${client.enrolmentKey}/groups"
@@ -183,7 +183,7 @@ class AgentPermissionsConnectorSpec
     "return groups successfully" in {
       //given
       val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", 33, 9)
+        GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true)
       )
 
       val agentUserId = agentUser.id
@@ -230,11 +230,11 @@ class AgentPermissionsConnectorSpec
     }
   }
 
-  "GET Group summaries" should {
+  "GET custom group summaries" should {
 
     "return successfully" in {
       //given
-      val groupSummaries = Seq(GroupSummary("groupId", "groupName", 33, 9))
+      val groupSummaries = Seq(GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true))
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/arn/${arn.value}/groupsOnly"
@@ -256,6 +256,37 @@ class AgentPermissionsConnectorSpec
       //then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.groups(arn))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "GET all group summaries" should {
+
+    "return successfully" in {
+      //given
+      val groupSummaries = Seq(GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true), GroupSummary("groupId2", "VAT", None, 9, isCustomGroup = false))
+
+      val expectedUrl =
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/all-groups"
+      val mockJsonResponseBody = Json.toJson(groupSummaries).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //then
+      connector.getGroupSummaries(arn).futureValue shouldBe groupSummaries
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      //given
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      expectHttpClientGET[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.getGroupSummaries(arn))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }

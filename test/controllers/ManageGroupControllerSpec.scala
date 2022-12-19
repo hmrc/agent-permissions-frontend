@@ -105,7 +105,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
       expectGetGroupsForArn(arn)(groupSummaries)
       expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
       //when
@@ -194,7 +194,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
-      val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", i * 3, i * 4))
+      val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4, isCustomGroup = true))
       expectGetGroupsForArn(arn)(expectedGroupSummaries)
       val searchTerm = expectedGroupSummaries(0).groupName
       val requestWithQuery = FakeRequest(GET,

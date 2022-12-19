@@ -68,7 +68,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
   val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
-    GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+    GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
 
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
 
@@ -359,7 +359,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
     "render html with the available groups for these unassigned clients" in {
       //given
       val groupSummaries = (1 to 3).map(i =>
-        GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+        GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -464,7 +464,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
       //given
-      val groupSummaries = (1 to 2).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val groupSummaries = (1 to 2).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
       val expectedGroupAddedTo = groupSummaries(0)
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -493,7 +493,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "show errors when nothing selected" in {
       //given
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -523,7 +523,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
     "show errors when both createNew and existing groups are selected" in {
       //given
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", i * 3, i * 4))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",

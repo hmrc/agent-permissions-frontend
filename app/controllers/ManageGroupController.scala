@@ -60,22 +60,19 @@ class ManageGroupController @Inject()(
       isOptedIn(arn) { _ =>
         groupService.groups(arn).map { groupSummaries =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-          searchFilter.submit.fold( {//i.e. regular page load with no params{
-              sessionCacheService.deleteAll(teamMemberFilteringKeys ++ clientFilteringKeys)
-              Ok(dashboard(groupSummaries, SearchAndFilterForm.form()))
-            }
-          )(submitButton =>
-            //either the 'filter' button or the 'clear' filter button was clicked
-            submitButton match {
-              case FILTER_BUTTON =>
-                val searchTerm = searchFilter.search.getOrElse("")
-                val filteredGroupSummaries = groupSummaries
-                  .filter(_.groupName.toLowerCase.contains(searchTerm.toLowerCase))
-                Ok(dashboard(filteredGroupSummaries, SearchAndFilterForm.form().fill(searchFilter)))
-              case CLEAR_BUTTON =>
-                Redirect(routes.ManageGroupController.showManageGroups)
-            }
-          )
+          searchFilter.submit.fold({ //i.e. regular page load with no params
+            sessionCacheService.deleteAll(teamMemberFilteringKeys ++ clientFilteringKeys)
+            Ok(dashboard(groupSummaries, SearchAndFilterForm.form()))
+          }
+          ) { //either the 'filter' button or the 'clear' filter button was clicked
+            case FILTER_BUTTON =>
+              val searchTerm = searchFilter.search.getOrElse("")
+              val filteredGroupSummaries = groupSummaries
+                .filter(_.groupName.toLowerCase.contains(searchTerm.toLowerCase))
+              Ok(dashboard(filteredGroupSummaries, SearchAndFilterForm.form().fill(searchFilter)))
+            case CLEAR_BUTTON =>
+              Redirect(routes.ManageGroupController.showManageGroups)
+          }
         }
       }
     }

@@ -1,0 +1,53 @@
+@*
+ * Copyright 2022 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.components.models.{LegendData, RadioData}
+@import views.html.main_layout
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1,
+    radioButtons: radioButtons,
+    submit_button: submit_button,
+    formWithCSRF: FormWithCSRF
+)
+
+@(form: Form[Boolean], groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@layout(
+    title = msgs("group.confirm.h1", groupName),
+    formErrors = form.errors,
+    backLinkHref = Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
+) {
+    @h1("group.confirm.h1")
+
+    @formWithCSRF(action = routes.CreateGroupSelectNameController.submitConfirmGroupName) {
+
+        @radioButtons(
+            field = form("answer"),
+            items = Seq(
+                RadioData("true", "common.yes.label"),
+                RadioData("false", "common.no.label", id = Some("answer-no"))
+            ),
+            legend = Some(LegendData(msg = msgs("group.confirm.name.label", groupName))),
+            classes = "govuk-radios--inline"
+        )
+
+        @submit_button("save.and.continue.button")
+    }
+}

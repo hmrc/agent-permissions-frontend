@@ -31,6 +31,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext}
 
 @Singleton
+@Deprecated
 class CreateGroupController @Inject()(
      groupAction: GroupAction,
      authAction: AuthAction,

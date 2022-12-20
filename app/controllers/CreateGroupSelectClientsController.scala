@@ -27,7 +27,7 @@ import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
-import views.html.groups.create._
+import views.html.groups.create.clients._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext

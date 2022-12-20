@@ -26,7 +26,7 @@ import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import utils.ViewUtils
-import views.html.groups.create.{review_group_type, select_group_tax_type, select_group_type}
+import views.html.groups.create.groupType.{review_group_type, select_group_tax_type, select_group_type}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -68,7 +68,7 @@ class CreateGroupSelectGroupTypeController @Inject()
           Ok(select_group_type(formWithErrors)),
         (isCustomGroupType: Boolean) => {
           if (isCustomGroupType) {
-            Redirect(controllers.routes.CreateGroupController.showGroupName)
+            Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName)
           } else {
             Redirect(ctrlRoutes.showSelectTaxServiceGroupType)
           }

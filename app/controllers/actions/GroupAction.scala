@@ -19,7 +19,7 @@ package controllers.actions
 import config.AppConfig
 import controllers._
 import play.api.mvc.Results.{NotFound, Redirect}
-import play.api.mvc.{AnyContent, MessagesRequest, Result}
+import play.api.mvc.{AnyContent, Call, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
@@ -57,12 +57,25 @@ class GroupAction @Inject()
     }
   }
 
+  @Deprecated // use withGroupNameAndAuthorised for the new flow
   def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])
                                                   (implicit ec: ExecutionContext, hc: HeaderCarrier,
                                                    request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         maybeGroupName.fold(Redirect(controllers.routes.CreateGroupController.showGroupName).toFuture) {
+          groupName => body(groupName, arn)
+        }
+      }
+    }
+  }
+
+  def withGroupNameAndAuthorised(body: (String, Arn) => Future[Result])
+                                          (implicit ec: ExecutionContext, hc: HeaderCarrier,
+                                           request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+    authAction.isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
+        maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
           groupName => body(groupName, arn)
         }
       }

@@ -87,8 +87,8 @@ class ManageClientControllerSpec extends BaseSpec {
   val clientId: String = displayClientsIds.head
 
   val groupSummaries = Seq(
-    GroupSummary("groupId", "groupName", 33, 9),
-    GroupSummary("groupId-1", "groupName-1", 3, 0)
+    GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true),
+    GroupSummary("groupId-1", "groupName-1", Some(3), 1, isCustomGroup = true)
   )
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"

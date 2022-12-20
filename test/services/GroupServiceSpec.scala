@@ -52,8 +52,8 @@ class GroupServiceSpec extends BaseSpec {
 
       //given
       val groupSummaries = Seq(
-        GroupSummary("2", "Carrots", 1, 1),
-        GroupSummary("3", "Potatoes", 1, 1),
+        GroupSummary("2", "Carrots", Some(1), 1, isCustomGroup = true),
+        GroupSummary("3", "Potatoes", Some(1), 1, isCustomGroup = true),
       )
 
       (mockAgentPermissionsConnector
@@ -145,8 +145,8 @@ class GroupServiceSpec extends BaseSpec {
 
       //given
       val groupSummaries = Seq(
-        GroupSummary("2", "Carrots", 1, 1),
-        GroupSummary("3", "Potatoes", 1, 1),
+        GroupSummary("2", "Carrots", Some(1), 1, isCustomGroup = true),
+        GroupSummary("3", "Potatoes", Some(1), 1, isCustomGroup = true),
       )
       val expectedClient = DisplayClient("hmrc","Bob","tax", "ident")
 

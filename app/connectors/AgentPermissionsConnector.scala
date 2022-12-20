@@ -56,6 +56,9 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def groups(arn: Arn)
             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
+  def getGroupSummaries(arn: Arn)
+            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+
   def unassignedClients(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
@@ -184,6 +187,19 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   def groups(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
     monitor("ConsumedAPI-groupSummaries-GET") {
+      http.GET[HttpResponse](url).map { response: HttpResponse =>
+        response.status match {
+          case OK => response.json.as[Seq[GroupSummary]]
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error getting custom summaries for arn $arn, from $url", anyOtherStatus)
+        }
+      }
+    }
+  }
+
+  def getGroupSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/all-groups"
+    monitor("ConsumedAPI-allGroupSummaries-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
         response.status match {
           case OK => response.json.as[Seq[GroupSummary]]
@@ -347,19 +363,13 @@ case object GroupRequest {
 
 case class GroupSummary(groupId: String,
                         groupName: String,
-                        clientCount: Int,
-                        teamMemberCount: Int)
+                        clientCount: Option[Int],
+                        teamMemberCount: Int,
+                        isCustomGroup: Boolean)
 
 case object GroupSummary {
   implicit val formatCreateAccessGroupRequest: OFormat[GroupSummary] =
     Json.format[GroupSummary]
-}
-
-case class AccessGroupSummaries(groups: Seq[GroupSummary],
-                                unassignedClients: Set[Client])
-
-object AccessGroupSummaries {
-  implicit val format: OFormat[AccessGroupSummaries] = Json.format[AccessGroupSummaries]
 }
 
 case class UpdateAccessGroupRequest(

@@ -29,7 +29,11 @@
         summaryErrors: SummaryErrors
 )
 
-@(summaries: Seq[GroupSummary], filterGroupSummaryForm: Form[SearchFilter])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    summaries: Seq[GroupSummary],
+    filterGroupSummaryForm: Form[SearchFilter],
+    taxGroupData: Option[Map[String, Int]] = None
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(title = msgs("group.manage.h1"),
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
@@ -73,7 +77,7 @@
                 Seq(
                     SummaryListData(
                         "common.clients",
-                        summary.clientCount.toString,
+                        summary.clientCount.getOrElse("Tax group data").toString,
                         routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
                         linkMsgKey = "group.manage.clients",
                         linkClasses = Some("govuk-!-width-one-half"),

@@ -68,7 +68,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
     "render correctly the html" in {
       //given
-      val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+      val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4, isCustomGroup = true))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -109,7 +109,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "render correctly when client not in any groups yet" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4, isCustomGroup = true))
       val groupsAlreadyAssociatedToClient = Seq.empty
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -145,7 +145,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "render correctly when no available groups" in {
       //given
       val groupSummaries = (1 to 2)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4, isCustomGroup = true))
       val groupsAlreadyAssociatedToClient = groupSummaries
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -183,7 +183,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       s"At least 1 checkbox is checked for the group to add to" in {
         //given
         val groupSummaries = (1 to 5)
-          .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+          .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4, isCustomGroup = true))
 
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(true)
@@ -219,7 +219,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "display error when no groups are selected" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4, isCustomGroup = true))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -255,7 +255,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "render correctly the html" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", i * 3, i * 4))
+        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4, isCustomGroup = true))
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))

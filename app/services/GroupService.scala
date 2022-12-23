@@ -19,15 +19,15 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, UpdateAccessGroupRequest}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, PaginatedList, UserDetails, AccessGroupSummary => GroupSummary}
 import controllers._
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, UserDetails}
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.PaginatedListBuilder
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -51,7 +51,9 @@ trait GroupService {
   def deleteGroup(groupId: String)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def groups(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+  def getGroupSummaries(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+
+  def getPaginatedGroupSummaries(arn: Arn)(page: Int = 1, pageSize: Int = 5)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[GroupSummary]]
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
                              (implicit request: Request[_],
@@ -95,9 +97,16 @@ class GroupServiceImpl @Inject()(
       groupTeamMembersSelected = groupTeamMembers.map(_.copy(selected = true)) // makes them selected
     } yield groupTeamMembersSelected
 
-  def groups(arn: Arn)
+  def getGroupSummaries(arn: Arn)
             (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
-  : Future[Seq[GroupSummary]] = agentPermissionsConnector.groups(arn)
+  : Future[Seq[GroupSummary]] = agentPermissionsConnector.getGroupSummaries(arn)
+
+  def getPaginatedGroupSummaries(arn: Arn)(page: Int = 1, pageSize: Int = 5)
+                       (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[PaginatedList[GroupSummary]] =
+    for {
+      summaries <- agentPermissionsConnector.getGroupSummaries(arn)
+    } yield PaginatedListBuilder.build[GroupSummary](page, pageSize, summaries)
 
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
     for {

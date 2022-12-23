@@ -47,7 +47,7 @@ trait GroupServiceMocks extends MockFactory {
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .groups(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getGroupSummaries(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future.successful(groups)).once()
 

@@ -48,7 +48,7 @@ class GroupServiceSpec extends BaseSpec {
       UserDetails(Some(s"John $i"), Some("User"), Some(s"John $i name"), Some(s"john$i@abc.com"))
     }
 
-  "get groups" should {
+  "get group summaries" should {
     "Return groups from agentPermissionsConnector" in {
 
       //given
@@ -58,12 +58,12 @@ class GroupServiceSpec extends BaseSpec {
       )
 
       (mockAgentPermissionsConnector
-        .groups(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful groupSummaries).once()
 
       //when
-      val summaries = await(service.groups(arn))
+      val summaries = await(service.getGroupSummaries(arn))
 
       //then
       summaries shouldBe groupSummaries

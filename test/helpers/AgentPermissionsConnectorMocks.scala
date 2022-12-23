@@ -19,6 +19,7 @@ package helpers
 import akka.Done
 import connectors.{AgentPermissionsConnector, GroupRequest, UpdateAccessGroupRequest}
 import models.DisplayClient
+import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, OptinStatus}
@@ -83,7 +84,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
   def expectGetGroupSummarySuccess(arn: Arn, summaries: Seq[GroupSummary])(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .groups(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful summaries)
 
@@ -136,13 +137,13 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
   def expectUpdateGroupSuccess(id: String, updateGroupRequest: UpdateAccessGroupRequest)(
-    implicit agentPermissionsConnector: AgentPermissionsConnector)=
+    implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler4[String, UpdateAccessGroupRequest, HeaderCarrier, ExecutionContext, Future[Done]] =
     (agentPermissionsConnector.updateGroup(_: String, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, updateGroupRequest, *, *)
       .returning(Future successful Done).once()
 
   def expectDeleteGroupSuccess(id: String)(
-    implicit agentPermissionsConnector: AgentPermissionsConnector)=
+    implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler3[String, HeaderCarrier, ExecutionContext, Future[Done]] =
     (agentPermissionsConnector.deleteGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful Done)

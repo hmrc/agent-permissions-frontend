@@ -54,9 +54,6 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                  (groupRequest: GroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def groups(arn: Arn)
-            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
-
   def getGroupSummaries(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
@@ -184,19 +181,6 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
             throw UpstreamErrorResponse(
               s"error posting createGroup request to $url",
               anyOtherStatus)
-        }
-      }
-    }
-  }
-
-  def groups(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
-    monitor("ConsumedAPI-groupSummaries-GET") {
-      http.GET[HttpResponse](url).map { response: HttpResponse =>
-        response.status match {
-          case OK => response.json.as[Seq[GroupSummary]]
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error getting custom summaries for arn $arn, from $url", anyOtherStatus)
         }
       }
     }

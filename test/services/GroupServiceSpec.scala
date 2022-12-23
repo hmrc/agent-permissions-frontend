@@ -23,8 +23,7 @@ import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, UserDetails}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
@@ -71,7 +70,7 @@ class GroupServiceSpec extends BaseSpec {
   }
 
   "get paginated group summaries" should {
-    "Return first page of summaries" in {
+    "Return first page of summaries as paginated list" in {
       //given
       val groupSummaries = (1 to 8)
         .map { i =>
@@ -87,10 +86,17 @@ class GroupServiceSpec extends BaseSpec {
       val summaries = await(service.getPaginatedGroupSummaries(arn)())
 
       //then
-      summaries shouldBe groupSummaries.take(5)
+      summaries shouldBe PaginatedList[GroupSummary](groupSummaries.take(5),
+        PaginationMetaData(lastPage = false,
+          firstPage = true,
+          totalSize = 8,
+          totalPages = 2,
+          pageSize = 5,
+          currentPageNumber = 1,
+          currentPageSize = 5))
     }
 
-    "Return second page of summaries" in {
+    "Return second page of summaries as paginated list" in {
       //given
       val groupSummaries = (1 to 8)
         .map { i =>
@@ -106,7 +112,14 @@ class GroupServiceSpec extends BaseSpec {
       val summaries = await(service.getPaginatedGroupSummaries(arn)(2))
 
       //then
-      summaries shouldBe groupSummaries.take(3)
+      summaries shouldBe PaginatedList[GroupSummary](groupSummaries.takeRight(3),
+        PaginationMetaData(lastPage = true,
+          firstPage = false,
+          totalSize = 8,
+          totalPages = 2,
+          pageSize = 5,
+          currentPageNumber = 2,
+          currentPageSize = 3))
     }
 
   }

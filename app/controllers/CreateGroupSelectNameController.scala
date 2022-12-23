@@ -110,7 +110,7 @@ class CreateGroupSelectNameController @Inject()(
                   nameAvailable =>
                     if (nameAvailable)
                       sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true).map(_=>
-                        Redirect(routes.CreateGroupSelectClientsController.showSelectClients(None, None))
+                        Redirect(routes.CreateGroupSelectClientsController.showSearchClients)
                       )
                     else
                       Redirect(controller.showAccessGroupNameExists).toFuture)

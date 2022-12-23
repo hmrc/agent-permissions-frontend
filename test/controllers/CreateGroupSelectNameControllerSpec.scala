@@ -268,7 +268,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showAccessGroupNameExists.url
     }
 
-    "redirect to add-clients page when Confirm access group name 'yes' selected" in {
+    "redirect to search clients page when Confirm access group name 'yes' selected" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGroupNameCheck(ok = true)(arn, groupName)
@@ -285,7 +285,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None)
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectClientsController.showSearchClients
         .url)
     }
 

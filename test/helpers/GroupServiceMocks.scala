@@ -29,8 +29,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait GroupServiceMocks extends MockFactory {
 
-  def expectGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(
-    implicit groupService: GroupService): Unit =
+  def expectGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])
+                                   (implicit groupService: GroupService): Unit =
     (groupService
       .getTeamMembersFromGroup(_: Arn)(_: Seq[TeamMember])
       (_: HeaderCarrier, _: ExecutionContext))

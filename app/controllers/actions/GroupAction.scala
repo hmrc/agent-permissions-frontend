@@ -19,7 +19,7 @@ package controllers.actions
 import config.AppConfig
 import controllers._
 import play.api.mvc.Results.{NotFound, Redirect}
-import play.api.mvc.{AnyContent, Call, MessagesRequest, Result}
+import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}

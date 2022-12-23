@@ -59,7 +59,7 @@ class CreateGroupSelectClientsController @Inject()
 
 
   def showSearchClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           Ok(
@@ -75,7 +75,7 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def submitSearchClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       SearchAndFilterForm
         .form()
         .bindFromRequest
@@ -91,7 +91,7 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def showSelectClients(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(20)).map { paginatedClients =>
@@ -111,7 +111,7 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
@@ -169,7 +169,7 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def showReviewSelectedClients(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(
           Redirect(controller.showSearchClients).toFuture
@@ -206,7 +206,7 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def submitReviewSelectedClients(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
+    withGroupNameAndAuthorised { (groupName, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
           maybeClients.fold(Redirect(controller.showSearchClients).toFuture)(

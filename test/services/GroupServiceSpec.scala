@@ -67,9 +67,48 @@ class GroupServiceSpec extends BaseSpec {
 
       //then
       summaries shouldBe groupSummaries
-
-
     }
+  }
+
+  "get paginated group summaries" should {
+    "Return first page of summaries" in {
+      //given
+      val groupSummaries = (1 to 8)
+        .map { i =>
+          GroupSummary(s"$i", s"Carrots$i", Some(1), 1, isCustomGroup = true)
+        }
+
+      (mockAgentPermissionsConnector
+        .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future successful groupSummaries).once()
+
+      //when
+      val summaries = await(service.getPaginatedGroupSummaries(arn)())
+
+      //then
+      summaries shouldBe groupSummaries.take(5)
+    }
+
+    "Return second page of summaries" in {
+      //given
+      val groupSummaries = (1 to 8)
+        .map { i =>
+          GroupSummary(s"$i", s"Carrots$i", Some(1), 1, isCustomGroup = true)
+        }
+
+      (mockAgentPermissionsConnector
+        .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, *, *)
+        .returning(Future successful groupSummaries).once()
+
+      //when
+      val summaries = await(service.getPaginatedGroupSummaries(arn)(2))
+
+      //then
+      summaries shouldBe groupSummaries.take(3)
+    }
+
   }
 
   "update groups" should {

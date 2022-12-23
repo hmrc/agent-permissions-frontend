@@ -17,12 +17,13 @@
 package helpers
 
 import akka.Done
-import connectors.{AddMembersToAccessGroupRequest, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, UpdateAccessGroupRequest}
 import models.{DisplayClient, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}

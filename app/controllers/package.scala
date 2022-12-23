@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import connectors.GroupSummary
 import models.{DisplayClient, TeamMember}
 import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future

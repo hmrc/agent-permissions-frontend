@@ -18,7 +18,8 @@ package services
 
 import akka.Done
 import com.google.inject.ImplementedBy
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, UpdateAccessGroupRequest}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import controllers._
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}

@@ -17,11 +17,12 @@
 package helpers
 
 import akka.Done
-import connectors.{AgentPermissionsConnector, GroupRequest, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AgentPermissionsConnector, GroupRequest, UpdateAccessGroupRequest}
 import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}

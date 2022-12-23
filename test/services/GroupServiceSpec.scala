@@ -17,13 +17,14 @@
 package services
 
 import akka.Done
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
 import helpers.BaseSpec
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime

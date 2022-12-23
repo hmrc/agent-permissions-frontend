@@ -279,7 +279,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.showSelectClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
     }
   }
 
@@ -448,7 +448,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       // then
       status(result) shouldBe SEE_OTHER
-      Helpers.redirectLocation(result) shouldBe Some(routes.CreateGroupController.showGroupName.url)
+      Helpers.redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName.url)
     }
   }
 
@@ -512,7 +512,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.showReviewSelectedClients(None, None)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
     }
   }
 

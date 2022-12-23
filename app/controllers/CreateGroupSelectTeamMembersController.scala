@@ -17,16 +17,20 @@
 package controllers
 
 import config.AppConfig
-import controllers.actions.{GroupAction, SessionAction}
+import connectors.CreateTaxServiceGroupRequest
+import controllers.actions.{AuthAction, GroupAction, OptInStatusAction, SessionAction}
 import forms.{AddTeamMembersToGroupForm, YesNoForm}
+import models.TeamMember.toAgentUser
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.{GroupService, SessionCacheService, TeamMemberService}
+import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.ViewUtils.getTaxServiceName
 import views.html.groups.create.members.{review_members_paginated, select_paginated_team_members}
+import views.html.groups.group_created
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -35,34 +39,38 @@ import scala.concurrent.ExecutionContext
 class CreateGroupSelectTeamMembersController @Inject()
 (
   groupAction: GroupAction,
+  authAction: AuthAction,
+  optInStatusAction: OptInStatusAction,
   sessionAction: SessionAction,
   teamMemberService: TeamMemberService,
+  taxGroupService: TaxGroupService,
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
-  val groupService: GroupService,
+  group_created: group_created,
   select_paginated_team_members: select_paginated_team_members,
   review_members_paginated: review_members_paginated,
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
+  import authAction.isAuthorisedAgent
   import groupAction._
+  import optInStatusAction.isOptedInWithSessionItem
   import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
-
+  private val selectClientsController: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
 
   def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
-        withSessionItem[String](RETURN_URL) { returnUrl =>
-          teamMemberService
-            .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(10))
-            .map { paginatedList =>
+        teamMemberService
+          .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(10))
+          .map { paginatedList =>
             Ok(
               select_paginated_team_members(
                 paginatedList.pageContent,
                 groupName,
-                backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
+                backUrl = Some(selectClientsController.showReviewSelectedClients(None, None).url),
                 form = AddTeamMembersToGroupForm.form().fill(
                   AddTeamMembersToGroup(
                     search = teamMemberSearchTerm
@@ -72,13 +80,12 @@ class CreateGroupSelectTeamMembersController @Inject()
               )
             )
           }
-        }
       }
     }
   }
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
@@ -88,16 +95,14 @@ class CreateGroupSelectTeamMembersController @Inject()
             formWithErrors => {
               teamMemberService
                 .getPageOfTeamMembers(arn)(1, 10)
-                .flatMap(paginatedList =>
-                  sessionCacheService.get(RETURN_URL).map(returnUrl =>
-                    Ok(
-                      select_paginated_team_members(
-                        paginatedList.pageContent,
-                        groupName,
-                        backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
-                        form = formWithErrors,
-                        paginationMetaData = Some(paginatedList.paginationMetaData)
-                      )
+                .map(paginatedList =>
+                  Ok(
+                    select_paginated_team_members(
+                      paginatedList.pageContent,
+                      groupName,
+                      backUrl = Some(selectClientsController.showReviewSelectedClients(None, None).url),
+                      form = formWithErrors,
+                      paginationMetaData = Some(paginatedList.paginationMetaData)
                     )
                   )
                 )
@@ -112,20 +117,20 @@ class CreateGroupSelectTeamMembersController @Inject()
                       Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
                     } else {
                       // render page with empty selection error
-                      for {
-                        paginatedList <- teamMemberService.getPageOfTeamMembers(arn)()
-                        returnUrl <- sessionCacheService.get(RETURN_URL)
-                      } yield
-                        Ok(
-                          select_paginated_team_members(
-                            paginatedList.pageContent,
-                            groupName,
-                            backUrl = Some(returnUrl.getOrElse(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)),
-                            form = AddTeamMembersToGroupForm
-                              .form()
-                              .fill(AddTeamMembersToGroup(search = formData.search))
-                              .withError("members", "error.select-members.empty"),
-                            paginationMetaData = Some(paginatedList.paginationMetaData)
+                      teamMemberService
+                        .getPageOfTeamMembers(arn)()
+                        .map(paginatedList =>
+                          Ok(
+                            select_paginated_team_members(
+                              paginatedList.pageContent,
+                              groupName,
+                              backUrl = Some(selectClientsController.showReviewSelectedClients(None, None).url),
+                              form = AddTeamMembersToGroupForm
+                                .form()
+                                .fill(AddTeamMembersToGroup(search = formData.search))
+                                .withError("members", "error.select-members.empty"),
+                              paginationMetaData = Some(paginatedList.paginationMetaData)
+                            )
                           )
                         )
                     }
@@ -144,7 +149,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   }
 
   def showReviewSelectedTeamMembers(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers.fold(
           Redirect(controller.showSelectTeamMembers(None, None)).toFuture
@@ -169,7 +174,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   }
 
   def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameForAuthorisedOptedAgent { (groupName, _) =>
+    withGroupNameAndAuthorised { (groupName, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers
           .fold(
@@ -195,10 +200,36 @@ class CreateGroupSelectTeamMembersController @Inject()
                   if (yes)
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                   else
-                    Redirect(routes.CreateGroupController.showCheckYourAnswers).toFuture
+                    sessionCacheService
+                      .get[String](GROUP_SERVICE_TYPE)
+                      .flatMap(maybeService => {
+                        val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType
+                        maybeService.fold(Redirect(startAgainRoute).toFuture)(service => {
+                          val groupName = getTaxServiceName(service)
+                          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service)
+                          taxGroupService
+                            .createGroup(arn, req)
+                            .flatMap(_ =>
+                              for {
+                                _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
+                                _ <- sessionCacheService.deleteAll(creatingGroupKeys)
+                              } yield Redirect(controller.showGroupCreated)
+                            )
+                        }
+                        )
+                      }
+                      )
                 }
               )
           }
+      }
+    }
+  }
+
+  def showGroupCreated: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) { maybeGroupName =>
+        Ok(group_created(maybeGroupName.getOrElse(""))).toFuture
       }
     }
   }

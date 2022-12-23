@@ -24,7 +24,6 @@ import config.AppConfig
 import models.DisplayClient
 import play.api.Logging
 import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
-import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
@@ -39,6 +38,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   val http: HttpClient
+
 
   def getOptInStatus(arn: Arn)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
@@ -57,7 +57,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def getGroupSummaries(arn: Arn)
-            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def unassignedClients(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
@@ -85,6 +85,10 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
 
   def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
+
+  def createTaxServiceGroup(arn: Arn)
+                           (createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
 }
 
 @Singleton
@@ -97,8 +101,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   private lazy val baseUrl = appConfig.agentPermissionsBaseUrl
 
   override def getOptInStatus(arn: Arn)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[OptinStatus]] = {
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[OptinStatus]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin-status"
     monitor("ConsumedAPI-GetOptinStatus-GET") {
       http.GET[HttpResponse](url).map { response =>
@@ -113,7 +117,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier,
-                      ec: ExecutionContext): Future[Done] = {
+                                            ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/optin" + lang.fold("")("?lang=" + _)
     monitor("ConsumedAPI-optin-POST") {
       http.POSTEmpty[HttpResponse](url).map { response =>
@@ -149,8 +153,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   def groupNameCheck(arn: Arn, name: String)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Boolean] = {
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Boolean] = {
 
     val encodedName = URLEncoder.encode(name, UTF_8.name)
     val url =
@@ -159,17 +163,17 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     monitor("ConsumedAPI-accessGroupNameCheck-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
-          case OK       => true
+          case OK => true
           case CONFLICT => false
-          case e        => throw UpstreamErrorResponse("error on groupNameCheck", e)
+          case e => throw UpstreamErrorResponse("error on groupNameCheck", e)
         }
       }
     }
   }
 
   def createGroup(arn: Arn)(groupRequest: GroupRequest)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Done] = {
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
     monitor("ConsumedAPI-createGroup-POST") {
       http.POST[GroupRequest, HttpResponse](url, groupRequest).map { response =>
@@ -226,7 +230,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier,
-                                                            ec: ExecutionContext): Future[Seq[GroupSummary]] = {
+                                                         ec: ExecutionContext): Future[Seq[GroupSummary]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client/$enrolmentKey/groups"
     monitor("ConsumedAPI-groupSummariesForClient-GET") {
       http.GET[HttpResponse](url).map { response: HttpResponse =>
@@ -247,7 +251,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit hc: HeaderCarrier,
-                                                         ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
+                                                             ec: ExecutionContext): Future[Option[Seq[GroupSummary]]] = {
     val userId = agentUser.id
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/team-member/$userId/groups"
     monitor("ConsumedAPI-groupSummariesForTeamMember-GET") {
@@ -339,54 +343,33 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   override def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
     val url = s"$baseUrl/agent-permissions/arn-allowed"
     monitor("ConsumedAPI-GranPermsArnAllowed-GET") {
-      http.GET[HttpResponse](url).map { response =>
-        response.status match {
-          case OK => true
-          case other =>
-            logger.warn(s"ArnAllowed call returned status $other")
-            false
+      http
+        .GET[HttpResponse](url)
+        .map { response =>
+          response.status match {
+            case OK => true
+            case other =>
+              logger.warn(s"ArnAllowed call returned status $other")
+              false
+          }
         }
-      }
     }
   }
 
-}
-
-case class GroupRequest(groupName: String,
-                        teamMembers: Option[Seq[AgentUser]],
-                        clients: Option[Seq[Client]])
-
-case object GroupRequest {
-  implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] =
-    Json.format[GroupRequest]
-}
-
-case class GroupSummary(groupId: String,
-                        groupName: String,
-                        clientCount: Option[Int],
-                        teamMemberCount: Int,
-                        isCustomGroup: Boolean)
-
-case object GroupSummary {
-  implicit val formatCreateAccessGroupRequest: OFormat[GroupSummary] =
-    Json.format[GroupSummary]
-}
-
-case class UpdateAccessGroupRequest(
-    groupName: Option[String] = None,
-    teamMembers: Option[Set[AgentUser]] = None,
-    clients: Option[Set[Client]] = None
-)
-object UpdateAccessGroupRequest {
-  implicit val format: OFormat[UpdateAccessGroupRequest] =
-    Json.format[UpdateAccessGroupRequest]
-}
-
-case class AddMembersToAccessGroupRequest(
-                                           teamMembers: Option[Set[AgentUser]] = None,
-                                          clients: Option[Set[Client]] = None
-                                         )
-
-object AddMembersToAccessGroupRequest {
-  implicit val format: OFormat[AddMembersToAccessGroupRequest] = Json.format[AddMembersToAccessGroupRequest]
+  override def createTaxServiceGroup(arn: Arn)
+                                    (createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
+                                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/tax-group"
+    monitor("ConsumedAPI-createTaxServiceGroup-POST") {
+      http
+        .POST[CreateTaxServiceGroupRequest, HttpResponse](url, createTaxServiceGroupRequest)
+        .map { response =>
+          response.status match {
+            case OK => response.json.asOpt[String].get
+            case CREATED => response.json.asOpt[String].get
+            case anyOtherStatus => throw UpstreamErrorResponse(s"error creating tax service group $url", anyOtherStatus)
+          }
+        }
+    }
+  }
 }

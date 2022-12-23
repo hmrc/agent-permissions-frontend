@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
 
 class AgentPermissionsConnectorSpec
-    extends BaseSpec
+  extends BaseSpec
     with HttpClientMocks
     with AgentPermissionsConnectorMocks {
 
@@ -333,13 +333,13 @@ class AgentPermissionsConnectorSpec
       val agent = AgentUser("agentId", "Bob Builder")
       val accessGroup =
         AccessGroup(arn,
-                    "groupName",
-                    anyDate,
-                    anyDate,
-                    agent,
-                    agent,
-                    Some(Set(agent)),
-                    Some(Set(Client("service~key~value", "friendly"))))
+          "groupName",
+          anyDate,
+          anyDate,
+          agent,
+          agent,
+          Some(Set(agent)),
+          Some(Set(Client("service~key~value", "friendly"))))
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/groups/$groupId"
@@ -381,8 +381,8 @@ class AgentPermissionsConnectorSpec
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
       expectHttpClientPATCH[UpdateAccessGroupRequest, HttpResponse](url,
-                                                            groupRequest,
-                                                            mockResponse)
+        groupRequest,
+        mockResponse)
       connector.updateGroup(groupId, groupRequest).futureValue shouldBe Done
     }
 
@@ -393,8 +393,8 @@ class AgentPermissionsConnectorSpec
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       expectHttpClientPATCH[UpdateAccessGroupRequest, HttpResponse](url,
-                                                            groupRequest,
-                                                            mockResponse)
+        groupRequest,
+        mockResponse)
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
@@ -503,6 +503,30 @@ class AgentPermissionsConnectorSpec
 
         connector.isArnAllowed.futureValue shouldBe false
       }
+    }
+  }
+
+  "post Create Tax Service Group" should {
+
+    "return Group Id when response code is OK/CREATED" in {
+
+      val payload = CreateTaxServiceGroupRequest("Vat group", None, "MTD-VAT")
+      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/tax-group"
+      val mockResponse = HttpResponse.apply(OK, s""" "234234" """)
+      expectHttpClientPOST[CreateTaxServiceGroupRequest, HttpResponse](url, payload, mockResponse)
+      connector.createTaxServiceGroup(arn)(payload).futureValue shouldBe "234234"
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      val payload = CreateTaxServiceGroupRequest("name of group", None, "whatever")
+      val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/tax-group"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, s""" "fail" """)
+      expectHttpClientPOST[CreateTaxServiceGroupRequest, HttpResponse](url, payload, mockResponse)
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.createTaxServiceGroup(arn)(payload))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
   }
 }

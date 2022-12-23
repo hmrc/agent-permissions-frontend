@@ -99,6 +99,7 @@ package object controllers {
       GROUP_NAME_CONFIRMED,
       SELECTED_CLIENTS,
       SELECTED_TEAM_MEMBERS,
+      GROUP_SERVICE_TYPE,
       RETURN_URL,
     )
 

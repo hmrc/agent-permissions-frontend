@@ -26,10 +26,9 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
-import play.api.test.{FakeRequest, Helpers}
-import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
+import services._
 import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -40,12 +39,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
+  implicit val mockTaxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockTeamService: TeamMemberService = mock[TeamMemberService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
-  lazy val sessionCacheRepo: SessionCacheRepository =
-    new SessionCacheRepository(mongoComponent, timestampSupport)
-  private val groupName = "XYZ"
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -56,14 +53,15 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       bind(classOf[ClientService]).toInstance(mockClientService)
       bind(classOf[TeamMemberService]).toInstance(mockTeamService)
       bind(classOf[GroupService]).toInstance(mockGroupService)
+      bind(classOf[TaxGroupService]).toInstance(mockTaxGroupService)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
     }
   }
-
-  override implicit lazy val fakeApplication: Application =
-    appBuilder.configure("mongodb.uri" -> mongoUri).build()
-    
   val controller: CreateGroupSelectTeamMembersController = fakeApplication.injector.instanceOf[CreateGroupSelectTeamMembersController]
+
+  override implicit lazy val fakeApplication: Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
+
+  private val groupName = "XYZ"
 
   val users: Seq[UserDetails] = (1 to 11)
     .map { i =>
@@ -78,6 +76,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
   val teamMembersIds: Seq[String] = teamMembers.map(_.id)
+
+  val vatTaxService = "HMRC-MTD-VAT"
 
   private val ctrlRoute: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
 
@@ -102,7 +102,6 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectGetSessionItemNone(RETURN_URL)
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       val result = controller.showSelectTeamMembers()(request)
@@ -145,7 +144,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, groupName)
-      expectGetSessionItemNone(RETURN_URL)
+
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       val result = controller.showSelectTeamMembers()(request)
@@ -185,7 +184,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, groupName)
-      expectGetSessionItemNone(RETURN_URL)
+
       expectGetPageOfTeamMembers(arn)(Seq.empty) // <- no team members returned from session
 
       val result = controller.showSelectTeamMembers()(request)
@@ -210,28 +209,6 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    "render correct back link when coming from check you answers page" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
-      expectGetPageOfTeamMembers(arn)(teamMembers)
-      // <-- we expect RETURN_URL to be the backLink url
-      expectGetSessionItem(RETURN_URL, routes.CreateGroupController.showCheckYourAnswers.url)
-
-      val result = controller.showSelectTeamMembers()(request)
-
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupController.showCheckYourAnswers.url
-
-    }
-
     "redirect when no group name is in session" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -242,7 +219,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val result = controller.showSelectTeamMembers()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
     }
   }
 
@@ -309,7 +286,6 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       }
 
-
     }
 
     "display error when button is Continue, no team members were selected" in {
@@ -328,7 +304,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, "XYZ")
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
-      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)
+
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       // when
@@ -360,7 +336,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, "XYZ")
       //this currently selected team member will be unselected as part of the post
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
-      expectGetSessionItem(RETURN_URL, routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url)
+
       val emptyForm = AddTeamMembersToGroup(submit = CONTINUE_BUTTON)
       //now no selected members
       expectSavePageOfTeamMembers(emptyForm, Seq.empty[TeamMember])
@@ -426,7 +402,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       // then
       status(result) shouldBe SEE_OTHER
-      Helpers.redirectLocation(result) shouldBe Some(routes.CreateGroupController.showGroupName.url)
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName.url)
     }
   }
 
@@ -509,7 +485,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val result = controller.showReviewSelectedTeamMembers(None, None)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName.url)
     }
   }
 
@@ -524,16 +500,23 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectGetSessionItem(GROUP_NAME, groupName)
+      expectGetSessionItem(GROUP_SERVICE_TYPE, vatTaxService)
+      expectCreateTaxGroup(arn)
+      expectPutSessionItem(NAME_OF_GROUP_CREATED, "VAT")
+      expectDeleteSessionItems(creatingGroupKeys)
+
+      //when
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
+      //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupController.showCheckYourAnswers.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showGroupCreated.url
     }
 
     s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' page with answer 'true'" in {

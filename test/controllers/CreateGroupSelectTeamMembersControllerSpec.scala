@@ -588,4 +588,37 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET ${ctrlRoute.showGroupCreated.url}" should {
+
+    "show the confirmation page" in {
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
+
+      val result = controller.showGroupCreated(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Access group created - Agent services account - GOV.UK"
+      html
+        .select(Css.confirmationPanelH1)
+        .text() shouldBe "Access group created"
+      html
+        .select(Css.confirmationPanelBody)
+        .text() shouldBe "XYZ access group is now active"
+      html.select(Css.H2).text() shouldBe "What happens next"
+      html.select(Css.backLink).size() shouldBe 0
+
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text shouldBe "The team members you selected can now view and manage the tax affairs of all the clients in this access group"
+
+    }
+
+  }
+
 }

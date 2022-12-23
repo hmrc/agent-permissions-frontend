@@ -28,17 +28,6 @@ case object GroupRequest {
     Json.format[GroupRequest]
 }
 
-case class GroupSummary(groupId: String,
-                        groupName: String,
-                        clientCount: Option[Int],
-                        teamMemberCount: Int,
-                        isCustomGroup: Boolean)
-
-case object GroupSummary {
-  implicit val formatCreateAccessGroupRequest: OFormat[GroupSummary] =
-    Json.format[GroupSummary]
-}
-
 case class UpdateAccessGroupRequest(
                                      groupName: Option[String] = None,
                                      teamMembers: Option[Set[AgentUser]] = None,

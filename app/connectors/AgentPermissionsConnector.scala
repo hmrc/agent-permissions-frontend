@@ -26,6 +26,7 @@ import play.api.Logging
 import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -52,9 +53,6 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def createGroup(arn: Arn)
                  (groupRequest: GroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
-
-  def groups(arn: Arn)
-            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def getGroupSummaries(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
@@ -183,19 +181,6 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
             throw UpstreamErrorResponse(
               s"error posting createGroup request to $url",
               anyOtherStatus)
-        }
-      }
-    }
-  }
-
-  def groups(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
-    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/groups"
-    monitor("ConsumedAPI-groupSummaries-GET") {
-      http.GET[HttpResponse](url).map { response: HttpResponse =>
-        response.status match {
-          case OK => response.json.as[Seq[GroupSummary]]
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error getting custom summaries for arn $arn, from $url", anyOtherStatus)
         }
       }
     }

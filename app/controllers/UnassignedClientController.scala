@@ -177,7 +177,7 @@ class UnassignedClientController @Inject()(
   def showSelectGroupsForSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        groupService.groups(arn).map(groups =>
+        groupService.getGroupSummaries(arn).map(groups =>
           Ok(select_groups_for_clients(SelectGroupsForm.form().fill(SelectGroups(None, None)), groups)))
       }
     }
@@ -188,7 +188,7 @@ class UnassignedClientController @Inject()(
       isOptedInComplete(arn) { _ =>
         SelectGroupsForm.form().bindFromRequest().fold(
           formWithErrors => {
-            groupService.groups(arn).map(groups => {
+            groupService.getGroupSummaries(arn).map(groups => {
               val clonedForm = formWithErrors.copy(
                 errors = Seq(FormError("field-wrapper", formWithErrors.errors.head.message))
               )
@@ -199,7 +199,7 @@ class UnassignedClientController @Inject()(
             if (validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
             else {
               for {
-                allGroups <- groupService.groups(arn)
+                allGroups <- groupService.getGroupSummaries(arn)
                 groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId))
                 _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)

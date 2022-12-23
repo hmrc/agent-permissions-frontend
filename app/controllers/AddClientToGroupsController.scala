@@ -50,7 +50,7 @@ class AddClientToGroupsController @Inject()(
   def showSelectGroupsForClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
       sessionCacheService.delete(GROUP_IDS_ADDED_TO)
-      groupService.groups(arn).flatMap { allGroups =>
+      groupService.getGroupSummaries(arn).flatMap { allGroups =>
         groupService.groupSummariesForClient(arn, displayClient).map { clientGroups =>
           Ok(
             select_groups(
@@ -69,7 +69,7 @@ class AddClientToGroupsController @Inject()(
   def submitSelectGroupsForClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
       AddGroupsToClientForm.form().bindFromRequest().fold(formErrors => {
-        groupService.groups(arn).flatMap { allGroups =>
+        groupService.getGroupSummaries(arn).flatMap { allGroups =>
           groupService.groupSummariesForClient(arn, displayClient).map { clientGroups =>
             Ok(
               select_groups(
@@ -101,7 +101,7 @@ class AddClientToGroupsController @Inject()(
     withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
       sessionCacheService.get[Seq[String]](GROUP_IDS_ADDED_TO)
         .flatMap { maybeGroupIds =>
-        groupService.groups(arn).map { groups =>
+        groupService.getGroupSummaries(arn).map { groups =>
           val groupsAddedTo = groups.filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))
           Ok(confirm_added(displayClient, groupsAddedTo))
         }

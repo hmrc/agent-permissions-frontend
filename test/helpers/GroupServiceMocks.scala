@@ -17,12 +17,13 @@
 package helpers
 
 import akka.Done
-import connectors.{AddMembersToAccessGroupRequest, GroupSummary, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, UpdateAccessGroupRequest}
 import models.{DisplayClient, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,7 +47,7 @@ trait GroupServiceMocks extends MockFactory {
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .groups(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getGroupSummaries(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future.successful(groups)).once()
 

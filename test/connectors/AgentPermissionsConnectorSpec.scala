@@ -25,6 +25,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
@@ -229,38 +230,7 @@ class AgentPermissionsConnectorSpec
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
   }
-
-  "GET custom group summaries" should {
-
-    "return successfully" in {
-      //given
-      val groupSummaries = Seq(GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true))
-
-      val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/groupsOnly"
-      val mockJsonResponseBody = Json.toJson(groupSummaries).toString
-      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
-
-      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
-
-      //then
-      connector.groups(arn).futureValue shouldBe groupSummaries
-    }
-
-    "throw an exception for any other HTTP response code" in {
-
-      //given
-      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      expectHttpClientGET[HttpResponse](mockResponse)
-
-      //then
-      val caught = intercept[UpstreamErrorResponse] {
-        await(connector.groups(arn))
-      }
-      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
-    }
-  }
-
+  
   "GET all group summaries" should {
 
     "return successfully" in {

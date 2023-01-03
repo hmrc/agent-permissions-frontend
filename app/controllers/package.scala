@@ -39,6 +39,8 @@ package object controllers {
   final val CLEAR_BUTTON: String = "clear"
   final val FILTER_BUTTON: String = "filter"
   final val PAGINATION_BUTTON: String = "pagination"
+  final val CUSTOM_GROUP: String = "custom group"
+  final val TAX_SERVICE_GROUP: String = "tax service group"
 
   val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
   val optedInStatii = Seq(OptedInReady, OptedInNotReady, OptedInSingleUser)
@@ -64,6 +66,7 @@ package object controllers {
   val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
   val TEAM_MEMBER_SEARCH_INPUT: DataKey[String] = DataKey("TeamMemberSearchInputValue")
   val GROUP_SERVICE_TYPE: DataKey[String] = DataKey("GROUP_SERVICE_TYPE")
+  val GROUP_TYPE: DataKey[String] = DataKey("GROUP_TYPE")
 
   val GROUP_CLIENTS: DataKey[Seq[Client]] = DataKey("groupClients")
 

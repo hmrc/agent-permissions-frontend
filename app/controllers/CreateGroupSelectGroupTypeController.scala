@@ -65,15 +65,19 @@ class CreateGroupSelectGroupTypeController @Inject()
       .bindFromRequest
       .fold(
         formWithErrors =>
-          Ok(select_group_type(formWithErrors)),
+          Ok(select_group_type(formWithErrors)).toFuture,
         (isCustomGroupType: Boolean) => {
           if (isCustomGroupType) {
-            Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName)
+            sessionCacheService
+              .put(GROUP_TYPE, CUSTOM_GROUP)
+              .map(_=> Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName))
           } else {
-            Redirect(ctrlRoutes.showSelectTaxServiceGroupType)
+            sessionCacheService
+              .put(GROUP_TYPE, TAX_SERVICE_GROUP)
+              .map(_=> Redirect(ctrlRoutes.showSelectTaxServiceGroupType))
           }
         }
-      ).toFuture
+      )
 
   }
 

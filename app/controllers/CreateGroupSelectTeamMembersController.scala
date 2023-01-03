@@ -26,14 +26,14 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{SessionCacheService, TaxGroupService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import utils.ViewUtils.getTaxServiceName
 import views.html.groups.create.members.{review_members_paginated, select_paginated_team_members}
 import views.html.groups.group_created
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CreateGroupSelectTeamMembersController @Inject()
@@ -199,31 +199,53 @@ class CreateGroupSelectTeamMembersController @Inject()
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
-                  else
+                  else {
+                    val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType
                     sessionCacheService
-                      .get[String](GROUP_SERVICE_TYPE)
-                      .flatMap(maybeService => {
-                        val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType
-                        maybeService.fold(Redirect(startAgainRoute).toFuture)(service => {
-                          val groupName = getTaxServiceName(service)
-                          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service)
-                          taxGroupService
-                            .createGroup(arn, req)
-                            .flatMap(_ =>
-                              for {
-                                _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
-                                _ <- sessionCacheService.deleteAll(creatingGroupKeys)
-                              } yield Redirect(controller.showGroupCreated)
-                            )
+                      .get[String](GROUP_TYPE)
+                      .flatMap(maybeGroupType =>
+                        maybeGroupType.fold(
+                          Redirect(startAgainRoute).toFuture
+                        ) {
+                          case TAX_SERVICE_GROUP =>
+                            submitTaxServiceGroup(arn, members)
+                          case CUSTOM_GROUP =>
+                            groupService
+                              .createGroup(arn, groupName)
+                              .map(_ => Redirect(controller.showGroupCreated))
                         }
-                        )
-                      }
                       )
+                  }
                 }
               )
           }
       }
     }
+  }
+
+  private def submitTaxServiceGroup(arn: Arn, members: Seq[TeamMember])
+                                   (implicit request: MessagesRequest[AnyContent]): Future[Result] = {
+    sessionCacheService
+      .get[String](GROUP_SERVICE_TYPE)
+      .flatMap(maybeService => {
+        val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType
+        maybeService.fold(
+          Redirect(startAgainRoute).toFuture
+        )(service => {
+          val groupName = getTaxServiceName(service)
+          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service)
+          taxGroupService
+            .createGroup(arn, req)
+            .flatMap(_ =>
+              for {
+                _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
+                _ <- sessionCacheService.deleteAll(creatingGroupKeys)
+              } yield Redirect(controller.showGroupCreated)
+            )
+        }
+        )
+      }
+      )
   }
 
   def showGroupCreated: Action[AnyContent] = Action.async { implicit request =>

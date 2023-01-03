@@ -57,6 +57,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
     }
   }
+
   val controller: CreateGroupSelectTeamMembersController = fakeApplication.injector.instanceOf[CreateGroupSelectTeamMembersController]
 
   override implicit lazy val fakeApplication: Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
@@ -230,13 +231,13 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}" in {
 
         implicit val request = FakeRequest("POST",
-            ctrlRoute.submitSelectedTeamMembers.url)
-            .withSession(SessionKeys.sessionId -> "session-x")
-            .withFormUrlEncodedBody(
-              "members[]" -> teamMembersIds.head,
-              "members[]" -> teamMembersIds.last,
-              "submit" -> CONTINUE_BUTTON
-            )
+          ctrlRoute.submitSelectedTeamMembers.url)
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "members[]" -> teamMembersIds.head,
+            "members[]" -> teamMembersIds.last,
+            "submit" -> CONTINUE_BUTTON
+          )
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectIsArnAllowed(allowed = true)
         expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -491,7 +492,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers.url}" should {
 
-    s"redirect to '${routes.CreateGroupController.showCheckYourAnswers.url}' page with answer 'false'" in {
+    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showGroupCreated.url}' page with answer 'false'" in {
 
       implicit val request =
         FakeRequest(
@@ -507,6 +508,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItem(GROUP_SERVICE_TYPE, vatTaxService)
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
       expectCreateTaxGroup(arn)
       expectPutSessionItem(NAME_OF_GROUP_CREATED, "VAT")
       expectDeleteSessionItems(creatingGroupKeys)

@@ -112,6 +112,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         ctrlRoute.submitSelectGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "true")
+      expectPutSessionItem(GROUP_TYPE, CUSTOM_GROUP)
 
       //when
       val result = controller.submitSelectGroupType()(request)
@@ -128,6 +129,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         ctrlRoute.submitSelectGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "false")
+      expectPutSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
       //when
       val result = controller.submitSelectGroupType()(request)

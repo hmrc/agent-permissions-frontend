@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,17 @@ class TaxServiceGroupTypeFormSpec extends AnyWordSpec with Matchers with GuiceOn
 
   "form binding" should{
     "work correctly" in {
-      val params = Map("addAutomatically" -> Seq("true"), "taxType" -> Seq("HMRC-MTD-VAT"))
+      val params = Map("taxType" -> Seq("HMRC-MTD-VAT"))
       val boundForm = TaxServiceGroupTypeForm.form.bindFromRequest(params)
-      boundForm.value shouldBe Some(TaxServiceGroupType("HMRC-MTD-VAT", true))
+      boundForm.value shouldBe Some(TaxServiceGroupType("HMRC-MTD-VAT"))
     }
   }
 
   "form unbinding" should{
     "work correctly" in {
       val form = TaxServiceGroupTypeForm.form
-      val unboundForm = form.mapping.unbind(TaxServiceGroupType("HMRC-MTD-VAT", true))
-      unboundForm shouldBe Map("taxType" -> "HMRC-MTD-VAT", "addAutomatically" -> "true")
+      val unboundForm = form.mapping.unbind(TaxServiceGroupType("HMRC-MTD-VAT"))
+      unboundForm shouldBe Map("taxType" -> "HMRC-MTD-VAT")
     }
   }
 

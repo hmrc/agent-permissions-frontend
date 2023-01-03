@@ -16,7 +16,4 @@
 
 package models
 
-case class TaxServiceGroupType(
-    groupType: String,
-    addAutomatically: Boolean
-)
+case class TaxServiceGroupType(groupType: String)

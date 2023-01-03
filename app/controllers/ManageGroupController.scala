@@ -39,7 +39,7 @@ class ManageGroupController @Inject()(
        mcc: MessagesControllerComponents,
        groupService: GroupService,
        optInStatusAction: OptInStatusAction,
-       dashboard: dashboard,
+       manage_existing_groups: manage_existing_groups,
        rename_group: rename_group,
        rename_group_complete: rename_group_complete,
        confirm_delete_group: confirm_delete_group,
@@ -62,14 +62,14 @@ class ManageGroupController @Inject()(
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold({ //i.e. regular page load with no params
             sessionCacheService.deleteAll(teamMemberFilteringKeys ++ clientFilteringKeys)
-            Ok(dashboard(groupSummaries, SearchAndFilterForm.form()))
+            Ok(manage_existing_groups(groupSummaries, SearchAndFilterForm.form()))
           }
           ) { //either the 'filter' button or the 'clear' filter button was clicked
             case FILTER_BUTTON =>
               val searchTerm = searchFilter.search.getOrElse("")
               val filteredGroupSummaries = groupSummaries
                 .filter(_.groupName.toLowerCase.contains(searchTerm.toLowerCase))
-              Ok(dashboard(filteredGroupSummaries, SearchAndFilterForm.form().fill(searchFilter)))
+              Ok(manage_existing_groups(filteredGroupSummaries, SearchAndFilterForm.form().fill(searchFilter)))
             case CLEAR_BUTTON =>
               Redirect(routes.ManageGroupController.showManageGroups)
           }

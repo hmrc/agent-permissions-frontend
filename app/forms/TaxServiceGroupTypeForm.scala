@@ -25,9 +25,6 @@ object TaxServiceGroupTypeForm {
   def form: Form[TaxServiceGroupType] = Form(
     mapping(
       "taxType" -> text.verifying("group.tax-service.select.error", !_.isEmpty),
-      "addAutomatically" -> optional(boolean)
-        .verifying("group.tax-service.addAutomatically.error", _.isDefined)
-        .transform(_.get, (b: Boolean) => Option(b))
     )(TaxServiceGroupType.apply)(TaxServiceGroupType.unapply)
   )
 }

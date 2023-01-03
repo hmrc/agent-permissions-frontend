@@ -49,17 +49,6 @@
             options = getFiltersTaxServiceListWithClientCount(data)
         )
 
-        @radioButtons(
-            field = form("addAutomatically"),
-            items = Seq(
-                RadioData(name = "true", label = "common.yes.label"),
-                RadioData(name = "false", label = "common.no.label", id = Some("answer-no"))
-            ),
-            legend = Some(LegendData(msg = msgs("group.tax-service.answer.label"))),
-            hint = Some("group.tax-service.answer.hint"),
-            classes = "govuk-radios--inline"
-        )
-
         @submit_button()
     }
 }

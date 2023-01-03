@@ -120,7 +120,6 @@ group.tax-service.select.label=Select clients by tax service
 group.tax-service.answer.label=Add new clients to this access group automatically?
 group.tax-service.answer.hint=If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service.
 group.tax-service.select.error=Select the tax type for this access group
-group.tax-service.addAutomatically.error=Select if you want clients added automatically to this access group
 
 group.tax-service.review.h1=All “{0}” clients have been selected
 group.tax-service.review.legend=Continue with selected clients?

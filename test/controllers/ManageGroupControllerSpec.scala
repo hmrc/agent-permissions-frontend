@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,7 +180,8 @@ class ManageGroupControllerSpec extends BaseSpec {
       val buttonLink = html.select("a#button-link")
       buttonLink.text() shouldBe "Create new access group"
       buttonLink
-        .attr("href") shouldBe routes.CreateGroupController.showGroupName.url
+        .attr("href")
+        .shouldBe(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
       buttonLink.hasClass("govuk-button") shouldBe true
 
       val backlink = html.select(backLink)

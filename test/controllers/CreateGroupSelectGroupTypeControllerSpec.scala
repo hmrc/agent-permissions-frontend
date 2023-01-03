@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,11 +174,6 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax (22)"
       taxTypeOptions.get(5).text() shouldBe "VAT (85)"
 
-      form.select("#addAutomatically-hint").text() shouldBe "If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service."
-      val radios = html.select(Css.radioButtonsField("addAutomatically-radios"))
-      radios.select("label[for=addAutomatically]").text() shouldBe "Yes"
-      radios.select("label[for=answer-no]").text() shouldBe "No"
-
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
   }
@@ -208,8 +203,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Group based on tax service"
       html.select(Css.errorSummaryForField("taxType")).text() shouldBe "Select the tax type for this access group"
       html.select(Css.errorForField("taxType")).text() shouldBe "Error: Select the tax type for this access group"
-      html.select(Css.errorSummaryForField("addAutomatically")).text() shouldBe "Select if you want clients added automatically to this access group"
-      html.select(Css.errorForField("addAutomatically")).text() shouldBe "Error: Select if you want clients added automatically to this access group"
+
     }
 
     "redirect to review selected team members page when add automatically selected" in {
@@ -218,10 +212,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "taxType" -> VAT,
-          "addAutomatically" -> "true"
-        )
+        .withFormUrlEncodedBody("taxType" -> VAT)
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -244,10 +235,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "taxType" -> VAT,
-          "addAutomatically" -> "false"
-        )
+        .withFormUrlEncodedBody("taxType" -> VAT)
+
       expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)

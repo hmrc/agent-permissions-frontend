@@ -64,8 +64,11 @@ trait ClientService {
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def getGroupTaxTypeInfo(arn: Arn)
+  def getAvailableTaxServiceClientCount(arn: Arn)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+
+  def getTaxGroupClientCount(arn: Arn)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
 
 }
 
@@ -262,9 +265,14 @@ class ClientServiceImpl @Inject()(
     agentUserClientDetailsConnector.updateClientReference(arn, client)
   }
 
-  def getGroupTaxTypeInfo(arn: Arn)
+  def getAvailableTaxServiceClientCount(arn: Arn)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
-    agentUserClientDetailsConnector.getGroupTaxTypeInfo(arn)
+    agentPermissionsConnector.getAvailableTaxServiceClientCount(arn)
+  }
+
+  def getTaxGroupClientCount(arn: Arn)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+    agentPermissionsConnector.getTaxGroupClientCount(arn)
   }
 
 }

@@ -38,9 +38,6 @@ trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   def getClients(arn: Arn)
                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]]
 
-  def getGroupTaxTypeInfo(arn: Arn)
-                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
-
   def getPaginatedClients(arn: Arn)
                          (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
@@ -79,20 +76,6 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
         }
       }
     }
-  }
-
-  def getGroupTaxTypeInfo(arn: Arn)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
-    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/clients/tax-group-info"
-    monitor("ConsumedAPI-tax-group-info-GET") {
-      http.GET[HttpResponse](url).map { response =>
-        response.status match {
-          case OK => response.json.as[Map[String, Int]]
-          case e => throw UpstreamErrorResponse(s"error getting getGroupTaxTypeInfo for ${arn.value}", e)
-        }
-      }
-    }
-
   }
 
   def getPaginatedClients(arn: Arn)

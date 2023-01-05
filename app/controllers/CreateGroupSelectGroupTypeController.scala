@@ -84,7 +84,7 @@ class CreateGroupSelectGroupTypeController @Inject()
   def showSelectTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.getGroupTaxTypeInfo(arn).map(info =>
+        clientService.getAvailableTaxServiceClientCount(arn).map(info =>
           Ok(select_group_tax_type(TaxServiceGroupTypeForm.form, info))
         )
       }
@@ -96,7 +96,7 @@ class CreateGroupSelectGroupTypeController @Inject()
       isOptedIn(arn) { _ =>
         TaxServiceGroupTypeForm.form.bindFromRequest()
           .fold(formWithErrors => {
-            clientService.getGroupTaxTypeInfo(arn).map(info =>
+            clientService.getAvailableTaxServiceClientCount(arn).map(info =>
               Ok(select_group_tax_type(formWithErrors, info))
             )
           },

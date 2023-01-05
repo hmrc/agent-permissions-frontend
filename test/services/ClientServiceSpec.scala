@@ -406,17 +406,29 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "getGroupTaxTypeInfo" should {
-
-    "delegate to AUCD connector" in {
+  "getAvailableTaxServiceClientCount" should {
+    "delegate to AP connector" in {
+      implicit lazy val mockAPConnectorz: AgentPermissionsConnector = mock[AgentPermissionsConnector] // seems a bit weird it's implicit
 
       //expect
-      expectGetGroupTaxTypeInfoFromConnector(arn)
+      expectGetAvailableTaxServiceClientCountFromConnector(arn)
 
       //when
-      await(service.getGroupTaxTypeInfo(arn))
+      await(service.getAvailableTaxServiceClientCount(arn))
 
     }
+  }
 
+  "getAvailableTaxServiceClientCount" should {
+    "delegate to AP connector" in {
+      implicit lazy val mockAPConnectorz: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+
+      //expect
+      expectGetTaxGroupClientCountFromConnector(arn)
+
+      //when
+      await(service.getTaxGroupClientCount(arn))
+
+    }
   }
 }

@@ -33,14 +33,6 @@ trait AgentUserClientDetailsConnectorMocks extends MockFactory {
       .expects(arn, *, *)
       .returning(Future successful clientList).once()
 
-  def expectGetGroupTaxTypeInfoFromConnector(arn: Arn)(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
-    (agentUserClientDetailsConnector
-      .getGroupTaxTypeInfo(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, *, *)
-      .returning(Future successful Map("HMRC-MTD-IT" -> 1)).once()
-
-
   def expectGetClientsReturningNone(arn: Arn)(
       implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector

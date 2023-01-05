@@ -43,18 +43,18 @@ trait ClientServiceMocks extends MockFactory {
       .expects(arn, *, *, *)
       .returning(Future successful clients).once()
 
-  def expectGetGroupTaxTypeInfo(arn: Arn)
+  def expectGetAvailableTaxServiceClientCount(arn: Arn)
                                (numberOfEachService: List[Int])
                                (implicit clientService: ClientService): Unit = {
     val data : Map[String, Int] = Map(
-      "HMRC-MTD-IT" -> numberOfEachService(0),
+      "HMRC-MTD-IT" -> numberOfEachService.head,
       "HMRC-MTD-VAT" -> numberOfEachService(1),
       "HMRC-CGT-PD" -> numberOfEachService(2),
       "HMRC-PPT-ORG" -> numberOfEachService(3),
-      "TRUST" -> numberOfEachService(4)
+      "HMRC-TERS" -> numberOfEachService(4)
     )
     (clientService
-      .getGroupTaxTypeInfo(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getAvailableTaxServiceClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful data).once()
   }

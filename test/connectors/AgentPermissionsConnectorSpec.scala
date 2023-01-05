@@ -476,6 +476,54 @@ class AgentPermissionsConnectorSpec
     }
   }
 
+  "getAvailableTaxServiceClientCount" should {
+
+    "return a Map[String, Int]] when status response is OK" in {
+
+      val expectedData = Map("HMRC-CGT-PD" -> 93, "HMRC-MTD-VAT" -> 34, "HMRC-MTD-IT" -> 123)
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(
+        OK,
+        Json.toJson(expectedData).toString())
+      )
+
+      connector.getAvailableTaxServiceClientCount(arn).futureValue shouldBe expectedData
+    }
+
+    "throw error when status response is 5xx" in {
+
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(503, ""))
+
+      intercept[UpstreamErrorResponse] {
+        await(connector.getAvailableTaxServiceClientCount(arn))
+      }
+    }
+
+  }
+
+  "getTaxGroupClientCount" should {
+
+    "return a Map[String, Int]] when status response is OK" in {
+
+      val expectedData = Map("HMRC-CGT-PD" -> 93, "HMRC-MTD-VAT" -> 34, "HMRC-MTD-IT" -> 123)
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(
+        OK,
+        Json.toJson(expectedData).toString())
+      )
+
+      connector.getTaxGroupClientCount(arn).futureValue shouldBe expectedData
+    }
+
+    "throw error when status response is 5xx" in {
+
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(503, ""))
+
+      intercept[UpstreamErrorResponse] {
+        await(connector.getTaxGroupClientCount(arn))
+      }
+    }
+
+  }
+
   "post Create Tax Service Group" should {
 
     "return Group Id when response code is OK/CREATED" in {

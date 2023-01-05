@@ -84,6 +84,12 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
 
+  def getAvailableTaxServiceClientCount(arn: Arn)
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+
+  def getTaxGroupClientCount(arn: Arn)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+
   def createTaxServiceGroup(arn: Arn)
                            (createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
@@ -338,6 +344,32 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
               false
           }
         }
+    }
+  }
+
+  override def getAvailableTaxServiceClientCount(arn: Arn)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client-count/available-tax-services"
+    monitor("ConsumedAPI-AvailableTaxServiceClientCount-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK => response.json.as[Map[String, Int]]
+          case e => throw UpstreamErrorResponse(s"error getting AvailableTaxService client count", e)
+        }
+      }
+    }
+  }
+
+  override def getTaxGroupClientCount(arn: Arn)
+                                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+    val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client-count/tax-groups"
+    monitor("ConsumedAPI-TaxGroupClientCount-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK => response.json.as[Map[String, Int]]
+          case e => throw UpstreamErrorResponse(s"error getting Tax Group client count", e)
+        }
+      }
     }
   }
 

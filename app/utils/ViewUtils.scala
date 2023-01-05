@@ -56,11 +56,9 @@ object ViewUtils {
       case "HMRC-MTD-VAT"    => mgs("tax-service.vat")
       case "HMRC-CGT-PD"     => mgs("tax-service.cgt")
       case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
-      case "HMRC-TERS-ORG"   => mgs("tax-service.trusts")
-      case "HMRC-TERSNT-ORG" => mgs("tax-service.trusts")
-      // not a service key but value for filter
-      case "TRUST"           => mgs("tax-service.trusts")
-      case s                 => throw new Exception(s"str: '$s' is not a value for a tax service")
+      // TRUST not a service key but value for filter
+      case s                 => if(s.contains("HMRC-TERS") || s == "TRUST") mgs("tax-service.trusts") else
+        throw new Exception(s"str: '$s' is not a value for a tax service")
     }
   }
 

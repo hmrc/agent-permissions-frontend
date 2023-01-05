@@ -147,4 +147,18 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector.deleteGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful Done)
+
+  def expectGetAvailableTaxServiceClientCountFromConnector(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler3[Arn, HeaderCarrier, ExecutionContext, Future[Map[String, Int]]] =
+    (agentPermissionsConnector
+      .getAvailableTaxServiceClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful Map("HMRC-MTD-IT" -> 1)).once()
+
+  def expectGetTaxGroupClientCountFromConnector(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler3[Arn, HeaderCarrier, ExecutionContext, Future[Map[String, Int]]] =
+    (agentPermissionsConnector
+      .getTaxGroupClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful Map("HMRC-MTD-IT" -> 1)).once()
+
+
 }

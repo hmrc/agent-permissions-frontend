@@ -151,7 +151,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetGroupTaxTypeInfo(arn)(List(13, 85, 38, 22, 108))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
 
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
@@ -191,7 +191,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         .withFormUrlEncodedBody("taxType" -> "")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetGroupTaxTypeInfo(arn)(List(13, 85, 38, 22, 108))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 

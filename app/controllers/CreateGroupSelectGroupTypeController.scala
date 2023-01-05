@@ -105,7 +105,7 @@ class CreateGroupSelectGroupTypeController @Inject()
                 .put(GROUP_SERVICE_TYPE, formData.groupType)
                 .flatMap(_ => {
                   sessionCacheService
-                    .put(GROUP_NAME, ViewUtils.getTaxServiceName(formData.groupType))
+                    .put(GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
                     .map(_=>
                       Redirect(ctrlRoutes.showReviewTaxServiceGroupType)
                     )

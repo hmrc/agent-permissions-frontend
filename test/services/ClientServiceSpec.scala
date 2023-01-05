@@ -419,7 +419,7 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "getAvailableTaxServiceClientCount" should {
+  "getTaxGroupClientCount" should {
     "delegate to AP connector" in {
       implicit lazy val mockAPConnectorz: AgentPermissionsConnector = mock[AgentPermissionsConnector]
 

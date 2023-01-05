@@ -233,7 +233,7 @@ class CreateGroupSelectTeamMembersController @Inject()
           Redirect(startAgainRoute).toFuture
         )(service => {
           val groupName = displayTaxServiceFromServiceKey(service)
-          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service)
+          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service, autoUpdate = true, None)
           taxGroupService
             .createGroup(arn, req)
             .flatMap(_ =>

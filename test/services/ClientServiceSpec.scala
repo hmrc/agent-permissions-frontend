@@ -408,7 +408,7 @@ class ClientServiceSpec extends BaseSpec {
 
   "getAvailableTaxServiceClientCount" should {
     "delegate to AP connector" in {
-      implicit lazy val mockAPConnectorz: AgentPermissionsConnector = mock[AgentPermissionsConnector] // seems a bit weird it's implicit
+      implicit lazy val mockAPConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector] // seems a bit weird it's implicit
 
       //expect
       expectGetAvailableTaxServiceClientCountFromConnector(arn)
@@ -421,7 +421,7 @@ class ClientServiceSpec extends BaseSpec {
 
   "getTaxGroupClientCount" should {
     "delegate to AP connector" in {
-      implicit lazy val mockAPConnectorz: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+      implicit lazy val mockAPConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
 
       //expect
       expectGetTaxGroupClientCountFromConnector(arn)

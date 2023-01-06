@@ -53,7 +53,7 @@ trait GroupService {
 
   def getGroupSummaries(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
-  def getPaginatedGroupSummaries(arn: Arn)(page: Int = 1, pageSize: Int = 5)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[GroupSummary]]
+  def getPaginatedGroupSummaries(arn: Arn, filterTerm: String = "")(page: Int = 1, pageSize: Int = 5)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[GroupSummary]]
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)
                              (implicit request: Request[_],
@@ -101,12 +101,13 @@ class GroupServiceImpl @Inject()(
             (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[Seq[GroupSummary]] = agentPermissionsConnector.getGroupSummaries(arn)
 
-  def getPaginatedGroupSummaries(arn: Arn)(page: Int = 1, pageSize: Int = 5)
+  def getPaginatedGroupSummaries(arn: Arn, filterTerm: String = "")(page: Int = 1, pageSize: Int = 5)
                        (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[GroupSummary]] =
     for {
       summaries <- agentPermissionsConnector.getGroupSummaries(arn)
-    } yield PaginatedListBuilder.build[GroupSummary](page, pageSize, summaries)
+      filteredSummaries = summaries.filter(_.groupName.toLowerCase.contains(filterTerm.toLowerCase))
+    } yield PaginatedListBuilder.build[GroupSummary](page, pageSize, filteredSummaries)
 
   def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
     for {

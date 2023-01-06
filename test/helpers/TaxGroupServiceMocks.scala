@@ -26,6 +26,22 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait TaxGroupServiceMocks extends MockFactory {
 
+  def expectGetTaxGroupClientCount(arn: Arn)
+                                             (numberOfEachService: List[Int])
+                                             (implicit taxGroupService: TaxGroupService): Unit = {
+    val data : Map[String, Int] = Map(
+      "HMRC-MTD-IT" -> numberOfEachService.head,
+      "HMRC-MTD-VAT" -> numberOfEachService(1),
+      "HMRC-CGT-PD" -> numberOfEachService(2),
+      "HMRC-PPT-ORG" -> numberOfEachService(3),
+      "HMRC-TERS" -> numberOfEachService(4)
+    )
+    (taxGroupService
+      .getTaxGroupClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful data).once()
+  }
+
   def expectCreateTaxGroup(arn: Arn)
                        (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService

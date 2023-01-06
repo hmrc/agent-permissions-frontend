@@ -354,7 +354,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "save selected clients to session" when {
 
-      s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups.url}" in {
+      s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups(None,None).url}" in {
 
         implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
             .withFormUrlEncodedBody(
@@ -655,7 +655,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H2).text() shouldBe "What happens next"
       html.select(Css.paragraphs).get(0).text() shouldBe "You have changed the clients that can be managed by the team members in this access group."
       html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
-      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups(None,None).url
       html.select(Css.backLink).size() shouldBe 0
     }
 

@@ -33,7 +33,7 @@
 @layout(
     title = msgs("group.manage.delete"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.ManageGroupController.showManageGroups.url)
+    backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url)
 ) {
     @caption(msgs("common.caption.group.name", group.groupName))
     @h1("group.manage.delete")

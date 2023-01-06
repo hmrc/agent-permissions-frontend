@@ -49,7 +49,7 @@
 
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title",  group.name), form("filter").value, form("search").value),
-    backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
+    backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url),
     fullWidth = true
 ) {
 

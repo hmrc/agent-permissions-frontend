@@ -25,6 +25,7 @@ import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.PaginatedListBuilder
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,6 +51,12 @@ trait GroupServiceMocks extends MockFactory {
       .getGroupSummaries(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future.successful(groups)).once()
+
+  def expectGetPageOfGroupsForArn(arn: Arn, filterTerm: String = "")(page:Int, pageSize:Int)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
+    (groupService
+      .getPaginatedGroupSummaries(_: Arn, _: String)(_:Int,_:Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, filterTerm, page, pageSize, *, *, *)
+      .returning(Future.successful(PaginatedListBuilder.build[GroupSummary](page, pageSize, groups))).once()
 
   def expectGetGroupSummariesForTeamMember(arn: Arn)(teamMember: TeamMember)
                                           (groupsAlreadyAssociatedToMember: Seq[GroupSummary])

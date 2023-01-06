@@ -417,14 +417,4 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "getTaxGroupClientCount" should {
-    "delegate to AP connector" in {
-      //expect
-      expectGetTaxGroupClientCountFromConnector(arn)
-
-      //when
-      await(service.getTaxGroupClientCount(arn))
-
-    }
-  }
 }

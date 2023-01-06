@@ -34,7 +34,7 @@ AppConfig)
 @layout(
     title = msgs("group.manage.rename"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.ManageGroupController.showManageGroups.url)
+    backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url)
 ) {
 
     @caption(msgs("common.caption.group.name", group.groupName))
@@ -44,7 +44,7 @@ AppConfig)
 
         @textbox(field = form("name"), label = "group.create.name.label")
         @link_as_button(
-            href = routes.ManageGroupController.showManageGroups.url,
+            href = routes.ManageGroupController.showManageGroups(None,None).url,
             key = "common.cancel",
             classes = Some("govuk-button--secondary govuk-!-margin-right-3")
         )

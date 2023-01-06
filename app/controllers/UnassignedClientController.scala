@@ -204,7 +204,7 @@ class UnassignedClientController @Inject()(
                 _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
                 result <- selectedClients.fold(
-                  Redirect(routes.ManageGroupController.showManageGroups).toFuture
+                  Redirect(routes.ManageGroupController.showManageGroups(None,None)).toFuture
                 ) { displayClients =>
                   val clients: Set[Client] = displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
                   Future.sequence(groupsToAddTo.map { grp =>

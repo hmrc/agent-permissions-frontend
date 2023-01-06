@@ -67,9 +67,6 @@ trait ClientService {
   def getAvailableTaxServiceClientCount(arn: Arn)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
 
-  def getTaxGroupClientCount(arn: Arn)
-                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
-
 }
 
 @Singleton
@@ -268,11 +265,6 @@ class ClientServiceImpl @Inject()(
   def getAvailableTaxServiceClientCount(arn: Arn)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
     agentPermissionsConnector.getAvailableTaxServiceClientCount(arn)
-  }
-
-  def getTaxGroupClientCount(arn: Arn)
-                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
-    agentPermissionsConnector.getTaxGroupClientCount(arn)
   }
 
 }

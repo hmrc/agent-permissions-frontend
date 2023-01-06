@@ -24,7 +24,7 @@ import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.GroupService
+import services.{GroupService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
@@ -38,6 +38,7 @@ class ManageGroupController @Inject()(
        groupAction: GroupAction,
        mcc: MessagesControllerComponents,
        groupService: GroupService,
+       taxGroupService: TaxGroupService,
        optInStatusAction: OptInStatusAction,
        manage_existing_groups: manage_existing_groups,
        rename_group: rename_group,
@@ -55,25 +56,35 @@ class ManageGroupController @Inject()(
   import groupAction._
   import optInStatusAction._
 
-  def showManageGroups: Action[AnyContent] = Action.async { implicit request =>
+  def showManageGroups(page:Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getGroupSummaries(arn).map { groupSummaries =>
           val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
           searchFilter.submit.fold({ //i.e. regular page load with no params
+            groupService.getPaginatedGroupSummaries(arn)(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
             sessionCacheService.deleteAll(teamMemberFilteringKeys ++ clientFilteringKeys)
-            Ok(manage_existing_groups(groupSummaries, SearchAndFilterForm.form()))
+            Ok(manage_existing_groups(
+              pagination.pageContent,
+              SearchAndFilterForm.form(),
+              Some(pagination.paginationMetaData)
+            ))
+            }
           }
           ) { //either the 'filter' button or the 'clear' filter button was clicked
             case FILTER_BUTTON =>
-              val searchTerm = searchFilter.search.getOrElse("")
-              val filteredGroupSummaries = groupSummaries
-                .filter(_.groupName.toLowerCase.contains(searchTerm.toLowerCase))
-              Ok(manage_existing_groups(filteredGroupSummaries, SearchAndFilterForm.form().fill(searchFilter)))
+              groupService.getPaginatedGroupSummaries(
+                arn,
+                searchFilter.search.getOrElse("")
+              )(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
+                Ok(manage_existing_groups(
+                  pagination.pageContent,
+                  SearchAndFilterForm.form().fill(searchFilter),
+                  Some(pagination.paginationMetaData)
+                ))
+              }
             case CLEAR_BUTTON =>
-              Redirect(routes.ManageGroupController.showManageGroups)
+              Redirect(routes.ManageGroupController.showManageGroups(None, None)).toFuture
           }
-        }
       }
     }
   }
@@ -134,7 +145,7 @@ class ManageGroupController @Inject()(
                 _ <- groupService.deleteGroup(groupId)
               } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
-              Redirect(routes.ManageGroupController.showManageGroups.url).toFuture
+              Redirect(routes.ManageGroupController.showManageGroups(None,None).url).toFuture
           }
         )
     }

@@ -30,7 +30,7 @@
     @h2("common.what.happens.next")
     @p("group.deleted.p")
     @a( "common.return.to.dashboard",
-        id = Some("returnToDashboard"), href = routes.ManageGroupController.showManageGroups.url)
+        id = Some("returnToDashboard"), href = routes.ManageGroupController.showManageGroups(None,None).url)
 
 }
 

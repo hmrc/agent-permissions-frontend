@@ -600,4 +600,83 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"POST ${ctrlRoute.submitDeleteTaxGroup(accessGroup._id.toString).url}" should {
+
+    "render correctly the confirm DELETE group page when 'yes' selected" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url)
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
+      expectGetTaxGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectDeleteTaxGroup(accessGroup._id.toString)
+
+      //when
+      val result = controller.submitDeleteTaxGroup(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      //and
+      redirectLocation(result) shouldBe Some(
+        ctrlRoute.showGroupDeleted.url)
+
+    }
+
+    "render correctly the DASHBOARD group page when 'no' selected" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url)
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetTaxGroupById(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result =
+        controller.submitDeleteTaxGroup(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      //and
+      redirectLocation(result) shouldBe Some(
+        ctrlRoute.showManageGroups(None,None).url)
+
+    }
+
+    "render errors when no answer is specified" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitDeleteGroup(groupId).url)
+          .withFormUrlEncodedBody("answer" -> "")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetTaxGroupById(groupId, Some(accessGroup))
+
+      //when
+      val result = controller.submitDeleteTaxGroup(groupId)(request)
+
+      status(result) shouldBe OK
+    }
+  }
 }

@@ -30,6 +30,16 @@ class TaxGroupServiceSpec extends BaseSpec {
 
   val service = new TaxGroupServiceImpl(mockAgentPermissionsConnector)
 
+  "getTaxGroupClientCount" should {
+    "delegate to AP connector" in {
+      //expect
+      expectGetTaxGroupClientCountFromConnector(arn)
+
+      //when
+      await(service.getTaxGroupClientCount(arn))
+
+    }
+  }
 
   "create group" should {
     "call createTaxGroup on agentPermissionsConnector" in {

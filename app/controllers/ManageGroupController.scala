@@ -24,7 +24,7 @@ import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.GroupService
+import services.{GroupService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
@@ -38,6 +38,7 @@ class ManageGroupController @Inject()(
        groupAction: GroupAction,
        mcc: MessagesControllerComponents,
        groupService: GroupService,
+       taxGroupService: TaxGroupService,
        optInStatusAction: OptInStatusAction,
        manage_existing_groups: manage_existing_groups,
        rename_group: rename_group,

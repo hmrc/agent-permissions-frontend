@@ -28,6 +28,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[TaxGroupServiceImpl])
 trait TaxGroupService {
 
+  def getTaxGroupClientCount(arn: Arn)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+
   def createGroup(arn: Arn, createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
 
@@ -36,6 +39,11 @@ trait TaxGroupService {
 @Singleton
 class TaxGroupServiceImpl @Inject()
 (agentPermissionsConnector: AgentPermissionsConnector) extends TaxGroupService with Logging {
+
+  def getTaxGroupClientCount(arn: Arn)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+    agentPermissionsConnector.getTaxGroupClientCount(arn)
+  }
 
   def createGroup(arn: Arn, createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {

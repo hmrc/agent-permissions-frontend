@@ -547,4 +547,84 @@ class AgentPermissionsConnectorSpec
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
   }
+
+  "GET Tax Service Group" should {
+
+    "return successfully" in {
+      //given
+      val anyDate = LocalDate.of(1970, 1, 1).atStartOfDay()
+
+      val groupId = 234234
+      val agent = AgentUser("agentId", "Bob Builder")
+      val accessGroup =
+        AccessGroup(arn,
+          "groupName",
+          anyDate,
+          anyDate,
+          agent,
+          agent,
+          Some(Set(agent)),
+          Some(Set(Client("service~key~value", "friendly"))))
+
+      val expectedUrl =
+        s"http://localhost:9447/agent-permissions/tax-group/$groupId"
+      val mockJsonResponseBody = Json.toJson(accessGroup).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //and
+      val expectedTransformedResponse = Some(accessGroup)
+
+      //then
+      connector
+        .getTaxServiceGroup(groupId.toString)
+        .futureValue shouldBe expectedTransformedResponse
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      expectHttpClientGET[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.getTaxServiceGroup("whatever"))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "DELETE Tax Service Group" should {
+
+    "return Done when response code is OK" in {
+
+      //given
+      val groupId = "234234"
+      val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
+      val mockResponse = HttpResponse.apply(OK, "response Body")
+
+      //and
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
+
+      //then
+      connector.deleteTaxGroup(groupId).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      //given
+      val groupId = "234234"
+      val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.deleteTaxGroup(groupId))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+  }
 }

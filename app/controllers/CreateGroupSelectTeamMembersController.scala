@@ -28,7 +28,7 @@ import play.api.mvc._
 import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import utils.ViewUtils.getTaxServiceName
+import utils.ViewUtils.displayTaxServiceFromServiceKey
 import views.html.groups.create.members.{review_members_paginated, select_paginated_team_members}
 import views.html.groups.group_created
 
@@ -232,8 +232,8 @@ class CreateGroupSelectTeamMembersController @Inject()
         maybeService.fold(
           Redirect(startAgainRoute).toFuture
         )(service => {
-          val groupName = getTaxServiceName(service)
-          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service)
+          val groupName = displayTaxServiceFromServiceKey(service)
+          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service, autoUpdate = true, None)
           taxGroupService
             .createGroup(arn, req)
             .flatMap(_ =>

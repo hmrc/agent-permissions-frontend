@@ -20,6 +20,8 @@ common.skip-to-clients=Skip to client list
 common.skip-to-team-members=Skip to team member list
 common.results-for1=Filter results for ''{0}''
 common.results-for2=Filter results for ''{0}'' and ''{1}''
+common.custom-group=Custom group
+common.tax-group=Tax service group
 
 save.and.continue.button=Save and continue
 submit.button=Submit

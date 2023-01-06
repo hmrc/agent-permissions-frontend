@@ -48,7 +48,7 @@
 
     @layout(
         title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.manage.members", group.groupName), None, form("search").value),
-        backLinkHref = Some(routes.ManageGroupController.showManageGroups.url),
+        backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url),
         fullWidth = true) {
 
         <div class="govuk-!-width-two-thirds">

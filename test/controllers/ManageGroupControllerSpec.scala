@@ -98,8 +98,9 @@ class ManageGroupControllerSpec extends BaseSpec {
   val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
   private val ctrlRoute: ReverseManageGroupController = routes.ManageGroupController
 
-  s"GET ${ctrlRoute.showManageGroups.url}" should {
+  s"GET ${ctrlRoute.showManageGroups(None,None).url}" should {
 
+    // TODO add test for pagination with more than one page? :P
     "render correctly the manage groups page" in {
 
       //given
@@ -107,10 +108,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
-      expectGetGroupsForArn(arn)(groupSummaries)
+      expectGetPageOfGroupsForArn(arn)(1, 5)(groupSummaries)
       expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
       //when
-      val result = controller.showManageGroups()(request)
+      val result = controller.showManageGroups(None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -128,7 +129,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 3
 
       // check first group
-      html.select(H2).get(0).text() shouldBe "name 1"
+      html.select(H2).get(0).text() shouldBe "name 1 Custom group"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
@@ -161,11 +162,11 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetGroupsForArn(arn)(Seq.empty)
+      expectGetPageOfGroupsForArn(arn)(1, 5)(Seq.empty)
       expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
 
       //when
-      val result = controller.showManageGroups()(request)
+      val result = controller.showManageGroups(None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -197,15 +198,15 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
       val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4, isCustomGroup = true))
-      expectGetGroupsForArn(arn)(expectedGroupSummaries)
       val searchTerm = expectedGroupSummaries(0).groupName
+      expectGetPageOfGroupsForArn(arn, searchTerm)(1, 5)(Seq(expectedGroupSummaries.head))
       val requestWithQuery = FakeRequest(GET,
-         ctrlRoute.showManageGroups.url + s"?submit=filter&search=$searchTerm")
+         ctrlRoute.showManageGroups(None,None).url + s"?submit=filter&search=$searchTerm")
         .withHeaders("AuthorizatiManageGroupControllerSpec.scala:229on" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showManageGroups()(requestWithQuery)
+      val result = controller.showManageGroups(None,None)(requestWithQuery)
 
       //then
       status(result) shouldBe OK
@@ -225,7 +226,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 1
 
       // check first group contents
-      html.select(H2).get(0).text() shouldBe "GroupName1"
+      html.select(H2).get(0).text() shouldBe "GroupName1 Custom group"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
@@ -253,7 +254,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showRenameGroup(groupId).url}" should {
 
-    "render correctly the manage groups page" in {
+    "render correctly the rename groups page" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -302,7 +303,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Back to manage groups page"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe ctrlRoute.showManageGroups.url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
     }
   }
 
@@ -364,7 +365,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Back to manage groups page"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe ctrlRoute.showManageGroups.url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
     }
 
     "render errors when no group name is specified" in {
@@ -420,7 +421,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
       val dashboardLink = html.select("main a#back-to-dashboard")
       dashboardLink.text() shouldBe "Return to manage access groups"
-      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups.url
+      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
     }
   }
 
@@ -509,7 +510,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       //and
       redirectLocation(result) shouldBe Some(
-        ctrlRoute.showManageGroups.url)
+        ctrlRoute.showManageGroups(None,None).url)
 
     }
 
@@ -565,7 +566,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Return to manage access groups"
       html
         .select("a#returnToDashboard")
-        .attr("href") shouldBe ctrlRoute.showManageGroups.url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
       html.select(Css.backLink).size() shouldBe 0
     }
   }

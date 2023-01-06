@@ -616,7 +616,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title shouldBe "Bananas access group team members updated - Agent services account - GOV.UK"
       html.select(Css.confirmationPanelH1).text() shouldBe "Bananas access group team members updated"
       html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
-      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups.url
+      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups(None,None).url
       html.select(Css.backLink).size() shouldBe 0
     }
 

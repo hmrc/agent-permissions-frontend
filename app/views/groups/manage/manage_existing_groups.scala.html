@@ -18,22 +18,31 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 @import views.components.models.SummaryListData
 @import views.html.main_layout
-@import views.html.partials.{search_and_filter, selectable_clients_table_form}
+@import views.html.partials.search_and_filter
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import views.html.components.pagination.GET_pagination
 
 @this(
-        layout: main_layout, govukSkipLink: GovukSkipLink,
+        layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,
         p: p, h1: h1, h2: h2, a: a, span: span,
         table: table, textbox: textbox, summary_list: summary_list,
         a_button: link_as_button, search_and_filter: search_and_filter,
-        selectable_clients_table_form: selectable_clients_table_form,
+        GET_pagination: GET_pagination,
         summaryErrors: SummaryErrors
 )
 
 @(
     summaries: Seq[GroupSummary],
     filterGroupSummaryForm: Form[SearchFilter],
-    taxGroupData: Option[Map[String, Int]] = None
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,5,1,5))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@tag(isCustomGroup: Boolean) = {
+@govukTag(Tag(
+content = Text(if(isCustomGroup) msgs("common.custom-group") else msgs("common.tax-group")),
+classes = "govuk-tag--grey"
+))
+}
 
 @layout(title = msgs("group.manage.h1"),
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
@@ -54,7 +63,7 @@
         )
     </div>
 
-    @views.html.helper.form(routes.ManageGroupController.showManageGroups) {
+    @views.html.helper.form(routes.ManageGroupController.showManageGroups(None,None)) {
         @search_and_filter(
             filterGroupSummaryForm,
             withFilter = false,
@@ -71,7 +80,7 @@
 
         @summaries.map { summary =>
 
-            @h2(summary.groupName)
+            @h2(msgs(summary.groupName) + " " + tag(summary.isCustomGroup).toString)
 
             @summary_list(
                 Seq(
@@ -109,6 +118,12 @@
                 background-color: #c6c6c6">
 
         }
+
+    @if(paginationMetaData.get.totalPages > 1) {
+        @GET_pagination(
+        pagination = paginationMetaData.get,
+        baseUrl = routes.ManageGroupController.showManageGroups(None,None))
+    }
 
     } else {
         @h2("group.manage.no.groups.h3", classes = Some("govuk-!-margin-top-5"))

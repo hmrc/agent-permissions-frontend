@@ -75,7 +75,7 @@ GET     /reselect-clients                     controllers.CreateGroupController.
 GET     /group-created                        controllers.CreateGroupController.showGroupCreated
 
 # Manage groups
-GET     /manage-access-groups                controllers.ManageGroupController.showManageGroups
+GET     /manage-access-groups                controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])
 
 GET     /rename-access-group/:groupId        controllers.ManageGroupController.showRenameGroup(groupId: String)
 POST    /rename-access-group/:groupId        controllers.ManageGroupController.submitRenameGroup(groupId: String)

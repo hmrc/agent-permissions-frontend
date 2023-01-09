@@ -48,9 +48,7 @@ class CreateGroupSelectNameController @Inject()(
    ) extends FrontendController(mcc)
   with I18nSupport with Logging {
 
-  import authAction._
   import groupAction._
-  import optInStatusAction._
   import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController

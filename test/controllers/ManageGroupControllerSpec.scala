@@ -30,7 +30,7 @@ import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{GroupService, SessionCacheService}
+import services.{GroupService, SessionCacheService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -44,6 +44,7 @@ class ManageGroupControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val groupService: GroupService = mock[GroupService]
+  implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   val groupId = "xyz"
@@ -67,6 +68,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
       bind(classOf[GroupService]).toInstance(groupService)
+      bind(classOf[TaxGroupService]).toInstance(taxGroupService)
     }
   }
 
@@ -442,11 +444,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Delete group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Delete group"
-      html
-        .select(Css.form)
-        .attr("action") shouldBe s"/agent-permissions/delete-access-group/${accessGroup._id}"
-      html
-        .select(Css.legend)
+      html.select(Css.form)
+        .attr("action") shouldBe ctrlRoute.showDeleteGroup(accessGroup._id.toString).url
+
+      html.select(Css.legend)
         .text() shouldBe s"Are you sure you want to delete ${accessGroup.groupName} access group?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
@@ -571,4 +572,111 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET ${ctrlRoute.showDeleteTaxGroup(groupId).url}" should {
+
+    "render correctly the DELETE group page" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetTaxGroupById(groupId, Some(accessGroup))
+      //when
+      val result = controller.showDeleteTaxGroup(groupId)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Delete group - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Delete group"
+      html.select(Css.form)
+        .attr("action") shouldBe ctrlRoute.showDeleteTaxGroup(accessGroup._id.toString).url
+
+      html.select(Css.legend)
+        .text() shouldBe s"Are you sure you want to delete ${accessGroup.groupName} access group?"
+      html.select("label[for=answer]").text() shouldBe "Yes"
+      html.select("label[for=answer-no]").text() shouldBe "No"
+      html.select(Css.form + " input[name=answer]").size() shouldBe 2
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+    }
+  }
+
+  s"POST ${ctrlRoute.submitDeleteTaxGroup(accessGroup._id.toString).url}" should {
+
+    "render correctly the confirm DELETE group page when 'yes' selected" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url)
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
+      expectGetTaxGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectDeleteTaxGroup(accessGroup._id.toString)
+
+      //when
+      val result = controller.submitDeleteTaxGroup(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      //and
+      redirectLocation(result) shouldBe Some(
+        ctrlRoute.showGroupDeleted.url)
+
+    }
+
+    "render correctly the DASHBOARD group page when 'no' selected" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url)
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetTaxGroupById(accessGroup._id.toString, Some(accessGroup))
+
+      //when
+      val result =
+        controller.submitDeleteTaxGroup(accessGroup._id.toString)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      //and
+      redirectLocation(result) shouldBe Some(
+        ctrlRoute.showManageGroups(None,None).url)
+
+    }
+
+    "render errors when no answer is specified" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitDeleteGroup(groupId).url)
+          .withFormUrlEncodedBody("answer" -> "")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetTaxGroupById(groupId, Some(accessGroup))
+
+      //when
+      val result = controller.submitDeleteTaxGroup(groupId)(request)
+
+      status(result) shouldBe OK
+    }
+  }
 }

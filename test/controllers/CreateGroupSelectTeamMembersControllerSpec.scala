@@ -635,7 +635,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         .text() shouldBe "Access group created"
       html
         .select(Css.confirmationPanelBody)
-        .text() shouldBe s"${groupName} access group is now active"
+        .text() shouldBe s"$groupName access group is now active"
       html.select(Css.H2).text() shouldBe "What happens next"
       html.select(Css.backLink).size() shouldBe 0
 

@@ -16,10 +16,11 @@
 
 package services
 
+import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, CreateTaxServiceGroupRequest}
 import play.api.Logging
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -31,9 +32,15 @@ trait TaxGroupService {
   def getTaxGroupClientCount(arn: Arn)
                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
 
+
   def createGroup(arn: Arn, createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
 
+  def getGroup(groupId: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]]
+
+  def deleteGroup(groupId: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Done]
 }
 
 @Singleton
@@ -50,4 +57,12 @@ class TaxGroupServiceImpl @Inject()
     agentPermissionsConnector.createTaxServiceGroup(arn)(createTaxServiceGroupRequest)
   }
 
+  def getGroup(groupId: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]] ={
+    agentPermissionsConnector.getTaxServiceGroup(groupId)
+  }
+
+  def deleteGroup(groupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    agentPermissionsConnector.deleteTaxGroup(groupId)
+  }
 }

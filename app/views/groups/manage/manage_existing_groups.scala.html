@@ -110,7 +110,11 @@ classes = "govuk-tag--grey"
 
             @a(key = msgs("group.manage.delete") + span(classes = Some("govuk-visually-hidden"),
                 key = summary.groupName).toString,
-                href = routes.ManageGroupController.showDeleteGroup(summary.groupId).url)
+                href = if(summary.isCustomGroup){
+                    routes.ManageGroupController.showDeleteGroup(summary.groupId).url
+                }else{
+                    routes.ManageGroupController.showDeleteTaxGroup(summary.groupId).url
+                })
 
             <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
                 border-width: 0;

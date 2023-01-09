@@ -28,7 +28,16 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[Boolean], group: AccessGroup)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    form: Form[Boolean],
+    group: AccessGroup,
+    isCustom: Boolean = true
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@formAction = @{
+    if(isCustom) routes.ManageGroupController.submitDeleteGroup(group._id.toString)
+    else routes.ManageGroupController.submitDeleteTaxGroup(group._id.toString)
+}
 
 @layout(
     title = msgs("group.manage.delete"),
@@ -38,7 +47,7 @@
     @caption(msgs("common.caption.group.name", group.groupName))
     @h1("group.manage.delete")
 
-    @formWithCSRF(action = routes.ManageGroupController.submitDeleteGroup(group._id.toString)) {
+    @formWithCSRF(action = formAction) {
 
         @radioButtons(
             field = form("answer"),

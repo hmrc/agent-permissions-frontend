@@ -130,6 +130,12 @@ class ManageGroupController @Inject()(
     }
   }
 
+  def showDeleteTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+      Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), group, false)).toFuture
+    }
+  }
+
   def submitDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       YesNoForm
@@ -146,6 +152,27 @@ class ManageGroupController @Inject()(
               } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
               Redirect(routes.ManageGroupController.showManageGroups(None,None).url).toFuture
+          }
+        )
+    }
+  }
+
+  def submitDeleteTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+      YesNoForm
+        .form("group.delete.select.error")
+        .bindFromRequest
+        .fold(
+          formWithErrors =>
+            Ok(confirm_delete_group(formWithErrors, group)).toFuture,
+          (answer: Boolean) => {
+            if (answer) {
+              for {
+                _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, group.groupName)
+                _ <- taxGroupService.deleteGroup(groupId)
+              } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
+            } else
+              Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
           }
         )
     }

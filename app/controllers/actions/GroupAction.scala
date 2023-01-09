@@ -21,7 +21,7 @@ import controllers._
 import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
-import services.GroupService
+import services.{GroupService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -38,6 +38,7 @@ class GroupAction @Inject()
   val config: Configuration,
   authAction: AuthAction,
   val groupService: GroupService,
+  val taxGroupService: TaxGroupService,
   optInStatusAction: OptInStatusAction,
   sessionAction: SessionAction,
   group_not_found: group_not_found
@@ -54,6 +55,19 @@ class GroupAction @Inject()
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         groupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
+      }
+    }
+  }
+
+  def withTaxGroupForAuthorisedOptedAgent(groupId: String)
+                                      (body: AccessGroup => Future[Result])
+                                      (implicit ec: ExecutionContext,
+                                       hc: HeaderCarrier,
+                                       request: MessagesRequest[AnyContent],
+                                       appConfig: AppConfig): Future[Result] = {
+    authAction.isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        taxGroupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
       }
     }
   }

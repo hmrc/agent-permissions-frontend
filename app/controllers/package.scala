@@ -28,6 +28,11 @@ package object controllers {
     def toFuture: Future[T] = Future successful t
   }
 
+  implicit class BooleanFold(boolean: Boolean){
+    def fold[B](l: B)(r: B => B): B = if(boolean) r(l) else l
+    def foldAny(l: Any)(r: Any => Any): Any = if(boolean) r(l) else l
+  }
+
   implicit class EnvironmentOps(private val env: Environment) extends AnyVal {
 
     def isLocal(implicit config: Configuration): Boolean = {

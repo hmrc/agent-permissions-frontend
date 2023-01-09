@@ -24,7 +24,7 @@ import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{ClientService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -33,6 +33,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit lazy val clientService: ClientService = mock[ClientService]
+  implicit lazy val groupService: GroupService = mock[GroupService]
   implicit lazy val authConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
 
@@ -42,8 +43,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       bind(classOf[SessionCacheService]).toInstance(sessionCacheService)
       bind(classOf[ClientService]).toInstance(clientService)
       bind(classOf[AuthConnector]).toInstance(authConnector)
+      bind(classOf[GroupService]).toInstance(groupService)
       bind(classOf[AgentPermissionsConnector]).toInstance(agentPermissionsConnector)
-
     }
   }
 
@@ -53,9 +54,20 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
   private val ctrlRoute: ReverseCreateGroupSelectGroupTypeController = routes.CreateGroupSelectGroupTypeController
   private val VAT = "HMRC-MTD-VAT"
 
+  def expectAuthOkArnAllowedOptedInReady(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+  }
+
+
   "showSelectGroupType" should {
-    "render correctly" in {
+    "render correctly and clear existing session keys" in {
       //given
+      expectAuthOkArnAllowedOptedInReady()
+
+      expectDeleteSessionItems(sessionKeys)
+
       implicit val request = FakeRequest("GET",
         ctrlRoute.showSelectGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -87,6 +99,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
     "render errors when no radio selected" in {
 
       //given
+      expectAuthOkArnAllowedOptedInReady()
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -108,6 +122,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
     "redirect when answer is 'true'/'Custom access group'" in {
 
       //given
+      expectAuthOkArnAllowedOptedInReady()
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -125,6 +141,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
     "redirect when answer is 'false'/'Access group based on tax service'" in {
 
       //given
+      expectAuthOkArnAllowedOptedInReady()
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -144,13 +162,13 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
     "render correctly" in {
       //given
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+
       implicit val request = FakeRequest("GET",
         ctrlRoute.showSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
 
       //when
@@ -185,15 +203,14 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
     "render errors when empty form submitted" in {
 
       //given
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("taxType" -> "")
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)
@@ -208,7 +225,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
     }
 
-    "redirect to review selected team members page when add automatically selected" in {
+    "redirect to review tax service group type page" in {
 
       //given
       implicit val request = FakeRequest("POST",
@@ -216,11 +233,13 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("taxType" -> VAT)
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
       expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
+      expectGroupNameCheckOK(arn, "VAT")
       expectPutSessionItem(GROUP_NAME, "VAT")
+      expectPutSessionItem(GROUP_NAME_CONFIRMED, false)
+
 
       //when
       val result = controller.submitSelectTaxServiceGroupType()(request)
@@ -230,39 +249,19 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       redirectLocation(result) shouldBe Some(ctrlRoute.showReviewTaxServiceGroupType.url)
     }
 
-    "redirect to select team members page when add automatically NOT selected" in {
-
-      //given
-
-      implicit val request = FakeRequest("POST",
-        ctrlRoute.submitSelectTaxServiceGroupType.url)
-        .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody("taxType" -> VAT)
-
-      expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectPutSessionItem(GROUP_NAME, "VAT")
-
-      //when
-      val result = controller.submitSelectTaxServiceGroupType()(request)
-
-      //then
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showReviewTaxServiceGroupType.url)
-    }
   }
 
   "showReviewTaxServiceGroupType" should {
 
     "render correctly" in {
       //given
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+      expectGetSessionItem(GROUP_SERVICE_TYPE, "HMRC-CGT-PD")
+
       implicit val request = FakeRequest("GET",
         ctrlRoute.showReviewTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(GROUP_SERVICE_TYPE, "HMRC-CGT-PD")
 
       //when
       val result = controller.showReviewTaxServiceGroupType()(request)
@@ -290,13 +289,14 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
   "submitReviewTaxServiceGroupType" should {
 
     "render errors when empty form submitted" in {
-
       //given
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+      expectGetSessionItem(GROUP_SERVICE_TYPE, VAT)
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitReviewTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(GROUP_SERVICE_TYPE, VAT)
 
       //when
       val result = controller.submitReviewTaxServiceGroupType()(request)
@@ -311,9 +311,12 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you would like to create a group of this type"
      }
 
-    "redirect to select team members page when 'yes' selected" in {
+    "redirect to select group name page when 'yes' selected" in {
 
       //given
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitReviewTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -325,17 +328,18 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url)
+      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectNameController.showGroupName.url)
     }
 
-    "redirect to create group type when 'no' selected" in {
-
+    "redirect to select group type when 'no' selected" in {
       //given
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+
       implicit val request = FakeRequest("POST",
         ctrlRoute.submitReviewTaxServiceGroupType.url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "false")
-
 
       //when
       val result = controller.submitReviewTaxServiceGroupType()(request)

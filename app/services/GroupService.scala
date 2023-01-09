@@ -68,6 +68,9 @@ trait GroupService {
   def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
+  def groupNameCheck(arn: Arn, groupName: String)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
+
 }
 
 
@@ -149,4 +152,6 @@ class GroupServiceImpl @Inject()(
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
     agentPermissionsConnector.addMembersToGroup(id, groupRequest)
 
+  def groupNameCheck(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+    agentPermissionsConnector.groupNameCheck(arn, groupName)
 }

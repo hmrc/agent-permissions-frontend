@@ -27,12 +27,15 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[String])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    form: Form[String],
+    backLink: Option[String] = Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("group.create.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)
+    backLinkHref = backLink
 ) {
 
     @h1("group.create.h1")

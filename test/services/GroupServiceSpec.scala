@@ -233,4 +233,17 @@ class GroupServiceSpec extends BaseSpec {
     }
   }
 
+  "group name check" should {
+    "delegate to agentPermissionsConnector" in {
+        //given
+        expectGroupNameCheck(ok = true)(arn, "Good name")
+
+        //when
+        val output: Boolean = await(service.groupNameCheck(arn, "Good name"))
+
+        //then
+        output shouldBe true
+    }
+  }
+
 }

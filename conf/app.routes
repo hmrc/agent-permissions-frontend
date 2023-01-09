@@ -26,11 +26,11 @@ GET     /create-group/review-tax-service-group      controllers.CreateGroupSelec
 POST    /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType
 
 #Custom group
-GET     /create-group/custom/select-name       controllers.CreateGroupSelectNameController.showGroupName
-POST    /create-group/custom/select-name       controllers.CreateGroupSelectNameController.submitGroupName
-GET     /create-group/custom/confirm-name      controllers.CreateGroupSelectNameController.showConfirmGroupName
-POST    /create-group/custom/confirm-name      controllers.CreateGroupSelectNameController.submitConfirmGroupName
-GET     /create-group/custom/name-exists       controllers.CreateGroupSelectNameController.showAccessGroupNameExists
+GET     /create-group/select-name       controllers.CreateGroupSelectNameController.showGroupName
+POST    /create-group/select-name       controllers.CreateGroupSelectNameController.submitGroupName
+GET     /create-group/confirm-name      controllers.CreateGroupSelectNameController.showConfirmGroupName
+POST    /create-group/confirm-name      controllers.CreateGroupSelectNameController.submitConfirmGroupName
+GET     /create-group/name-exists       controllers.CreateGroupSelectNameController.showAccessGroupNameExists
 
 GET     /create-group/search-clients           controllers.CreateGroupSelectClientsController.showSearchClients
 POST    /create-group/search-clients           controllers.CreateGroupSelectClientsController.submitSearchClients

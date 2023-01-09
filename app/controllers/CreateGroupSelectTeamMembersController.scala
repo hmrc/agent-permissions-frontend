@@ -59,10 +59,14 @@ class CreateGroupSelectTeamMembersController @Inject()
 
   private val controller: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
   private val selectClientsController: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
+  private val selectNameController: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
   def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, groupType, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
+        val backUrl = if(groupType == CUSTOM_GROUP) {
+          Some(selectClientsController.showReviewSelectedClients(None, None).url)
+        } else Some(selectNameController.showConfirmGroupName.url)
         teamMemberService
           .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(10))
           .map { paginatedList =>
@@ -70,7 +74,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               select_paginated_team_members(
                 paginatedList.pageContent,
                 groupName,
-                backUrl = Some(selectClientsController.showReviewSelectedClients(None, None).url),
+                backUrl = backUrl,
                 form = AddTeamMembersToGroupForm.form().fill(
                   AddTeamMembersToGroup(
                     search = teamMemberSearchTerm
@@ -85,7 +89,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   }
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
@@ -149,7 +153,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   }
 
   def showReviewSelectedTeamMembers(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers.fold(
           Redirect(controller.showSelectTeamMembers(None, None)).toFuture
@@ -174,7 +178,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   }
 
   def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, groupType, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
         maybeTeamMembers
           .fold(
@@ -200,21 +204,14 @@ class CreateGroupSelectTeamMembersController @Inject()
                   if (yes)
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                   else {
-                    val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType
-                    sessionCacheService
-                      .get[String](GROUP_TYPE)
-                      .flatMap(maybeGroupType =>
-                        maybeGroupType.fold(
-                          Redirect(startAgainRoute).toFuture
-                        ) {
+                  groupType match {
                           case TAX_SERVICE_GROUP =>
-                            submitTaxServiceGroup(arn, members)
+                            submitTaxServiceGroup(arn, members, groupName)
                           case CUSTOM_GROUP =>
                             groupService
                               .createGroup(arn, groupName)
                               .map(_ => Redirect(controller.showGroupCreated))
                         }
-                      )
                   }
                 }
               )
@@ -223,7 +220,7 @@ class CreateGroupSelectTeamMembersController @Inject()
     }
   }
 
-  private def submitTaxServiceGroup(arn: Arn, members: Seq[TeamMember])
+  private def submitTaxServiceGroup(arn: Arn, members: Seq[TeamMember], groupName: String)
                                    (implicit request: MessagesRequest[AnyContent]): Future[Result] = {
     sessionCacheService
       .get[String](GROUP_SERVICE_TYPE)
@@ -232,7 +229,6 @@ class CreateGroupSelectTeamMembersController @Inject()
         maybeService.fold(
           Redirect(startAgainRoute).toFuture
         )(service => {
-          val groupName = displayTaxServiceFromServiceKey(service)
           val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service, autoUpdate = true, None)
           taxGroupService
             .createGroup(arn, req)

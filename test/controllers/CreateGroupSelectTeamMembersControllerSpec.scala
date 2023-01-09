@@ -82,6 +82,13 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   private val ctrlRoute: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
 
+  def expectAuthOkOptedInReadyWithGroupType(groupType :String = CUSTOM_GROUP): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectGetSessionItem(GROUP_TYPE, groupType)
+  }
+
   s"GET ${ctrlRoute.showSelectTeamMembers(None, None).url}" should {
 
     val fakeTeamMembers = (1 to 10)
@@ -97,11 +104,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     val teamMembers = fakeTeamMembers.map(TeamMember.fromUserDetails)
 
     "render team members when filter is not applied" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
+
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
@@ -137,14 +142,31 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
 
-    "render with filtered team members held in session when a filter was applied" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-
-      expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    "have the correct back link when tax service group type" in {
+      expectAuthOkOptedInReadyWithGroupType(TAX_SERVICE_GROUP)
       expectGetSessionItem(GROUP_NAME, groupName)
+
+      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
+      expectGetPageOfTeamMembers(arn)(teamMembers)
+
+      val result = controller.showSelectTeamMembers()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName.url
+
+    }
+
+    "render with filtered team members held in session when a filter was applied" in {
+      expectAuthOkOptedInReadyWithGroupType()
+
+      expectGetSessionItem(GROUP_NAME, groupName)
+      expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
 
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
@@ -179,12 +201,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
 
     "render with NO Team Members" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
+      expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
 
       expectGetPageOfTeamMembers(arn)(Seq.empty) // <- no team members returned from session
 
@@ -211,16 +230,25 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
 
     "redirect when no group name is in session" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItemNone(GROUP_NAME) // <- NO GROUP NAME IN SESSION
 
       val result = controller.showSelectTeamMembers()(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
+    }
+
+    "redirect when no group type is in session" in {
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItemNone(GROUP_TYPE) // <- NO GROUP TYPE IN SESSION
+
+      val result = controller.showSelectTeamMembers()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url
     }
   }
 
@@ -238,9 +266,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
             "members[]" -> teamMembersIds.last,
             "submit" -> CONTINUE_BUTTON
           )
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(allowed = true)
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectAuthOkOptedInReadyWithGroupType()
         expectGetSessionItem(GROUP_NAME, "XYZ")
         expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
         val formData = AddTeamMembersToGroup(
@@ -268,9 +294,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
               "submit" -> FILTER_BUTTON
             )
 
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(allowed = true)
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectAuthOkOptedInReadyWithGroupType()
         expectGetSessionItem(GROUP_NAME, "XYZ")
         expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
         val form = AddTeamMembersToGroup(
@@ -300,9 +324,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           "submit" -> CONTINUE_BUTTON
         )
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, "XYZ")
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
 
@@ -331,10 +353,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           "submit" -> CONTINUE_BUTTON
         )
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, "XYZ")
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(GROUP_NAME, groupName)
       //this currently selected team member will be unselected as part of the post
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
 
@@ -368,10 +388,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           "submit" -> FILTER_BUTTON
         )
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, "XYZ")
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(GROUP_NAME, groupName)
+
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       val form = AddTeamMembersToGroup(submit = FILTER_BUTTON)
       expectSavePageOfTeamMembers(form, teamMembers)
@@ -393,9 +412,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItemNone(GROUP_NAME)
 
       // when
@@ -404,6 +421,28 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName.url)
+    }
+
+    "redirect to createGroup when POSTED without groupType in Session" in {
+
+      // given
+      implicit val request = FakeRequest(
+        "POST",
+        ctrlRoute.submitSelectedTeamMembers.url
+      ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItemNone(GROUP_TYPE)
+
+      // when
+      val result = controller.submitSelectedTeamMembers()(request)
+
+      // then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
     }
   }
 
@@ -422,9 +461,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           )
         }
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, selectedTeamMembers)
 
@@ -463,9 +500,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     "redirect when no selected team members in session" in {
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
@@ -478,9 +513,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     "redirect when no group name is in session" in {
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItemNone(GROUP_NAME) // <- NO GROUP NAME IN SESSION
 
       val result = controller.showReviewSelectedTeamMembers(None, None)(request)
@@ -501,14 +534,11 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType(TAX_SERVICE_GROUP)
 
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(GROUP_NAME, groupName)
+      expectGetSessionItem(GROUP_NAME, "VAT")
       expectGetSessionItem(GROUP_SERVICE_TYPE, vatTaxService)
-      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
       expectCreateTaxGroup(arn)
       expectPutSessionItem(NAME_OF_GROUP_CREATED, "VAT")
       expectDeleteSessionItems(creatingGroupKeys)
@@ -522,6 +552,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
 
     s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' page with answer 'true'" in {
+      expectAuthOkOptedInReadyWithGroupType()
 
       implicit val request =
         FakeRequest(
@@ -531,10 +562,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, groupName)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
@@ -551,11 +579,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReadyWithGroupType()
+
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, groupName)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
@@ -572,11 +599,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReadyWithGroupType()
+
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, groupName)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
@@ -593,7 +619,6 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showGroupCreated.url}" should {
 
     "show the confirmation page" in {
-
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -610,7 +635,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         .text() shouldBe "Access group created"
       html
         .select(Css.confirmationPanelBody)
-        .text() shouldBe s"${groupName} access group is now active"
+        .text() shouldBe s"$groupName access group is now active"
       html.select(Css.H2).text() shouldBe "What happens next"
       html.select(Css.backLink).size() shouldBe 0
 

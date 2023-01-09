@@ -57,14 +57,18 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   private val ctrlRoute: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
+  def expectAuthOkOptedInReadyWithGroupType(groupType :String = CUSTOM_GROUP): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectGetSessionItem(GROUP_TYPE, groupType)
+  }
+
   s"GET ${ctrlRoute.showGroupName.url}" should {
 
-    "have correct layout and content and existing session keys should be cleared" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    "have correct layout and content" in {
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, "My Shiny Group")
-      expectDeleteSessionItems(sessionKeys)
 
       val result = controller.showGroupName()(request)
 
@@ -72,7 +76,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Create an access group - Agent services account - GOV.UK"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/create-group/select-group-type"
       html.select(Css.backLink).text() shouldBe "Back"
       html.select(Css.H1).text() shouldBe "Create an access group"
       html.select(Css.form).attr("action") shouldBe ctrlRoute.showGroupName.url
@@ -84,13 +88,25 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
     }
 
+    "have correct back link if tax group" in {
+      expectAuthOkOptedInReadyWithGroupType(TAX_SERVICE_GROUP)
+      expectGetSessionItem(GROUP_NAME, "My Shiny Group")
+
+      val result = controller.showGroupName()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/create-group/select-tax-service"
+      html.select(Css.backLink).text() shouldBe "Back"
+    }
+
   }
 
   s"POST ${ctrlRoute.showGroupName.url}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReadyWithGroupType()
 
       val groupName = "My Group Name"
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -99,7 +115,6 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectPutSessionItem(GROUP_NAME, groupName)
       expectPutSessionItem(GROUP_NAME_CONFIRMED, false)
 
@@ -110,16 +125,13 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
 
     "render correct error messages when form not filled in" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReadyWithGroupType()
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitGroupName.url)
           .withFormUrlEncodedBody("name" -> "")
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
       val result = controller.submitGroupName()(request)
 
@@ -137,16 +149,13 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
 
     "render correct error messages when name exceeds 32 chars" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReadyWithGroupType()
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitGroupName.url)
           .withFormUrlEncodedBody("name" -> RandomStringUtils.randomAlphanumeric(33))
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
       val result = controller.submitGroupName()(request)
 
@@ -166,10 +175,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
   "GET /group/confirm-name" should {
 
     "have correct layout and content" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
 
       val result = controller.showConfirmGroupName()(request)
@@ -188,11 +194,8 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
 
     "redirect to /group/group-name when there is no groupName in the session" in {
+      expectAuthOkOptedInReadyWithGroupType()
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItemNone(GROUP_NAME) // <-- We are testing this. no group in session
 
       val result = controller.showConfirmGroupName()(request)
@@ -204,16 +207,13 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   "POST /group/confirm-name" should {
     "render correct error messages when nothing is submitted" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(GROUP_NAME, groupName)
 
       implicit val request =
         FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -231,16 +231,13 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
 
     "redirect to /group/group-name when there is no name in session" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItemNone(GROUP_NAME) // <-- We are testing this. no group in session
 
       implicit val request =
         FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(GROUP_NAME) // <-- We are testing this. no group in session
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -249,17 +246,14 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
 
     s"redirect to ${ctrlRoute.showAccessGroupNameExists.url} when the access group name already exists" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGroupNameCheck(ok = false)(arn, groupName)
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(GROUP_NAME, groupName)
+      expectGroupNameCheckConflict(arn, groupName)
 
       implicit val request =
         FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -269,18 +263,16 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
 
     "redirect to search clients page when Confirm access group name 'yes' selected" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGroupNameCheck(ok = true)(arn, groupName)
+      expectAuthOkOptedInReadyWithGroupType()
 
       implicit val request =
         FakeRequest("POST", ctrlRoute.submitGroupName.url)
           .withFormUrlEncodedBody("name" -> groupName, "answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(GROUP_NAME, groupName)
       expectPutSessionItem(GROUP_NAME_CONFIRMED, true)
+      expectGroupNameCheckOK(arn, groupName)
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -290,15 +282,12 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
 
     "redirect to /group/group-name when Confirm access group name 'no' selected" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(GROUP_NAME, groupName)
 
       implicit val request = FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
         .withFormUrlEncodedBody("name" -> groupName, "answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUP_NAME, groupName)
 
       val result = controller.submitConfirmGroupName()(request)
 
@@ -311,11 +300,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showAccessGroupNameExists.url}" should {
 
     "display the right content" in {
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
 
       val result = controller.showAccessGroupNameExists()(request)

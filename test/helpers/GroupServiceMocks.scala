@@ -19,6 +19,7 @@ package helpers
 import akka.Done
 import connectors.{AddMembersToAccessGroupRequest, UpdateAccessGroupRequest}
 import models.{DisplayClient, TeamMember}
+import org.scalamock.handlers.CallHandler4
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
@@ -102,4 +103,16 @@ trait GroupServiceMocks extends MockFactory {
       .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
+
+  def expectGroupNameCheckOK(arn: Arn, groupName: String)
+                          (implicit groupService: GroupService): CallHandler4[Arn, String, HeaderCarrier, ExecutionContext, Future[Boolean]] =
+    (groupService.groupNameCheck(_:Arn, _:String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, groupName, *, *)
+      .returning(Future successful true).once()
+
+  def expectGroupNameCheckConflict(arn: Arn, groupName: String)
+                            (implicit groupService: GroupService): CallHandler4[Arn, String, HeaderCarrier, ExecutionContext, Future[Boolean]] =
+    (groupService.groupNameCheck(_:Arn, _:String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, groupName, *, *)
+      .returning(Future successful false).once()
 }

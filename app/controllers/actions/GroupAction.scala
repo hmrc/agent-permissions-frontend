@@ -40,6 +40,7 @@ class GroupAction @Inject()
   val groupService: GroupService,
   val taxGroupService: TaxGroupService,
   optInStatusAction: OptInStatusAction,
+  sessionAction: SessionAction,
   group_not_found: group_not_found
 ) extends Logging {
 
@@ -71,7 +72,7 @@ class GroupAction @Inject()
     }
   }
 
-  @Deprecated // use withGroupNameAndAuthorised for the new flow
+  @Deprecated // use withGroupTypeAndAuthorised for the new flow
   def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])
                                                   (implicit ec: ExecutionContext, hc: HeaderCarrier,
                                                    request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
@@ -84,14 +85,30 @@ class GroupAction @Inject()
     }
   }
 
-  def withGroupNameAndAuthorised(body: (String, Arn) => Future[Result])
+  def withGroupTypeAndAuthorised(body: (String, Arn) => Future[Result])
+                                (implicit ec: ExecutionContext, hc: HeaderCarrier,
+                                 request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+    authAction.isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
+        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType).toFuture)(
+          groupType => body(groupType, arn)
+        )
+      }
+    }
+  }
+
+  def withGroupNameAndAuthorised(body: (String, String, Arn) => Future[Result])
                                           (implicit ec: ExecutionContext, hc: HeaderCarrier,
                                            request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
-          groupName => body(groupName, arn)
-        }
+      isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
+        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType).toFuture)(
+          groupType =>
+        sessionAction.withSessionItem[String](GROUP_NAME) { maybeGroupName =>
+          maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
+            groupName => body(groupName, groupType, arn)
+          }
+        })
       }
     }
   }

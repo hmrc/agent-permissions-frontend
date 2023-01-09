@@ -56,20 +56,22 @@ class CreateGroupSelectNameController @Inject()(
   private val controller: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInComplete(arn) { _ =>
-        withSessionItem[String](GROUP_NAME) { maybeName =>
-          sessionCacheService.deleteAll(sessionKeys).map(_ =>
-            Ok(choose_name(GroupNameForm.form().fill(maybeName.getOrElse(""))))
-          )
-        }
+    withGroupTypeAndAuthorised { (groupType, _) =>
+      withSessionItem[String](GROUP_NAME) { maybeName =>
+        val backLink = if (groupType == CUSTOM_GROUP) {
+          Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
+        } else Some(routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType.url)
+
+        Ok(choose_name(
+          GroupNameForm.form().fill(maybeName.getOrElse("")),
+          backLink
+        )).toFuture
       }
     }
   }
 
   def submitGroupName: Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedInComplete(arn) { _ =>
+    withGroupTypeAndAuthorised { (_, _) =>
         GroupNameForm
           .form()
           .bindFromRequest
@@ -83,19 +85,18 @@ class CreateGroupSelectNameController @Inject()(
               saved.map(_=> Redirect(controller.showConfirmGroupName))
             }
           )
-      }
     }
   }
 
   def showConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _) =>
+    withGroupNameAndAuthorised { (groupName,_, _) =>
       val form = YesNoForm.form("group.name.confirm.required.error")
       Ok(confirm_name(form, groupName)).toFuture
     }
   }
 
   def submitConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, arn) =>
+    withGroupNameAndAuthorised { (groupName, groupType, arn) =>
       YesNoForm
         .form("group.name.confirm.required.error")
         .bindFromRequest
@@ -104,15 +105,18 @@ class CreateGroupSelectNameController @Inject()(
             Ok(confirm_name(formWithErrors, groupName)).toFuture,
           (nameIsCorrect: Boolean) => {
             if (nameIsCorrect)
-              agentPermissionsConnector
+              groupService
                 .groupNameCheck(arn, groupName)
                 .flatMap(
                   nameAvailable =>
-                    if (nameAvailable)
-                      sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true).map(_=>
+                    if (nameAvailable) {
+                      for {
+                        _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true)
+                      } yield
+                        if(groupType == CUSTOM_GROUP) {
                         Redirect(routes.CreateGroupSelectClientsController.showSearchClients)
-                      )
-                    else
+                      } else Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None,None))
+                    } else
                       Redirect(controller.showAccessGroupNameExists).toFuture)
             else
               Redirect(controller.showGroupName.url).toFuture
@@ -122,7 +126,7 @@ class CreateGroupSelectNameController @Inject()(
   }
 
   def showAccessGroupNameExists: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _) =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
       Ok(duplicate_group_name(groupName)).toFuture
     }
   }

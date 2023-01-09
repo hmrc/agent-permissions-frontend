@@ -34,7 +34,7 @@
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
     formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers,
-    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url),
+    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url),
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

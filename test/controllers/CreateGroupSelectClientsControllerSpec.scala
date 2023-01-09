@@ -75,6 +75,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectGetSessionItem(GROUP_TYPE, CUSTOM_GROUP)
     expectGetSessionItem(GROUP_NAME, groupName)
   }
 
@@ -274,6 +275,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(GROUP_TYPE, CUSTOM_GROUP)
       expectGetSessionItemNone(GROUP_NAME) // <- NO GROUP NAME IN SESSION
 
       val result = controller.showSelectClients()(request)
@@ -441,7 +443,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(GROUP_NAME)
+      expectGetSessionItem(GROUP_TYPE, CUSTOM_GROUP)
+      expectGetSessionItemNone(GROUP_NAME) // <- testing this
 
       // when
       val result = controller.submitSelectedClients()(request)
@@ -507,6 +510,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(GROUP_TYPE, CUSTOM_GROUP)
       expectGetSessionItemNone(GROUP_NAME) // <- NO GROUP NAME IN SESSION
 
       val result = controller.showReviewSelectedClients(None, None)(request)

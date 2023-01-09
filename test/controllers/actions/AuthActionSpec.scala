@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.actions
 
 import com.google.inject.AbstractModule
 import config.AppConfig
 import connectors.AgentPermissionsConnector
-import controllers.actions.AuthAction
 import helpers.BaseSpec
 import play.api.Application
 import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
@@ -34,7 +33,7 @@ class AuthActionSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
     override def configure(): Unit = {
       bind(classOf[AuthConnector]).toInstance(mockAuthConnector)
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
@@ -45,8 +44,8 @@ class AuthActionSpec extends BaseSpec {
     appBuilder
       .build()
 
-  val authAction = fakeApplication.injector.instanceOf[AuthAction]
-  implicit val appConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val authAction: AuthAction = fakeApplication.injector.instanceOf[AuthAction]
+  implicit val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
 
   "Auth Action" when {
     "the user hasn't logged in" should {
@@ -55,7 +54,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(MissingBearerToken())
 
         val result =
-          authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2F&origin=agent-permissions-frontend"
@@ -68,7 +67,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(InsufficientEnrolments())
 
         val result =
-          authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
         status(result) shouldBe FORBIDDEN
       }
 
@@ -78,7 +77,7 @@ class AuthActionSpec extends BaseSpec {
           expectAuthorisationFails(UnsupportedAuthProvider())
 
           val result =
-            authAction.isAuthorisedAgent((arn) => Future.successful(Ok("")))
+            authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
           status(result) shouldBe FORBIDDEN
         }
       }

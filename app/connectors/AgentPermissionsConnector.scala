@@ -25,8 +25,7 @@ import models.DisplayClient
 import play.api.Logging
 import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, _}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -93,6 +92,13 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def createTaxServiceGroup(arn: Arn)
                            (createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
+
+  def getTaxServiceGroup(groupId: String)
+                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
+
+  def deleteTaxGroup(id: String)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
 }
 
 @Singleton
@@ -267,19 +273,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
-      http.GET[HttpResponse](url).map { response: HttpResponse =>
-        response.status match {
-          case OK => response.json.asOpt[AccessGroup]
-          case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
-            None
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(
-              s"error getting group details for group $id, from $url",
-              anyOtherStatus)
-
-        }
-      }
+      getAccessGroup(id, url)
     }
   }
 
@@ -317,17 +311,18 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  override def deleteGroup(id: String)(implicit hc: HeaderCarrier,
-                                       ec: ExecutionContext): Future[Done] = {
+  override def deleteGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
-    monitor("ConsumedAPI-update group-PATCH") {
-      http.DELETE[HttpResponse](url).map { response =>
-        response.status match {
-          case OK => Done
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error DELETING update group request to $url", anyOtherStatus)
-        }
-      }
+    monitor("ConsumedAPI-custom-group-DELETE") {
+      deleteAccessGroup(url)
+    }
+  }
+
+  def deleteTaxGroup(id: String)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/tax-group/$id"
+    monitor("ConsumedAPI-tax-group-DELETE") {
+      deleteAccessGroup(url)
     }
   }
 
@@ -348,7 +343,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   override def getAvailableTaxServiceClientCount(arn: Arn)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+                                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client-count/available-tax-services"
     monitor("ConsumedAPI-AvailableTaxServiceClientCount-GET") {
       http.GET[HttpResponse](url).map { response =>
@@ -361,7 +356,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   override def getTaxGroupClientCount(arn: Arn)
-                                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+                                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/client-count/tax-groups"
     monitor("ConsumedAPI-TaxGroupClientCount-GET") {
       http.GET[HttpResponse](url).map { response =>
@@ -387,6 +382,42 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
             case anyOtherStatus => throw UpstreamErrorResponse(s"error creating tax service group $url", anyOtherStatus)
           }
         }
+    }
+  }
+
+  override def getTaxServiceGroup(groupId: String)
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
+    val url = s"$baseUrl/agent-permissions/tax-group/$groupId"
+    monitor("ConsumedAPI-getTaxServiceGroup-GET") {
+      getAccessGroup(groupId, url)
+    }
+
+  }
+
+  private def getAccessGroup(groupId: String, url: String)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
+    http
+      .GET[HttpResponse](url)
+      .map { response =>
+        response.status match {
+          case OK => response.json.asOpt[AccessGroup]
+          case NOT_FOUND =>
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
+            None
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error getting group details for group $groupId, from $url", anyOtherStatus)
+        }
+      }
+  }
+
+  private def deleteAccessGroup(url: String)
+                               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    http.DELETE[HttpResponse](url).map { response =>
+      response.status match {
+        case OK => Done
+        case anyOtherStatus =>
+          throw UpstreamErrorResponse(s"error DELETING update group request to $url", anyOtherStatus)
+      }
     }
   }
 }

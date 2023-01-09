@@ -16,12 +16,15 @@
 
 package services
 
+import akka.Done
 import connectors._
 import helpers.BaseSpec
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDateTime.MIN
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class TaxGroupServiceSpec extends BaseSpec {
@@ -47,7 +50,7 @@ class TaxGroupServiceSpec extends BaseSpec {
       //given
       val payload = CreateTaxServiceGroupRequest("blah", None, "blah")
       (mockAgentPermissionsConnector
-        .createTaxServiceGroup(_: Arn)( _: CreateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .createTaxServiceGroup(_: Arn)(_: CreateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *, *)
         .returning(Future successful "123456")
         .once()
@@ -62,6 +65,50 @@ class TaxGroupServiceSpec extends BaseSpec {
     }
   }
 
+  "get group" should {
+    "call get on agentPermissionsConnector" in {
+
+      //given
+      val groupId = UUID.randomUUID().toString
+      val agentUser = AgentUser("agent1", "Bob Smith")
+      val expectedGroup = AccessGroup(Arn("arn1"), "Bangers & Mash", MIN, MIN, agentUser, agentUser, None, None)
+
+      (mockAgentPermissionsConnector
+        .getTaxServiceGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, *, *)
+        .returning(Future successful Some(expectedGroup))
+        .once()
+
+      //when
+      val response = await(service.getGroup(groupId))
+
+      //then
+      response shouldBe Some(expectedGroup)
+
+
+    }
+  }
+
+  "delete group" should {
+    "call delete on agentPermissionsConnector" in {
+
+      //given
+      val groupId = UUID.randomUUID().toString
+
+      (mockAgentPermissionsConnector
+        .deleteTaxGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, *, *)
+        .returning(Future successful Done)
+        .once()
+
+      //when
+      val response = await(service.deleteGroup(groupId))
+
+      //then
+      response shouldBe Done
+
+    }
+  }
 
 
 }

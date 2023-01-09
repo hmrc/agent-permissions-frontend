@@ -81,8 +81,11 @@ GET     /rename-access-group/:groupId        controllers.ManageGroupController.s
 POST    /rename-access-group/:groupId        controllers.ManageGroupController.submitRenameGroup(groupId: String)
 GET     /access-group-renamed/:groupId       controllers.ManageGroupController.showGroupRenamed(groupId: String)
 
-GET     /delete-access-group/:groupId        controllers.ManageGroupController.showDeleteGroup(groupId: String)
-POST    /delete-access-group/:groupId        controllers.ManageGroupController.submitDeleteGroup(groupId: String)
+GET     /delete-custom-group/:groupId        controllers.ManageGroupController.showDeleteGroup(groupId: String)
+POST    /delete-custom-group/:groupId        controllers.ManageGroupController.submitDeleteGroup(groupId: String)
+
+GET     /delete-tax-group/:groupId           controllers.ManageGroupController.showDeleteTaxGroup(groupId: String)
+POST    /delete-tax-group/:groupId           controllers.ManageGroupController.submitDeleteTaxGroup(groupId: String)
 GET     /access-group-deleted                controllers.ManageGroupController.showGroupDeleted
 
 # Manage groups - clients

@@ -16,10 +16,11 @@
 
 package helpers
 
+import akka.Done
 import connectors.CreateTaxServiceGroupRequest
 import org.scalamock.scalatest.MockFactory
 import services.TaxGroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -50,5 +51,18 @@ trait TaxGroupServiceMocks extends MockFactory {
       .returning(Future.successful("PPT or whatever"))
       .once()
 
+  def expectDeleteTaxGroup(id: String)
+                       (implicit taxGroupService: TaxGroupService): Unit =
+    (taxGroupService
+      .deleteGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, *, *)
+      .returning(Future.successful(Done)).once()
+
+  def expectGetTaxGroupById(id: String, maybeGroup: Option[AccessGroup])(
+    implicit taxGroupService: TaxGroupService): Unit =
+    (taxGroupService
+      .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, *, *)
+      .returning(Future successful maybeGroup)
 
 }

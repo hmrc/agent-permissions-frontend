@@ -99,6 +99,10 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def deleteTaxGroup(id: String)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
+  def updateTaxGroup(groupId: String, group: UpdateTaxServiceGroupRequest)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+
 }
 
 @Singleton
@@ -418,6 +422,23 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
         case anyOtherStatus =>
           throw UpstreamErrorResponse(s"error DELETING update group request to $url", anyOtherStatus)
       }
+    }
+  }
+
+  def updateTaxGroup(groupId: String, patchRequest: UpdateTaxServiceGroupRequest)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+
+    val url = s"$baseUrl/agent-permissions/tax-group/$groupId"
+    monitor("ConsumedAPI-update tax group-PATCH") {
+      http
+        .PATCH[UpdateTaxServiceGroupRequest, HttpResponse](url, patchRequest)
+        .map { response =>
+          response.status match {
+            case OK => Done
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
+          }
+        }
     }
   }
 }

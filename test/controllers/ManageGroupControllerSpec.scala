@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
@@ -309,6 +309,59 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET ${ctrlRoute.showRenameTaxGroup(groupId).url}" should {
+
+    "render correctly the rename groups page" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetTaxGroupById(groupId, Some(accessGroup))
+
+      //when
+      val result = controller.showRenameTaxGroup(groupId)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      //and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Rename group - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Rename group"
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitRenameTaxGroup(groupId).url
+      html
+        .select(Css.labelFor("name"))
+        .text() shouldBe "What do you want to call this access group?"
+      html.select(Css.form + " input[name=name]").size() shouldBe 1
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+    }
+
+    "render NOT_FOUND when no group is found for this group id" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetTaxGroupById(groupId, Option.empty[AccessGroup])
+
+      //when
+      val result = controller.showRenameTaxGroup(groupId)(request)
+
+      status(result) shouldBe NOT_FOUND
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group not found - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group not found"
+      html
+        .select(Css.paragraphs)
+        .text() shouldBe "Please check the url or return to the Manage groups page"
+      html
+        .select(Css.linkStyledAsButton)
+        .text() shouldBe "Back to manage groups page"
+      html
+        .select(Css.linkStyledAsButton)
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+    }
+  }
+
   s"POST ${ctrlRoute.submitRenameGroup(groupId).url}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
@@ -391,6 +444,84 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"POST ${ctrlRoute.submitRenameTaxGroup(groupId).url}" should {
+
+    "redirect to confirmation page with when posting a valid group name" in {
+
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetTaxGroupById(groupId, Some(accessGroup))
+      expectUpdateTaxGroup(groupId, UpdateTaxServiceGroupRequest(groupName = Some("New Group Name")))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitRenameTaxGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "New Group Name")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
+
+      //when
+      val result = controller.submitRenameTaxGroup(groupId)(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showTaxGroupRenamed(groupId).url
+    }
+
+    "redirect when no group is returned for this group id" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitRenameTaxGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "New Group Name")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetTaxGroupById(groupId, Option.empty[AccessGroup])
+
+      //when
+      val result = controller.submitRenameTaxGroup(groupId)(request)
+
+      //then
+      status(result) shouldBe NOT_FOUND
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group not found - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group not found"
+      html.select(Css.paragraphs)
+        .text() shouldBe "Please check the url or return to the Manage groups page"
+      html.select(Css.linkStyledAsButton)
+        .text() shouldBe "Back to manage groups page"
+      html.select(Css.linkStyledAsButton)
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+    }
+
+    "render errors when no group name is specified" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitRenameGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetGroupById(groupId, Some(accessGroup))
+
+      //when
+      val result = controller.submitRenameGroup(groupId)(request)
+
+      status(result) shouldBe OK
+    }
+  }
+
   s"GET ${ctrlRoute.showGroupRenamed(groupId).url}" should {
 
     "render correctly the manage groups page" in {
@@ -403,6 +534,42 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //when
       val result = controller.showGroupRenamed(groupId)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      //and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Access group renamed - Agent services account - GOV.UK"
+      html
+        .select(Css.confirmationPanelH1)
+        .text() shouldBe "Access group renamed"
+      html
+        .select(Css.confirmationPanelBody)
+        .text() shouldBe "Previous Name access group renamed to Bananas"
+      //we have removed the "what happens next h2 and paragraph.
+      // so just check it's not there in case someone merges it back
+      html.select(Css.H2).size() shouldBe 0
+      html.select(Css.paragraphs).size() shouldBe 0
+      html.select(Css.backLink).size() shouldBe 0
+      val dashboardLink = html.select("main a#back-to-dashboard")
+      dashboardLink.text() shouldBe "Return to manage access groups"
+      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+    }
+  }
+
+  s"GET ${ctrlRoute.showTaxGroupRenamed(groupId).url}" should {
+
+    "render correctly the manage groups page" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(GROUP_RENAMED_FROM, "Previous Name")
+      expectGetTaxGroupById(groupId, Some(accessGroup))
+
+      //when
+      val result = controller.showTaxGroupRenamed(groupId)(request)
 
       //then
       status(result) shouldBe OK

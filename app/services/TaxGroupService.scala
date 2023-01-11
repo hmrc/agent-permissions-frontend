@@ -18,7 +18,7 @@ package services
 
 import akka.Done
 import com.google.inject.ImplementedBy
-import connectors.{AgentPermissionsConnector, CreateTaxServiceGroupRequest}
+import connectors.{AgentPermissionsConnector, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
 import play.api.Logging
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -41,6 +41,9 @@ trait TaxGroupService {
 
   def deleteGroup(groupId: String)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Done]
+
+  def updateGroup(groupId: String, patchRequestBody: UpdateTaxServiceGroupRequest)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
 
 @Singleton
@@ -65,4 +68,9 @@ class TaxGroupServiceImpl @Inject()
   def deleteGroup(groupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     agentPermissionsConnector.deleteTaxGroup(groupId)
   }
+
+  def updateGroup(groupId: String, group: UpdateTaxServiceGroupRequest)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    agentPermissionsConnector.updateTaxGroup(groupId, group)
+
 }

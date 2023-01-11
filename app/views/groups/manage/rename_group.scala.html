@@ -20,16 +20,25 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1, caption: caption,
-        textbox: textbox,
-        submit_button: submit_button,
-        link_as_button: link_as_button,
-        formWithCSRF: FormWithCSRF
+    layout: main_layout,
+    p: p, h1: h1, caption: caption,
+    textbox: textbox,
+    submit_button: submit_button,
+    link_as_button: link_as_button,
+    formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[String], group: AccessGroup, groupId: String)(implicit request: Request[_], msgs: Messages, appConfig:
-AppConfig)
+@(
+    form: Form[String],
+    group: AccessGroup,
+    groupId: String,
+    isCustom: Boolean
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@formAction = @{
+    if(isCustom) routes.ManageGroupController.submitRenameGroup(groupId)
+    else routes.ManageGroupController.submitRenameTaxGroup(groupId)
+}
 
 @layout(
     title = msgs("group.manage.rename"),
@@ -40,7 +49,7 @@ AppConfig)
     @caption(msgs("common.caption.group.name", group.groupName))
     @h1("group.manage.rename")
 
-    @formWithCSRF(action = routes.ManageGroupController.submitRenameGroup(groupId)) {
+    @formWithCSRF(action = formAction) {
 
         @textbox(field = form("name"), label = "group.create.name.label")
         @link_as_button(

@@ -110,5 +110,27 @@ class TaxGroupServiceSpec extends BaseSpec {
     }
   }
 
+  "update group" should {
+    "call patch/update on agentPermissionsConnector" in {
+
+      //given
+      val groupId = UUID.randomUUID().toString
+      val payload = UpdateTaxServiceGroupRequest(groupName = Some("Bangers & Mash"))
+
+      (mockAgentPermissionsConnector
+        .updateTaxGroup(_: String, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, payload, *, *)
+        .returning(Future successful Done)
+        .once()
+
+      //when
+      val response = await(service.updateGroup(groupId, payload))
+
+      //then
+      response shouldBe Done
+
+
+    }
+  }
 
 }

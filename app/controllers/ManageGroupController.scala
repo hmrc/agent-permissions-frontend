@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.UpdateAccessGroupRequest
+import connectors.{UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
 import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
 import forms._
 import models.SearchFilter
@@ -91,7 +91,13 @@ class ManageGroupController @Inject()(
 
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group =>
-      Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId)).toFuture
+      Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId, true)).toFuture
+    }
+  }
+
+  def showRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group =>
+      Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId, false)).toFuture
     }
   }
 
@@ -101,13 +107,31 @@ class ManageGroupController @Inject()(
         .form()
         .bindFromRequest
         .fold(
-          formWithErrors => Ok(rename_group(formWithErrors, group, groupId)).toFuture,
+          formWithErrors => Ok(rename_group(formWithErrors, group, groupId, true)).toFuture,
           (newName: String) => {
             for {
               _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, group.groupName)
               patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
               _ <- groupService.updateGroup(groupId, patchRequestBody)
             } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
+          }
+        )
+    }
+  }
+
+  def submitRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+      GroupNameForm
+        .form()
+        .bindFromRequest
+        .fold(
+          formWithErrors => Ok(rename_group(formWithErrors, group, groupId, false)).toFuture,
+          (newName: String) => {
+            for {
+              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, group.groupName)
+              patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
+              _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
+            } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
           }
         )
     }
@@ -122,6 +146,16 @@ class ManageGroupController @Inject()(
         } yield Ok(rename_group_complete(oldName.get, group.get.groupName))
       }
     }
+  }
+
+  def showTaxGroupRenamed(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+        sessionCacheService
+          .get(GROUP_RENAMED_FROM)
+          .map(oldName =>
+            Ok(rename_group_complete(oldName.get, group.groupName))
+          )
+      }
   }
 
   def showDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>

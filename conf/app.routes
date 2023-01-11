@@ -77,9 +77,14 @@ GET     /group-created                        controllers.CreateGroupController.
 # Manage groups
 GET     /manage-access-groups                controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])
 
-GET     /rename-access-group/:groupId        controllers.ManageGroupController.showRenameGroup(groupId: String)
-POST    /rename-access-group/:groupId        controllers.ManageGroupController.submitRenameGroup(groupId: String)
-GET     /access-group-renamed/:groupId       controllers.ManageGroupController.showGroupRenamed(groupId: String)
+GET     /rename-custom-group/:groupId     controllers.ManageGroupController.showRenameGroup(groupId: String)
+POST    /rename-custom-group/:groupId     controllers.ManageGroupController.submitRenameGroup(groupId: String)
+GET     /custom-group-renamed/:groupId    controllers.ManageGroupController.showGroupRenamed(groupId: String)
+
+GET     /rename-tax-group/:groupId        controllers.ManageGroupController.showRenameTaxGroup(groupId: String)
+POST    /rename-tax-group/:groupId        controllers.ManageGroupController.submitRenameTaxGroup(groupId: String)
+GET     /tax-group-renamed/:groupId       controllers.ManageGroupController.showTaxGroupRenamed(groupId: String)
+
 
 GET     /delete-custom-group/:groupId        controllers.ManageGroupController.showDeleteGroup(groupId: String)
 POST    /delete-custom-group/:groupId        controllers.ManageGroupController.submitDeleteGroup(groupId: String)

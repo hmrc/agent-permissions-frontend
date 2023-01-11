@@ -59,6 +59,10 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def unassignedClients(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
+  def getPaginatedClientsForCustomGroup(id: String)
+                         (page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
+
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
 
@@ -278,6 +282,24 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
       getAccessGroup(id, url)
+    }
+  }
+
+  def getPaginatedClientsForCustomGroup(id: String)
+                         (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[PaginatedList[Client]] = {
+    val searchParam = search.fold("")(searchTerm => s"&search=${searchTerm}")
+    val filterParam = filter.fold("")(filterTerm => s"&filter=${filterTerm}")
+    val url = s"$baseUrl/agent-permissions/group/$id/clients" +
+      s"?page=$page&pageSize=$pageSize$searchParam$filterParam"
+    monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK => response.json.as[PaginatedList[Client]]
+          case e => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
+        }
+      }
     }
   }
 

@@ -24,8 +24,7 @@ import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady, PaginatedList, PaginationMetaData, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
@@ -291,6 +290,58 @@ class AgentPermissionsConnectorSpec
       //then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.unassignedClients(arn))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+  }
+
+  "GET Paginated clients for Group" should {
+
+    "return successfully" in {
+      //given
+      val groupId = 234234
+      val clients = Seq(
+        Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Bob"),
+        Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12347", friendlyName = "Builder"),
+      )
+      val meta = PaginationMetaData(
+        lastPage = false,
+        firstPage = true,
+        totalSize = 2,
+        totalPages = 1,
+        pageSize = 20,
+        currentPageNumber = 1,
+        currentPageSize = 2
+      )
+      val paginatedList = PaginatedList[Client](pageContent = clients, paginationMetaData = meta)
+
+
+      val expectedUrl =
+        s"http://localhost:9447/agent-permissions/group/$groupId/clients"
+      val mockJsonResponseBody = Json.toJson(paginatedList).toString
+      val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
+
+      expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
+
+      //and
+      val expectedTransformedResponse = paginatedList
+
+      //then
+      connector
+        .getPaginatedClientsForCustomGroup(groupId.toString)(1, 20)
+        .futureValue shouldBe expectedTransformedResponse
+    }
+
+    "throw an exception for any other HTTP response code" in {
+
+      //given
+      val groupId = "234234"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      expectHttpClientGET[HttpResponse](mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.getPaginatedClientsForCustomGroup(groupId)(1, 20))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }

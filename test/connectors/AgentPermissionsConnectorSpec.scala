@@ -142,7 +142,7 @@ class AgentPermissionsConnectorSpec
     "return groups successfully" in {
       //given
       val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true)
+        GroupSummary("groupId", "groupName", Some(33), 9)
       )
 
       val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/${client.enrolmentKey}/groups"
@@ -184,7 +184,7 @@ class AgentPermissionsConnectorSpec
     "return groups successfully" in {
       //given
       val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true)
+        GroupSummary("groupId", "groupName", Some(33), 9)
       )
 
       val agentUserId = agentUser.id
@@ -235,7 +235,10 @@ class AgentPermissionsConnectorSpec
 
     "return successfully" in {
       //given
-      val groupSummaries = Seq(GroupSummary("groupId", "groupName", Some(33), 9, isCustomGroup = true), GroupSummary("groupId2", "VAT", None, 9, isCustomGroup = false))
+      val groupSummaries = Seq(
+        GroupSummary("groupId", "groupName", Some(33), 9),
+        GroupSummary("groupId2", "VAT", None, 9, Some("VAT"))
+      )
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/arn/${arn.value}/all-groups"

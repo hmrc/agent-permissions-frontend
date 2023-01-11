@@ -109,7 +109,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
       expectGetPageOfGroupsForArn(arn)(1, 5)(groupSummaries)
       expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
       //when
@@ -131,7 +131,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 3
 
       // check first group
-      html.select(H2).get(0).text() shouldBe "name 1 Custom group"
+      html.select(H2).get(0).text() shouldBe "name 1 Tax service group"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
@@ -199,7 +199,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
-      val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4, isCustomGroup = true))
+      val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4))
       val searchTerm = expectedGroupSummaries(0).groupName
       expectGetPageOfGroupsForArn(arn, searchTerm)(1, 5)(Seq(expectedGroupSummaries.head))
       val requestWithQuery = FakeRequest(GET,
@@ -228,7 +228,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 1
 
       // check first group contents
-      html.select(H2).get(0).text() shouldBe "GroupName1 Custom group"
+      html.select(H2).get(0).text() shouldBe "GroupName1 Tax service group"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
@@ -574,7 +574,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
 
-      //and
+      //andmanage_existing_groups.scala.html
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Access group renamed - Agent services account - GOV.UK"
       html

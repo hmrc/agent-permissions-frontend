@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import controllers.actions.{AuthAction, GroupAction, OptInStatusAction, SessionAction}
+import controllers.actions.{GroupAction, SessionAction}
 import forms.{GroupNameForm, YesNoForm}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -32,7 +32,6 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class CreateGroupSelectNameController @Inject()(
      groupAction: GroupAction,
-     authAction: AuthAction,
      sessionAction: SessionAction,
      mcc: MessagesControllerComponents,
      choose_name: choose_name,
@@ -40,7 +39,6 @@ class CreateGroupSelectNameController @Inject()(
      duplicate_group_name: duplicate_group_name,
      val sessionCacheService: SessionCacheService,
      val groupService: GroupService,
-     optInStatusAction: OptInStatusAction,
    )(
      implicit val appConfig: AppConfig,
      ec: ExecutionContext,

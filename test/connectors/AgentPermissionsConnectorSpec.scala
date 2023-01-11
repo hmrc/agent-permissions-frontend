@@ -627,4 +627,33 @@ class AgentPermissionsConnectorSpec
     }
 
   }
+
+  "PATCH update Tax Group" should {
+
+    "return Done when response code is OK" in {
+
+      val groupId = "234234"
+      val groupRequest = UpdateTaxServiceGroupRequest(groupName = Some("name of group"))
+      val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
+      val mockResponse = HttpResponse.apply(OK, "response Body")
+      expectHttpClientPATCH[UpdateTaxServiceGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+      connector.updateTaxGroup(groupId, groupRequest).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      val groupId = "234234"
+      val groupRequest = UpdateTaxServiceGroupRequest(Some("name of group"))
+      val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      expectHttpClientPATCH[UpdateTaxServiceGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.updateTaxGroup(groupId, groupRequest))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+  }
 }

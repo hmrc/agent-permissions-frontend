@@ -105,7 +105,11 @@ classes = "govuk-tag--grey"
 
             @a(key = msgs("group.manage.rename") + span(classes = Some("govuk-visually-hidden"),
                 key = summary.groupName).toString,
-                href = routes.ManageGroupController.showRenameGroup(summary.groupId).url,
+                href = if(summary.isCustomGroup){
+                    routes.ManageGroupController.showRenameGroup(summary.groupId).url
+                }else{
+                    routes.ManageGroupController.showRenameTaxGroup(summary.groupId).url
+                },
                 classes = Some("govuk-!-margin-right-9"))
 
             @a(key = msgs("group.manage.delete") + span(classes = Some("govuk-visually-hidden"),

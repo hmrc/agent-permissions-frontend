@@ -26,7 +26,7 @@ import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.PaginatedListBuilder
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 
 import scala.concurrent.{ExecutionContext, Future}
 

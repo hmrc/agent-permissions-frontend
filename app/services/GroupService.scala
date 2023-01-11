@@ -27,7 +27,7 @@ import play.api.Logging
 import play.api.mvc.Request
 import repository.SessionCacheRepository
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.PaginatedListBuilder
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

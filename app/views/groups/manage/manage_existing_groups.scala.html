@@ -81,7 +81,7 @@
 
         @summaries.map { summary =>
 
-            @h2(msgs(summary.groupName) + " " + groupTypeTag(Option(summary.taxService).isEmpty).toString)
+            @h2(msgs(summary.groupName) + " " + groupTypeTag(summary.taxService.isEmpty).toString)
 
             @summary_list(
                 Seq(
@@ -106,7 +106,7 @@
 
             @a(key = msgs("group.manage.rename") + span(classes = Some("govuk-visually-hidden"),
                 key = summary.groupName).toString,
-                href = if(Option(summary.taxService).isDefined){
+                href = if(summary.taxService.isDefined){
                     routes.ManageGroupController.showRenameTaxGroup(summary.groupId).url
                 }else{
                     routes.ManageGroupController.showRenameGroup(summary.groupId).url
@@ -115,7 +115,7 @@
 
             @a(key = msgs("group.manage.delete") + span(classes = Some("govuk-visually-hidden"),
                 key = summary.groupName).toString,
-                href = if(Option(summary.taxService).isDefined){
+                href = if(summary.taxService.isDefined){
                     routes.ManageGroupController.showDeleteTaxGroup(summary.groupId).url
                 }else{
                     routes.ManageGroupController.showDeleteGroup(summary.groupId).url

@@ -131,7 +131,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 3
 
       // check first group
-      html.select(H2).get(0).text() shouldBe "name 1 Tax service group"
+      html.select(H2).get(0).text() shouldBe "name 1 Custom group"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
@@ -228,7 +228,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 1
 
       // check first group contents
-      html.select(H2).get(0).text() shouldBe "GroupName1 Tax service group"
+      html.select(H2).get(0).text() shouldBe "GroupName1 Custom group"
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"

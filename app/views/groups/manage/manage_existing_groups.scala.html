@@ -15,12 +15,11 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+@import uk.gov.hmrc.agentmtdidentifiers.model.{PaginationMetaData, AccessGroupSummary => GroupSummary}
 @import views.components.models.SummaryListData
+@import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
-@import views.html.components.pagination.GET_pagination
 
 @this(
         layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,
@@ -37,11 +36,13 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,5,1,5))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@tag(isCustomGroup: Boolean) = {
-@govukTag(Tag(
-content = Text(if(isCustomGroup) msgs("common.custom-group") else msgs("common.tax-group")),
-classes = "govuk-tag--grey"
-))
+@groupTypeTag(isCustomGroup: Boolean) = {
+    @govukTag(
+        Tag(
+            content = Text(if(isCustomGroup) msgs("common.custom-group") else msgs("common.tax-group")),
+            classes = "govuk-tag--grey"
+        )
+    )
 }
 
 @layout(title = msgs("group.manage.h1"),
@@ -80,7 +81,7 @@ classes = "govuk-tag--grey"
 
         @summaries.map { summary =>
 
-            @h2(msgs(summary.groupName) + " " + tag(summary.isCustomGroup).toString)
+            @h2(msgs(summary.groupName) + " " + groupTypeTag(summary.taxService.isEmpty).toString)
 
             @summary_list(
                 Seq(
@@ -105,19 +106,19 @@ classes = "govuk-tag--grey"
 
             @a(key = msgs("group.manage.rename") + span(classes = Some("govuk-visually-hidden"),
                 key = summary.groupName).toString,
-                href = if(summary.isCustomGroup){
-                    routes.ManageGroupController.showRenameGroup(summary.groupId).url
-                }else{
+                href = if(summary.taxService.isDefined){
                     routes.ManageGroupController.showRenameTaxGroup(summary.groupId).url
+                }else{
+                    routes.ManageGroupController.showRenameGroup(summary.groupId).url
                 },
                 classes = Some("govuk-!-margin-right-9"))
 
             @a(key = msgs("group.manage.delete") + span(classes = Some("govuk-visually-hidden"),
                 key = summary.groupName).toString,
-                href = if(summary.isCustomGroup){
-                    routes.ManageGroupController.showDeleteGroup(summary.groupId).url
-                }else{
+                href = if(summary.taxService.isDefined){
                     routes.ManageGroupController.showDeleteTaxGroup(summary.groupId).url
+                }else{
+                    routes.ManageGroupController.showDeleteGroup(summary.groupId).url
                 })
 
             <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;

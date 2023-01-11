@@ -75,7 +75,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     fakeClients.map(DisplayClient.fromClient(_))
 
   val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
-    GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, isCustomGroup = true))
+    GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
 
   private val agentUser: AgentUser =
     AgentUser(RandomStringUtils.random(5), "Rob the Agent")

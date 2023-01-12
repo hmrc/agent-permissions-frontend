@@ -63,6 +63,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                          (page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
 
+  @Deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
 
@@ -277,6 +278,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
+  @Deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
@@ -289,8 +291,8 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
                          (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[Client]] = {
-    val searchParam = search.fold("")(searchTerm => s"&search=${searchTerm}")
-    val filterParam = filter.fold("")(filterTerm => s"&filter=${filterTerm}")
+    val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
+    val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
     val url = s"$baseUrl/agent-permissions/group/$id/clients" +
       s"?page=$page&pageSize=$pageSize$searchParam$filterParam"
     monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {

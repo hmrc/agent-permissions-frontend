@@ -200,6 +200,7 @@ group.manage.no.groups.button=Create new access group
 group.manage.rename=Rename group
 group.manage.delete=Delete group
 group.manage.clients=Manage clients
+group.view.clients=View clients
 group.manage.members=Manage team members
 
 group.existing.clients.h1=Manage clients in this group

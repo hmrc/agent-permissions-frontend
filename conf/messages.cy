@@ -196,6 +196,7 @@ group.manage.no.groups.button=Creu grŵp mynediad newydd
 group.manage.rename=Ailenwi grŵp
 group.manage.delete=Dileu grŵp
 group.manage.clients=Rheoli cleientiaid
+group.view.clients=View clients
 group.manage.members=Rheoli aelodau o’r tîm
 
 group.existing.clients.h1=Rheoli cleientiaid yn y grŵp hwn

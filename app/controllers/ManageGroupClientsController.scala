@@ -26,7 +26,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, AccessGroup, Arn, PaginatedList, PaginationMetaData, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, PaginatedList, PaginationMetaData, TaxServiceAccessGroup, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 
@@ -59,7 +59,7 @@ class ManageGroupClientsController @Inject()(
   def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-      searchFilter.submit.fold( // fresh page load
+      searchFilter.submit.fold( // fresh page load - or pagination... will need to persist search/filter
         groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20)).map({ paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
           Ok(existing_clients(
             group = summary,
@@ -82,6 +82,10 @@ class ManageGroupClientsController @Inject()(
             Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20))).toFuture
         }
     }
+  }
+
+  def showTaxGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
+    Ok(s"Not implemented yet - $groupId $page $pageSize ").toFuture
   }
 
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>

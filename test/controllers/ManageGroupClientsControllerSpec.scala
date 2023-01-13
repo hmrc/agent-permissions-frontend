@@ -97,7 +97,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   private val ctrlRoute: ReverseManageGroupClientsController = routes.ManageGroupClientsController
   private val grpId: String = accessGroup._id.toString
 
-  s"GET ${ctrlRoute.showExistingGroupClients(grpId).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupClients(grpId, None, None).url}" should {
 
     "render correctly the EXISTING CLIENTS page with no query params" in {
       //given
@@ -109,7 +109,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetGroupById(grpId, Some(groupWithClients))
 
       //when
-      val result = controller.showExistingGroupClients(groupWithClients._id.toString)(request)
+      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -154,7 +154,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetGroupById(grpId, Some(groupWithClients))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -162,7 +162,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //when
       val result =
-        controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -191,14 +191,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -227,7 +227,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           s"?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -235,11 +235,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //when
       val result =
-        controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
 
       //then
       redirectLocation(result).get
-        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url)
+        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url)
     }
 
   }

@@ -95,12 +95,12 @@ GET     /access-group-deleted                controllers.ManageGroupController.s
 
 # Manage groups - clients
 GET     /manage-custom-group/:groupId/clients  controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
-
-GET     /update-clients/:groupId            controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
-POST    /update-clients/:groupId            controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
-GET     /clients-selected/:groupId          controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)
-POST    /clients-selected/:groupId          controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
-GET     /clients-updated/:groupId           controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
+GET     /manage-tax-group/:groupId/clients     controllers.ManageGroupClientsController.showTaxGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /update-clients/:groupId               controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
+POST    /update-clients/:groupId               controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
+GET     /clients-selected/:groupId             controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)
+POST    /clients-selected/:groupId             controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
+GET     /clients-updated/:groupId              controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 # Manage groups - team members
 GET     /manage-team-members/:groupId       controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String)

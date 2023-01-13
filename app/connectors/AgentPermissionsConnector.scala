@@ -63,9 +63,12 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                          (page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
 
-  @Deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
+  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
+
+  def getCustomSummary(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
@@ -278,7 +281,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  @Deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
+  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
@@ -286,6 +289,26 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
       getAccessGroup(id, url)
     }
   }
+
+  def getCustomSummary(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] = {
+    val url = s"$baseUrl/agent-permissions/custom-group/$id"
+        monitor("ConsumedAPI-customGroupSummary-GET") {
+          http
+            .GET[HttpResponse](url)
+            .map { response =>
+              response.status match {
+                case OK => response.json.asOpt[GroupSummary]
+                case NOT_FOUND =>
+                  logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+                  None
+                case anyOtherStatus =>
+                  throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
+              }
+            }
+        }
+  }
+
 
   def getPaginatedClientsForCustomGroup(id: String)
                          (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)

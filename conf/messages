@@ -22,6 +22,8 @@ common.results-for1=Filter results for ''{0}''
 common.results-for2=Filter results for ''{0}'' and ''{1}''
 common.custom-group=Custom group
 common.tax-group=Tax service group
+common.add=Add
+common.remove=Remove
 
 save.and.continue.button=Save and continue
 submit.button=Submit

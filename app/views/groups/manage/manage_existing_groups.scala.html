@@ -88,7 +88,7 @@
                     SummaryListData(
                         "common.clients",
                         summary.clientCount.getOrElse("Tax group data").toString,
-                        routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
+                        routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId, None, None),
                         linkMsgKey = "group.manage.clients",
                         linkClasses = Some("govuk-!-width-one-half"),
                         hiddenText = Some(msgs("details.link-hidden", summary.groupName))

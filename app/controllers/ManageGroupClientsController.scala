@@ -26,7 +26,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, AccessGroup, Arn, PaginatedList, PaginationMetaData, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 
@@ -56,34 +56,31 @@ class ManageGroupClientsController @Inject()(
 
   private val controller: ReverseManageGroupClientsController = routes.ManageGroupClientsController
 
-  def showExistingGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      val displayGroup = DisplayGroup.fromAccessGroup(group)
+  def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold( // fresh page load
-        Ok(existing_clients(group = displayGroup, form = SearchAndFilterForm.form()))
-      )(submitButton => //either the 'filter' button or the 'clear' filter button was clicked
-        submitButton match {
+        groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20)).map({ paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
+          Ok(existing_clients(
+            group = summary,
+            groupClients = paginatedList._1,
+            form = SearchAndFilterForm.form(),
+            paginationMetaData = Some(paginatedList._2)
+          ))
+        })
+      ) { //either the 'filter' button or the 'clear' filter button was clicked
           case FILTER_BUTTON =>
-            val searchTerm = searchFilter.search.getOrElse("")
-            val filteredClients = displayGroup.clients
-              .filter(_.name.toLowerCase.contains(searchTerm.toLowerCase))
-              .filter(dc =>
-                if (!searchFilter.filter.isDefined) true
-                else {
-                  val filter = searchFilter.filter.get
-                  dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
-                })
-            Ok(
-              existing_clients(
-                group = displayGroup.copy(clients = filteredClients),
-                form = SearchAndFilterForm.form().fill(searchFilter)
-              )
-            )
+            groupService.getPaginatedClientsForCustomGroup(groupId)(1, pageSize.getOrElse(20), searchFilter.search, searchFilter.filter).map({ paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
+              Ok(existing_clients(
+                group = summary,
+                groupClients = paginatedList._1,
+                form = SearchAndFilterForm.form().fill(searchFilter),
+                paginationMetaData = Some(paginatedList._2)
+              ))
+            })
           case CLEAR_BUTTON =>
-            Redirect(controller.showExistingGroupClients(groupId))
+            Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20))).toFuture
         }
-      ).toFuture
     }
   }
 
@@ -104,7 +101,7 @@ class ManageGroupClientsController @Inject()(
             Ok(
               update_client_group_list(clients, group.groupName, form,
                 formAction = controller.submitManageGroupClients(groupId),
-                backUrl = Some(controller.showExistingGroupClients(groupId).url)
+                backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url)
               )
             )
           }
@@ -129,7 +126,7 @@ class ManageGroupClientsController @Inject()(
                 group.groupName,
                 formWithErrors,
                 formAction = controller.submitManageGroupClients(groupId),
-                backUrl = Some(controller.showExistingGroupClients(groupId).url)
+                backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url)
               ))
             }
           },
@@ -157,7 +154,7 @@ class ManageGroupClientsController @Inject()(
                         Ok(
                           update_client_group_list(clients, group.groupName, form,
                             formAction = controller.submitManageGroupClients(groupId),
-                            backUrl = Some(controller.showExistingGroupClients(groupId).url)
+                            backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url)
                           )
                         )
                       }
@@ -189,7 +186,7 @@ class ManageGroupClientsController @Inject()(
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold(
-            Redirect(controller.showExistingGroupClients(groupId)).toFuture
+            Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
           ) { clients =>
             YesNoForm
               .form("group.clients.review.error")

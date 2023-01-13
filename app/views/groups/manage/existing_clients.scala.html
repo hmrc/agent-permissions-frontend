@@ -18,6 +18,9 @@
 @import controllers.routes
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
+@import views.html.components.pagination.GET_pagination
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 
 @this(
     layout: main_layout,
@@ -29,32 +32,38 @@
     textbox: textbox,
     search_and_filter: search_and_filter,
     input_select: input_select,
-    checkbox: checkbox
+    checkbox: checkbox,
+    GET_pagination: GET_pagination
 )
 
-@(group: DisplayGroup, form: Form[SearchFilter])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    group: GroupSummary,
+    groupClients: Seq[DisplayClient],
+    form: Form[SearchFilter],
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    group.clients.map(client =>
-        Seq(
-            Html(
-               a(key = client.name,
-                   href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url).toString
-            ),
+    groupClients.map(client =>
+        Seq(a(key = client.name,
+                href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url)
+            ,
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService))
+            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            a(key = "common.remove",
+                href = "remove url tbc APB-6732")
         )
     )
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title",  group.name), form("filter").value, form("search").value),
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title",  group.groupName), form("filter").value, form("search").value),
     backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url),
     fullWidth = true
 ) {
 
     <div class="govuk-!-width-two-thirds">
-        @caption(msgs("common.caption.group.name", group.name))
+        @caption(msgs("common.caption.group.name", group.groupName))
         @h1("group.existing.clients.h1")
     </div>
 
@@ -65,36 +74,41 @@
     ))
 
 
-    @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group._id)) {
+    @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {
 
         @search_and_filter(form, true)
 
     }
-    @if(group.clients.nonEmpty) {
+    @if(groupClients.nonEmpty) {
 
         @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
             @h2(withSearchPrefix("", form("filter").value, form("search").value))
         }
 
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
         @table(
             caption = Some("common.clients"),
             captionClasses = "govuk-visually-hidden",
-            id = Some("sortable-table"),
+            id = Some("clients"),
             headings = Seq(
-                (Html(msgs("group.client.list.table.th1")), Map("aria-sort" -> "ascending")),
-                (Html(msgs("group.client.list.table.th2")), Map("aria-sort" -> "none")),
-                (Html(msgs("group.client.list.table.th3")), Map("aria-sort" -> "none")),
+                (Html(msgs("group.client.list.table.th1")), Map.empty),
+                (Html(msgs("group.client.list.table.th2")), Map.empty),
+                (Html(msgs("group.client.list.table.th3")), Map.empty),
+                (Html(msgs("common.actions")), Map.empty),
             ),
             rows = tableRows,
         )
-        </div>
 
-        @p(msgs("common.total.clients", group.clients.length),
+        @if(paginationMetaData.get.totalPages > 1) {
+            @GET_pagination(
+            pagination = paginationMetaData.get,
+            baseUrl = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None))
+        }
+
+        @p(msgs("common.total.clients", groupClients.length),
             id = Some("clients-in-group"))
 
         @link_as_button(
-            href = routes.ManageGroupClientsController.showManageGroupClients(group._id).url,
+            href = routes.ManageGroupClientsController.showManageGroupClients(group.groupId).url,
             key = "group.existing.clients.button",
             id = "update-clients")
     } else {

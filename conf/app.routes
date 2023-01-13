@@ -94,7 +94,8 @@ POST    /delete-tax-group/:groupId           controllers.ManageGroupController.s
 GET     /access-group-deleted                controllers.ManageGroupController.showGroupDeleted
 
 # Manage groups - clients
-GET     /manage-clients/:groupId            controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String)
+GET     /manage-custom-group/:groupId/clients  controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+
 GET     /update-clients/:groupId            controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
 POST    /update-clients/:groupId            controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
 GET     /clients-selected/:groupId          controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)

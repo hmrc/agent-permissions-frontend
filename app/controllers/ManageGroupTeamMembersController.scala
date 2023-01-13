@@ -99,7 +99,7 @@ class ManageGroupTeamMembersController @Inject()(
         result =>
           val filteredTeamMembers = result._1
           val teamMembersSearchTerm = result._3
-          val backUrl = Some(routes.ManageGroupClientsController.showExistingGroupClients(groupId).url)
+          val backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
           if (filteredTeamMembers.isDefined)
             Ok(
               team_members_list(

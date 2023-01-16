@@ -76,6 +76,25 @@ class GroupServiceSpec extends BaseSpec {
     }
   }
 
+  "get a custom group summary" should {
+    "Return summary from agentPermissionsConnector" in {
+
+      //given
+      val groupSummary = GroupSummary("2", "Carrots", Some(1), 1)
+
+      (mockAgentPermissionsConnector
+        .getCustomSummary(_: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupSummary.groupId, *, *)
+        .returning(Future successful Some(groupSummary)).once()
+
+      //when
+      val summary = await(service.getCustomSummary(groupSummary.groupId))
+
+      //then
+      summary shouldBe Some(groupSummary)
+    }
+  }
+
   "get paginated group summaries" should {
     "Return first page of summaries as paginated list" in {
       //given

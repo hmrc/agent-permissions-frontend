@@ -20,8 +20,8 @@ import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client}
 
 case class GroupRequest(groupName: String,
-                        teamMembers: Option[Seq[AgentUser]],
-                        clients: Option[Seq[Client]])
+                        teamMembers: Option[Seq[AgentUser]] = None,
+                        clients: Option[Seq[Client]] = None)
 
 case object GroupRequest {
   implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] =

@@ -41,11 +41,12 @@ common.return.manage-team-members=Return to manage team members
 
 common.total.clients=Showing total of <strong>{0}</strong> clients
 common.total.team-members=Showing total of <strong>{0}</strong> team members
+paginated.team-members.showing=Showing {0} to {1} of {2} team members
+paginated.team-members.for.search=for the search term ‘{0}’
 common.total.team-members.selected=Selected <strong>{0}</strong> team members of <strong>{1}</strong>
 common.total.clients.selected=Selected <strong>{0}</strong> clients of <strong>{1}</strong>
 already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients of <strong>{1}</strong> in your group
 already.selected.members.nonjs=You currently have <strong>{0}</strong> team members of <strong>{1}</strong> in your group
-
 
 unassigned-clients.not-found.heading=No unassigned clients found
 unassigned-clients.not-found.p=Update your filters and try again or clear your filters to see all your unassigned clients
@@ -107,7 +108,7 @@ do-you-want-to-opt-out.yes.error=Select yes to turn off access groups
 
 you-have-opted-out.h1=You have turned off access groups
 you-have-opted-out.p1=You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients.
-you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account‘ page.
+you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account’ page.
 
 group.type.h1=Create an access group
 group.type.label=How would you like to create this group?

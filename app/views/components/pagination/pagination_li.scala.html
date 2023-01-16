@@ -21,12 +21,13 @@
 @(
    pagination: PaginationMetaData,
    pageNum: Int,
-   baseUrl: Call
+   baseUrl: Call,
+   additionalParams: Map[String,String] = Map.empty
 )(implicit msgs: Messages)
 
 @if(pagination.currentPageNumber != pageNum) {
  <li class="govuk-pagination__item">
-  <a class="pagination_link" href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}">@{pageNum}</a>
+  <a class="pagination_link" href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}@{additionalParams.map( entry => "&" + entry._1 + "=" + entry._2)}">@{pageNum}</a>
  </li>
 } else {
  <li class="govuk-pagination__item govuk-pagination__item--current">@{pageNum}</li>

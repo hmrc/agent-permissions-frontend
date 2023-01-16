@@ -18,11 +18,12 @@
 @import controllers.routes
 @import views.html.main_layout
 @import views.html.partials.team_members_details_table_filter_form
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
         layout: main_layout,
         p: p, h1: h1, a: a, span: span,
-        table: table,
+        table: table, caption:caption,
         summaryErrors: SummaryErrors,
         team_members_details_table_filter_form: team_members_details_table_filter_form
 )
@@ -30,8 +31,9 @@
 @(
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
-    formAction: Call = routes.ManageTeamMemberController.showAllTeamMembers,
-    backUrl: Option[String] = None
+    formAction: Call = routes.ManageTeamMemberController.showPageOfTeamMembers(None),
+    backUrl: Option[String] = None,
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
@@ -49,6 +51,6 @@
         @h1("group.manage.members")
     </div>
 
-    @team_members_details_table_filter_form(teamMembers, form, formAction)
+    @team_members_details_table_filter_form(teamMembers, form, formAction, paginationMetaData)
 
 }

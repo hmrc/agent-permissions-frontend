@@ -19,46 +19,37 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
-import helpers.Css.{H1, H2}
+import helpers.Css.H1
 import helpers.{BaseSpec, Css}
 import models.TeamMember
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
-import repository.SessionCacheRepository
-import services.{GroupService, GroupServiceImpl}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
+import services.{GroupService, SessionCacheService, TeamMemberService}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
 class ManageTeamMemberControllerSpec extends BaseSpec {
 
-  implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
-    mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector =
-    mock[AgentUserClientDetailsConnector]
-  implicit val mockGroupService: GroupService = mock[GroupService]
-
-  lazy val sessionCacheRepo: SessionCacheRepository =
-    new SessionCacheRepository(mongoComponent, timestampSupport)
+  implicit lazy val authConnector: AuthConnector = mock[AuthConnector]
+  implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val groupService: GroupService = mock[GroupService]
+  implicit lazy val teamMemberService: TeamMemberService = mock[TeamMemberService]
+  implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
-      bind(classOf[AgentPermissionsConnector])
-        .toInstance(mockAgentPermissionsConnector)
-      bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-      bind(classOf[AgentUserClientDetailsConnector])
-        .toInstance(mockAgentUserClientDetailsConnector)
-      bind(classOf[GroupService]).toInstance(
-        new GroupServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheRepo, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(authConnector, env, conf, agentPermissionsConnector))
+      bind(classOf[AgentPermissionsConnector]).toInstance(agentPermissionsConnector)
+      bind(classOf[AgentUserClientDetailsConnector]).toInstance(agentUserClientDetailsConnector)
+      bind(classOf[GroupService]).toInstance(groupService)
+      bind(classOf[SessionCacheService]).toInstance(sessionCacheService)
+      bind(classOf[TeamMemberService]).toInstance(teamMemberService)
     }
   }
 
@@ -67,8 +58,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val controller: ManageTeamMemberController =
-    fakeApplication.injector.instanceOf[ManageTeamMemberController]
+  val controller: ManageTeamMemberController = fakeApplication.injector.instanceOf[ManageTeamMemberController]
 
   val agentUsers: Set[AgentUser] = (1 to 5).map(i => AgentUser(id = s"John $i", name = s"John $i name")).toSet
 
@@ -92,18 +82,18 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   )
   private val ctrlRoute: ReverseManageTeamMemberController = routes.ManageTeamMemberController
 
-  s"GET ${ctrlRoute.showAllTeamMembers.url}" should {
+  s"GET ${ctrlRoute.showPageOfTeamMembers(None).url}" should {
 
     "render the manage team members list" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectOptInStatusOk(arn)(OptedInReady)
-//      expectGetTeamMembers(arn)(userDetails)
-      await(sessionCacheRepo.putSession(FILTERED_TEAM_MEMBERS, teamMembers))
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetPageOfTeamMembers(arn)(teamMembers)
+      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, "")
 
       //when
-      val result = controller.showAllTeamMembers()(request)
+      val result = controller.showPageOfTeamMembers(Some(1))(request)
 
       //then
       status(result) shouldBe OK
@@ -112,14 +102,14 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("team-members-table")).select("thead th")
       th.size() shouldBe 4
       th.get(0).text() shouldBe "Name"
       th.get(1).text() shouldBe "Email"
       th.get(2).text() shouldBe "Role"
       th.get(3).text() shouldBe "Actions"
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("team-members-table")).select("tbody tr")
       trs.size() shouldBe 5
     }
 
@@ -127,51 +117,56 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectGetTeamMembers(arn)(userDetails)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetPageOfTeamMembers(arn)(teamMembers.take(3))
+      val searchTerm = "john1"
+      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, searchTerm)
 
       implicit val requestWithQueryParams =
         FakeRequest(GET,
-          ctrlRoute.showAllTeamMembers.url + "?submit=filter&search=john1&filter=")
+          ctrlRoute.showPageOfTeamMembers(None).url + s"?submit=filter&search=$searchTerm&filter=")
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showAllTeamMembers()(requestWithQueryParams)
+      val result = controller.showPageOfTeamMembers(Option(1))(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'john1' Manage team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for '" + searchTerm + "' Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
-      html.select(H2).text shouldBe "Filter results for 'john1'"
+      html.select(Css.paragraphs).get(0).text shouldBe s"Showing 1 to 3 of 40 team members for the search term " +
+        s"‘$searchTerm’"
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
-      trs.size() shouldBe 1
+      val trs = html.select(Css.tableWithId("team-members-table")).select("tbody tr")
+      trs.size() shouldBe 3
     }
 
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectGetTeamMembers(arn)(userDetails)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetPageOfTeamMembers(arn)(teamMembers)
+      //TODO: remove
+      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, "")
+
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showAllTeamMembers.url +
+        ctrlRoute.showPageOfTeamMembers(None).url +
           "?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showAllTeamMembers()(requestWithQueryParams)
+      val result = controller.showPageOfTeamMembers()(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get
-        .shouldBe(ctrlRoute.showAllTeamMembers.url)
+      redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
     }
 
   }
@@ -180,14 +175,15 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
     "render the team member details page with NO GROUPS" in {
       //given
+      val teamMember = teamMembers.head
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, None)
-      expectGetTeamMembers(arn)(userDetails)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectLookupTeamMember(arn)(teamMember)
+      expectGetGroupSummariesForTeamMember(arn)(teamMember)(Seq.empty)
 
       //when
-      val result = controller.showTeamMemberDetails(memberId)(request)
+      val result = controller.showTeamMemberDetails(teamMember.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -201,11 +197,12 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
     "render the clients details page with list of groups" in {
       //given
+      val teamMember = teamMembers.head
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectGetGroupsForTeamMemberSuccess(arn, agentUsers.last, Some(groupSummaries))
-      expectGetTeamMembers(arn)(userDetails)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectLookupTeamMember(arn)(teamMember)
+      expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupSummaries)
 
       //when
       val result = controller.showTeamMemberDetails(memberId)(request)

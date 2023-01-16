@@ -21,8 +21,9 @@
 @this(p: p, a: a, pagination_li: pagination_li)
 
 @(
-        pagination: PaginationMetaData,
-        baseUrl: Call
+    pagination: PaginationMetaData,
+    baseUrl: Call,
+    additionalParams: Map[String,String] = Map.empty
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
@@ -31,13 +32,7 @@
         @if(!pagination.firstPage) {
             <div class="govuk-pagination__prev">
                 <a class="pagination_link"
-                href="@{
-                    baseUrl
-                }?page=@{
-                    pagination.currentPageNumber - 1
-                }&pageSize=@{
-                    pagination.pageSize
-                }"
+                href="@{baseUrl}?page=@{pagination.currentPageNumber - 1}&pageSize=@{pagination.pageSize}@{additionalParams.map( entry => "&" + entry._1 + "=" + entry._2)}"
                 rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                         <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
@@ -49,12 +44,12 @@
 
         @if(pagination.totalPages < 20) {
             @for(pageNum <- 1 to pagination.totalPages) {
-                @pagination_li(pagination, pageNum, baseUrl)
+                @pagination_li(pagination, pageNum, baseUrl, additionalParams)
             }
         } else {
             @defining(2: Int) { numPagesAtEnds =>
                 @for(pageNum <- 1 to numPagesAtEnds) {
-                    @pagination_li(pagination, pageNum, baseUrl)
+                    @pagination_li(pagination, pageNum, baseUrl, additionalParams)
                 }
                 @if(pagination.currentPageNumber > (numPagesAtEnds + 2)) {
                     <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
@@ -62,13 +57,13 @@
                 @for(pageNum <- Math.max(numPagesAtEnds + 1, pagination.currentPageNumber - numPagesAtEnds) to
                         Math.min(pagination.totalPages - (numPagesAtEnds + 1),
                             pagination.currentPageNumber + numPagesAtEnds)) {
-                    @pagination_li(pagination, pageNum, baseUrl)
+                    @pagination_li(pagination, pageNum, baseUrl, additionalParams)
                 }
                 @if(pagination.currentPageNumber < pagination.totalPages - (numPagesAtEnds + 2)) {
                     <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
                 }
                 @for(pageNum <- (pagination.totalPages - numPagesAtEnds + 1 ) to pagination.totalPages) {
-                    @pagination_li(pagination, pageNum, baseUrl)
+                    @pagination_li(pagination, pageNum, baseUrl, additionalParams)
                 }
             }
         }

@@ -25,7 +25,7 @@ object CodeCoverageSettings {
     ".*manage_clients_list.template",
     ".*client_not_found.template",
     ".*team_member_not_found.template",
-    ".*manage_team_members_list.template",
+    ".*manage_team_members.template",
     ".*client_details.template",
     ".*confirm_added.template",
     ".*group_not_found.template",

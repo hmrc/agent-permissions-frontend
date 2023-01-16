@@ -90,7 +90,6 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetPageOfTeamMembers(arn)(teamMembers)
-      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, "")
 
       //when
       val result = controller.showPageOfTeamMembers(Some(1))(request)
@@ -102,14 +101,14 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
 
-      val th = html.select(Css.tableWithId("team-members-table")).select("thead th")
+      val th = html.select(Css.tableWithId("members")).select("thead th")
       th.size() shouldBe 4
       th.get(0).text() shouldBe "Name"
       th.get(1).text() shouldBe "Email"
       th.get(2).text() shouldBe "Role"
       th.get(3).text() shouldBe "Actions"
 
-      val trs = html.select(Css.tableWithId("team-members-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 5
     }
 
@@ -140,7 +139,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).get(0).text shouldBe s"Showing 1 to 3 of 40 team members for the search term " +
         s"‘$searchTerm’"
 
-      val trs = html.select(Css.tableWithId("team-members-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 3
     }
 
@@ -150,8 +149,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetPageOfTeamMembers(arn)(teamMembers)
-      //TODO: remove
-      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, "")
+      expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,

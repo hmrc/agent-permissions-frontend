@@ -16,6 +16,7 @@
 
 package controllers
 
+import akka.Done
 import config.AppConfig
 import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.SearchAndFilterForm
@@ -28,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageTeamMemberController @Inject()(
@@ -37,7 +38,7 @@ class ManageTeamMemberController @Inject()(
                                             groupService: GroupService,
                                             teamMemberService: TeamMemberService,
                                             optInStatusAction: OptInStatusAction,
-                                            manage_team_members_list: manage_team_members_list,
+                                            manage_team_members: manage_team_members,
                                             team_member_details: team_member_details)
                                           (implicit val appConfig: AppConfig, ec: ExecutionContext,
                                            implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
@@ -52,8 +53,10 @@ class ManageTeamMemberController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-        sessionCacheService
-          .put(TEAM_MEMBER_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+        searchFilter
+          .search
+          .fold(Future.successful(Done))( searchTerm =>
+            sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, searchTerm).map(_=> Done))
           .flatMap(_ =>
             teamMemberService
               .getPageOfTeamMembers(arn)(page.getOrElse(1), 10)
@@ -61,25 +64,28 @@ class ManageTeamMemberController @Inject()(
                 searchFilter.submit.fold(
                   //no filter/clear was applied
                   Ok(
-                    manage_team_members_list(
+                    manage_team_members(
                       teamMembers = paginatedMembers.pageContent,
                       form = SearchAndFilterForm.form(),
                       paginationMetaData = Some(paginatedMembers.paginationMetaData)
                     )
-                  )
+                  ).toFuture
                 )({
                   //clear/filter buttons pressed
                   case CLEAR_BUTTON =>
-                    Redirect(routes.ManageTeamMemberController.showPageOfTeamMembers(None))
+                    sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
+                      .map(_=>
+                        Redirect(routes.ManageTeamMemberController.showPageOfTeamMembers(None))
+                      )
                   case FILTER_BUTTON =>
                     Ok(
-                      manage_team_members_list(
+                      manage_team_members(
                         teamMembers = paginatedMembers.pageContent,
                         form = SearchAndFilterForm.form().fill(searchFilter),
                         paginationMetaData = Some(paginatedMembers.paginationMetaData)
                       )
-                    )
-                }).toFuture
+                    ).toFuture
+                })
               }
           )
 

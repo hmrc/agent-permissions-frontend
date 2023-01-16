@@ -34,7 +34,7 @@
 
     @layout(
         title = msgs("details.team-members"),
-        backLinkHref = Some(routes.ManageTeamMemberController.showAllTeamMembers.url),
+        backLinkHref = Some(routes.ManageTeamMemberController.showPageOfTeamMembers(None).url),
         fullWidth = true
     ) {
 
@@ -54,7 +54,7 @@
 
                 <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-                @a("common.return.manage-team-members", href = routes.ManageTeamMemberController.showAllTeamMembers.url)
+                @a("common.return.manage-team-members", href = routes.ManageTeamMemberController.showPageOfTeamMembers(None).url)
 
             </div>
 

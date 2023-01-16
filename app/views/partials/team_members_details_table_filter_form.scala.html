@@ -16,6 +16,8 @@
 
 @import config.AppConfig
 @import controllers.routes
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import views.html.components.pagination.GET_pagination
 @import views.html.partials.search_and_filter
 
 @this(
@@ -26,12 +28,14 @@
     filter_buttons: filter_buttons,
     search_and_filter: search_and_filter,
     input_select: input_select,
+    GET_pagination:GET_pagination,
 )
 
 @(
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
-    formAction: Call = routes.ManageTeamMemberController.showAllTeamMembers,
+    formAction: Call = routes.ManageTeamMemberController.showPageOfTeamMembers(None),
+    paginationMetaData: Option[PaginationMetaData]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -41,9 +45,11 @@
             Html(member.email),
             Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
             a(
-                key=Html(msgs("details.team-members") + span(classes=Some("govuk-visually-hidden"),
-                                                        html=Some(Html(msgs("details.link-hidden", member.name)))
-                                                        ).toString
+                key = Html(
+                    msgs("details.team-members") + span(classes = Some("govuk-visually-hidden"),
+                                html = Some(
+                                        Html(msgs("details.link-hidden", member.name)))
+                                        ).toString
                 ).toString,
                 href= routes.ManageTeamMemberController.showTeamMemberDetails(member.id).url
             )
@@ -58,20 +64,37 @@
 
 @views.html.helper.form(action = formAction) {
 
-    @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
+    @search_and_filter(
+        form,
+        withFilter = false,
+        searchLabelKey = "group.members.list.filter.label"
+    )
 
     @if(teamMembers.nonEmpty) {
 
-        @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
-                @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
+        @paginationMetaData.fold {
+            @p(msgs("common.total.team-members", teamMembers.length), id = Some("team-members-in-group"))
+        }{ paginationMeta =>
+            @defining((paginationMeta.currentPageNumber - 1) * paginationMeta.pageSize) { pageStart =>
+                <p class="govuk-body">
+                    @span(
+                        msgs("paginated.team-members.showing",
+                            pageStart + 1,
+                            pageStart + paginationMeta.currentPageSize,
+                            paginationMeta.totalSize
+                        )
+                    )
+                    @if(form.data.nonEmpty && form.data.get("search").isDefined) {
+                        @span(msgs("paginated.team-members.for.search", form.data.get("search").get))
+                    }
+                </p>
+            }
         }
-
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="members" tabindex="0">
 
         @table(
             caption = Some("common.teamMembers"),
             captionClasses = "govuk-visually-hidden",
-            id = Some("sortable-table"),
+            id = Some("members"),
             attrs = Map.empty,
             headings = Seq(
                 (
@@ -93,11 +116,15 @@
             ),
             rows = tableRows,
         )
-        </div>
-        @p(
-            msgs("common.total.team-members", teamMembers.length),
-            id = Some("team-members-in-group")
-        )
+
+        @if(paginationMetaData.get.totalPages > 1) {
+            @GET_pagination(
+                pagination = paginationMetaData.get,
+                baseUrl = routes.ManageTeamMemberController.showPageOfTeamMembers(None),
+                additionalParams = form.data
+            )
+        }
+
     } else {
         <div id="members">
             @h2("team-members.not-found.heading")

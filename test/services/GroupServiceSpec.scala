@@ -17,14 +17,14 @@
 package services
 
 import akka.Done
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
+import connectors._
+import controllers.{NAME_OF_GROUP_CREATED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys}
 import helpers.BaseSpec
+import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
-import org.mongodb.scala.bson.ObjectId
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Arn, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
@@ -34,14 +34,14 @@ class GroupServiceSpec extends BaseSpec {
 
   implicit val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  lazy val sessionCacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
   implicit val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   val service = new GroupServiceImpl(
-      mockAgentUserClientDetailsConnector,
-      sessionCacheRepo,
-      mockAgentPermissionsConnector
-    )
+    mockAgentUserClientDetailsConnector,
+    mockSessionCacheService,
+    mockAgentPermissionsConnector
+  )
 
   val userDetails: Seq[UserDetails] = (1 to 5)
     .map { i =>
@@ -242,7 +242,7 @@ class GroupServiceSpec extends BaseSpec {
       val grpId = "grp1"
       val agentUser = AgentUser("agent1", "Bob Smith")
       val expectedGroup = Some(AccessGroup(Arn("arn1"), "Bangers & Mash",
-        LocalDateTime.MIN, LocalDateTime.MIN, agentUser, agentUser,None, None))
+        LocalDateTime.MIN, LocalDateTime.MIN, agentUser, agentUser, None, None))
       expectGetGroupSuccess(grpId, expectedGroup)
 
       //when
@@ -250,6 +250,25 @@ class GroupServiceSpec extends BaseSpec {
 
       //then
       output shouldBe expectedGroup
+    }
+  }
+
+  "create group" should {
+    "delegate to agentPermissionsConnector" in {
+
+      //given
+      val groupName = "Carrots"
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, Nil)
+      expectGetSessionItem(SELECTED_CLIENTS, Nil)
+      expectCreateGroupSuccess(arn, GroupRequest(groupName = groupName, Some(Nil), Some(Nil)))
+      expectDeleteSessionItems(creatingGroupKeys)
+      expectPutSessionItem(NAME_OF_GROUP_CREATED, groupName)
+
+      //when
+      val output = await(service.createGroup(arn, groupName))
+
+      //then
+      output shouldBe Done
     }
   }
 
@@ -296,7 +315,7 @@ class GroupServiceSpec extends BaseSpec {
         GroupSummary("2", "Carrots", Some(1), 1),
         GroupSummary("3", "Potatoes", Some(1), 1),
       )
-      val expectedClient = DisplayClient("hmrc","Bob","tax", "ident")
+      val expectedClient = DisplayClient("hmrc", "Bob", "tax", "ident")
 
       (mockAgentPermissionsConnector.getGroupsForClient(_: Arn, _: String)
       (_: HeaderCarrier, _: ExecutionContext))
@@ -305,6 +324,34 @@ class GroupServiceSpec extends BaseSpec {
 
       //when
       val summaries = await(service.groupSummariesForClient(arn, expectedClient))
+
+      //then
+      summaries shouldBe groupSummaries
+
+
+    }
+  }
+
+  "groupSummariesForTeamMember" should {
+    "Return groups summaries from agentPermissionsConnector" in {
+
+      //given
+      val groupSummaries = Seq(
+        GroupSummary("2", "Carrots", Some(1), 1),
+        GroupSummary("3", "Potatoes", Some(1), 1),
+      )
+      val member = TeamMember("Bob the agent", "dont care", Some("123"))
+      val agentUser = toAgentUser(member)
+
+      (mockAgentPermissionsConnector
+        .getGroupsForTeamMember(_: Arn, _: AgentUser)
+        (_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, agentUser, *, *)
+        .returning(Future successful Option(groupSummaries))
+        .once()
+
+      //when
+      val summaries = await(service.groupSummariesForTeamMember(arn, member))
 
       //then
       summaries shouldBe groupSummaries
@@ -330,14 +377,14 @@ class GroupServiceSpec extends BaseSpec {
 
   "group name check" should {
     "delegate to agentPermissionsConnector" in {
-        //given
-        expectGroupNameCheck(ok = true)(arn, "Good name")
+      //given
+      expectGroupNameCheck(ok = true)(arn, "Good name")
 
-        //when
-        val output: Boolean = await(service.groupNameCheck(arn, "Good name"))
+      //when
+      val output: Boolean = await(service.groupNameCheck(arn, "Good name"))
 
-        //then
-        output shouldBe true
+      //then
+      output shouldBe true
     }
   }
 

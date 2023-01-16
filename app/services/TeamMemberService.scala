@@ -33,7 +33,7 @@ trait TeamMemberService {
                            (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[TeamMember]]
 
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[PaginatedList[TeamMember]]
+                          (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[PaginatedList[TeamMember]]
 
   def getAllTeamMembers(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]]
@@ -63,11 +63,11 @@ class TeamMemberServiceImpl @Inject()(
 
 
   def savePageOfTeamMembers(formData: AddTeamMembersToGroup)
-                           (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[TeamMember]] ={
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[TeamMember]] = {
 
-    val teamMembersInSession = for{
+    val teamMembersInSession = for {
       _ <- formData.search.fold(sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT))(term => sessionCacheService.put
-      (TEAM_MEMBER_SEARCH_INPUT, term).map(_=> ()))
+      (TEAM_MEMBER_SEARCH_INPUT, term).map(_ => ()))
       existingSelectedTeamMembers <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(_.getOrElse(Seq.empty))
       currentPageTeamMembers <- sessionCacheService.get(CURRENT_PAGE_TEAM_MEMBERS).map(_.getOrElse(Seq.empty))
       teamMemberIdsToAdd = formData.members.getOrElse(Seq.empty)
@@ -80,17 +80,17 @@ class TeamMemberServiceImpl @Inject()(
         .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_TEAM_MEMBERS, newSelectedTeamMembers)
     } yield (newSelectedTeamMembers)
-    teamMembersInSession.flatMap(_=>
+    teamMembersInSession.flatMap(_ =>
       formData.submit.trim match {
-        case CONTINUE_BUTTON => sessionCacheService.deleteAll(teamMemberFilteringKeys).flatMap(_=> teamMembersInSession)
-        case CLEAR_BUTTON => sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT).flatMap(_=> teamMembersInSession)
+        case CONTINUE_BUTTON => sessionCacheService.deleteAll(teamMemberFilteringKeys).flatMap(_ => teamMembersInSession)
+        case CLEAR_BUTTON => sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT).flatMap(_ => teamMembersInSession)
         case _ => teamMembersInSession
       }
     )
   }
 
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[PaginatedList[TeamMember]] = {
+                          (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[PaginatedList[TeamMember]] = {
     for {
       searchTerm <- sessionCacheService.get(TEAM_MEMBER_SEARCH_INPUT)
       allArnMembers <- getTeamMembersFromConnector(arn)

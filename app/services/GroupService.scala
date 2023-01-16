@@ -25,7 +25,6 @@ import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.mvc.Request
-import repository.SessionCacheRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 
@@ -50,7 +49,7 @@ trait GroupService {
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]]
 
   def createGroup(arn: Arn, groupName: String)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit]
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Done]
 
   def updateGroup(groupId: String, group: UpdateAccessGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
@@ -84,7 +83,7 @@ trait GroupService {
 @Singleton
 class GroupServiceImpl @Inject()(
                                   agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
-                                  sessionCacheRepository: SessionCacheRepository,
+                                  sessionCacheService: SessionCacheService,
                                   agentPermissionsConnector: AgentPermissionsConnector
                                 ) extends GroupService with Logging {
 
@@ -131,15 +130,17 @@ class GroupServiceImpl @Inject()(
       filteredSummaries = summaries.filter(_.groupName.toLowerCase.contains(filterTerm.toLowerCase))
     } yield PaginatedListBuilder.build[GroupSummary](page, pageSize, filteredSummaries)
 
-  def createGroup(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Unit] = {
+  def createGroup(arn: Arn, groupName: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Done] = {
     for {
-      clients <- sessionCacheRepository.getFromSession(SELECTED_CLIENTS).map(_.map(_.map(client => Client(client.enrolmentKey, client.name))))
-      agentUsers <- sessionCacheRepository.getFromSession(SELECTED_TEAM_MEMBERS).map(_.map(_.map(tm => toAgentUser(tm))))
+      clients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.map(_.map(client => Client(client.enrolmentKey, client
+        .name))))
+      agentUsers <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(_.map(_.map(tm => toAgentUser(tm))))
       groupRequest = GroupRequest(groupName, agentUsers, clients)
       _ <- agentPermissionsConnector.createGroup(arn)(groupRequest)
-      _ <- Future.sequence(creatingGroupKeys.map(key => sessionCacheRepository.deleteFromSession(key)))
-      _ <- sessionCacheRepository.putSession(NAME_OF_GROUP_CREATED, groupName)
-    } yield ()
+      _ <- sessionCacheService.deleteAll(creatingGroupKeys)
+      _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
+    } yield Done
   }
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)

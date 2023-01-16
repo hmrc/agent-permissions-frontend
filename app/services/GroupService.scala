@@ -19,15 +19,14 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, UpdateAccessGroupRequest}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, PaginatedList, UserDetails, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
 import controllers._
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import play.api.Logging
 import play.api.mvc.Request
-import repository.SessionCacheRepository
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.PaginatedListBuilder
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,9 +34,16 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[GroupServiceImpl])
 trait GroupService {
 
+  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(groupId: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]]
 
+  def getCustomSummary(groupId: String)
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[GroupSummary]]
+
+  def getPaginatedClientsForCustomGroup(groupId: String)
+                                       (page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(Seq[DisplayClient], PaginationMetaData)]
 
   def getTeamMembersFromGroup(arn: Arn)(teamMembersInGroup: Seq[TeamMember])
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]]
@@ -81,11 +87,23 @@ class GroupServiceImpl @Inject()(
                                   agentPermissionsConnector: AgentPermissionsConnector
                                 ) extends GroupService with Logging {
 
-
+  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]] =
     agentPermissionsConnector.getGroup(id)
 
+  def getCustomSummary(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[GroupSummary]] =
+    agentPermissionsConnector.getCustomSummary(id)
+
+  def getPaginatedClientsForCustomGroup(groupId: String)
+                                       (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[(Seq[DisplayClient], PaginationMetaData)] = {
+    for {
+      list <- agentPermissionsConnector.getPaginatedClientsForCustomGroup(groupId)(page, pageSize, search, filter)
+      displayList = list.pageContent.map(client => DisplayClient.fromClient(client))
+    } yield (displayList, list.paginationMetaData)
+  }
 
   // Compares users in group with users on ARN & fetches missing details (email & cred role)
   def getTeamMembersFromGroup(arn: Arn)

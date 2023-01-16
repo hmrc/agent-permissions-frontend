@@ -19,14 +19,13 @@ package helpers
 import akka.Done
 import connectors.{AddMembersToAccessGroupRequest, UpdateAccessGroupRequest}
 import models.{DisplayClient, TeamMember}
-import org.scalamock.handlers.CallHandler4
+import org.scalamock.handlers.{CallHandler4, CallHandler7}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, PaginationMetaData, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.PaginatedListBuilder
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,6 +46,13 @@ trait GroupServiceMocks extends MockFactory {
       .expects(id, *, *)
       .returning(Future successful maybeGroup)
 
+  def expectGetCustomSummaryById(id: String, maybeSummary: Option[GroupSummary])(
+    implicit groupService: GroupService): Unit =
+    (groupService
+      .getCustomSummary(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, *, *)
+      .returning(Future successful maybeSummary)
+
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
       .getGroupSummaries(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
@@ -58,6 +64,14 @@ trait GroupServiceMocks extends MockFactory {
       .getPaginatedGroupSummaries(_: Arn, _: String)(_:Int,_:Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, filterTerm, page, pageSize, *, *, *)
       .returning(Future.successful(PaginatedListBuilder.build[GroupSummary](page, pageSize, groups))).once()
+
+  def expectGetPaginatedClientsForCustomGroup(groupId: String)
+                                             (page:Int, pageSize:Int, filterTerm: Option[String] = None, searchTerm: Option[String] = None)
+                                             (pageData: (Seq[DisplayClient], PaginationMetaData))(implicit groupService: GroupService): CallHandler7[String, Int, Int, Option[String], Option[String], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
+    (groupService
+      .getPaginatedClientsForCustomGroup(_: String)(_:Int,_:Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(groupId, page, pageSize, filterTerm, searchTerm, *, *)
+      .returning(Future.successful(pageData)).once()
 
   def expectGetGroupSummariesForTeamMember(arn: Arn)(teamMember: TeamMember)
                                           (groupsAlreadyAssociatedToMember: Seq[GroupSummary])

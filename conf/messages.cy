@@ -22,6 +22,8 @@ common.results-for1=Hidlo’r canlyniadau ar gyfer ‘{0}’
 common.results-for2=Hidlo’r canlyniadau ar gyfer ‘{0}’ a ‘{1}’
 common.custom-group=Custom group
 common.tax-group=Tax service group
+common.add=Add
+common.remove=Remove
 
 save.and.continue.button=Cadw ac yn eich blaen
 submit.button=Cyflwyno
@@ -194,6 +196,7 @@ group.manage.no.groups.button=Creu grŵp mynediad newydd
 group.manage.rename=Ailenwi grŵp
 group.manage.delete=Dileu grŵp
 group.manage.clients=Rheoli cleientiaid
+group.view.clients=View clients
 group.manage.members=Rheoli aelodau o’r tîm
 
 group.existing.clients.h1=Rheoli cleientiaid yn y grŵp hwn

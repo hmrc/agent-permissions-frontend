@@ -64,7 +64,7 @@ class ManageGroupTeamMembersController @Inject()(
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
         searchFilter.submit.fold( //i.e. fresh page load
           Ok(existing_team_members(members, SearchAndFilterForm.form(), group))
-        )(button => button match {
+        ) {
           case CLEAR_BUTTON =>
             Redirect(controller.showExistingGroupTeamMembers(groupId))
           case FILTER_BUTTON =>
@@ -77,7 +77,6 @@ class ManageGroupTeamMembersController @Inject()(
             val form = SearchAndFilterForm.form().fill(searchFilter)
             Ok(existing_team_members(filteredMembers, form, group))
         }
-        )
       }
     }
   }
@@ -100,7 +99,7 @@ class ManageGroupTeamMembersController @Inject()(
         result =>
           val filteredTeamMembers = result._1
           val teamMembersSearchTerm = result._3
-          val backUrl = Some(routes.ManageGroupClientsController.showExistingGroupClients(groupId).url)
+          val backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
           if (filteredTeamMembers.isDefined)
             Ok(
               team_members_list(
@@ -240,7 +239,7 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
-  def agentUsersInGroupAsTeamMembers(group: AccessGroup) = {
+  def agentUsersInGroupAsTeamMembers(group: AccessGroup): Seq[TeamMember] = {
     group.teamMembers.map { maybeUsers: Set[AgentUser] =>
       maybeUsers.toSeq
         .map(UserDetails.fromAgentUser)

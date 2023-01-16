@@ -22,7 +22,7 @@ import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AccessGroupSummary => GroupSummary, Arn}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import views.html.groups.manage.group_not_found
@@ -46,6 +46,7 @@ class GroupAction @Inject()
 
   import optInStatusAction._
 
+  @deprecated("use withSummaryForAuthorisedOptedAgent")
   def withGroupForAuthorisedOptedAgent(groupId: String)
                                       (body: AccessGroup => Future[Result])
                                       (implicit ec: ExecutionContext,
@@ -55,6 +56,19 @@ class GroupAction @Inject()
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         groupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
+      }
+    }
+  }
+
+  def withSummaryForAuthorisedOptedAgent(groupId: String)
+                                      (body: GroupSummary => Future[Result])
+                                      (implicit ec: ExecutionContext,
+                                       hc: HeaderCarrier,
+                                       request: MessagesRequest[AnyContent],
+                                       appConfig: AppConfig): Future[Result] = {
+    authAction.isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        groupService.getCustomSummary(groupId).flatMap(_.fold(groupNotFound)(body(_)))
       }
     }
   }

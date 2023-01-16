@@ -59,8 +59,16 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def unassignedClients(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
+  def getPaginatedClientsForCustomGroup(id: String)
+                         (page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
+
+  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
+
+  def getCustomSummary(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
@@ -273,11 +281,50 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
+  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
       getAccessGroup(id, url)
+    }
+  }
+
+  def getCustomSummary(id: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] = {
+    val url = s"$baseUrl/agent-permissions/custom-group/$id"
+        monitor("ConsumedAPI-customGroupSummary-GET") {
+          http
+            .GET[HttpResponse](url)
+            .map { response =>
+              response.status match {
+                case OK => response.json.asOpt[GroupSummary]
+                case NOT_FOUND =>
+                  logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+                  None
+                case anyOtherStatus =>
+                  throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
+              }
+            }
+        }
+  }
+
+
+  def getPaginatedClientsForCustomGroup(id: String)
+                         (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[PaginatedList[Client]] = {
+    val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
+    val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
+    val url = s"$baseUrl/agent-permissions/group/$id/clients" +
+      s"?page=$page&pageSize=$pageSize$searchParam$filterParam"
+    monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK => response.json.as[PaginatedList[Client]]
+          case e => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
+        }
+      }
     }
   }
 

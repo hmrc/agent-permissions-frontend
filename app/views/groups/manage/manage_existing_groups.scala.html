@@ -89,8 +89,8 @@
                     SummaryListData(
                         "common.clients",
                         summary.clientCount.getOrElse("Tax group data").toString,
-                        routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId),
-                        linkMsgKey = "group.manage.clients",
+                        if(summary.taxService.isDefined){routes.ManageGroupClientsController.showTaxGroupClients(summary.groupId, None, None)} else {routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId, None, None)},
+                        linkMsgKey = if(summary.taxService.isDefined){"group.view.clients"} else {"group.manage.clients"},
                         linkClasses = Some("govuk-!-width-one-half"),
                         hiddenText = Some(msgs("details.link-hidden", summary.groupName))
                     ),

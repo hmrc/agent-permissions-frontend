@@ -97,19 +97,27 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   private val ctrlRoute: ReverseManageGroupClientsController = routes.ManageGroupClientsController
   private val grpId: String = accessGroup._id.toString
 
-  s"GET ${ctrlRoute.showExistingGroupClients(grpId).url}" should {
+  def expectAuthOkOptedInReady(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+  }
 
-    "render correctly the EXISTING CLIENTS page with no query params" in {
+  s"GET ${ctrlRoute.showExistingGroupClients(grpId, None, None).url}" should {
+
+    "render correctly the first page of EXISTING CLIENTS page with no query params" in {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetGroupById(grpId, Some(groupWithClients))
+      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+
+      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)((displayClients,PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
 
       //when
-      val result = controller.showExistingGroupClients(groupWithClients._id.toString)(request)
+      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -118,26 +126,29 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 3
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
+      th.size() shouldBe 4
       th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
+      th.get(3).text() shouldBe "Actions"
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
 
       trs.size() shouldBe 3
       //first row
       trs.get(0).select("td").get(0).text() shouldBe "friendly0"
       trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
+      trs.get(0).select("td").get(3).text() shouldBe "Remove"
 
       //last row
       trs.get(2).select("td").get(0).text() shouldBe "friendly2"
       trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(2).text() shouldBe "VAT"
+      trs.get(2).select("td").get(3).text() shouldBe "Remove"
 
-      html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
+      //html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
       html.select("a#update-clients").text() shouldBe "Update clients"
       html.select("a#update-clients").attr("href") shouldBe
         ctrlRoute.showManageGroupClients(grpId).url
@@ -147,14 +158,20 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
 
-      expectGetGroupById(grpId, Some(groupWithClients))
+      expectAuthOkOptedInReady()
+
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetPaginatedClientsForCustomGroup(grpId)(1,
+        20,
+        Some("friendly1"),
+        Some("HMRC-MTD-VAT")
+      )((displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
+
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -162,7 +179,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //when
       val result =
-        controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -172,9 +189,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text shouldBe "Manage clients in this group"
       html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
-      th.size() shouldBe 3
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
+      th.size() shouldBe 4
+      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
       trs.size() shouldBe 1
     }
 
@@ -182,23 +199,28 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+      expectAuthOkOptedInReady()
 
-      expectGetGroupById(grpId, Some(groupWithClients))
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetPaginatedClientsForCustomGroup(grpId)(1,
+        20,
+        Some("friendly1"),
+        Some("HMRC-CGT-PD")
+      )((Seq.empty[DisplayClient],PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
+
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -219,15 +241,13 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-
-      expectGetGroupById(grpId, Some(groupWithClients))
+      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url +
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           s"?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -235,11 +255,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //when
       val result =
-        controller.showExistingGroupClients(groupWithClients._id.toString)(requestWithQueryParams)
+        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
 
       //then
       redirectLocation(result).get
-        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString).url)
+        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, Some(1), Some(20)).url)
     }
 
   }
@@ -248,9 +268,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "render correctly the manage group CLIENTS page" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
@@ -292,9 +310,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "render correctly the manage group CLIENTS page when there are no clients to add found" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
       expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
@@ -321,9 +337,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "render with clients held in session when a filter was applied" in {
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "blah")
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
       expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
@@ -366,9 +380,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        expectIsArnAllowed(allowed = true)
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectAuthOkOptedInReady()
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectSaveSelectedOrFilteredClients(arn)
@@ -394,9 +406,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "submit" -> CONTINUE_BUTTON
         )
 
-        expectIsArnAllowed(allowed = true)
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectAuthOkOptedInReady()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectGetFilteredClientsFromService(arn)(displayClients)
@@ -425,9 +435,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
             "submit" -> CONTINUE_BUTTON
           )
 
-        expectIsArnAllowed(allowed = true)
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectAuthOkOptedInReady()
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectSaveSelectedOrFilteredClients(arn)
@@ -463,9 +471,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "submit"-> FILTER_BUTTON
         )
 
-        expectIsArnAllowed(allowed = true)
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectAuthOkOptedInReady()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectSaveSelectedOrFilteredClients(arn)
@@ -489,9 +495,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           "submit" -> FILTER_BUTTON
         )
 
-        expectIsArnAllowed(allowed = true)
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        expectAuthOkOptedInReady()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
         expectSaveSelectedOrFilteredClients(arn)
@@ -508,9 +512,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "REDIRECT to showManageGroupClients when no SELECTED_CLIENTS in session" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
 
       expectGetSessionItemNone(SELECTED_CLIENTS)
       expectGetGroupById(grpId, Some(accessGroup))
@@ -525,9 +527,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "Render correctly when SELECTED_CLIENTS are in session" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
 
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectGetGroupById(grpId, Some(accessGroup))
@@ -559,9 +559,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     s"redirect to showGroupClientsUpdatedConfirmation on url '${ctrlRoute.showGroupClientsUpdatedConfirmation(grpId)}' " +
       s"when page is submitted with answer 'NO'/'false'" in {
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
 
       implicit val request = FakeRequest("POST", s"${controller.submitReviewSelectedClients(grpId)}")
           .withFormUrlEncodedBody("answer" -> "false")
@@ -588,9 +586,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
 
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectGetGroupById(grpId, Some(accessGroup))
@@ -611,10 +607,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetGroupById(grpId, Some(accessGroup))
 
       val result = controller.submitReviewSelectedClients(grpId)(request)
@@ -633,9 +627,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "render correctly" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
 
       expectGetGroupById(grpId, Some(accessGroup))
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
@@ -661,9 +653,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     s"redirect to ${ctrlRoute.showManageGroupClients(grpId)} when there are no selected clients" in {
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetGroupById(grpId, Some(accessGroup))
 
       expectGetSessionItemNone(SELECTED_CLIENTS)

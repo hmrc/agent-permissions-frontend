@@ -74,7 +74,7 @@ class ManageGroupTeamMembersController @Inject()(
           )
         ) {
           case CLEAR_BUTTON =>
-            Redirect(controller.showExistingGroupTeamMembers(groupId))
+            Redirect(controller.showExistingGroupTeamMembers(groupId, page))
           case FILTER_BUTTON =>
             val lowerCaseSearchTerm = searchFilter.search.getOrElse("").toLowerCase
             val filteredMembers = members
@@ -124,7 +124,7 @@ class ManageGroupTeamMembersController @Inject()(
         result =>
           val filteredTeamMembers = result._1
           val teamMembersSearchTerm = result._3
-          val backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
+          val backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url)
           if (filteredTeamMembers.isDefined)
             Ok(
               team_members_list(
@@ -172,7 +172,7 @@ class ManageGroupTeamMembersController @Inject()(
                     group.groupName,
                     formWithErrors,
                     formAction = controller.submitManageGroupTeamMembers(groupId),
-                    backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
+                    backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url)
                   ))
               }
             },
@@ -198,7 +198,7 @@ class ManageGroupTeamMembersController @Inject()(
                             group.groupName,
                             AddTeamMembersToGroupForm.form().withError("members", "error.select-members.empty"),
                             formAction = controller.submitManageGroupTeamMembers(groupId),
-                            backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url),
+                            backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url),
                           )
                         )
                     }
@@ -227,7 +227,7 @@ class ManageGroupTeamMembersController @Inject()(
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         maybeSelectedTeamMembers
           .fold(
-            Redirect(controller.showExistingGroupTeamMembers(groupId)).toFuture
+            Redirect(controller.showExistingGroupTeamMembers(groupId, None)).toFuture
           ) { members => {
             YesNoForm
               .form("group.teamMembers.review.error")

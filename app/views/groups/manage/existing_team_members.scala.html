@@ -71,7 +71,7 @@
         @team_members_details_table_filter_form(
             teamMembers,
             form,
-            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString),
+            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString, None),
             Option(paginationMetaData)
         )
 
@@ -79,7 +79,6 @@
             key = "group.selected.teamMembers.change",
             href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group._id.toString).url,
             id = "update-team-members-button")
-
     } else {
         <div id="members">
             @h2("team-members.not-found.heading")

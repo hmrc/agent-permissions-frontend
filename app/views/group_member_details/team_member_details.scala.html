@@ -65,7 +65,7 @@
                     @p("common.details.not-assigned")
                 } else {
                     @ul_html(items = teamMemberGroups.map{ group =>
-                        a(group.groupName, href = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId).url)
+                        a(group.groupName, href = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url)
                     })
                 }
                 @a("common.details.assign-to-group",

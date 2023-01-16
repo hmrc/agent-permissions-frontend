@@ -103,7 +103,7 @@ POST    /clients-selected/:groupId             controllers.ManageGroupClientsCon
 GET     /clients-updated/:groupId              controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 # Manage groups - team members
-GET     /manage-team-members/:groupId       controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String)
+GET     /manage-team-members/:groupId       controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, page: Option[Int])
 GET     /update-team-members/:groupId       controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: String)
 POST    /update-team-members/:groupId       controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String)
 GET     /team-members-selected/:groupId     controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String)

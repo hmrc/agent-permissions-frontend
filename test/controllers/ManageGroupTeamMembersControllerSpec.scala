@@ -87,7 +87,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
   private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
@@ -124,7 +124,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -160,7 +160,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-          ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url + "?submit=filter&search=hn2@ab"
+          ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -194,7 +194,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url + "?submit=filter&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 

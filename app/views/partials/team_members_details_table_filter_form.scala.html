@@ -120,7 +120,7 @@
         @if(paginationMetaData.get.totalPages > 1) {
             @GET_pagination(
                 pagination = paginationMetaData.get,
-                baseUrl = routes.ManageTeamMemberController.showPageOfTeamMembers(None),
+                baseUrl = formAction,
                 additionalParams = form.data
             )
         }

@@ -16,6 +16,7 @@
 
 package controllers
 
+import akka.Done
 import config.AppConfig
 import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.SearchAndFilterForm
@@ -28,50 +29,71 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageTeamMemberController @Inject()(
-                  authAction: AuthAction,
-                  mcc: MessagesControllerComponents,
-                  groupService: GroupService,
-                  teamMemberService: TeamMemberService,
-                  optInStatusAction: OptInStatusAction,
-                  manage_team_members_list: manage_team_members_list,
-                  team_member_details: team_member_details)
-                (implicit val appConfig: AppConfig, ec: ExecutionContext,
-    implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+                                            authAction: AuthAction,
+                                            mcc: MessagesControllerComponents,
+                                            groupService: GroupService,
+                                            teamMemberService: TeamMemberService,
+                                            optInStatusAction: OptInStatusAction,
+                                            manage_team_members: manage_team_members,
+                                            team_member_details: team_member_details)
+                                          (implicit val appConfig: AppConfig, ec: ExecutionContext,
+                                           implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
-    with I18nSupport
-    with Logging {
+  with I18nSupport
+  with Logging {
 
   import authAction._
   import optInStatusAction._
 
-  def showAllTeamMembers: Action[AnyContent] = Action.async { implicit request =>
+  def showPageOfTeamMembers(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        teamMemberService.getFilteredTeamMembersElseAll(arn).flatMap { teamMembers =>
-          val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-          searchFilter.submit.fold(
-            //no filter/clear was applied
-            Ok(manage_team_members_list(teamMembers = teamMembers, form = SearchAndFilterForm.form()))
-          )({
-            //clear/filter buttons pressed
-            case CLEAR_BUTTON =>
-              Redirect(routes.ManageTeamMemberController.showAllTeamMembers)
-            case FILTER_BUTTON =>
-              val filterByName = teamMembers.filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
-              val filterByEmail = teamMembers.filter(_.email.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
-              val filtered = (filterByName ++ filterByEmail).distinct
-              Ok(manage_team_members_list(filtered, SearchAndFilterForm.form().fill(searchFilter)))
-          }).toFuture
-        }
+        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+        searchFilter
+          .search
+          .fold(Future.successful(Done))( searchTerm =>
+            sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, searchTerm).map(_=> Done))
+          .flatMap(_ =>
+            teamMemberService
+              .getPageOfTeamMembers(arn)(page.getOrElse(1), 10)
+              .flatMap { paginatedMembers =>
+                searchFilter.submit.fold(
+                  //no filter/clear was applied
+                  Ok(
+                    manage_team_members(
+                      teamMembers = paginatedMembers.pageContent,
+                      form = SearchAndFilterForm.form(),
+                      paginationMetaData = Some(paginatedMembers.paginationMetaData)
+                    )
+                  ).toFuture
+                )({
+                  //clear/filter buttons pressed
+                  case CLEAR_BUTTON =>
+                    sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
+                      .map(_=>
+                        Redirect(routes.ManageTeamMemberController.showPageOfTeamMembers(None))
+                      )
+                  case FILTER_BUTTON =>
+                    Ok(
+                      manage_team_members(
+                        teamMembers = paginatedMembers.pageContent,
+                        form = SearchAndFilterForm.form().fill(searchFilter),
+                        paginationMetaData = Some(paginatedMembers.paginationMetaData)
+                      )
+                    ).toFuture
+                })
+              }
+          )
+
       }
     }
   }
 
-  def showTeamMemberDetails(memberId :String): Action[AnyContent] = Action.async { implicit request =>
+  def showTeamMemberDetails(memberId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         teamMemberService.lookupTeamMember(arn)(memberId).flatMap {
@@ -82,11 +104,11 @@ class ManageTeamMemberController @Inject()(
                   teamMember = teamMember,
                   teamMemberGroups = gs
                 ))
-          )
-          case _ => Redirect(routes.ManageTeamMemberController.showAllTeamMembers).toFuture
-        }
+              )
+          case _ => Redirect(routes.ManageTeamMemberController.showPageOfTeamMembers(None)).toFuture
         }
       }
+    }
   }
 
 }

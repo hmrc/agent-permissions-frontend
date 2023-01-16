@@ -190,7 +190,7 @@ class OptOutControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).get(0)
         .text() shouldBe "You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients."
       html.select(Css.paragraphs).get(1)
-        .text() shouldBe "Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account‘ page."
+        .text() shouldBe "Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account’ page."
       html.select(Css.link).get(0)
         .text() shouldBe "Return to manage account"
       html.select(Css.link).get(0)

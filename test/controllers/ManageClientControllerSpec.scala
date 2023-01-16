@@ -169,7 +169,7 @@ class ManageClientControllerSpec extends BaseSpec {
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
       implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageTeamMemberController.showAllTeamMembers.url +
+        routes.ManageTeamMemberController.showPageOfTeamMembers(None).url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")

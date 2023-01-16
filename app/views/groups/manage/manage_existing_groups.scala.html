@@ -22,12 +22,12 @@
 @import views.html.partials.search_and_filter
 
 @this(
-        layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,
-        p: p, h1: h1, h2: h2, a: a, span: span,
-        table: table, textbox: textbox, summary_list: summary_list,
-        a_button: link_as_button, search_and_filter: search_and_filter,
-        GET_pagination: GET_pagination,
-        summaryErrors: SummaryErrors
+    layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,
+    p: p, h1: h1, h2: h2, a: a, span: span,
+    table: table, textbox: textbox, summary_list: summary_list,
+    a_button: link_as_button, search_and_filter: search_and_filter,
+    GET_pagination: GET_pagination,
+    summaryErrors: SummaryErrors
 )
 
 @(
@@ -45,9 +45,10 @@
     )
 }
 
-@layout(title = msgs("group.manage.h1"),
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
-    fullWidth = true) {
+@layout(
+    title = msgs("group.manage.h1"), fullWidth = true,
+    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)
+) {
 
     @h1("group.manage.h1")
 

@@ -140,7 +140,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage clients for name 1"
       clientsRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-custom-group/groupId1/clients"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
       membersRow.select("dt").text() shouldBe "Team members"
@@ -237,7 +237,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage clients for GroupName1"
       clientsRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-clients/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-custom-group/groupId1/clients"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
       membersRow.select("dt").text() shouldBe "Team members"

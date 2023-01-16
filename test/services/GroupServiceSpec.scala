@@ -21,9 +21,10 @@ import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, Ag
 import helpers.BaseSpec
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
+import org.mongodb.scala.bson.ObjectId
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
@@ -46,6 +47,12 @@ class GroupServiceSpec extends BaseSpec {
     .map { i =>
       UserDetails(Some(s"John $i"), Some("User"), Some(s"John $i name"), Some(s"john$i@abc.com"))
     }
+
+  val fakeClients: Seq[Client] = (1 to 8)
+    .map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly name $i"))
+
+  val displayClients: Seq[DisplayClient] =
+    fakeClients.map(DisplayClient.fromClient(_))
 
   "get group summaries" should {
     "Return groups from agentPermissionsConnector" in {
@@ -122,6 +129,75 @@ class GroupServiceSpec extends BaseSpec {
           currentPageSize = 3))
     }
 
+  }
+
+  "get Paginated Clients For Custom Group" should {
+    //given
+    val grpId = "grp1"
+
+    "return first page of clients as (page content, pagination data)" in {
+      //given
+      val paginatedListOfClients = PaginatedList[Client](fakeClients.take(5), PaginationMetaData(lastPage = true,
+        firstPage = false,
+        totalSize = 8,
+        totalPages = 2,
+        pageSize = 5,
+        currentPageNumber = 1,
+        currentPageSize = 5))
+
+      (mockAgentPermissionsConnector
+        .getPaginatedClientsForCustomGroup(_: String)(_:Int, _:Int, _:Option[String], _:Option[String])(_: HeaderCarrier, _: ExecutionContext))
+        .expects(grpId, *, *, *, *, *, *)
+        .returning(Future successful paginatedListOfClients).once()
+
+      val pageOfClientsInGroup = displayClients.take(5)
+
+      //when
+      val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(1, 5, None, None))
+
+      val expectedData = (pageOfClientsInGroup, PaginationMetaData(lastPage = true,
+        firstPage = false,
+        totalSize = 8,
+        totalPages = 2,
+        pageSize = 5,
+        currentPageNumber = 1,
+        currentPageSize = 5))
+
+      //then
+      data shouldBe expectedData
+    }
+
+    "return second page of display clients as (page content, pagination data)" in {
+      //given
+      val paginatedListOfClients = PaginatedList[Client](fakeClients.takeRight(3), PaginationMetaData(lastPage = true,
+        firstPage = false,
+        totalSize = 8,
+        totalPages = 2,
+        pageSize = 5,
+        currentPageNumber = 2,
+        currentPageSize = 3))
+
+      (mockAgentPermissionsConnector
+        .getPaginatedClientsForCustomGroup(_: String)(_:Int, _:Int, _:Option[String], _:Option[String])(_: HeaderCarrier, _: ExecutionContext))
+        .expects(grpId, *, *, *, *, *, *)
+        .returning(Future successful paginatedListOfClients).once()
+
+      val pageOfClientsInGroup = displayClients.takeRight(3)
+
+
+      //when
+      val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(2, 5, None, None))
+      val expectedData = (pageOfClientsInGroup, PaginationMetaData(lastPage = true,
+        firstPage = false,
+        totalSize = 8,
+        totalPages = 2,
+        pageSize = 5,
+        currentPageNumber = 2,
+        currentPageSize = 3))
+
+      //then
+      data shouldBe expectedData
+    }
   }
 
   "update groups" should {

@@ -57,13 +57,21 @@ class ManageGroupTeamMembersController @Inject()(
 
   private val controller: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  def showExistingGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showExistingGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
       groupService.getTeamMembersFromGroup(group.arn)(convertedTeamMembers).map { members =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+        val paginatedMembers = paginationForMembers(members = members, page = page.getOrElse(1))
         searchFilter.submit.fold( //i.e. fresh page load
-          Ok(existing_team_members(members, SearchAndFilterForm.form(), group))
+          Ok(
+            existing_team_members(
+              paginatedMembers._1,
+              SearchAndFilterForm.form(),
+              group,
+              paginatedMembers._2
+            )
+          )
         ) {
           case CLEAR_BUTTON =>
             Redirect(controller.showExistingGroupTeamMembers(groupId))
@@ -71,14 +79,31 @@ class ManageGroupTeamMembersController @Inject()(
             val lowerCaseSearchTerm = searchFilter.search.getOrElse("").toLowerCase
             val filteredMembers = members
               .filter(tm =>
-                tm.name.toLowerCase.contains(lowerCaseSearchTerm) ||
-                  tm.email.toLowerCase.contains(lowerCaseSearchTerm)
+                tm.name.toLowerCase.contains(lowerCaseSearchTerm) || tm.email.toLowerCase.contains(lowerCaseSearchTerm)
               )
             val form = SearchAndFilterForm.form().fill(searchFilter)
-            Ok(existing_team_members(filteredMembers, form, group))
+            val paginatedMembers = paginationForMembers(members = filteredMembers, page = page.getOrElse(1))
+            Ok(existing_team_members(paginatedMembers._1, form, group, paginatedMembers._2))
         }
       }
     }
+  }
+
+  private def paginationForMembers(members: Seq[TeamMember], pageSize: Int = 10, page: Int = 1) = {
+    val firstMemberInPage = (page - 1) * pageSize
+    val lastMemberInPage = page * pageSize
+    val currentPageOfMembers = members.slice(firstMemberInPage, lastMemberInPage)
+    val numPages = Math.ceil(members.length.toDouble / pageSize.toDouble).toInt
+    val meta = PaginationMetaData(
+      lastPage = page == numPages,
+      firstPage = page == 1,
+      totalSize = members.length,
+      totalPages = numPages,
+      pageSize = pageSize,
+      currentPageNumber = page,
+      currentPageSize = currentPageOfMembers.length
+    )
+    (currentPageOfMembers, meta)
   }
 
   def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -140,16 +165,16 @@ class ManageGroupTeamMembersController @Inject()(
           .bindFromRequest()
           .fold(
             formWithErrors => {
-                teamMemberService.getFilteredTeamMembersElseAll(group.arn).map {
-                  maybeTeamMembers =>
-                    Ok(team_members_list(
-                      maybeTeamMembers,
-                      group.groupName,
-                      formWithErrors,
-                      formAction = controller.submitManageGroupTeamMembers(groupId),
-                      backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
-                    ))
-                }
+              teamMemberService.getFilteredTeamMembersElseAll(group.arn).map {
+                maybeTeamMembers =>
+                  Ok(team_members_list(
+                    maybeTeamMembers,
+                    group.groupName,
+                    formWithErrors,
+                    formAction = controller.submitManageGroupTeamMembers(groupId),
+                    backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url)
+                  ))
+              }
             },
             formData => {
               teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).flatMap(_ =>
@@ -174,7 +199,7 @@ class ManageGroupTeamMembersController @Inject()(
                             AddTeamMembersToGroupForm.form().withError("members", "error.select-members.empty"),
                             formAction = controller.submitManageGroupTeamMembers(groupId),
                             backUrl = Some(controller.showExistingGroupTeamMembers(groupId).url),
-                           )
+                          )
                         )
                     }
                   })
@@ -192,7 +217,7 @@ class ManageGroupTeamMembersController @Inject()(
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
-          )( members => Ok(review_update_team_members(members, group, YesNoForm.form())).toFuture)
+          )(members => Ok(review_update_team_members(members, group, YesNoForm.form())).toFuture)
       }
     }
   }

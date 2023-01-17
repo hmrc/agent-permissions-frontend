@@ -87,7 +87,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
   private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
@@ -104,10 +104,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Manage team members"
+      html.select(H1).text() shouldBe "Manage team members"
 
-      val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 
       trs.size() shouldBe 5
 
@@ -125,7 +124,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url +
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -144,11 +143,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for 'John 1' Manage team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Manage team members"
-      html.select(H2).text shouldBe "Filter results for 'John 1'"
+      html.select(H1).text() shouldBe "Manage team members"
+      html.select(paragraphs).get(0).text shouldBe "Showing 1 to 1 of 1 team members for the search term ‘John 1’"
 
-      val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 
       trs.size() shouldBe 1
 
@@ -162,7 +160,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-          ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url + "?submit=filter&search=hn2@ab"
+          ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -179,11 +177,11 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for 'hn2@ab' Manage team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Manage team members"
-      html.select(H2).text shouldBe "Filter results for 'hn2@ab'"
+      html.select(H1).text() shouldBe "Manage team members"
+      html.select(paragraphs).get(0).text shouldBe "Showing 1 to 1 of 1 team members for the search term ‘hn2@ab’"
 
       val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+        html.select(Css.tableWithId("members")).select("tbody tr")
 
       trs.size() shouldBe 1
 
@@ -196,7 +194,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString).url + "?submit=filter&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -213,7 +211,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for 'hn2@ab' Manage team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Manage team members"
+      html.select(H1).text() shouldBe "Manage team members"
 
       val tableOfTeamMembers = html.select(Css.tableWithId("members"))
       tableOfTeamMembers.isEmpty shouldBe true
@@ -246,7 +244,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Update team members in this group"
+      html.select(H1).text() shouldBe "Update team members in this group"
 
       val trs =
         html.select(Css.tableWithId("sortable-table")).select("tbody tr")
@@ -285,7 +283,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for 'John' Update team members in this group - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Update team members in this group"
+      html.select(H1).text() shouldBe "Update team members in this group"
 
       html.select(H2).text() shouldBe "Filter results for 'John'"
 
@@ -324,7 +322,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Update team members in this group"
+      html.select(H1).text() shouldBe "Update team members in this group"
 
       val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
 
@@ -397,7 +395,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
         // then
         html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Select team members"
+        html.select(H1).text() shouldBe "Select team members"
         html
           .select(Css.errorSummaryForField("members"))
       }

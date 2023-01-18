@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.partials.team_members_details_table_filter_form
+@import views.html.partials.existing_members_table_filter_form
 
 @this(
     layout: main_layout,table: table,
@@ -30,7 +31,7 @@
     submit_button: submit_button,
     textbox: textbox, checkbox: checkbox,
     search_and_filter: search_and_filter,
-    team_members_details_table_filter_form: team_members_details_table_filter_form
+        existing_members_table_filter_form: existing_members_table_filter_form
 )
 
 @(
@@ -58,7 +59,7 @@
 
 
     @if(teamMembers.nonEmpty) {
-        @team_members_details_table_filter_form(
+        @existing_members_table_filter_form(
             teamMembers,
             form,
             routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString, None),
@@ -67,7 +68,7 @@
 
         @link_as_button(
             key = "group.selected.teamMembers.change",
-            href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group._id.toString).url,
+            href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group._id.toString, None).url,
             id = "update-team-members-button")
         
     } else {

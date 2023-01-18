@@ -30,6 +30,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 import views.html.groups.manage._
+import views.html.groups.manage.members.{existing_team_members, team_members_update_complete, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -44,6 +45,7 @@ class ManageGroupTeamMembersController @Inject()(
                                                   teamMemberService: TeamMemberService,
                                                   existing_team_members: existing_team_members,
                                                   team_members_list: team_members_list,
+                                                  update_paginated_team_members: update_paginated_team_members,
                                                   review_update_team_members: review_update_team_members,
                                                   team_members_update_complete: team_members_update_complete,
                                                 )
@@ -89,6 +91,40 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
+  def showManageGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+      val teamMembers = agentUsersInGroupAsTeamMembers(group)
+      val result = for {
+        selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
+        _ <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(maybeTeamMembers => {
+          if (maybeTeamMembers.isEmpty) {
+            sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
+          }
+        }
+        )
+        maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
+        pageMembersForArn <- teamMemberService.getPageOfTeamMembers(group.arn)(page.getOrElse(1), 10)
+      } yield (pageMembersForArn: PaginatedList[TeamMember], maybeFilterTerm)
+      result.map { result =>
+        val teamMembersSearchTerm = result._2
+        val backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url)
+        Ok(
+          update_paginated_team_members(
+            result._1.pageContent,
+            group,
+            AddTeamMembersToGroupForm.form().fill(
+              AddTeamMembersToGroup(search = teamMembersSearchTerm, members = None)
+            ),
+            msgKey = "update",
+            formAction = controller.submitManageGroupTeamMembers(groupId),
+            backUrl = backUrl,
+            Option(result._1.paginationMetaData)
+          )
+        )
+      }
+    }
+  }
+
   private def paginationForMembers(members: Seq[TeamMember], pageSize: Int = 10, page: Int = 1) = {
     val firstMemberInPage = (page - 1) * pageSize
     val lastMemberInPage = page * pageSize
@@ -104,56 +140,6 @@ class ManageGroupTeamMembersController @Inject()(
       currentPageSize = currentPageOfMembers.length
     )
     (currentPageOfMembers, meta)
-  }
-
-  def showManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      val teamMembers = agentUsersInGroupAsTeamMembers(group)
-      val result = for {
-        selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
-        _ <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(maybeTeamMembers =>
-          if (maybeTeamMembers.isEmpty) {
-            sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
-          }
-        )
-        filteredTeamMembers <- sessionCacheService.get[Seq[TeamMember]](FILTERED_TEAM_MEMBERS)
-        maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
-        teamMembersForArn <- teamMemberService.getAllTeamMembers(group.arn)
-      } yield (filteredTeamMembers, teamMembersForArn, maybeFilterTerm)
-      result.map {
-        result =>
-          val filteredTeamMembers = result._1
-          val teamMembersSearchTerm = result._3
-          val backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url)
-          if (filteredTeamMembers.isDefined)
-            Ok(
-              team_members_list(
-                filteredTeamMembers.getOrElse(Seq.empty),
-                group.groupName,
-                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
-                  search = teamMembersSearchTerm,
-                  members = None
-                )),
-                msgKey = "update",
-                formAction = controller.submitManageGroupTeamMembers(groupId),
-                backUrl = backUrl
-              )
-            )
-          else
-            Ok(
-              team_members_list(
-                result._2,
-                group.groupName,
-                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
-                  search = teamMembersSearchTerm,
-                  members = None
-                )),
-                msgKey = "update",
-                formAction = controller.submitManageGroupTeamMembers(groupId),
-                backUrl = backUrl
-              ))
-      }
-    }
   }
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -177,13 +163,14 @@ class ManageGroupTeamMembersController @Inject()(
               }
             },
             formData => {
-              teamMemberService.saveSelectedOrFilteredTeamMembers(formData.submit)(group.arn)(formData).flatMap(_ =>
+              teamMemberService
+                .savePageOfTeamMembers(formData).flatMap(_ =>
                 if (formData.submit == CONTINUE_BUTTON) {
                   // checks selected from session AFTER saving (removed de-selections)
                   val hasSelected = for {
                     selected <- sessionCacheService.get(SELECTED_TEAM_MEMBERS)
                     // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
-                  } yield selected.getOrElse(Seq.empty).nonEmpty
+                  } yield selected.isDefined
 
                   hasSelected.flatMap(selectedNotEmpty => {
                     if (selectedNotEmpty) {
@@ -203,8 +190,11 @@ class ManageGroupTeamMembersController @Inject()(
                         )
                     }
                   })
+                } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
+                  val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
+                  Redirect(controller.showManageGroupTeamMembers(groupId, Option(pageToShow))).toFuture
                 }
-                else Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
+                else Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
               )
             }
           )
@@ -216,7 +206,7 @@ class ManageGroupTeamMembersController @Inject()(
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
-          .fold(Redirect(controller.showManageGroupTeamMembers(groupId)).toFuture
+          .fold(Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
           )(members => Ok(review_update_team_members(members, group, YesNoForm.form())).toFuture)
       }
     }
@@ -237,7 +227,7 @@ class ManageGroupTeamMembersController @Inject()(
                   Ok(review_update_team_members(members, group, formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
-                    Redirect(controller.showManageGroupTeamMembers(group._id.toString)).toFuture
+                    Redirect(controller.showManageGroupTeamMembers(group._id.toString, None)).toFuture
                   else {
                     val selectedMembers = Some(members.map(tm => toAgentUser(tm)).toSet)
                     val groupRequest = UpdateAccessGroupRequest(teamMembers = selectedMembers)
@@ -258,7 +248,7 @@ class ManageGroupTeamMembersController @Inject()(
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         sessionCacheService.delete(SELECTED_TEAM_MEMBERS).map(_ =>
           if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
-          else Redirect(controller.showManageGroupTeamMembers(groupId))
+          else Redirect(controller.showManageGroupTeamMembers(groupId, None))
         )
       }
     }

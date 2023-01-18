@@ -17,7 +17,7 @@ POST    /confirm-turn-off                           controllers.OptOutController
 
 GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut
 
-#paginated
+# 1000+ create group journey
 GET     /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.showSelectGroupType
 POST    /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.submitSelectGroupType
 GET     /create-group/select-tax-service            controllers.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType
@@ -25,7 +25,6 @@ POST    /create-group/select-tax-service            controllers.CreateGroupSelec
 GET     /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.showReviewTaxServiceGroupType
 POST    /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType
 
-#Custom group
 GET     /create-group/select-name       controllers.CreateGroupSelectNameController.showGroupName
 POST    /create-group/select-name       controllers.CreateGroupSelectNameController.submitGroupName
 GET     /create-group/confirm-name      controllers.CreateGroupSelectNameController.showConfirmGroupName
@@ -45,34 +44,26 @@ GET     /create-group/team-members-selected    controllers.CreateGroupSelectTeam
 POST    /create-group/team-members-selected    controllers.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers
 GET     /create-group/confirm                  controllers.CreateGroupSelectTeamMembersController.showGroupCreated
 
-# create group
+# Deprecated for 1000+ below (create group)
 GET     /group/create-access-group            controllers.CreateGroupController.start
-
 GET     /create-access-group-name             controllers.CreateGroupController.showGroupName
 POST    /create-access-group-name             controllers.CreateGroupController.submitGroupName
-
 GET     /confirm-access-group-name            controllers.CreateGroupController.showConfirmGroupName
 POST    /confirm-access-group-name            controllers.CreateGroupController.submitConfirmGroupName
-
 GET     /access-group-name-exists             controllers.CreateGroupController.showAccessGroupNameExists
-
 GET     /select-clients                       controllers.CreateGroupController.showSelectClients
 POST    /select-clients                       controllers.CreateGroupController.submitSelectedClients
-
 GET     /clients-selected                     controllers.CreateGroupController.showReviewSelectedClients
 POST    /clients-selected                     controllers.CreateGroupController.submitReviewSelectedClients
-
 GET     /select-team-members                  controllers.CreateGroupController.showSelectTeamMembers
 POST    /select-team-members                  controllers.CreateGroupController.submitSelectedTeamMembers
-
 GET     /team-members-selected                controllers.CreateGroupController.showReviewSelectedTeamMembers
 POST    /team-members-selected                controllers.CreateGroupController.submitReviewSelectedTeamMembers
-
 GET     /confirm-clients-team-members         controllers.CreateGroupController.showCheckYourAnswers
 POST    /confirm-clients-team-members         controllers.CreateGroupController.submitCheckYourAnswers
 GET     /reselect-clients                     controllers.CreateGroupController.redirectToEditClients
-
 GET     /group-created                        controllers.CreateGroupController.showGroupCreated
+# Deprecated for 1000+ above (create group)
 
 # Manage groups
 GET     /manage-access-groups                controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])
@@ -84,7 +75,6 @@ GET     /custom-group-renamed/:groupId    controllers.ManageGroupController.show
 GET     /rename-tax-group/:groupId        controllers.ManageGroupController.showRenameTaxGroup(groupId: String)
 POST    /rename-tax-group/:groupId        controllers.ManageGroupController.submitRenameTaxGroup(groupId: String)
 GET     /tax-group-renamed/:groupId       controllers.ManageGroupController.showTaxGroupRenamed(groupId: String)
-
 
 GET     /delete-custom-group/:groupId        controllers.ManageGroupController.showDeleteGroup(groupId: String)
 POST    /delete-custom-group/:groupId        controllers.ManageGroupController.submitDeleteGroup(groupId: String)

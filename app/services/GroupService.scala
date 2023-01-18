@@ -39,7 +39,7 @@ trait GroupService {
               (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]]
 
   def getCustomSummary(groupId: String)
-                      (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[GroupSummary]]
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getPaginatedClientsForCustomGroup(groupId: String)
                                        (page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)

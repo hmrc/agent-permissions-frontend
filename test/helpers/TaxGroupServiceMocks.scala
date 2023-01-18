@@ -20,7 +20,7 @@ import akka.Done
 import connectors.{CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
 import org.scalamock.scalatest.MockFactory
 import services.TaxGroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, Arn}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -58,7 +58,7 @@ trait TaxGroupServiceMocks extends MockFactory {
       .expects(id, *, *)
       .returning(Future.successful(Done)).once()
 
-  def expectGetTaxGroupById(id: String, maybeGroup: Option[AccessGroup])(
+  def expectGetTaxGroupById(id: String, maybeGroup: Option[TaxGroup])(
     implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
       .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))

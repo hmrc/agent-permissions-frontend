@@ -20,7 +20,7 @@ import akka.Done
 import connectors._
 import helpers.BaseSpec
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, TaxServiceAccessGroup => TaxGroup}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime.MIN
@@ -71,7 +71,7 @@ class TaxGroupServiceSpec extends BaseSpec {
       //given
       val groupId = UUID.randomUUID().toString
       val agentUser = AgentUser("agent1", "Bob Smith")
-      val expectedGroup = AccessGroup(Arn("arn1"), "Bangers & Mash", MIN, MIN, agentUser, agentUser, None, None)
+      val expectedGroup = TaxGroup(Arn("arn1"), "Bangers & Mash", MIN, MIN, agentUser, agentUser, None, "", automaticUpdates = true, None)
 
       (mockAgentPermissionsConnector
         .getTaxServiceGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))

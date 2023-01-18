@@ -31,12 +31,12 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, TaxServiceAccessGroup => TaxGroup, _}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
+import java.time.LocalDateTime.MIN
 
 class ManageGroupControllerSpec extends BaseSpec {
 
@@ -59,6 +59,8 @@ class ManageGroupControllerSpec extends BaseSpec {
                                 agentUser,
                                 None,
                                 None)
+
+  val taxGroup: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "", automaticUpdates = true, None)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -97,6 +99,12 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
+  def expectAuthOkOptedInReady(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+  }
+
   val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
   private val ctrlRoute: ReverseManageGroupController = routes.ManageGroupController
 
@@ -106,9 +114,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the manage groups page" in {
 
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
       expectGetPageOfGroupsForArn(arn)(1, 5)(groupSummaries)
       expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
@@ -161,9 +167,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the manage groups page when nothing returned" in {
 
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetPageOfGroupsForArn(arn)(1, 5)(Seq.empty)
       expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
 
@@ -195,9 +199,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render content when filtered access groups" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
 
       val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4))
       val searchTerm = expectedGroupSummaries(0).groupName
@@ -258,10 +260,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the rename groups page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
 
       //when
       val result = controller.showRenameGroup(groupId)(request)
@@ -285,10 +285,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render NOT_FOUND when no group is found for this group id" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetGroupById(groupId, Option.empty[AccessGroup])
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Option.empty[GroupSummary])
 
       //when
       val result = controller.showRenameGroup(groupId)(request)
@@ -313,10 +311,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the rename groups page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
 
       //when
       val result = controller.showRenameTaxGroup(groupId)(request)
@@ -338,10 +334,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render NOT_FOUND when no group is found for this group id" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(groupId, Option.empty[AccessGroup])
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Option.empty[TaxGroup])
 
       //when
       val result = controller.showRenameTaxGroup(groupId)(request)
@@ -367,9 +361,8 @@ class ManageGroupControllerSpec extends BaseSpec {
     "redirect to confirmation page with when posting a valid group name" in {
 
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
       expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -379,7 +372,6 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
 
       //when
@@ -394,16 +386,15 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "redirect when no group is returned for this group id" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Option.empty[GroupSummary])
+
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
                     ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetGroupById(groupId, Option.empty[AccessGroup])
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -432,10 +423,8 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -449,10 +438,10 @@ class ManageGroupControllerSpec extends BaseSpec {
     "redirect to confirmation page with when posting a valid group name" in {
 
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectUpdateTaxGroup(groupId, UpdateTaxServiceGroupRequest(groupName = Some("New Group Name")))
+      expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -460,9 +449,6 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
 
       //when
       val result = controller.submitRenameTaxGroup(groupId)(request)
@@ -474,15 +460,14 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "redirect when no group is returned for this group id" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Option.empty[TaxGroup])
+
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitRenameTaxGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(groupId, Option.empty[AccessGroup])
 
       //when
       val result = controller.submitRenameTaxGroup(groupId)(request)
@@ -510,10 +495,8 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -524,13 +507,11 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showGroupRenamed(groupId).url}" should {
 
-    "render correctly the manage groups page" in {
+    "render correctly the custom group renamed page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_RENAMED_FROM, "Previous Name")
-      expectGetGroupById(groupId, Some(accessGroup))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
 
       //when
       val result = controller.showGroupRenamed(groupId)(request)
@@ -560,13 +541,11 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showTaxGroupRenamed(groupId).url}" should {
 
-    "render correctly the manage groups page" in {
+    "render correctly the tax group renamed" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_RENAMED_FROM, "Previous Name")
-      expectGetTaxGroupById(groupId, Some(accessGroup))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
 
       //when
       val result = controller.showTaxGroupRenamed(groupId)(request)
@@ -598,10 +577,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the DELETE group page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
 
       //when
       val result = controller.showDeleteGroup(groupId)(request)
@@ -627,8 +604,10 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
+      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectDeleteGroup(accessGroup._id.toString)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -637,11 +616,6 @@ class ManageGroupControllerSpec extends BaseSpec {
                       .url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
-      expectDeleteGroup(accessGroup._id.toString)
 
       //when
       val result = controller.submitDeleteGroup(accessGroup._id.toString)(request)
@@ -656,8 +630,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the DASHBOARD group page when 'no' selected" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.convertCustomGroup(accessGroup)))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -666,9 +640,6 @@ class ManageGroupControllerSpec extends BaseSpec {
                       .url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
       val result =
@@ -691,10 +662,8 @@ class ManageGroupControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> s"Bearer whatever")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
 
       //when
       val result = controller.submitDeleteGroup(groupId)(request)
@@ -707,9 +676,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_DELETED_NAME, "Rubbish")
 
       //when
@@ -743,10 +710,8 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the DELETE group page" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(groupId, Some(accessGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       //when
       val result = controller.showDeleteTaxGroup(groupId)(request)
 
@@ -756,10 +721,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Delete group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Delete group"
       html.select(Css.form)
-        .attr("action") shouldBe ctrlRoute.showDeleteTaxGroup(accessGroup._id.toString).url
+        .attr("action") shouldBe ctrlRoute.showDeleteTaxGroup(taxGroup._id.toString).url
 
       html.select(Css.legend)
-        .text() shouldBe s"Are you sure you want to delete ${accessGroup.groupName} access group?"
+        .text() shouldBe s"Are you sure you want to delete ${taxGroup.groupName} access group?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -767,28 +732,25 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitDeleteTaxGroup(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitDeleteTaxGroup(taxGroup._id.toString).url}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      expectPutSessionItem(GROUP_DELETED_NAME, taxGroup.groupName)
+      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectDeleteTaxGroup(taxGroup._id.toString)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup._id.toString)
+            .submitDeleteGroup(taxGroup._id.toString)
             .url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
-      expectGetTaxGroupById(accessGroup._id.toString, Some(accessGroup))
-      expectDeleteTaxGroup(accessGroup._id.toString)
-
       //when
-      val result = controller.submitDeleteTaxGroup(accessGroup._id.toString)(request)
+      val result = controller.submitDeleteTaxGroup(taxGroup._id.toString)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
@@ -800,23 +762,20 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render correctly the DASHBOARD group page when 'no' selected" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup._id.toString)
+            .submitDeleteGroup(taxGroup._id.toString)
             .url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(accessGroup._id.toString, Some(accessGroup))
-
       //when
       val result =
-        controller.submitDeleteTaxGroup(accessGroup._id.toString)(request)
+        controller.submitDeleteTaxGroup(taxGroup._id.toString)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
@@ -828,17 +787,15 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "render errors when no answer is specified" in {
       //given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute.submitDeleteGroup(groupId).url)
           .withFormUrlEncodedBody("answer" -> "")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(groupId, Some(accessGroup))
 
       //when
       val result = controller.submitDeleteTaxGroup(groupId)(request)

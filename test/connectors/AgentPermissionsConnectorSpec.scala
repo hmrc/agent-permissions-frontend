@@ -24,12 +24,13 @@ import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady, PaginatedList, PaginationMetaData, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady, PaginatedList, PaginationMetaData, AccessGroupSummary => GroupSummary, TaxServiceAccessGroup => TaxGroup}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
+import java.time.LocalDateTime.MIN
 
 class AgentPermissionsConnectorSpec
   extends BaseSpec
@@ -610,25 +611,27 @@ class AgentPermissionsConnectorSpec
 
       val groupId = 234234
       val agent = AgentUser("agentId", "Bob Builder")
-      val accessGroup =
-        AccessGroup(arn,
-          "groupName",
-          anyDate,
-          anyDate,
-          agent,
-          agent,
-          Some(Set(agent)),
-          Some(Set(Client("service~key~value", "friendly"))))
+
+      val taxGroup = TaxGroup(arn,
+        "groupName",
+        anyDate,
+        anyDate,
+        agent,
+        agent,
+        Some(Set(agent)),
+        "HMRC-MTD-VAT",
+        automaticUpdates = true,
+        None)
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/tax-group/$groupId"
-      val mockJsonResponseBody = Json.toJson(accessGroup).toString
+      val mockJsonResponseBody = Json.toJson(taxGroup).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
       expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //and
-      val expectedTransformedResponse = Some(accessGroup)
+      val expectedTransformedResponse = Some(taxGroup)
 
       //then
       connector

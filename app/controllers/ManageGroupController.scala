@@ -27,7 +27,9 @@ import play.api.mvc._
 import services.{GroupService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.manage._
+import views.html.groups.manage.manage_existing_groups
+import views.html.groups.manage.delete._
+import views.html.groups.manage.rename._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext

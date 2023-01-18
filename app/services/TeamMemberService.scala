@@ -162,9 +162,6 @@ class TeamMemberServiceImpl @Inject()(
 
     val commonTasks = for {
       teamMembers <- lookupTeamMembers(arn)(formData.members)
-      _ = println("*********** lookupTeamMembers ****************")
-      _ = println(teamMembers)
-      _ = println("***************************************")
       _ <- addSelectablesToSession(teamMembers.map(_.copy(selected = true)))(SELECTED_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS)
     } yield ()
 

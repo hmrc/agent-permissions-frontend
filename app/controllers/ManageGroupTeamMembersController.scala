@@ -96,7 +96,7 @@ class ManageGroupTeamMembersController @Inject()(
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
-        _ <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(maybeTeamMembers =>{
+        _ <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(maybeTeamMembers => {
           if (maybeTeamMembers.isEmpty) {
             sessionCacheService.put[Seq[TeamMember]](SELECTED_TEAM_MEMBERS, selectedTeamMembers)
           }
@@ -106,41 +106,21 @@ class ManageGroupTeamMembersController @Inject()(
         pageMembersForArn <- teamMemberService.getPageOfTeamMembers(group.arn)(page.getOrElse(1), 10)
       } yield (pageMembersForArn: PaginatedList[TeamMember], maybeFilterTerm)
       result.map { result =>
-          val filteredTeamMembers = result._1.pageContent
-          val teamMembersSearchTerm = result._2
-          val backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url)
-          if (filteredTeamMembers.nonEmpty){
-            Ok(
-              update_paginated_team_members(
-                result._1.pageContent,
-                group,
-                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
-                  search = teamMembersSearchTerm,
-                  members = None
-                )),
-                msgKey = "update",
-                formAction = controller.submitManageGroupTeamMembers(groupId),
-                backUrl = backUrl,
-                Option(result._1.paginationMetaData)
-              )
-            )
-          }
-          else {
-            Ok(
-              update_paginated_team_members(
-                result._1.pageContent,
-                group,
-                AddTeamMembersToGroupForm.form().fill(AddTeamMembersToGroup(
-                  search = teamMembersSearchTerm,
-                  members = None
-                )),
-                msgKey = "update",
-                formAction = controller.submitManageGroupTeamMembers(groupId),
-                backUrl = backUrl,
-                Option(result._1.paginationMetaData)
-              )
-            )
-          }
+        val teamMembersSearchTerm = result._2
+        val backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url)
+        Ok(
+          update_paginated_team_members(
+            result._1.pageContent,
+            group,
+            AddTeamMembersToGroupForm.form().fill(
+              AddTeamMembersToGroup(search = teamMembersSearchTerm, members = None)
+            ),
+            msgKey = "update",
+            formAction = controller.submitManageGroupTeamMembers(groupId),
+            backUrl = backUrl,
+            Option(result._1.paginationMetaData)
+          )
+        )
       }
     }
   }

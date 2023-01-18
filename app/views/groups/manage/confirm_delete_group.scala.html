@@ -18,7 +18,7 @@
 @import controllers.routes
 @import views.components.models.{LegendData, RadioData}
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
+@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary
 
 @this(
     layout: main_layout,
@@ -30,13 +30,13 @@
 
 @(
     form: Form[Boolean],
-    group: AccessGroup,
+    group: AccessGroupSummary,
     isCustom: Boolean = true
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @formAction = @{
-    if(isCustom) routes.ManageGroupController.submitDeleteGroup(group._id.toString)
-    else routes.ManageGroupController.submitDeleteTaxGroup(group._id.toString)
+    if(isCustom) routes.ManageGroupController.submitDeleteGroup(group.groupId.toString)
+    else routes.ManageGroupController.submitDeleteTaxGroup(group.groupId.toString)
 }
 
 @layout(

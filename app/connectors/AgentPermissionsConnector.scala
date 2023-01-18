@@ -25,7 +25,7 @@ import models.DisplayClient
 import play.api.Logging
 import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, _}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, TaxServiceAccessGroup => TaxGroup, _}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -102,7 +102,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
 
   def getTaxServiceGroup(groupId: String)
-                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
+                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]]
 
   def deleteTaxGroup(id: String)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
@@ -286,7 +286,18 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
-      getAccessGroup(id, url)
+      http
+        .GET[HttpResponse](url)
+        .map { response =>
+          response.status match {
+            case OK => response.json.asOpt[AccessGroup]
+            case NOT_FOUND =>
+              logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+              None
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
+          }
+        }
     }
   }
 
@@ -437,28 +448,23 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   override def getTaxServiceGroup(groupId: String)
-                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]] = {
     val url = s"$baseUrl/agent-permissions/tax-group/$groupId"
     monitor("ConsumedAPI-getTaxServiceGroup-GET") {
-      getAccessGroup(groupId, url)
+      http
+        .GET[HttpResponse](url)
+        .map { response =>
+          response.status match {
+            case OK => response.json.asOpt[TaxGroup]
+            case NOT_FOUND =>
+              logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
+              None
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(s"error getting group details for group $groupId, from $url", anyOtherStatus)
+          }
+        }
     }
 
-  }
-
-  private def getAccessGroup(groupId: String, url: String)
-                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
-    http
-      .GET[HttpResponse](url)
-      .map { response =>
-        response.status match {
-          case OK => response.json.asOpt[AccessGroup]
-          case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
-            None
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error getting group details for group $groupId, from $url", anyOtherStatus)
-        }
-      }
   }
 
   private def deleteAccessGroup(url: String)

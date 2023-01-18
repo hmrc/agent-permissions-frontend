@@ -21,12 +21,12 @@ import connectors.UpdateAccessGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.DisplayClient.format
-import models.{AddClientsToGroup, DisplayClient, DisplayGroup, SearchFilter}
+import models.{AddClientsToGroup, DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, PaginatedList, PaginationMetaData, TaxServiceAccessGroup, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, AccessGroupSummary => GroupSummary, _}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 
@@ -85,7 +85,9 @@ class ManageGroupClientsController @Inject()(
   }
 
   def showTaxGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
-    Ok(s"Not implemented yet - $groupId $page $pageSize ").toFuture
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+      Ok(s"Not implemented yet - $groupId $page $pageSize ${group.service}").toFuture
+    }
   }
 
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>

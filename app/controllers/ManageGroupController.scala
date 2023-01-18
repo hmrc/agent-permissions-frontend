@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 
@@ -90,27 +90,27 @@ class ManageGroupController @Inject()(
   }
 
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group =>
-      Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId, true)).toFuture
+    withSummaryForAuthorisedOptedAgent(groupId) { summary =>
+      Ok(rename_group(GroupNameForm.form().fill(summary.groupName), summary, groupId, isCustom = true)).toFuture
     }
   }
 
   def showRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group =>
-      Ok(rename_group(GroupNameForm.form().fill(group.groupName), group, groupId, false)).toFuture
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+      Ok(rename_group(GroupNameForm.form().fill(group.groupName), GroupSummary.convertTaxServiceGroup(group), groupId, isCustom = false)).toFuture
     }
   }
 
   def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       GroupNameForm
         .form()
         .bindFromRequest
         .fold(
-          formWithErrors => Ok(rename_group(formWithErrors, group, groupId, true)).toFuture,
+          formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = true)).toFuture,
           (newName: String) => {
             for {
-              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, group.groupName)
+              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
               patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
               _ <- groupService.updateGroup(groupId, patchRequestBody)
             } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
@@ -120,12 +120,12 @@ class ManageGroupController @Inject()(
   }
 
   def submitRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       GroupNameForm
         .form()
         .bindFromRequest
         .fold(
-          formWithErrors => Ok(rename_group(formWithErrors, group, groupId, false)).toFuture,
+          formWithErrors => Ok(rename_group(formWithErrors, GroupSummary.convertTaxServiceGroup(group), groupId, isCustom = false)).toFuture,
           (newName: String) => {
             for {
               _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, group.groupName)
@@ -141,7 +141,7 @@ class ManageGroupController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         for {
-          group <- groupService.getGroup(groupId)
+          group <- groupService.getCustomSummary(groupId)
           oldName <- sessionCacheService.get(GROUP_RENAMED_FROM)
         } yield Ok(rename_group_complete(oldName.get, group.get.groupName))
       }
@@ -149,7 +149,7 @@ class ManageGroupController @Inject()(
   }
 
   def showTaxGroupRenamed(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
         sessionCacheService
           .get(GROUP_RENAMED_FROM)
           .map(oldName =>
@@ -159,29 +159,29 @@ class ManageGroupController @Inject()(
   }
 
   def showDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), group)).toFuture
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+      Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), summary)).toFuture
     }
   }
 
   def showDeleteTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
-      Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), group, false)).toFuture
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+      Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), GroupSummary.convertTaxServiceGroup(group), isCustom = false)).toFuture
     }
   }
 
   def submitDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       YesNoForm
         .form("group.delete.select.error")
         .bindFromRequest
         .fold(
           formWithErrors =>
-            Ok(confirm_delete_group(formWithErrors, group)).toFuture,
+            Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
           (answer: Boolean) => {
             if (answer) {
               for {
-                _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, group.groupName)
+                _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- groupService.deleteGroup(groupId)
               } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
@@ -192,13 +192,13 @@ class ManageGroupController @Inject()(
   }
 
   def submitDeleteTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       YesNoForm
         .form("group.delete.select.error")
         .bindFromRequest
         .fold(
           formWithErrors =>
-            Ok(confirm_delete_group(formWithErrors, group)).toFuture,
+            Ok(confirm_delete_group(formWithErrors, GroupSummary.convertTaxServiceGroup(group))).toFuture,
           (answer: Boolean) => {
             if (answer) {
               for {

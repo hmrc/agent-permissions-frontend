@@ -162,23 +162,31 @@ class TeamMemberServiceImpl @Inject()(
 
     val commonTasks = for {
       teamMembers <- lookupTeamMembers(arn)(formData.members)
+      _ = println("*********** lookupTeamMembers ****************")
+      _ = println(teamMembers)
+      _ = println("***************************************")
       _ <- addSelectablesToSession(teamMembers.map(_.copy(selected = true)))(SELECTED_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS)
     } yield ()
 
-    commonTasks.flatMap(_ =>
-      buttonSelect match {
-        case CLEAR_BUTTON | CONTINUE_BUTTON =>
-          sessionCacheService.deleteAll(teamMemberFilteringKeys)
-        case FILTER_BUTTON =>
-          if (formData.search.isEmpty) {
-            sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
-          } else {
-            for {
-              _ <- sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
-              _ <- filterTeamMembers(arn)(formData)
-            } yield ()
-          }
+    commonTasks.flatMap(_ => {
+      if (buttonSelect.matches("pagination_\\d+")) {
+        filterTeamMembers(arn)(formData).map(_=> ())
+      } else {
+        buttonSelect match {
+          case CLEAR_BUTTON | CONTINUE_BUTTON =>
+            sessionCacheService.deleteAll(teamMemberFilteringKeys)
+          case FILTER_BUTTON =>
+            if (formData.search.isEmpty) {
+              sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
+            } else {
+              for {
+                _ <- sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
+                _ <- filterTeamMembers(arn)(formData)
+              } yield ()
+            }
+        }
       }
+    }
     )
   }
 

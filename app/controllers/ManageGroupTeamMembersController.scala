@@ -29,8 +29,8 @@ import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
-import views.html.groups.create.members.update_paginated_team_members
 import views.html.groups.manage._
+import views.html.groups.manage.members.{existing_team_members, team_members_update_complete, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext

@@ -20,12 +20,7 @@
 
 @this(p: p, submit_as_link: submit_as_link,POST_pagination_li: POST_pagination_li)
 
-@(
-    pagination: PaginationMetaData,
-    baseUrl: String,
-    formAction: Call,
-)(implicit request: Request[_], msgs: Messages,
-        appConfig: AppConfig)
+@(pagination: PaginationMetaData)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 <nav class="govuk-pagination" role="navigation" aria-label="results">
  <ul class="govuk-pagination__list">

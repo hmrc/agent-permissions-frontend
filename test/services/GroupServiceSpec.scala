@@ -18,13 +18,14 @@ package services
 
 import akka.Done
 import connectors._
-import controllers.{NAME_OF_GROUP_CREATED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, NAME_OF_GROUP_CREATED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys}
 import helpers.BaseSpec
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
+import play.api.mvc.Request
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, Arn, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
@@ -164,6 +165,8 @@ class GroupServiceSpec extends BaseSpec {
         currentPageNumber = 1,
         currentPageSize = 5))
 
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       (mockAgentPermissionsConnector
         .getPaginatedClientsForCustomGroup(_: String)(_:Int, _:Int, _:Option[String], _:Option[String])(_: HeaderCarrier, _: ExecutionContext))
         .expects(grpId, *, *, *, *, *, *)
@@ -172,7 +175,7 @@ class GroupServiceSpec extends BaseSpec {
       val pageOfClientsInGroup = displayClients.take(5)
 
       //when
-      val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(1, 5, None, None))
+      val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(1, 5))
 
       val expectedData = (pageOfClientsInGroup, PaginationMetaData(lastPage = true,
         firstPage = false,
@@ -196,6 +199,8 @@ class GroupServiceSpec extends BaseSpec {
         currentPageNumber = 2,
         currentPageSize = 3))
 
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       (mockAgentPermissionsConnector
         .getPaginatedClientsForCustomGroup(_: String)(_:Int, _:Int, _:Option[String], _:Option[String])(_: HeaderCarrier, _: ExecutionContext))
         .expects(grpId, *, *, *, *, *, *)
@@ -205,7 +210,7 @@ class GroupServiceSpec extends BaseSpec {
 
 
       //when
-      val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(2, 5, None, None))
+      val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(2, 5))
       val expectedData = (pageOfClientsInGroup, PaginationMetaData(lastPage = true,
         firstPage = false,
         totalSize = 8,

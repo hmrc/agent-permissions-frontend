@@ -116,12 +116,8 @@
             )
             </div>
         </fieldset>
-        @if(paginationMetaData.isDefined) {
-            @pagination(
-                pagination = paginationMetaData.get,
-                baseUrl = "./select-clients",
-                formAction = formAction
-            )
+        @if(paginationMetaData.get.totalPages > 1) {
+            @pagination(pagination = paginationMetaData.get)
         }
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 

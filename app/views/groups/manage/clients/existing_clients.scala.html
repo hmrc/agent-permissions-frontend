@@ -18,7 +18,7 @@
 @import controllers.routes
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
-@import views.html.components.pagination.GET_pagination
+@import views.html.components.pagination.POST_pagination
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 
@@ -33,7 +33,7 @@
     search_and_filter: search_and_filter,
     input_select: input_select,
     checkbox: checkbox,
-    GET_pagination: GET_pagination
+    pagination: POST_pagination,
 )
 
 @(
@@ -45,13 +45,9 @@
 
 @tableRows = @{
     groupClients.map(client =>
-        Seq(a(key = client.name,
-                href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url)
-            ,
+        Seq(Html(client.name),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService)),
-            a(key = "common.remove",
-                href = "remove url tbc APB-6732 - TODO hide for tax groups")
+            Html(displayTaxServiceFromServiceKey(client.taxService))
         )
     )
 }
@@ -78,43 +74,40 @@
 
         @search_and_filter(form, true)
 
-    }
-    @if(groupClients.nonEmpty) {
+        @if(groupClients.nonEmpty) {
 
-        @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
-            @h2(withSearchPrefix("", form("filter").value, form("search").value))
+            @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
+                @h2(withSearchPrefix("", form("filter").value, form("search").value))
+            }
+
+            @table(
+                caption = Some("common.clients"),
+                captionClasses = "govuk-visually-hidden",
+                id = Some("clients"),
+                headings = Seq(
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty),
+                    (Html(msgs("group.client.list.table.th3")), Map.empty)
+                ),
+                rows = tableRows,
+            )
+
+            @if(paginationMetaData.get.totalPages > 1) {
+                @pagination(pagination = paginationMetaData.get)
+            }
+
+            @p(msgs("common.total.clients", groupClients.length),
+                id = Some("clients-in-group"))
+
+            @link_as_button(
+                href = routes.ManageGroupClientsController.showManageGroupClients(group.groupId).url,
+                key = "group.existing.clients.button",
+                id = "update-clients")
+        } else {
+            <div id="clients">
+                @h2("clients.not-found.heading")
+                @p("clients.not-found.p")
+            </div>
         }
-
-        @table(
-            caption = Some("common.clients"),
-            captionClasses = "govuk-visually-hidden",
-            id = Some("clients"),
-            headings = Seq(
-                (Html(msgs("group.client.list.table.th1")), Map.empty),
-                (Html(msgs("group.client.list.table.th2")), Map.empty),
-                (Html(msgs("group.client.list.table.th3")), Map.empty),
-                (Html(msgs("common.actions")), Map.empty),
-            ),
-            rows = tableRows,
-        )
-
-        @if(paginationMetaData.get.totalPages > 1) {
-            @GET_pagination(
-            pagination = paginationMetaData.get,
-            baseUrl = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None))
-        }
-
-        @p(msgs("common.total.clients", groupClients.length),
-            id = Some("clients-in-group"))
-
-        @link_as_button(
-            href = routes.ManageGroupClientsController.showManageGroupClients(group.groupId).url,
-            key = "group.existing.clients.button",
-            id = "update-clients")
-    } else {
-        <div id="clients">
-            @h2("clients.not-found.heading")
-            @p("clients.not-found.p")
-        </div>
     }
 }

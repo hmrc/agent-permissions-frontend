@@ -19,28 +19,28 @@
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 @import views.components.models.{LegendData, RadioData}
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
+@import views.html.components.pagination.GET_pagination
 
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, a: a,
-    caption: caption,
-    table: table,
+    layout: main_layout, p: p, h1: h1, h2: h2,
+    a: a, span: span, caption: caption, table: table,
     submit_button: submit_button,
-    checkbox: checkbox,
-    radioButtons: radioButtons,
+    checkbox: checkbox, radioButtons: radioButtons,
     formWithCSRF: FormWithCSRF,
-    summaryErrors: SummaryErrors
+    summaryErrors: SummaryErrors,
+    GET_pagination: GET_pagination,
 )
 
 @(
-    teamMembers: Seq[TeamMember],
+    paginatedList: PaginatedList[TeamMember],
     group: AccessGroup,
     form: Form[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        teamMembers.map(teamMember =>
+        paginatedList.pageContent.map(teamMember =>
             Seq(
                 Html(teamMember.name),
                 Html(teamMember.email),
@@ -59,32 +59,38 @@
 
         <div class="govuk-!-width-two-thirds">
             @caption(msgs("common.caption.group.name", group.groupName))
-            @h1(msgs("group.teamMembers.review.h1", teamMembers.size))
+            @h1(msgs("group.teamMembers.review.h1", paginatedList.paginationMetaData.totalSize))
         </div>
 
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
+    @if(paginatedList.pageContent.nonEmpty) {
 
         @table(
             caption = Some("common.teamMembers"),
             captionClasses = "govuk-visually-hidden",
-            id = Some("sortable-table"),
+            id = Some("members"),
+            attrs = Map.empty,
             headings = Seq(
-                (
-                    Html(msgs("group.members.list.table.th1")),
-                    Map("aria-sort" -> "ascending")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                )
+                (Html(msgs("group.members.list.table.th1")), Map.empty),
+                (Html(msgs("group.members.list.table.th2")), Map.empty),
+                (Html(msgs("group.members.list.table.th3")), Map.empty)
             ),
             rows = tableRows,
         )
+
+        @if(paginatedList.paginationMetaData.totalPages > 1) {
+            @GET_pagination(
+                pagination = paginatedList.paginationMetaData,
+                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group._id.toString, None),
+                additionalParams = form.data
+            )
+        }
+
+    } else {
+        <div id="members">
+            @h2("team-members.not-found.heading")
+            @p("team-members.not-found.p")
         </div>
+    }
 
     @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group._id.toString)) {
         @radioButtons(

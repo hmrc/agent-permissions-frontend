@@ -29,8 +29,7 @@ import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
-import views.html.groups.manage._
-import views.html.groups.manage.members.{existing_team_members, team_members_update_complete, update_paginated_team_members}
+import views.html.groups.manage.members.{existing_team_members, review_update_team_members, team_members_update_complete, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -68,10 +67,9 @@ class ManageGroupTeamMembersController @Inject()(
         searchFilter.submit.fold( //i.e. fresh page load
           Ok(
             existing_team_members(
-              paginatedMembers._1,
+              paginatedMembers,
               SearchAndFilterForm.form(),
               group,
-              paginatedMembers._2
             )
           )
         ) {
@@ -85,7 +83,7 @@ class ManageGroupTeamMembersController @Inject()(
               )
             val form = SearchAndFilterForm.form().fill(searchFilter)
             val paginatedMembers = paginationForMembers(members = filteredMembers, page = page.getOrElse(1))
-            Ok(existing_team_members(paginatedMembers._1, form, group, paginatedMembers._2))
+            Ok(existing_team_members(paginatedMembers, form, group))
         }
       }
     }
@@ -125,23 +123,6 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
-  private def paginationForMembers(members: Seq[TeamMember], pageSize: Int = 10, page: Int = 1) = {
-    val firstMemberInPage = (page - 1) * pageSize
-    val lastMemberInPage = page * pageSize
-    val currentPageOfMembers = members.slice(firstMemberInPage, lastMemberInPage)
-    val numPages = Math.ceil(members.length.toDouble / pageSize.toDouble).toInt
-    val meta = PaginationMetaData(
-      lastPage = page == numPages,
-      firstPage = page == 1,
-      totalSize = members.length,
-      totalPages = numPages,
-      pageSize = pageSize,
-      currentPageNumber = page,
-      currentPageSize = currentPageOfMembers.length
-    )
-    (currentPageOfMembers, meta)
-  }
-
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
@@ -174,7 +155,7 @@ class ManageGroupTeamMembersController @Inject()(
 
                   hasSelected.flatMap(selectedNotEmpty => {
                     if (selectedNotEmpty) {
-                      Redirect(controller.showReviewSelectedTeamMembers(groupId)).toFuture
+                      Redirect(controller.showReviewSelectedTeamMembers(groupId, None)).toFuture
                     } else { // render page with empty error
                       for {
                         teamMembers <- teamMemberService.getAllTeamMembers(group.arn)
@@ -202,12 +183,21 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
-  def showReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showReviewSelectedTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
-          )(members => Ok(review_update_team_members(members, group, YesNoForm.form())).toFuture)
+          )(members => {
+            Ok(
+              review_update_team_members(
+                paginationForMembers(members, 10, page.getOrElse(1)),
+                group,
+                YesNoForm.form()
+              )
+            ).toFuture
+          }
+          )
       }
     }
   }
@@ -224,7 +214,11 @@ class ManageGroupTeamMembersController @Inject()(
               .bindFromRequest
               .fold(
                 formWithErrors => {
-                  Ok(review_update_team_members(members, group, formWithErrors)).toFuture
+                  Ok(
+                    review_update_team_members(
+                      paginationForMembers(members, 10, 1),
+                      group,
+                      formWithErrors)).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showManageGroupTeamMembers(group._id.toString, None)).toFuture
@@ -260,6 +254,23 @@ class ManageGroupTeamMembersController @Inject()(
         .map(UserDetails.fromAgentUser)
         .map(TeamMember.fromUserDetails)
     }.getOrElse(Seq.empty[TeamMember])
+  }
+
+  private def paginationForMembers(members: Seq[TeamMember], pageSize: Int = 10, page: Int = 1) = {
+    val firstMemberInPage = (page - 1) * pageSize
+    val lastMemberInPage = page * pageSize
+    val currentPageOfMembers = members.slice(firstMemberInPage, lastMemberInPage)
+    val numPages = Math.ceil(members.length.toDouble / pageSize.toDouble).toInt
+    val meta = PaginationMetaData(
+      lastPage = page == numPages,
+      firstPage = page == 1,
+      totalSize = members.length,
+      totalPages = numPages,
+      pageSize = pageSize,
+      currentPageNumber = page,
+      currentPageSize = currentPageOfMembers.length
+    )
+    PaginatedList[TeamMember](currentPageOfMembers, meta)
   }
 
 }

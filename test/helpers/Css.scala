@@ -42,6 +42,7 @@ object Css {
   val submitButton = "main form button#continue[type=submit]"
   val linkStyledAsButton = "a.govuk-button"
   val link = "main a"
+  val pagination_li = "main nav.govuk-pagination ul.govuk-pagination__list li.govuk-pagination__item"
   val currentLanguage =
     "ul.hmrc-language-select__list li.hmrc-language-select__list-item span[aria-current=true]";
   val alternateLanguage =

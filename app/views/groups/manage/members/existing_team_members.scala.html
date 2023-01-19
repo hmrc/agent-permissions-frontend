@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.partials.team_members_details_table_filter_form
 @import views.html.partials.existing_members_table_filter_form
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
 
 @this(
     layout: main_layout,table: table,
@@ -35,10 +36,9 @@
 )
 
 @(
-    teamMembers: Seq[TeamMember],
+    paginatedMembers: PaginatedList[TeamMember],
     form: Form[SearchFilter],
-    group: AccessGroup,
-    paginationMetaData: PaginationMetaData = PaginationMetaData(true,true,0,1,10,1,10)
+    group: AccessGroup
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @layout(
@@ -58,12 +58,12 @@
         ))
 
 
-    @if(teamMembers.nonEmpty) {
+    @if(paginatedMembers.pageContent.nonEmpty) {
         @existing_members_table_filter_form(
-            teamMembers,
+            paginatedMembers.pageContent,
             form,
             routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString, None),
-            Option(paginationMetaData)
+            Option(paginatedMembers.paginationMetaData)
         )
 
         @link_as_button(

@@ -82,7 +82,13 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       UserDetails(Some(s"John $i"), Some("User"), Some(s"John $i name"), Some(s"john$i@abc.com"))
     }
 
+  val userDetails2: Seq[UserDetails] = (6 to 14)
+    .map { i =>
+      UserDetails(Some(s"John $i"), Some("User"), Some(s"John $i name"), Some(s"john$i@abc.com"))
+    }
+
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
+  val teamMembers2: Seq[TeamMember] = userDetails2.map(TeamMember.fromUserDetails)
 
   val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
   private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
@@ -363,7 +369,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   s"POST to ${ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url}" should {
 
-      s"successfully post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" in {
+      s"successfully post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString, None).url}" in {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup._id.toString).url)
@@ -387,7 +393,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         val result = controller.submitManageGroupTeamMembers(accessGroup._id.toString)(request)
 
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url
+        redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString, None)
+          .url
 
       }
 
@@ -502,7 +509,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       }
   }
 
-  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString, None).url}" should {
 
 
     "redirect if no team members selected in session" in {
@@ -525,21 +532,32 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     "render correctly the manage group REVIEW SELECTED page" in {
       //given
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers ++ teamMembers2)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(accessGroup._id.toString)(request)
+      val result = controller.showReviewSelectedTeamMembers(accessGroup._id.toString, Option(1))(request)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 5 team members"
 
-      html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 5
+      //and
+      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 14 team members"
+
+      html.select(Css.tableWithId("members")).select("tbody tr").size() shouldBe 10
+
+      val paginationListItems = html.select(Css.pagination_li)
+      paginationListItems.size() shouldBe 2
+      paginationListItems.get(0).hasClass("govuk-pagination__item--current")
+      paginationListItems.get(0).text() shouldBe "1"
+      paginationListItems.get(1).text() shouldBe "2"
+      paginationListItems.get(1).select("a")
+        .attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(accessGroup._id.toString, Option(2)).url + "&pageSize=10"
+
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected team members?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios

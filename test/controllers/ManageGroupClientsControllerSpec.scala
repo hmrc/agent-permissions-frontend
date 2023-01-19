@@ -31,12 +31,13 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
+import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, _}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
+import java.time.LocalDateTime.MIN
 import java.util.Base64
 
 class ManageGroupClientsControllerSpec extends BaseSpec {
@@ -46,6 +47,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit lazy val mockGroupService: GroupService = mock[GroupService]
+  implicit lazy val mockTaxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit lazy val mockClientService: ClientService = mock[ClientService]
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -61,6 +63,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
                                 None,
                                 None)
 
+  val taxGroup: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "HMRC-MTD-VAT", automaticUpdates = true, None)
+
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
@@ -70,6 +74,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
       bind(classOf[GroupService]).toInstance(mockGroupService)
       bind(classOf[ClientService]).toInstance(mockClientService)
+      bind(classOf[TaxGroupService]).toInstance(mockTaxGroupService)
     }
   }
 
@@ -255,161 +260,192 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, Some(1), Some(20)).url)
     }
 
+    "redirect to new page when a pagination button is clicked" in {
+      //given
+      val groupWithClients = accessGroup.copy(clients =
+        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
+      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+
+      val pageNumber = 2
+      //and we have PAGINATION_BUTTON filter in query params
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
+          s"?submit=${PAGINATION_BUTTON}_$pageNumber"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result =
+        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
+
+      //then
+      redirectLocation(result).get
+        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, Some(pageNumber), Some(20)).url)
+    }
+
   }
 
-//  s"GET ${ctrlRoute.showTaxGroupClients(grpId, None, None).url}" should {
-//
-//    "render correctly the first page of CLIENTS in tax group, with no query params" in {
-//      //given
-//      val groupWithClients = accessGroup.copy(clients =
-//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
-//
-//      expectAuthOkOptedInReady()
-//      expectGetCustomSummaryById(grpId, Some(summary))
-//
-//      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)((displayClients,PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
-//
-//      //when
-//      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(request)
-//
-//      //then
-//      status(result) shouldBe OK
-//      val html = Jsoup.parse(contentAsString(result))
-//      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-//      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
-//      html.select(Css.H1).text shouldBe "Manage clients in this group"
-//
-//      val th = html.select(Css.tableWithId("clients")).select("thead th")
-//      th.size() shouldBe 3
-//      th.get(0).text() shouldBe "Client reference"
-//      th.get(1).text() shouldBe "Tax reference"
-//      th.get(2).text() shouldBe "Tax service"
-//
-//      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
-//
-//      trs.size() shouldBe 3
-//      //first row
-//      trs.get(0).select("td").get(0).text() shouldBe "friendly0"
-//      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
-//      trs.get(0).select("td").get(2).text() shouldBe "VAT"
-//
-//      //last row
-//      trs.get(2).select("td").get(0).text() shouldBe "friendly2"
-//      trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
-//      trs.get(2).select("td").get(2).text() shouldBe "VAT"
-//
-//      //html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
-//      html.select("a#update-clients").text() shouldBe "Update clients"
-//      html.select("a#update-clients").attr("href") shouldBe
-//        ctrlRoute.showManageGroupClients(grpId).url
-//    }
-//
-//    "render with searchTerm set" in {
-//      //given
-//      val groupWithClients = accessGroup.copy(clients =
-//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
-//
-//      expectAuthOkOptedInReady()
-//      expectGetCustomSummaryById(grpId, Some(summary))
-//
-//      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-//      expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
-//      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)(displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10))
-//
-//      implicit val requestWithQueryParams = FakeRequest(GET,
-//        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
-//          "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
-//      )
-//        .withHeaders("Authorization" -> "Bearer XYZ")
-//        .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      //when
-//      val result =
-//        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
-//
-//      //then
-//      status(result) shouldBe OK
-//      val html = Jsoup.parse(contentAsString(result))
-//      html.title shouldBe "Filter results for 'friendly1' and 'VAT' Manage clients - Bananas - Agent services account - GOV.UK"
-//      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
-//      html.select(Css.H1).text shouldBe "Manage clients in this group"
-//      html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
-//
-//      val th = html.select(Css.tableWithId("clients")).select("thead th")
-//      th.size() shouldBe 3
-//      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
-//      trs.size() shouldBe 1
-//    }
-//
-//    "render with filter that matches nothing" in {
-//      //given
-//      val groupWithClients = accessGroup.copy(clients =
-//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
-//
-//      expectAuthOkOptedInReady()
-//      expectGetCustomSummaryById(grpId, Some(summary))
-//
-//      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-//      expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-CGT-PD")
-//      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)((Seq.empty[DisplayClient],PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
-//
-//      //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
-//      val NON_MATCHING_FILTER = "HMRC-CGT-PD"
-//      implicit val requestWithQueryParams = FakeRequest(GET,
-//        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
-//          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
-//      )
-//        .withHeaders("Authorization" -> "Bearer XYZ")
-//        .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      //when
-//      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
-//
-//      //then
-//      status(result) shouldBe OK
-//      val html = Jsoup.parse(contentAsString(result))
-//      html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Bananas - Agent services account - GOV.UK"
-//      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
-//      html.select(Css.H1).text shouldBe "Manage clients in this group"
-//
-//      val tableOfClients = html.select(Css.tableWithId("clients"))
-//      tableOfClients.isEmpty shouldBe true
-//      val noClientsFound = html.select("div#clients")
-//      noClientsFound.isEmpty shouldBe false
-//      noClientsFound.select("h2").text shouldBe "No clients found"
-//      noClientsFound.select("p").text shouldBe "Update your filters and try again or clear your filters to see all your clients"
-//    }
-//
-//    "redirect to baseUrl when CLEAR FILTER is clicked" in {
-//      //given
-//      val groupWithClients = accessGroup.copy(clients =
-//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
-//      expectAuthOkOptedInReady()
-//      expectGetCustomSummaryById(grpId, Some(summary))
-//      expectDeleteSessionItems(clientFilteringKeys)
-//
-//      //and we have CLEAR filter in query params
-//      implicit val requestWithQueryParams = FakeRequest(GET,
-//        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
-//          s"?submit=clear"
-//      )
-//        .withHeaders("Authorization" -> "Bearer XYZ")
-//        .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      //when
-//      val result =
-//        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
-//
-//      //then
-//      redirectLocation(result).get
-//        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, Some(1), Some(20)).url)
-//    }
-//
-//  }
+  s"GET ${ctrlRoute.showTaxGroupClients(grpId, None, None).url}" should {
+
+    "render correctly the first page of CLIENTS in tax group, with no query params" in {
+      //given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
+
+      expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients)
+
+      //when
+      val result = controller.showTaxGroupClients(taxGroup._id.toString, None, None)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group"
+
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
+      th.size() shouldBe 3
+      th.get(0).text() shouldBe "Client reference"
+      th.get(1).text() shouldBe "Tax reference"
+      th.get(2).text() shouldBe "Tax service"
+
+      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
+
+      trs.size() shouldBe 3
+      //first row
+      trs.get(0).select("td").get(0).text() shouldBe "friendly0"
+      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
+      trs.get(0).select("td").get(2).text() shouldBe "VAT"
+
+      //last row
+      trs.get(2).select("td").get(0).text() shouldBe "friendly2"
+      trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
+      trs.get(2).select("td").get(2).text() shouldBe "VAT"
+    }
+
+    "render with searchTerm set" in {
+      //given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
+
+      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
+      expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients.take(1))
+
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        ctrlRoute.showTaxGroupClients(taxGroup._id.toString, None, None).url +
+          "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result =
+        controller.showTaxGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Filter results for 'friendly1' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group"
+      html.select(H2).text shouldBe "Filter results for 'friendly1'"
+
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
+      th.size() shouldBe 3
+      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
+      trs.size() shouldBe 1
+    }
+
+    "render with search that matches nothing" in {
+      //given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
+      expectPutSessionItem(CLIENT_SEARCH_INPUT, "nothing") //not matching
+      expectGetPageOfClients(taxGroup.arn, 1, 20)(Seq.empty[DisplayClient])
+
+      val NON_MATCHING_SEARCH = "nothing"
+
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        ctrlRoute.showTaxGroupClients(taxGroup._id.toString, None, None).url +
+          s"?submit=$FILTER_BUTTON&search=$NON_MATCHING_SEARCH&filter=HMRC-MTD-VAT"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.showTaxGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Filter results for 'nothing' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group"
+
+      val tableOfClients = html.select(Css.tableWithId("clients"))
+      tableOfClients.isEmpty shouldBe true
+      val noClientsFound = html.select("div#clients")
+      noClientsFound.isEmpty shouldBe false
+      noClientsFound.select("h2").text shouldBe "No clients found"
+      noClientsFound.select("p").text shouldBe "Update your filters and try again or clear your filters to see all your clients"
+    }
+
+    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+      //given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
+
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        ctrlRoute.showTaxGroupClients(taxGroup._id.toString, None, None).url +
+          s"?submit=$CLEAR_BUTTON"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result =
+        controller.showTaxGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+
+      //then
+      redirectLocation(result).get
+        .shouldBe(ctrlRoute.showTaxGroupClients(taxGroup._id.toString, Some(1), Some(20)).url)
+    }
+
+
+    "redirect to new page when a pagination button is clicked" in {
+      //given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+
+      val pageNumber = 2
+      //and we have PAGINATION_BUTTON filter in query params
+      implicit val requestWithQueryParams = FakeRequest(GET,
+        ctrlRoute.showTaxGroupClients(taxGroup._id.toString, None, None).url +
+          s"?submit=${PAGINATION_BUTTON}_$pageNumber"
+      )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result =
+        controller.showTaxGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+
+      //then
+      redirectLocation(result).get
+        .shouldBe(ctrlRoute.showTaxGroupClients(taxGroup._id.toString, Some(pageNumber), Some(20)).url)
+    }
+
+  }
 
   s"GET ${ctrlRoute.showManageGroupClients(grpId).url}" should {
 

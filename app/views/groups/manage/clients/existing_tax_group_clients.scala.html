@@ -32,6 +32,7 @@
     textbox: textbox,
     search_and_filter: search_and_filter,
     input_select: input_select,
+    inset_text: inset_text,
     checkbox: checkbox,
     pagination: POST_pagination,
 )
@@ -46,8 +47,7 @@
 @tableRows = @{
     groupClients.map(client =>
         Seq(a(key = client.name,
-                href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url)
-            ,
+                href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client.taxService))
         )
@@ -55,7 +55,7 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title",  group.groupName), form("filter").value, form("search").value),
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title", group.groupName), None, form("search").value),
     backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url),
     fullWidth = true
 ) {
@@ -71,6 +71,7 @@
         content = Text(msgs("common.skip-to-clients"))
     ))
 
+    @inset_text(msgs("group.existing.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))
 
     @views.html.helper.form(action = routes.ManageGroupClientsController.showTaxGroupClients(group.groupId, None, None)) {
 
@@ -78,8 +79,8 @@
 
     @if(groupClients.nonEmpty) {
 
-        @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
-            @h2(withSearchPrefix("", form("filter").value, form("search").value))
+        @if(withSearchPrefix("", None, form("search").value) != "") {
+            @h2(withSearchPrefix("", None, form("search").value))
         }
 
         @table(
@@ -101,10 +102,6 @@
         @p(msgs("common.total.clients", groupClients.length),
             id = Some("clients-in-group"))
 
-        @link_as_button(
-            href = routes.ManageGroupClientsController.showManageGroupClients(group.groupId).url,
-            key = "group.existing.clients.button",
-            id = "update-clients")
     } else {
         <div id="clients">
             @h2("clients.not-found.heading")

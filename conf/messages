@@ -206,10 +206,10 @@ group.manage.members=Manage team members
 
 group.existing.clients.h1=Manage clients in this group
 group.existing.clients.title=Manage clients - {0}
+group.existing.clients.tax.info=This is a tax service group which updates automatically. New clients will be added as soon as they authorise you to manage their {0}. Clients will also be removed if you cancel your authorisation to manage their {0}.
 group.existing.clients.button=Update clients
 group.client.list.update.h1=Update clients in this group
 group.client.list.update.p=Existing clients in this group are shown as selected. Select any new clients and click “Continue”.
-
 group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
 

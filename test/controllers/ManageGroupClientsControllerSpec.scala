@@ -127,11 +127,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 4
+      th.size() shouldBe 3
       th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
-      th.get(3).text() shouldBe "Actions"
 
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
 
@@ -140,13 +139,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(0).text() shouldBe "friendly0"
       trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
-      trs.get(0).select("td").get(3).text() shouldBe "Remove"
 
       //last row
       trs.get(2).select("td").get(0).text() shouldBe "friendly2"
       trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(2).text() shouldBe "VAT"
-      trs.get(2).select("td").get(3).text() shouldBe "Remove"
 
       //html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
       html.select("a#update-clients").text() shouldBe "Update clients"
@@ -161,14 +158,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
 
       expectAuthOkOptedInReady()
-
       expectGetCustomSummaryById(grpId, Some(summary))
-      expectGetPaginatedClientsForCustomGroup(grpId)(1,
-        20,
-        Some("friendly1"),
-        Some("HMRC-MTD-VAT")
-      )((displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
 
+      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
+      expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
+      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)(displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
@@ -190,7 +184,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 4
+      th.size() shouldBe 3
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
       trs.size() shouldBe 1
     }
@@ -200,15 +194,13 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
       val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+
       expectAuthOkOptedInReady()
-
       expectGetCustomSummaryById(grpId, Some(summary))
-      expectGetPaginatedClientsForCustomGroup(grpId)(1,
-        20,
-        Some("friendly1"),
-        Some("HMRC-CGT-PD")
-      )((Seq.empty[DisplayClient],PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
 
+      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
+      expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-CGT-PD")
+      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)((Seq.empty[DisplayClient],PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
@@ -244,6 +236,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
+      expectDeleteSessionItems(clientFilteringKeys)
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
@@ -263,6 +256,160 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
 
   }
+
+//  s"GET ${ctrlRoute.showTaxGroupClients(grpId, None, None).url}" should {
+//
+//    "render correctly the first page of CLIENTS in tax group, with no query params" in {
+//      //given
+//      val groupWithClients = accessGroup.copy(clients =
+//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
+//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+//
+//      expectAuthOkOptedInReady()
+//      expectGetCustomSummaryById(grpId, Some(summary))
+//
+//      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)((displayClients,PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
+//
+//      //when
+//      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(request)
+//
+//      //then
+//      status(result) shouldBe OK
+//      val html = Jsoup.parse(contentAsString(result))
+//      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
+//      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+//      html.select(Css.H1).text shouldBe "Manage clients in this group"
+//
+//      val th = html.select(Css.tableWithId("clients")).select("thead th")
+//      th.size() shouldBe 3
+//      th.get(0).text() shouldBe "Client reference"
+//      th.get(1).text() shouldBe "Tax reference"
+//      th.get(2).text() shouldBe "Tax service"
+//
+//      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
+//
+//      trs.size() shouldBe 3
+//      //first row
+//      trs.get(0).select("td").get(0).text() shouldBe "friendly0"
+//      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
+//      trs.get(0).select("td").get(2).text() shouldBe "VAT"
+//
+//      //last row
+//      trs.get(2).select("td").get(0).text() shouldBe "friendly2"
+//      trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
+//      trs.get(2).select("td").get(2).text() shouldBe "VAT"
+//
+//      //html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
+//      html.select("a#update-clients").text() shouldBe "Update clients"
+//      html.select("a#update-clients").attr("href") shouldBe
+//        ctrlRoute.showManageGroupClients(grpId).url
+//    }
+//
+//    "render with searchTerm set" in {
+//      //given
+//      val groupWithClients = accessGroup.copy(clients =
+//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
+//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+//
+//      expectAuthOkOptedInReady()
+//      expectGetCustomSummaryById(grpId, Some(summary))
+//
+//      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
+//      expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
+//      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)(displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10))
+//
+//      implicit val requestWithQueryParams = FakeRequest(GET,
+//        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
+//          "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
+//      )
+//        .withHeaders("Authorization" -> "Bearer XYZ")
+//        .withSession(SessionKeys.sessionId -> "session-x")
+//
+//      //when
+//      val result =
+//        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
+//
+//      //then
+//      status(result) shouldBe OK
+//      val html = Jsoup.parse(contentAsString(result))
+//      html.title shouldBe "Filter results for 'friendly1' and 'VAT' Manage clients - Bananas - Agent services account - GOV.UK"
+//      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+//      html.select(Css.H1).text shouldBe "Manage clients in this group"
+//      html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
+//
+//      val th = html.select(Css.tableWithId("clients")).select("thead th")
+//      th.size() shouldBe 3
+//      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
+//      trs.size() shouldBe 1
+//    }
+//
+//    "render with filter that matches nothing" in {
+//      //given
+//      val groupWithClients = accessGroup.copy(clients =
+//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
+//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+//
+//      expectAuthOkOptedInReady()
+//      expectGetCustomSummaryById(grpId, Some(summary))
+//
+//      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
+//      expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-CGT-PD")
+//      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)((Seq.empty[DisplayClient],PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
+//
+//      //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
+//      val NON_MATCHING_FILTER = "HMRC-CGT-PD"
+//      implicit val requestWithQueryParams = FakeRequest(GET,
+//        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
+//          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
+//      )
+//        .withHeaders("Authorization" -> "Bearer XYZ")
+//        .withSession(SessionKeys.sessionId -> "session-x")
+//
+//      //when
+//      val result = controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
+//
+//      //then
+//      status(result) shouldBe OK
+//      val html = Jsoup.parse(contentAsString(result))
+//      html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Bananas - Agent services account - GOV.UK"
+//      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+//      html.select(Css.H1).text shouldBe "Manage clients in this group"
+//
+//      val tableOfClients = html.select(Css.tableWithId("clients"))
+//      tableOfClients.isEmpty shouldBe true
+//      val noClientsFound = html.select("div#clients")
+//      noClientsFound.isEmpty shouldBe false
+//      noClientsFound.select("h2").text shouldBe "No clients found"
+//      noClientsFound.select("p").text shouldBe "Update your filters and try again or clear your filters to see all your clients"
+//    }
+//
+//    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+//      //given
+//      val groupWithClients = accessGroup.copy(clients =
+//        Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
+//      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+//      expectAuthOkOptedInReady()
+//      expectGetCustomSummaryById(grpId, Some(summary))
+//      expectDeleteSessionItems(clientFilteringKeys)
+//
+//      //and we have CLEAR filter in query params
+//      implicit val requestWithQueryParams = FakeRequest(GET,
+//        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
+//          s"?submit=clear"
+//      )
+//        .withHeaders("Authorization" -> "Bearer XYZ")
+//        .withSession(SessionKeys.sessionId -> "session-x")
+//
+//      //when
+//      val result =
+//        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
+//
+//      //then
+//      redirectLocation(result).get
+//        .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, Some(1), Some(20)).url)
+//    }
+//
+//  }
 
   s"GET ${ctrlRoute.showManageGroupClients(grpId).url}" should {
 

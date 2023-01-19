@@ -42,8 +42,8 @@ trait GroupService {
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getPaginatedClientsForCustomGroup(groupId: String)
-                                       (page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
-                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(Seq[DisplayClient], PaginationMetaData)]
+                                       (page: Int, pageSize: Int)
+                                       (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[(Seq[DisplayClient], PaginationMetaData)]
 
   def getTeamMembersFromGroup(arn: Arn)(teamMembersInGroup: Seq[TeamMember])
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]]
@@ -97,10 +97,12 @@ class GroupServiceImpl @Inject()(
     agentPermissionsConnector.getCustomSummary(id)
 
   def getPaginatedClientsForCustomGroup(groupId: String)
-                                       (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
-                                       (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[(Seq[DisplayClient], PaginationMetaData)] = {
+                                       (page: Int, pageSize: Int)
+                                       (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext) : Future[(Seq[DisplayClient], PaginationMetaData)] = {
     for {
-      list <- agentPermissionsConnector.getPaginatedClientsForCustomGroup(groupId)(page, pageSize, search, filter)
+      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+      list <- agentPermissionsConnector.getPaginatedClientsForCustomGroup(groupId)(page, pageSize, searchTerm, filterTerm)
       displayList = list.pageContent.map(client => DisplayClient.fromClient(client))
     } yield (displayList, list.paginationMetaData)
   }

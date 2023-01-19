@@ -18,7 +18,7 @@
 @import controllers.routes
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
-@import views.html.components.pagination.GET_pagination
+@import views.html.components.pagination.POST_pagination
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 
@@ -33,7 +33,7 @@
     search_and_filter: search_and_filter,
     input_select: input_select,
     checkbox: checkbox,
-    GET_pagination: GET_pagination
+    pagination: POST_pagination,
 )
 
 @(
@@ -49,9 +49,7 @@
                 href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url)
             ,
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService)),
-            a(key = "common.remove",
-                href = "remove url tbc APB-6732 - TODO hide for tax groups")
+            Html(displayTaxServiceFromServiceKey(client.taxService))
         )
     )
 }
@@ -74,11 +72,10 @@
     ))
 
 
-    @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {
+    @views.html.helper.form(action = routes.ManageGroupClientsController.showTaxGroupClients(group.groupId, None, None)) {
 
-        @search_and_filter(form, true)
+        @search_and_filter(form, withFilter = false)
 
-    }
     @if(groupClients.nonEmpty) {
 
         @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
@@ -92,16 +89,13 @@
             headings = Seq(
                 (Html(msgs("group.client.list.table.th1")), Map.empty),
                 (Html(msgs("group.client.list.table.th2")), Map.empty),
-                (Html(msgs("group.client.list.table.th3")), Map.empty),
-                (Html(msgs("common.actions")), Map.empty),
+                (Html(msgs("group.client.list.table.th3")), Map.empty)
             ),
             rows = tableRows,
         )
 
         @if(paginationMetaData.get.totalPages > 1) {
-            @GET_pagination(
-            pagination = paginationMetaData.get,
-            baseUrl = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None))
+            @pagination(pagination = paginationMetaData.get)
         }
 
         @p(msgs("common.total.clients", groupClients.length),
@@ -116,5 +110,7 @@
             @h2("clients.not-found.heading")
             @p("clients.not-found.p")
         </div>
+    }
+
     }
 }

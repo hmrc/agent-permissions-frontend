@@ -19,7 +19,7 @@ package helpers
 import akka.Done
 import connectors.{AddMembersToAccessGroupRequest, UpdateAccessGroupRequest}
 import models.{DisplayClient, TeamMember}
-import org.scalamock.handlers.{CallHandler4, CallHandler7}
+import org.scalamock.handlers.{CallHandler4, CallHandler6}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
@@ -66,11 +66,11 @@ trait GroupServiceMocks extends MockFactory {
       .returning(Future.successful(PaginatedListBuilder.build[GroupSummary](page, pageSize, groups))).once()
 
   def expectGetPaginatedClientsForCustomGroup(groupId: String)
-                                             (page:Int, pageSize:Int, filterTerm: Option[String] = None, searchTerm: Option[String] = None)
-                                             (pageData: (Seq[DisplayClient], PaginationMetaData))(implicit groupService: GroupService): CallHandler7[String, Int, Int, Option[String], Option[String], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
+                                             (page:Int, pageSize:Int)
+                                             (pageData: (Seq[DisplayClient], PaginationMetaData))(implicit groupService: GroupService): CallHandler6[String, Int, Int, Request[_], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
     (groupService
-      .getPaginatedClientsForCustomGroup(_: String)(_:Int,_:Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
-      .expects(groupId, page, pageSize, filterTerm, searchTerm, *, *)
+      .getPaginatedClientsForCustomGroup(_: String)(_:Int,_:Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(groupId, page, pageSize, *, *, *)
       .returning(Future.successful(pageData)).once()
 
   def expectGetGroupSummariesForTeamMember(arn: Arn)(teamMember: TeamMember)

@@ -207,6 +207,7 @@ group.manage.members=Manage team members
 group.existing.clients.h1=Manage clients in this group
 group.existing.clients.title=Manage clients - {0}
 group.existing.clients.button=Update clients
+group.existing.custom.groups.button=Create custom access group
 group.client.list.update.h1=Update clients in this group
 group.client.list.update.p=Existing clients in this group are shown as selected. Select any new clients and click “Continue”.
 
@@ -222,6 +223,9 @@ group.deleted.p=Clients from this group will now be visible to all team members,
 access-group-name-exists.title=Access group name already exists
 access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.
 access-group-name-exists.button=Enter a new access group name
+
+access-group-name-exceed-groups.title=You have already created all the tax service access groups
+access-group-name-exceed-groups.p=Your organisation has already created groups for all the tax services you offer. you can still create custom access groups.
 
 group.manage.confirm.updated.clients.h1={0} access group clients updated
 group.manage.confirm.updated.clients.p=You have changed the clients that can be managed by the team members in this access group.

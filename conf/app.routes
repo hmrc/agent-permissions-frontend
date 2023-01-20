@@ -96,7 +96,7 @@ GET     /clients-updated/:groupId              controllers.ManageGroupClientsCon
 GET     /manage-team-members/:groupId       controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, page: Option[Int])
 GET     /update-team-members/:groupId       controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: String, page: Option[Int])
 POST    /update-team-members/:groupId       controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String)
-GET     /team-members-selected/:groupId     controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String)
+GET     /team-members-selected/:groupId     controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String, page: Option[Int])
 POST    /team-members-selected/:groupId     controllers.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(groupId: String)
 GET     /team-members-updated/:groupId      controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
 

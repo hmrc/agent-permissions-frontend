@@ -66,7 +66,7 @@ class CreateGroupSelectClientsController @Inject()
             search_clients(
               form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
               groupName = groupName,
-              backUrl = Some(controllers.routes.CreateGroupController.showConfirmGroupName.url)
+              backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url)
             )
           ).toFuture
         }
@@ -81,7 +81,7 @@ class CreateGroupSelectClientsController @Inject()
         .bindFromRequest
         .fold(
           formWithErrors => {
-            Ok(search_clients(formWithErrors, groupName, None)).toFuture
+            Ok(search_clients(formWithErrors, groupName, Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url))).toFuture
           }, formData => {
             clientService.saveSearch(arn)(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture

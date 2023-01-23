@@ -83,9 +83,14 @@ GET     /delete-tax-group/:groupId           controllers.ManageGroupController.s
 POST    /delete-tax-group/:groupId           controllers.ManageGroupController.submitDeleteTaxGroup(groupId: String)
 GET     /access-group-deleted                controllers.ManageGroupController.showGroupDeleted
 
-# Manage groups - clients
-GET     /manage-custom-group/:groupId/clients  controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+# Manage custom groups - clients
+GET     /manage-custom-group/:groupId/clients                   controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /manage-custom-group/:groupId/update-clients/search     controllers.ManageGroupClientsController.showSearchClientsToAdd(groupId: String)
+POST    /manage-custom-group/:groupId/update-clients/search     controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: String)
+
+# Manage tax groups - clients
 GET     /manage-tax-group/:groupId/clients     controllers.ManageGroupClientsController.showTaxGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+
 GET     /update-clients/:groupId               controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
 POST    /update-clients/:groupId               controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
 GET     /clients-selected/:groupId             controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)

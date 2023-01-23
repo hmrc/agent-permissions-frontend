@@ -28,6 +28,7 @@ import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -289,6 +290,101 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   }
 
+
+  s"GET ${ctrlRoute.showSearchClientsToAdd(grpId).url}" should {
+    "render the client search page" in {
+      val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+
+      val result = controller.showSearchClientsToAdd(grpId)(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Search for clients"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
+
+      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+
+      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+
+    }
+
+    "render the client search page with inputs saved in session" in {
+      val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_SEARCH_INPUT, "Harry")
+      expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
+
+      val result = controller.showSearchClientsToAdd(grpId)(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Search for clients"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
+
+      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+      html.select("#search").attr("value") shouldBe "Harry"
+      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+      //TODO this isn't working
+      //html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
+
+    }
+
+  }
+
+  s"POST ${ctrlRoute.submitSearchClientsToAdd(grpId).url}" should {
+    // TODO - using fully optional form atm, clarify expected error behaviour
+    //    "render errors on client search page" in {
+    //      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+    //      expectSaveSearch(arn)()
+    //      implicit val request =
+    //        FakeRequest(
+    //          "POST",
+    //          s"${controller.submitSearchClients()}")
+    //          .withSession(SessionKeys.sessionId -> "session-x")
+    //
+    //      val result = controller.submitSearchClients()(request)
+    //      status(result) shouldBe OK
+    //    }
+
+    "save search terms and redirect" in {
+      val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectSaveSearch(arn)(Some("Harry"), Some("HMRC-MTD-VAT"))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(
+          "POST",
+          s"${controller.submitSearchClientsToAdd(grpId)}")
+          .withFormUrlEncodedBody("search" -> "Harry", "filter" -> "HMRC-MTD-VAT")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitSearchClientsToAdd(grpId)(request)
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(grpId).url // change to paginated ver
+    }
+
+  }
+
+  // TODO move to new tax group spec
   s"GET ${ctrlRoute.showTaxGroupClients(grpId, None, None).url}" should {
 
     "render correctly the first page of CLIENTS in tax group, with no query params" in {

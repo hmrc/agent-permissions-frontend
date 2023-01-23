@@ -34,7 +34,7 @@
 @(
     form: Form[SearchFilter],
     groupName: String,
-    backUrl: Option[String]
+    backUrl: Option[String] = Some(routes.CreateGroupSelectNameController.showConfirmGroupName.url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @fieldsetHtml = {
@@ -56,7 +56,7 @@
 @layout(
     title = msgs("group.client.search.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.CreateGroupController.showConfirmGroupName.url)
+    backLinkHref = backUrl
 ) {
 
     @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitSearchClients) {

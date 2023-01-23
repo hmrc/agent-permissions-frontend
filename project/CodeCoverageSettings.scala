@@ -36,6 +36,7 @@ object CodeCoverageSettings {
     ".*TeamMemberAction.*",
     ".*TimeoutController.*",
     ".*select_paginated_clients.template",
+    ".*review_update_tax_group_team_members.template",
     ".*review_update_team_members.template",
     ".*review_members_paginated.template",
     ".*review_clients_paginated.template",

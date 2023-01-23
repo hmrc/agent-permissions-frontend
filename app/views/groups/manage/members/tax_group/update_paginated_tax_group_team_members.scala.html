@@ -36,7 +36,7 @@
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
     formAction: Call,
-    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url),
+    backUrl: Call,
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -53,7 +53,7 @@
 
 @layout(
     title = pageTitle,
-    backLinkHref = backUrl,
+    backLinkHref = Option(backUrl.url),
     formErrors = Seq.empty,
     fullWidth = true,
 ) {

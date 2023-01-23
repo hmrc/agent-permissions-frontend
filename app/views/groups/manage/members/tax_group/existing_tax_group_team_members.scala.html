@@ -16,13 +16,9 @@
 
 @import config.AppConfig
 @import controllers.routes
+@import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary, PaginatedList}
 @import views.html.main_layout
-@import views.html.partials.search_and_filter
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
-@import views.html.partials.team_members_details_table_filter_form
-@import views.html.partials.existing_members_table_filter_form
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
+@import views.html.partials.{existing_members_table_filter_form, search_and_filter}
 
 @this(
     layout: main_layout,table: table,
@@ -38,7 +34,7 @@
 @(
     paginatedMembers: PaginatedList[TeamMember],
     form: Form[SearchFilter],
-    group: AccessGroup
+    group: AccessGroupSummary
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @layout(
@@ -62,13 +58,13 @@
         @existing_members_table_filter_form(
             paginatedMembers.pageContent,
             form,
-            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group._id.toString, None),
+            routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None),
             Option(paginatedMembers.paginationMetaData)
         )
 
         @link_as_button(
             key = "group.selected.teamMembers.change",
-            href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group._id.toString, None).url,
+            href = routes.ManageTaxGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url,
             id = "update-team-members-button")
         
     } else {

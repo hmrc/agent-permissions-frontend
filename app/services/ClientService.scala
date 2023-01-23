@@ -37,7 +37,7 @@ trait ClientService {
   def getFilteredClientsElseAll(arn: Arn)
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
-  def saveSearch(arn: Arn)(searchTerm: Option[String], filterTerm: Option[String])
+  def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
 
   def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
@@ -101,7 +101,7 @@ class ClientServiceImpl @Inject()(
     }
   }
 
-  def saveSearch(arn: Arn)(searchTerm: Option[String], filterTerm: Option[String])
+  def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     if (searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty) {
       sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))

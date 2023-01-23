@@ -351,7 +351,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     // TODO - using fully optional form atm, clarify expected error behaviour
     //    "render errors on client search page" in {
     //      expectAuthOkArnAllowedOptedInReadyWithGroupName()
-    //      expectSaveSearch(arn)()
+    //      expectSaveSearch()
     //      implicit val request =
     //        FakeRequest(
     //          "POST",
@@ -366,7 +366,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
-      expectSaveSearch(arn)(Some("Harry"), Some("HMRC-MTD-VAT"))
+      expectSaveSearch(Some("Harry"), Some("HMRC-MTD-VAT"))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest(

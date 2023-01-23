@@ -59,11 +59,11 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful data).once()
   }
 
-  def expectSaveSearch(arn: Arn)(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit clientService: ClientService): Unit =
+  def expectSaveSearch(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit clientService: ClientService): Unit =
     (clientService
-      .saveSearch(_: Arn)(_: Option[String], _: Option[String])
+      .saveSearch(_: Option[String], _: Option[String])
       (_: Request[_], _: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, searchTerm, filterTerm, *, *, *)
+      .expects(searchTerm, filterTerm, *, *, *)
       .returning(Future.successful(()))
       .once()
 

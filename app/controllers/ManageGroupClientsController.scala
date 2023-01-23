@@ -100,7 +100,7 @@ class ManageGroupClientsController @Inject()(
     }
   }
 
-  // TODO move to ManageTaxGroupClientsController
+   // TODO move to ManageTaxGroupClientsController? View only atm, and v similar to showExistingGroupClients
     def showTaxGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
@@ -167,8 +167,7 @@ class ManageGroupClientsController @Inject()(
           formWithErrors => {
             Ok(search_clients(formWithErrors, summary.groupName, Some(controller.showExistingGroupClients(groupId, None, None).url))).toFuture
           }, formData => {
-            //why does this need an ARN??
-            clientService.saveSearch(Arn("TARN0000001"))(formData.search, formData.filter).flatMap(_ => {
+            clientService.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showManageGroupClients(groupId)).toFuture
             })
           })

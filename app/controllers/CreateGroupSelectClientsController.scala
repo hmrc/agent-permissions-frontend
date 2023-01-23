@@ -83,7 +83,7 @@ class CreateGroupSelectClientsController @Inject()
           formWithErrors => {
             Ok(search_clients(formWithErrors, groupName, Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url))).toFuture
           }, formData => {
-            clientService.saveSearch(arn)(formData.search, formData.filter).flatMap(_ => {
+            clientService.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture
             })
           })

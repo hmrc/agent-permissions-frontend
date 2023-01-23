@@ -134,7 +134,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     // TODO - using fully optional form atm, clarify expected error behaviour
 //    "render errors on client search page" in {
 //      expectAuthOkArnAllowedOptedInReadyWithGroupName()
-//      expectSaveSearch(arn)()
+//      expectSaveSearch()
 //      implicit val request =
 //        FakeRequest(
 //          "POST",
@@ -147,7 +147,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     "save search terms and redirect" in {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
-      expectSaveSearch(arn)(Some("Harry"), Some("HMRC-MTD-VAT"))
+      expectSaveSearch(Some("Harry"), Some("HMRC-MTD-VAT"))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest(

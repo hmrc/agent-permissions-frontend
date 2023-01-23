@@ -346,7 +346,7 @@ class ClientServiceSpec extends BaseSpec {
       expectPutSessionItem[String](CLIENT_FILTER_INPUT, filterTerm.get)
 
       //when
-      await(service.saveSearch(arn)(searchTerm, filterTerm))
+      await(service.saveSearch(searchTerm, filterTerm))
 
     }
 
@@ -357,7 +357,7 @@ class ClientServiceSpec extends BaseSpec {
       expectDeleteSessionItems(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
 
       //when
-      await(service.saveSearch(arn)(searchTerm, filterTerm))
+      await(service.saveSearch(searchTerm, filterTerm))
 
     }
   }

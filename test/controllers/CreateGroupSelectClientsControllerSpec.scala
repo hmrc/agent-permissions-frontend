@@ -95,7 +95,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Search for clients"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupController.showConfirmGroupName.url
+        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName.url
 
       html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
 
@@ -118,7 +118,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Search for clients"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupController.showConfirmGroupName.url
+        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName.url
 
       html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
       html.select("#search").attr("value") shouldBe "Harry"

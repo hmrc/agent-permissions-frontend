@@ -30,6 +30,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup,
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage._
 import views.html.groups.manage.clients._
+import views.html.groups.create.clients.search_clients
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -45,6 +46,7 @@ class ManageGroupClientsController @Inject()(
                                               review_update_clients: review_update_clients,
                                               update_client_group_list: update_client_group_list,
                                               existing_clients: existing_clients,
+                                              search_clients: search_clients,
                                               existing_tax_group_clients: existing_tax_group_clients,
                                               clients_update_complete: clients_update_complete
                                             )(implicit val appConfig: AppConfig, ec: ExecutionContext,
@@ -58,6 +60,7 @@ class ManageGroupClientsController @Inject()(
 
   private val controller: ReverseManageGroupClientsController = routes.ManageGroupClientsController
 
+  // custom clients
   def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
@@ -97,7 +100,8 @@ class ManageGroupClientsController @Inject()(
     }
   }
 
-  def showTaxGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
+  // TODO move to ManageTaxGroupClientsController
+    def showTaxGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold( // fresh page load or pagination reload
@@ -137,6 +141,41 @@ class ManageGroupClientsController @Inject()(
     }
   }
 
+  // or remove for now...?
+  def showSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+          Ok(
+            search_clients(
+              form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+              groupName = summary.groupName,
+              backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url)
+            )
+          ).toFuture
+        }
+      }
+    }
+  }
+
+  def submitSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+      SearchAndFilterForm
+        .form()
+        .bindFromRequest
+        .fold(
+          formWithErrors => {
+            Ok(search_clients(formWithErrors, summary.groupName, Some(controller.showExistingGroupClients(groupId, None, None).url))).toFuture
+          }, formData => {
+            //why does this need an ARN??
+            clientService.saveSearch(Arn("TARN0000001"))(formData.search, formData.filter).flatMap(_ => {
+              Redirect(controller.showManageGroupClients(groupId)).toFuture
+            })
+          })
+    }
+  }
+
+  // Needs new BE endpoint
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>

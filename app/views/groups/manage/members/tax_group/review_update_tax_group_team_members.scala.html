@@ -16,10 +16,12 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary, PaginatedList}
-@import views.components.models.{LegendData, RadioData}
-@import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
+@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
+@import views.components.models.{LegendData, RadioData}
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
+@import views.html.components.pagination.GET_pagination
+@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary
 
 
 @this(
@@ -50,7 +52,7 @@
 
     @layout(
         title = msgs("group.teamMembers.review.title", group.groupName),
-        backLinkHref = Some(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId.toString, None).url),
+        backLinkHref = Some(routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url),
         fullWidth = true,
         formErrors = form.errors
     ) {
@@ -79,7 +81,7 @@
         @if(paginatedList.paginationMetaData.totalPages > 1) {
             @GET_pagination(
                 pagination = paginatedList.paginationMetaData,
-                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId.toString, None),
+                baseUrl = controllers.routes.ManageTaxGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, None),
                 additionalParams = form.data
             )
         }
@@ -91,7 +93,7 @@
         </div>
     }
 
-    @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId.toString)) {
+    @formWithCSRF(action = routes.ManageTaxGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId)) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

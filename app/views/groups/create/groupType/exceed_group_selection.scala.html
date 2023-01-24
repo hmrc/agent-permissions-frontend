@@ -24,6 +24,8 @@
         button: link_as_button
 )
 
+
+
 @(
 
         )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -39,7 +41,7 @@
 
     <div>
     @button(key = msgs("group.existing.custom.groups.button"), href = routes.CreateGroupSelectGroupTypeController.submitSelectGroupType.url)
-        <a class="govuk-link" href="@routes.CreateGroupSelectGroupTypeController.showReviewTaxServiceGroupType.url"> @* Redirect link to correct url*@
+        <a class="govuk-link_exceed_group" href="@routes.ManageGroupController.showManageGroups(None,None).url"> @* Redirect link to correct url*@
             Manage access groups<span class="govuk-visually-hidden"> contact details</span>
         </a>
     </div>

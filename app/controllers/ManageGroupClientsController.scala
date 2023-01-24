@@ -141,7 +141,7 @@ class ManageGroupClientsController @Inject()(
     }
   }
 
-  // or remove for now...?
+  // add or remove for now...?
   def showSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
@@ -150,7 +150,8 @@ class ManageGroupClientsController @Inject()(
             search_clients(
               form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
               groupName = summary.groupName,
-              backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url)
+              backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
+              formAction = controller.submitSearchClientsToAdd(groupId)
             )
           ).toFuture
         }
@@ -165,7 +166,12 @@ class ManageGroupClientsController @Inject()(
         .bindFromRequest
         .fold(
           formWithErrors => {
-            Ok(search_clients(formWithErrors, summary.groupName, Some(controller.showExistingGroupClients(groupId, None, None).url))).toFuture
+            Ok(search_clients(
+              formWithErrors,
+              summary.groupName,
+              backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
+              formAction = controller.submitSearchClientsToAdd(groupId)
+            )).toFuture
           }, formData => {
             clientService.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showManageGroupClients(groupId)).toFuture
@@ -174,7 +180,7 @@ class ManageGroupClientsController @Inject()(
     }
   }
 
-  // Needs new BE endpoint
+  // TODO needs new BE endpoint APB-6886 to replace withGroupForAuthorisedOptedAgent
   def showManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>

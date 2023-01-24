@@ -16,6 +16,14 @@ main.govuk-main-wrapper {
   margin-bottom: 35px !important;
 }
 
+.govuk-panel__bodys{
+
+  overflow-wrap: break-word;
+}
+#gov-panel_outer_layer{
+  width: min-content;
+}
+
 #search-filter-wrapper .govuk-form-group {
   margin-bottom: 10px;
 }

@@ -134,7 +134,7 @@ group.tax-service.review.error=Select yes if you would like to create a group of
 
 group.create.h1=Create an access group
 group.create.name.label=What do you want to call this access group?
-group.name.max.length=Access group name must be 32 characters or fewer
+group.name.max.length=Access group name must be 50 characters or fewer
 group.name.required=Enter an access group name
 group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 group.confirm.h1=Confirm access group name

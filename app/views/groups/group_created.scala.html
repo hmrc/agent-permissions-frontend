@@ -21,14 +21,32 @@
 
 @(groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+<style>
+ .govuk-panel__bodys{
+
+     overflow-wrap: break-word;
+}
+ #gov-panel_outer_layer{
+     width: min-content;
+ }
+</style>
+
+
+
+
 @layout(title = msgs("group.created.h1", groupName)) {
 
+<div id="gov-panel_outer_layer">
     @govukPanel(
+
+
         Panel(
-            title = Text(msgs("group.created.h1")),
-            content = Text(msgs("group.created.panelContent", groupName))
+               title = Text(msgs("group.created.h1")),
+               content = Text(msgs("group.created.panelContent", groupName))
         )
+
     )
+    </div>
 
     @h2("common.what.happens.next")
     @p("group.created.p")

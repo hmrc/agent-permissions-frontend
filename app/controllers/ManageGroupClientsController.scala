@@ -199,10 +199,9 @@ class ManageGroupClientsController @Inject()(
             Ok(
               update_clients(
                 paginatedClients.pageContent,
-                group.groupName,
+                groupName = group.groupName,
+                groupId = groupId,
                 form,
-                formAction = controller.submitManageGroupClients(groupId),
-                backUrl = Some(controller.showSearchClientsToAdd(groupId).url),
                 Some(paginatedClients.paginationMetaData)
               )
             )
@@ -226,9 +225,8 @@ class ManageGroupClientsController @Inject()(
               Ok(update_clients(
                 paginatedClients.pageContent,
                 group.groupName,
+                groupId,
                 formWithErrors,
-                formAction = controller.submitManageGroupClients(groupId),
-                backUrl = Some(controller.showSearchClientsToAdd(groupId).url),
                 Some(paginatedClients.paginationMetaData)
               ))
             }
@@ -251,9 +249,8 @@ class ManageGroupClientsController @Inject()(
                         Ok(update_clients(
                             paginatedClients.pageContent,
                             group.groupName,
+                            groupId,
                             AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
-                            formAction = controller.submitManageGroupClients(groupId),
-                            backUrl = Some(controller.showSearchClientsToAdd(groupId).url),
                             Some(paginatedClients.paginationMetaData)
                         ))
                       }

@@ -31,9 +31,8 @@
 @(
     clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     groupName: String,
+    groupId: String,
     form: Form[AddClientsToGroup],
-    formAction: Call,
-    backUrl: Option[String],
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -49,7 +48,12 @@ withSearchAndErrorPrefix(!form.errors.isEmpty,
                         form("search").value)
 }
 
-@layout(title = pageTitle, backLinkHref = backUrl, formErrors = Seq.empty, fullWidth = true) {
+@layout(
+    title = pageTitle,
+    backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(groupId).url),
+    formErrors = Seq.empty,
+    fullWidth = true
+) {
 
     @summaryErrors(form.errors, Some(errorHref))
 
@@ -59,7 +63,7 @@ withSearchAndErrorPrefix(!form.errors.isEmpty,
         @p("group.client.list.update.p")
     </div>
 
-    @selectable_clients_table_form(clients, form, formAction, paginationMetaData)
+    @selectable_clients_table_form(clients, form, routes.ManageGroupClientsController.submitManageGroupClients(groupId), paginationMetaData)
 
 }
 

@@ -60,14 +60,18 @@
 
         </div>
 
-        <div class="govuk-grid-column-one-third">
+        <div class="govuk-grid-column-one-third" id="member-of-groups">
             @h2("common.details.groups.header")
 
             @if(clientGroups.isEmpty) {
                 @p("common.details.not-assigned")
             } else {
                 @ul_html(items = clientGroups.map { group =>
-                    a(group.groupName, href = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None).url)
+                    if(group.taxService.isEmpty){
+                        a(group.groupName, href = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None).url)
+                    }else{
+                        a(group.groupName, href = routes.ManageTaxGroupClientsController.showExistingGroupClients(group.groupId, None, None).url)
+                    }
                 })
             }
 

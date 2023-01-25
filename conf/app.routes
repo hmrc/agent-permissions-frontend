@@ -89,7 +89,8 @@ GET     /manage-custom-group/:groupId/update-clients/search     controllers.Mana
 POST    /manage-custom-group/:groupId/update-clients/search     controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: String)
 
 # Manage tax groups - clients
-GET     /manage-tax-group/:groupId/clients     controllers.ManageGroupClientsController.showTaxGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /manage-tax-group/:groupId/team-members     controllers.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, page: Option[Int])
+GET     /manage-tax-group/:groupId/clients          controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 
 GET     /update-clients/:groupId               controllers.ManageGroupClientsController.showManageGroupClients(groupId: String)
 POST    /update-clients/:groupId               controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)

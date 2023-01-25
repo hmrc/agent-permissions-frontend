@@ -1,0 +1,66 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import models.AddClientsToGroup
+@import views.html.partials.paginated_selectable_clients_table_form
+@import views.html.main_layout
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1, caption: caption,
+    summaryErrors: SummaryErrors,
+    selectable_clients_table_form: paginated_selectable_clients_table_form
+)
+
+@(
+    clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
+    groupName: String,
+    form: Form[AddClientsToGroup],
+    formAction: Call,
+    backUrl: Option[String],
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+
+@errorHref = @{
+    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
+}
+
+@pageTitle = @{
+withSearchAndErrorPrefix(!form.errors.isEmpty,
+                        msgs("group.client.list.update.h1"),
+                        form("filter").value,
+                        form("search").value)
+}
+
+@layout(title = pageTitle, backLinkHref = backUrl, formErrors = Seq.empty, fullWidth = true) {
+
+    @summaryErrors(form.errors, Some(errorHref))
+
+    <div class="govuk-!-width-two-thirds">
+        @caption(msgs("common.caption.group.name", groupName))
+        @h1("group.client.list.update.h1")
+        @p("group.client.list.update.p")
+    </div>
+
+    @selectable_clients_table_form(clients, form, formAction, paginationMetaData)
+
+}
+
+

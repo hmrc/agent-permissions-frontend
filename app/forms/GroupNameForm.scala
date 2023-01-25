@@ -29,7 +29,7 @@ object GroupNameForm {
         "name" ->
           text
             .verifying("group.name.required", _.trim.nonEmpty)
-            .verifying("group.name.max.length", _.trim.length < 32)
+            .verifying("group.name.max.length", _.trim.length < 50)
             .verifying("group.name.invalid", _.matches(groupNameRegex))
       )
     )

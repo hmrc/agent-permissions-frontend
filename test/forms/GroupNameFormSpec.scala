@@ -52,7 +52,7 @@ class GroupNameFormSpec
 
     "have errors when length exceeds max allowed characters" in {
       //given
-      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(33))
+      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(51))
       //when
       val form = GroupNameForm.form().bind(params)
       //then

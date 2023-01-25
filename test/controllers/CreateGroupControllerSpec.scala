@@ -187,13 +187,13 @@ class CreateGroupControllerSpec extends BaseSpec {
 
     }
 
-    "render correct error messages when name exceeds 32 chars" in {
+    "render correct error messages when name exceeds 50 chars" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitGroupName.url)
-          .withFormUrlEncodedBody("name" -> RandomStringUtils.randomAlphanumeric(33))
+          .withFormUrlEncodedBody("name" -> RandomStringUtils.randomAlphanumeric(50))
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -207,10 +207,10 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Create an access group - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
-        .text() shouldBe "Access group name must be 32 characters or fewer"
+        .text() shouldBe "Access group name must be 50 characters or fewer"
       html
         .select(Css.errorForField("name"))
-        .text() shouldBe "Error: Access group name must be 32 characters or fewer"
+        .text() shouldBe "Error: Access group name must be 50 characters or fewer"
     }
   }
 

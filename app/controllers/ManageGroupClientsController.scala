@@ -26,31 +26,31 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, AccessGroupSummary => GroupSummary, _}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, _}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import views.html.groups.create.clients.search_clients
 import views.html.groups.manage._
 import views.html.groups.manage.clients._
-import views.html.groups.create.clients.search_clients
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ManageGroupClientsController @Inject()(
-                                              groupAction: GroupAction,
-                                              sessionAction: SessionAction,
-                                              mcc: MessagesControllerComponents,
-                                              clientService: ClientService,
-                                              groupService: GroupService,
-                                              val sessionCacheService: SessionCacheService,
-                                              review_update_clients: review_update_clients,
-                                              update_clients: update_clients_paginated,
-                                              existing_clients: existing_clients,
-                                              search_clients: search_clients,
-                                              existing_tax_group_clients: existing_tax_group_clients,
-                                              clients_update_complete: clients_update_complete
-                                            )(implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                              implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+class ManageGroupClientsController @Inject()
+(
+  groupAction: GroupAction,
+  sessionAction: SessionAction,
+  mcc: MessagesControllerComponents,
+  clientService: ClientService,
+  groupService: GroupService,
+  val sessionCacheService: SessionCacheService,
+  review_update_clients: review_update_clients,
+  update_clients: update_clients_paginated,
+  existing_clients: existing_clients,
+  search_clients: search_clients,
+  clients_update_complete: clients_update_complete
+)(implicit val appConfig: AppConfig, ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {
@@ -74,17 +74,17 @@ class ManageGroupClientsController @Inject()(
           ))
         })
       ) { // a button was clicked
-       case FILTER_BUTTON =>
-         for {
-           _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
-           _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
-           paginatedList <- groupService.getPaginatedClientsForCustomGroup(groupId)(1, pageSize.getOrElse(20))
-         } yield Ok(existing_clients(
-              group = summary,
-              groupClients = paginatedList._1,
-              form = SearchAndFilterForm.form().fill(searchFilter),
-              paginationMetaData = Some(paginatedList._2)
-            ))
+        case FILTER_BUTTON =>
+          for {
+            _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+            _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
+            paginatedList <- groupService.getPaginatedClientsForCustomGroup(groupId)(1, pageSize.getOrElse(20))
+          } yield Ok(existing_clients(
+            group = summary,
+            groupClients = paginatedList._1,
+            form = SearchAndFilterForm.form().fill(searchFilter),
+            paginationMetaData = Some(paginatedList._2)
+          ))
         case CLEAR_BUTTON =>
           sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
             Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20)))
@@ -92,50 +92,9 @@ class ManageGroupClientsController @Inject()(
         case button =>
           if (button.startsWith(PAGINATION_BUTTON)) {
             val pageToShow = button.replace(s"${PAGINATION_BUTTON}_", "").toInt
-              Redirect(controller.showExistingGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
+            Redirect(controller.showExistingGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
           } else { // bad submit
             Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20))).toFuture
-          }
-      }
-    }
-  }
-
-   // TODO move to ManageTaxGroupClientsController? View only atm, and v similar to showExistingGroupClients
-    def showTaxGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
-      val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-      searchFilter.submit.fold( // fresh page load or pagination reload
-      for {
-        _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, if (group.service == "HMRC-TERS") {"TRUST"} else {group.service})
-        paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
-      } yield Ok(existing_tax_group_clients(
-          group = GroupSummary.convertTaxServiceGroup(group),
-          groupClients = paginatedClients.pageContent,
-          form = SearchAndFilterForm.form(), // TODO fill form when reloading page via pagination
-          paginationMetaData = Some(paginatedClients.paginationMetaData)
-        ))
-      ) { // a button was clicked
-        case FILTER_BUTTON =>
-          for {
-            _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
-            _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, if (group.service == "HMRC-TERS") {"TRUST"} else {group.service})
-            paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
-          } yield Ok(existing_tax_group_clients(
-            group = GroupSummary.convertTaxServiceGroup(group),
-            groupClients = paginatedClients.pageContent,
-            form = SearchAndFilterForm.form().fill(searchFilter),
-            paginationMetaData = Some(paginatedClients.paginationMetaData)
-          ))
-        case CLEAR_BUTTON =>
-          sessionCacheService.delete(CLIENT_SEARCH_INPUT).map(_ =>
-            Redirect(controller.showTaxGroupClients(groupId, Some(1), Some(20)))
-          )
-        case button =>
-          if (button.startsWith(PAGINATION_BUTTON)) {
-            val pageToShow = button.replace(s"${PAGINATION_BUTTON}_", "").toInt
-            Redirect(controller.showTaxGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
-          } else { // bad submit
-            Redirect(controller.showTaxGroupClients(groupId, Some(1), Some(20))).toFuture
           }
       }
     }

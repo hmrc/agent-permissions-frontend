@@ -91,7 +91,7 @@ GET     /manage-custom-group/:groupId/update-clients/add        controllers.Mana
 POST    /manage-custom-group/:groupId/update-clients/add        controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
 
 # Manage tax groups - clients
-GET     /manage-tax-group/:groupId/clients     controllers.ManageGroupClientsController.showTaxGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /manage-tax-group/:groupId/clients     controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 
 GET     /clients-selected/:groupId             controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String)
 POST    /clients-selected/:groupId             controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)

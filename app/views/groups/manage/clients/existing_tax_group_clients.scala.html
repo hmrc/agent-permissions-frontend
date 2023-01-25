@@ -73,7 +73,7 @@
 
     @inset_text(msgs("group.existing.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))
 
-    @views.html.helper.form(action = routes.ManageGroupClientsController.showTaxGroupClients(group.groupId, None, None)) {
+    @views.html.helper.form(action = routes.ManageTaxGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {
 
         @search_and_filter(form, withFilter = false)
 

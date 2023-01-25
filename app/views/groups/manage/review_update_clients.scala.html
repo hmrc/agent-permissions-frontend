@@ -51,7 +51,7 @@
 
     @layout(
         title = msgs("group.clients.review.title", group.groupName),
-        backLinkHref =  Some(routes.ManageGroupClientsController.showManageGroupClients(group._id.toString).url),
+        backLinkHref =  Some(routes.ManageGroupClientsController.showManageGroupClients(group._id.toString, None, None).url),
         fullWidth = true,
         formErrors = form.errors
     ) {

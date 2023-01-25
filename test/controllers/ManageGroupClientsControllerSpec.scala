@@ -21,14 +21,14 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, U
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.{DisplayClient, TeamMember}
+import models.{AddClientsToGroup, DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -154,7 +154,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
       html.select("a#update-clients").text() shouldBe "Update clients"
       html.select("a#update-clients").attr("href") shouldBe
-        ctrlRoute.showManageGroupClients(grpId).url
+        ctrlRoute.showSearchClientsToAdd(grpId).url
     }
 
     "render with filter & searchTerm set" in {
@@ -170,7 +170,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
       expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)(displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10))
 
-      implicit val requestWithQueryParams = FakeRequest(GET,
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
       )
@@ -290,7 +290,6 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   }
 
-
   s"GET ${ctrlRoute.showSearchClientsToAdd(grpId).url}" should {
     "render the client search page" in {
       val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
@@ -379,25 +378,27 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val result = controller.submitSearchClientsToAdd(grpId)(request)
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(grpId).url // change to paginated ver
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(grpId, None, None).url
     }
 
   }
 
-  s"GET ${ctrlRoute.showManageGroupClients(grpId).url}" should {
+  s"GET ${ctrlRoute.showManageGroupClients(grpId, None, None).url}" should {
 
     "render correctly the manage group CLIENTS page" in {
       //given
+      val selected = displayClients.map(_.copy(selected = true))
+
       expectAuthOkOptedInReady()
       expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       expectGetSessionItemNone(SELECTED_CLIENTS)
-      expectPutSessionItem(SELECTED_CLIENTS, displayClients.map(_.copy(selected = true)))
-      expectGetFilteredClientsFromService(arn)(displayClients)
+      expectPutSessionItem(SELECTED_CLIENTS, selected)
+      expectGetPageOfClients(arn)(displayClients)
 
       //when
-      val result = controller.showManageGroupClients(grpId)(request)
+      val result = controller.showManageGroupClients(grpId, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -406,13 +407,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Update clients in this group"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
       th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
-      val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
       trs.size() shouldBe 3
       //first row
@@ -425,21 +425,21 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(2).select("td").get(2).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(3).text() shouldBe "VAT"
 
+      //TODO - this is wrong right?
       html.select("p#member-count-text").text() shouldBe "Selected 0 clients of 3"
     }
 
     "render correctly the manage group CLIENTS page when there are no clients to add found" in {
       //given
       expectAuthOkOptedInReady()
+      expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
-      expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
-      expectGetFilteredClientsFromService(arn)(Seq.empty)
       expectGetSessionItemNone(SELECTED_CLIENTS)
       expectPutSessionItem(SELECTED_CLIENTS, displayClients.map(_.copy(selected = true)) )
-
+      expectGetPageOfClients(arn)(Seq.empty)
       //when
-      val result = controller.showManageGroupClients(grpId)(request)
+      val result = controller.showManageGroupClients(grpId, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -448,7 +448,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Update clients in this group"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 0
       html.select(Css.H2).text() shouldBe "No clients found"
       html.select(Css.paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
@@ -458,14 +458,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "render with clients held in session when a filter was applied" in {
 
       expectAuthOkOptedInReady()
+      expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "blah")
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
-      expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
-      expectGetFilteredClientsFromService(arn)(displayClients.take(1))
       expectGetSessionItemNone(SELECTED_CLIENTS)
       expectPutSessionItem(SELECTED_CLIENTS, displayClients.map(_.copy(selected = true)) )
+      expectGetPageOfClients(arn)(displayClients.take(1))
 
-      val result = controller.showManageGroupClients(grpId)(request)
+      val result = controller.showManageGroupClients(grpId, None, None)(request)
 
       status(result) shouldBe OK
 
@@ -473,9 +473,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Filter results for 'blah' and 'VAT' Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Update clients in this group"
-      html.select(H2).text() shouldBe "Filter results for 'blah' and 'VAT'"
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
       trs.size() shouldBe 1
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
@@ -501,47 +500,23 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
             .withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthOkOptedInReady()
-        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
-        expectSaveSelectedOrFilteredClients(arn)
-        expectDeleteSessionItems(clientFilteringKeys)
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+
+        val displayClientsIds: Seq[String] = displayClients.map(_.id)
+        val formData = AddClientsToGroup(
+          clients = Some(List(displayClientsIds.head, displayClientsIds.last)),
+          submit = CONTINUE_BUTTON
+        )
+        expectSavePageOfClients(formData, displayClients)
+
+        expectDeleteSessionItems(clientFilteringKeys)
 
         val result = controller.submitManageGroupClients(grpId)(request)
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           ctrlRoute.showReviewSelectedClients(grpId).url
-      }
-
-      "display error when button is CONTINUE_BUTTON, no clients were selected" in {
-        // given
-
-        implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url
-        ).withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "clients" -> "",
-          "search" -> "",
-          "filter" -> "",
-          "submit" -> CONTINUE_BUTTON
-        )
-
-        expectAuthOkOptedInReady()
-        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
-        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
-        expectGetFilteredClientsFromService(arn)(displayClients)
-
-        // when
-        val result = controller.submitManageGroupClients(grpId)(request)
-
-        status(result) shouldBe OK
-        val html = Jsoup.parse(contentAsString(result))
-
-        // then
-        html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Update clients in this group"
-        html
-          .select(Css.errorSummaryForField("clients"))
       }
 
       "display error when button is CONTINUE_BUTTON, selected in session and ALL deselected" in {
@@ -556,11 +531,16 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           )
 
         expectAuthOkOptedInReady()
-        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
-        expectSaveSelectedOrFilteredClients(arn)
-        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
-        expectGetFilteredClientsFromService(arn)(displayClients)
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+
+        val formData = AddClientsToGroup(
+          clients = None,
+          submit = CONTINUE_BUTTON
+        )
+        expectSavePageOfClients(formData, Seq.empty)
+
+        expectGetPageOfClients(arn)(displayClients)
 
         // when
         await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients)) // hasPreSelected is true
@@ -576,61 +556,71 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           .select(Css.errorSummaryForField("clients"))
       }
 
+      s"PAGINATION_BUTTON clicked redirect to ${ctrlRoute.showManageGroupClients(grpId, Some(2), Some(20)).url}" in {
 
+        val paginationButton = PAGINATION_BUTTON + "_2"
 
-      "NOT display error when search & filter empty and FILTER_BUTTON pressed" in {
-
-        // given
         implicit val request = FakeRequest("POST",
           ctrlRoute.submitManageGroupClients(grpId).url
         ).withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
+          "clients" -> "",
+            "submit" -> paginationButton
+        )
+
+        expectAuthOkOptedInReady()
+        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
+        val formData = AddClientsToGroup(
+          clients = None,
+          submit = paginationButton
+        )
+        expectSavePageOfClients(formData, Seq.empty)
+
+        // when
+        val result = controller.submitManageGroupClients(grpId)(request)
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe
+          ctrlRoute.showManageGroupClients(grpId, Some(2),Some(20)).url
+      }
+    }
+
+    "display error when button is CONTINUE_BUTTON, no clients were selected" in {
+      // given
+
+      implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url
+      ).withSession(SessionKeys.sessionId -> "session-x")
+        .withFormUrlEncodedBody(
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
-          "submit"-> FILTER_BUTTON
+          "submit" -> CONTINUE_BUTTON
         )
 
-        expectAuthOkOptedInReady()
-        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
-        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
-        expectSaveSelectedOrFilteredClients(arn)
+      expectAuthOkOptedInReady()
+      expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+      expectGetSessionItem(SELECTED_CLIENTS, Seq.empty)
+      expectGetPageOfClients(arn)(displayClients)
 
-        // when
-        val result = controller.submitManageGroupClients(grpId)(request)
+      // when
+      val result = controller.submitManageGroupClients(grpId)(request)
 
-        status(result) shouldBe SEE_OTHER
-        redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroupClients(grpId).url)
-      }
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
 
-      s"when FILTER_BUTTON clicked with a filter value should redirect to ${ctrlRoute.showManageGroupClients(grpId).url}" in {
-
-        implicit val request = FakeRequest("POST",
-          ctrlRoute.submitManageGroupClients(grpId).url
-        ).withSession(SessionKeys.sessionId -> "session-x")
-          .withFormUrlEncodedBody(
-          "clients" -> "",
-          "search" -> "",
-          "filter" -> "Ab",
-          "submit" -> FILTER_BUTTON
-        )
-
-        expectAuthOkOptedInReady()
-        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
-        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
-        expectSaveSelectedOrFilteredClients(arn)
-
-        // when
-        val result = controller.submitManageGroupClients(grpId)(request)
-        status(result) shouldBe SEE_OTHER
-      }
+      // then
+      html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Update clients in this group"
+      html
+        .select(Css.errorSummaryForField("clients"))
     }
+
   }
 
   s"GET showReviewSelectedClients on url ${ctrlRoute.showReviewSelectedClients(grpId).url}" should {
 
-
-    "REDIRECT to showManageGroupClients when no SELECTED_CLIENTS in session" in {
+    "REDIRECT to showSearchClientsToAdd when no SELECTED_CLIENTS in session" in {
       //given
       expectAuthOkOptedInReady()
 
@@ -642,7 +632,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(grpId).url
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClientsToAdd(grpId).url
     }
 
     "Render correctly when SELECTED_CLIENTS are in session" in {
@@ -698,7 +688,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         .showGroupClientsUpdatedConfirmation(grpId).url
     }
 
-    s"redirect to showManageGroupClients on url '${ctrlRoute.showGroupClientsUpdatedConfirmation(grpId)}' " +
+    s"redirect to showSearchClientsToAdd on url '${ctrlRoute.showSearchClientsToAdd(grpId)}' " +
       s"when page is submitted with answer 'YES'/'true'" in {
 
       implicit val request = FakeRequest("POST",
@@ -715,7 +705,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute
-        .showManageGroupClients(grpId).url
+        .showSearchClientsToAdd(grpId).url
     }
 
     s"render errors when no radio button selected" in {
@@ -771,7 +761,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
     }
 
-    s"redirect to ${ctrlRoute.showManageGroupClients(grpId)} when there are no selected clients" in {
+    s"redirect to ${ctrlRoute.showSearchClientsToAdd(grpId)} when there are no selected clients" in {
 
       expectAuthOkOptedInReady()
       expectGetGroupById(grpId, Some(accessGroup))
@@ -785,7 +775,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(grpId).url
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClientsToAdd(grpId).url
     }
   }
 

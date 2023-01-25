@@ -100,7 +100,7 @@
                 id = Some("clients-in-group"))
 
             @link_as_button(
-                href = routes.ManageGroupClientsController.showManageGroupClients(group.groupId).url,
+                href = routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url,
                 key = "group.existing.clients.button",
                 id = "update-clients")
         } else {

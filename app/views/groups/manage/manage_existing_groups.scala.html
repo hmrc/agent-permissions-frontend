@@ -88,7 +88,7 @@
                 Seq(
                     SummaryListData(
                         "common.clients",
-                        summary.clientCount.getOrElse("Tax group data").toString,
+                        summary.clientCount.getOrElse("Client count unavailable").toString,
                         if(summary.taxService.isDefined){
                             routes.ManageTaxGroupClientsController.showExistingGroupClients(summary.groupId, None, None)} else {routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId, None, None)
                         },

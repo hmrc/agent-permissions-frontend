@@ -78,7 +78,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   val groupSummaries = Seq(
     GroupSummary("groupId", "groupName", Some(33), 9),
-    GroupSummary("groupId-1", "groupName-1", Some(3), 1)
+    GroupSummary("groupId1", "groupName1", Some(3), 1),
+    GroupSummary("groupId2", "groupName2", Some(3), 1, taxService = Some("VAT")),
   )
   private val ctrlRoute: ReverseManageTeamMemberController = routes.ManageTeamMemberController
 
@@ -193,7 +194,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.body.text().contains("Not assigned to an access group") shouldBe true
     }
 
-    "render the clients details page with list of groups" in {
+    "render the team member details page with a list of groups" in {
       //given
       val teamMember = teamMembers.head
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -213,6 +214,16 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Team member details"
 
       html.body.text().contains("Not assigned to an access group") shouldBe false
+
+      val linksToGroups = html.select("main div#member-of-groups ul li a")
+      linksToGroups.size() shouldBe 3
+      linksToGroups.get(0).text() shouldBe "groupName"
+      linksToGroups.get(0).attr("href") shouldBe
+        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(0).groupId,None).url
+
+      linksToGroups.get(2).text() shouldBe "groupName2"
+      linksToGroups.get(2).attr("href") shouldBe
+        controllers.routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(2).groupId,None).url
 
     }
   }

@@ -17,8 +17,9 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
 @import views.components.models._
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 
 @this(
     layout: main_layout,
@@ -35,8 +36,9 @@
 
 @(
     clients: Seq[DisplayClient],
-    group: AccessGroup,
-    form: Form[Boolean]
+    group: GroupSummary,
+    form: Form[Boolean],
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -51,7 +53,7 @@
 
     @layout(
         title = msgs("group.clients.review.title", group.groupName),
-        backLinkHref =  Some(routes.ManageGroupClientsController.showManageGroupClients(group._id.toString, None, None).url),
+        backLinkHref =  Some(routes.ManageGroupClientsController.showManageGroupClients(group.groupId, None, None).url),
         fullWidth = true,
         formErrors = form.errors
     ) {
@@ -63,31 +65,19 @@
             @h1(msgs("group.clients.review.h1", clients.size))
         </div>
 
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="scrollable-table-container" tabindex="0">
-
         @table(
             caption = Some("common.clients"),
             captionClasses = "govuk-visually-hidden",
-            id = Some("sortable-table"),
+            id = Some("clients"),
             headings = Seq(
-                (
-                    Html(msgs("group.client.list.table.th1")),
-                    Map("aria-sort" -> "ascending")
-                ),
-                (
-                    Html(msgs("group.client.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.client.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                ),
+                (Html(msgs("group.client.list.table.th1")), Map.empty),
+                (Html(msgs("group.client.list.table.th2")), Map.empty),
+                (Html(msgs("group.client.list.table.th3")), Map.empty),
             ),
             rows = tableRows,
         )
-        </div>
 
-        @formWithCSRF(action = routes.ManageGroupClientsController.submitReviewSelectedClients(group._id.toString)) {
+        @formWithCSRF(action = routes.ManageGroupClientsController.submitReviewSelectedClients(group.groupId)) {
             @radioButtons(
                 field = form("answer"),
                 items = Seq(

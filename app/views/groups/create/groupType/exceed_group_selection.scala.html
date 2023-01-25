@@ -39,11 +39,11 @@
 
     @p(msgs("access-group-name-exceed-groups.p"))@*Add welsh*@
 
-    <div>
-    @button(key = msgs("group.existing.custom.groups.button"), href = routes.CreateGroupSelectGroupTypeController.submitSelectGroupType.url)
-        <a class="govuk-link_exceed_group" href="@routes.ManageGroupController.showManageGroups(None,None).url"> @* Redirect link to correct url*@
-            Manage access groups<span class="govuk-visually-hidden"> contact details</span>
-        </a>
+    <div class="govuk-button-group">
+        @button(key = msgs("group.existing.custom.groups.button"), href = routes.CreateGroupSelectGroupTypeController.submitSelectGroupType.url)
+
+            <a class="govuk-link_exceed_group" href="@routes.ManageGroupController.showManageGroups(None,None).url">
+                @p(msgs("group.manage.h1"))</a>
     </div>
 
 }

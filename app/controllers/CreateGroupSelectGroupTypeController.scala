@@ -99,11 +99,8 @@ class CreateGroupSelectGroupTypeController @Inject()
       clientService.getAvailableTaxServiceClientCount(arn).map(info =>
 
         if(info.isEmpty)
-        //Ok(select_group_tax_type(TaxServiceGroupTypeForm.form, info))
           Ok(exceed_group_selection())
-
-      else
-       // clientService.getAvailableTaxServiceClientCount(arn).map(info =>
+        else
           Ok(select_group_tax_type(TaxServiceGroupTypeForm.form, info))
       )
     }

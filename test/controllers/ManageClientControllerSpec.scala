@@ -89,7 +89,8 @@ class ManageClientControllerSpec extends BaseSpec {
 
   val groupSummaries = Seq(
     GroupSummary("groupId", "groupName", Some(33), 9),
-    GroupSummary("groupId-1", "groupName-1", Some(3), 1)
+    GroupSummary("groupId1", "groupName1", Some(3), 1),
+    GroupSummary("groupId2", "groupName2", Some(3), 1, taxService = Some("VAT")),
   )
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
@@ -279,7 +280,15 @@ class ManageClientControllerSpec extends BaseSpec {
 
       html.body.text().contains("Not assigned to an access group") shouldBe false
 
-    }
+      val linksToGroups = html.select("main div#member-of-groups ul li a")
+      linksToGroups.size() shouldBe 3
+      linksToGroups.get(0).text() shouldBe "groupName"
+      linksToGroups.get(0).attr("href") shouldBe
+        controllers.routes.ManageGroupClientsController.showExistingGroupClients(groupSummaries(0).groupId,None, None)
+          .url
+      linksToGroups.get(2).text() shouldBe "groupName2"
+      linksToGroups.get(2).attr("href") shouldBe
+        controllers.routes.ManageTaxGroupClientsController.showExistingGroupClients(groupSummaries(2).groupId,None,None).url}
 
   }
 

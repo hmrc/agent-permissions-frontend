@@ -95,7 +95,7 @@ POST    /manage-custom-group/:groupId/update-clients/review     controllers.Mana
 GET     /manage-custom-group/:groupId/update-clients/complete   controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
 
 # Manage tax groups - clients
-GET     /manage-tax-group/:groupId/clients     controllers.ManageGroupClientsController.showTaxGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /manage-tax-group/:groupId/clients     controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 
 # Manage groups - team members
 GET     /manage-tax-group/:groupId/team-members             controllers.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, page: Option[Int])

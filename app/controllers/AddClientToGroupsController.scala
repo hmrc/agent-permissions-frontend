@@ -27,7 +27,7 @@ import play.api.mvc._
 import services.{GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.add_groups_to_client.{confirm_added, select_groups}
+import views.html.group_member_details.add_groups_to_client.{confirm_added, select_groups}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

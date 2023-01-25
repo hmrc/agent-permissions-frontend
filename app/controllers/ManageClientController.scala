@@ -26,7 +26,7 @@ import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
-import views.html.groups.add_groups_to_client.client_not_found
+import views.html.group_member_details.add_groups_to_client.client_not_found
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

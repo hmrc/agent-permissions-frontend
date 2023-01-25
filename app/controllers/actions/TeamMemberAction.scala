@@ -28,7 +28,7 @@ import services.{SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
-import views.html.groups.add_groups_to_team_member.team_member_not_found
+import views.html.group_member_details.add_groups_to_team_member.team_member_not_found
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

@@ -42,6 +42,9 @@ common.return.manage-clients=Return to manage clients
 common.return.manage-team-members=Return to manage team members
 
 common.total.clients=Showing total of <strong>{0}</strong> clients
+paginated.clients.showing=Showing {0} to {1} of {2} clients
+client.search.results.label=with reference: ‘{0}’
+client.filter.results.label=in tax service: ‘{0}’
 common.total.team-members=Showing total of <strong>{0}</strong> team members
 paginated.team-members.showing=Showing {0} to {1} of {2} team members
 paginated.team-members.for.search=for the search term ‘{0}’

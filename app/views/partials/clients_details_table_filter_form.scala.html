@@ -16,93 +16,107 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import play.api.libs.json.Json
 @import views.html.partials.search_and_filter
+@import views.html.components.pagination.GET_pagination
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
     caption: caption, table: table, textbox: textbox,
     govukSkipLink: GovukSkipLink,
     filter_buttons: filter_buttons,
-    search_and_filter:search_and_filter,
-    input_select: input_select
+    search_and_filter: search_and_filter,
+    input_select: input_select, GET_pagination: GET_pagination
 )
 
 @(
-        clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
-        form: Form[SearchFilter],
-        formAction: Call = routes.ManageClientController.showAllClients,
+    paginatedList: PaginatedList[DisplayClient],
+    form: Form[SearchFilter],
+    formAction: Call = routes.ManageClientController.showClients(None),
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@tableRows = @{
-    clients.map(client =>
-        Seq(
-            Html(client.name),
-            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService)),
-            a(
-                key=Html(msgs("details.clients") + span(classes=Some("govuk-visually-hidden"),
-                                                        html=Some(Html(msgs("details.link-hidden", displayNameOrFullReference(client.name, client.hmrcRef))))
-                                                        ).toString
-                ).toString,
-                href= routes.ManageClientController.showClientDetails(client.id).url
-            )
-        )
-
-    )
-}
-
-
-@govukSkipLink(SkipLink(
-    href = "#clients",
-    content = Text(msgs("common.skip-to-clients"))
-))
-
-@views.html.helper.form(action = formAction) {
-
-   @search_and_filter(form, true)
-
-    @if(clients.nonEmpty) {
-
-        @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
-            @h2(withSearchPrefix("", form("filter").value, form("search").value))
-        }
-
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
-
-        @table(
-            caption = Some("common.clients"),
-            captionClasses = "govuk-visually-hidden",
-            id = Some("sortable-table"),
-            attrs = Map.empty,
-            headings = Seq(
-                (
-                    Html(msgs("group.client.list.table.th1")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.client.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.client.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("common.actions")),
-                    Map.empty
+    @tableRows = @{
+        paginatedList.pageContent.map(client =>
+            Seq(
+                Html(client.name),
+                Html(displayObfuscatedReference(client.name, client.hmrcRef)),
+                Html(displayTaxServiceFromServiceKey(client.taxService)),
+                a(
+                    key = Html(msgs("details.clients") + span(classes = Some("govuk-visually-hidden"),
+                        html = Some(Html(msgs("details.link-hidden", displayNameOrFullReference(client.name, client.hmrcRef))))
+                    ).toString
+                    ).toString,
+                    href = routes.ManageClientController.showClientDetails(client.id).url
                 )
-            ),
-            rows = tableRows,
-        )
-        </div>
+            )
 
-        @p(msgs("common.total.clients", clients.length),
-        id = Some("clients-in-group"))
-    } else {
-        <div id="clients">
-            @h2("clients.not-found.heading")
-            @p("clients.not-found.p")
-        </div>
+        )
     }
-}
+
+    @govukSkipLink(
+        SkipLink(
+            href = "#clients",
+            content = Text(msgs("common.skip-to-clients"))
+        )
+    )
+
+    @views.html.helper.form(action = formAction) {
+
+        @search_and_filter(form, true)
+
+        @if(paginatedList.pageContent.nonEmpty) {
+
+            @defining((paginatedList.paginationMetaData.currentPageNumber - 1) * paginatedList.paginationMetaData.pageSize) { pageStart =>
+                <p class="govuk-body" id="filter-results-info">
+                    @span(
+                        msgs("paginated.clients.showing",
+                            pageStart + 1,
+                            pageStart + paginatedList.paginationMetaData.currentPageSize,
+                            paginatedList.paginationMetaData.totalSize
+                        )
+                    )
+                    @if(form.data.nonEmpty
+                            && (form.data.get("search").isDefined || form.data.get("filter").isDefined)) {
+
+                        @if(form.data.get("search").isDefined) {
+                            @span(
+                                msgs("client.search.results.label",
+                                form.data.get("search").get)
+                            )
+                        }
+                        @if(form.data.get("filter").isDefined) {
+                            @span(msgs("client.filter.results.label",
+                                displayTaxServiceFromServiceKey(form.data.get("filter").get)))
+                        }
+                    }
+                </p>
+            }
+            @table(
+                caption = Some("common.clients"),
+                captionClasses = "govuk-visually-hidden",
+                id = Some("manage-clients-list"),
+                attrs = Map.empty,
+                headings = Seq(
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty),
+                    (Html(msgs("group.client.list.table.th3")), Map.empty),
+                    (Html(msgs("common.actions")), Map.empty)
+                ),
+                rows = tableRows,
+            )
+
+            @if(paginatedList.paginationMetaData.totalPages > 1) {
+                @GET_pagination(
+                    pagination = paginatedList.paginationMetaData,
+                    baseUrl = formAction,
+                    additionalParams = form.data
+                )
+            }
+
+        } else {
+            <div id="no-clients-found">
+                @h2("clients.not-found.heading")
+                @p("clients.not-found.p")
+            </div>
+        }
+    }

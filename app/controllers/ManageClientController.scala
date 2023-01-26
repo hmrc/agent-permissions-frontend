@@ -16,6 +16,7 @@
 
 package controllers
 
+import akka.Done
 import config.AppConfig
 import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.{ClientReferenceForm, SearchAndFilterForm}
@@ -33,55 +34,55 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageClientController @Inject()(
-    authAction: AuthAction,
-    mcc: MessagesControllerComponents,
-    val sessionCacheService: SessionCacheService,
-    groupService: GroupService,
-    clientService: ClientService,
-    manage_clients_list: manage_clients_list,
-    client_details: client_details,
-    update_client_reference: update_client_reference,
-    update_client_reference_complete: update_client_reference_complete,
-    client_not_found: client_not_found,
-    optInStatusAction: OptInStatusAction)
-  (implicit val appConfig: AppConfig, ec: ExecutionContext,
-   implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+                                        authAction: AuthAction,
+                                        mcc: MessagesControllerComponents,
+                                        val sessionCacheService: SessionCacheService,
+                                        groupService: GroupService,
+                                        clientService: ClientService,
+                                        manage_clients_list: manage_clients_list,
+                                        client_details: client_details,
+                                        update_client_reference: update_client_reference,
+                                        update_client_reference_complete: update_client_reference_complete,
+                                        client_not_found: client_not_found,
+                                        optInStatusAction: OptInStatusAction)
+                                      (implicit val appConfig: AppConfig, ec: ExecutionContext,
+                                       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with I18nSupport
-    with Logging {
+  with Logging {
 
   import authAction._
   import optInStatusAction._
 
   // All clients does not include IRV
-  def showAllClients: Action[AnyContent] = Action.async { implicit request =>
+  def showClients(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.getAllClients(arn).flatMap { clients =>
-          val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-          searchFilter.submit.fold(
-            //no filter/clear was applied
-            Ok(manage_clients_list(
-              clients,
-              SearchAndFilterForm.form()
-            )).toFuture
-          )({
-            //clear/filter buttons pressed
-            case CLEAR_BUTTON =>
-              Redirect(routes.ManageClientController.showAllClients).toFuture
-            case FILTER_BUTTON =>
-              val filteredClients = clients
-                .filter(_.name.toLowerCase.contains(searchFilter.search.getOrElse("").toLowerCase))
-                .filter(dc =>
-                  if (searchFilter.filter.isEmpty) true
-                  else {
-                    val filter = searchFilter.filter.get
-                    dc.taxService.equalsIgnoreCase(filter) || (filter == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
-                  })
-              Ok(
-                manage_clients_list(filteredClients, SearchAndFilterForm.form().fill(searchFilter))).toFuture
-          })
-        }
+        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+        (searchFilter.search.isDefined || searchFilter.filter.isDefined)
+          .fold(Future.successful(Done))(_=>
+            for{
+               _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
+               _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+            } yield (Done)
+          ).flatMap(_ =>
+            clientService
+              .getPaginatedClients(arn)(page.getOrElse(1), 10)
+              .map { paginatedList =>
+              searchFilter
+                .submit
+                .fold(
+                //ie default page load
+                Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form()))
+              )({
+                //clear/filter buttons pressed
+                case CLEAR_BUTTON =>
+                  Redirect(routes.ManageClientController.showClients(Option(1)))
+                case FILTER_BUTTON =>
+                  Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form().fill(searchFilter)))
+              })
+            }
+          )
       }
     }
   }
@@ -93,8 +94,8 @@ class ManageClientController @Inject()(
           maybeClient.fold(
             Future.successful(NotFound(client_not_found()))
           )(client =>
-            groupService.groupSummariesForClient(arn, client).map ( groups =>
-              Ok(client_details(client,  groups))
+            groupService.groupSummariesForClient(arn, client).map(groups =>
+              Ok(client_details(client, groups))
             )
           )
         }
@@ -120,8 +121,7 @@ class ManageClientController @Inject()(
   def submitUpdateClientReference(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).map
-        {
+        clientService.lookupClient(arn)(clientId).map {
           case Some(client) =>
             ClientReferenceForm.form()
               .bindFromRequest()

@@ -97,22 +97,10 @@
             id = Some("members"),
             attrs = Map.empty,
             headings = Seq(
-                (
-                    Html(msgs("group.members.list.table.th1")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("common.actions")),
-                    Map.empty
-                )
+                (Html(msgs("group.members.list.table.th1")),Map.empty),
+                (Html(msgs("group.members.list.table.th2")),Map.empty),
+                (Html(msgs("group.members.list.table.th3")),Map.empty),
+                (Html(msgs("common.actions")), Map.empty)
             ),
             rows = tableRows,
         )

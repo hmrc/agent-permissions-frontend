@@ -27,9 +27,9 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, _}
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients.search_clients
-import views.html.groups.manage._
 import views.html.groups.manage.clients._
 
 import javax.inject.{Inject, Singleton}
@@ -199,7 +199,7 @@ class ManageGroupClientsController @Inject()
                     // checks selected clients from session cache AFTER saving (removed de-selections)
                     if(nowSelectedClients.nonEmpty) {
                       sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
-                        Redirect(controller.showReviewSelectedClients(groupId))
+                        Redirect(controller.showReviewSelectedClients(groupId, None, None))
                       )
                     } else { // display empty error
                       for {
@@ -227,40 +227,53 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def showReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+  def showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
             Redirect(controller.showSearchClientsToAdd(groupId))
           } { clients =>
-            Ok(review_update_clients(clients, group, YesNoForm.form()))
+            val paginatedList = PaginatedListBuilder.build[DisplayClient](page.getOrElse(1), pageSize.getOrElse(20), clients)
+            Ok(review_update_clients(
+              paginatedList.pageContent,
+              summary,
+              YesNoForm.form(),
+              paginatedList.paginationMetaData
+            ))
           }.toFuture
       }
     }
   }
 
   def submitReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold(
             Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
           ) { clients =>
+            val paginatedList = PaginatedListBuilder.build[DisplayClient](1, 20, clients)
             YesNoForm
               .form("group.clients.review.error")
               .bindFromRequest
               .fold(
                 formWithErrors => {
-                  Ok(review_update_clients(clients, group, formWithErrors)).toFuture
+                  Ok(review_update_clients(
+                    paginatedList.pageContent,
+                    summary,
+                    formWithErrors,
+                    paginatedList.paginationMetaData
+                  )).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
-                    Redirect(controller.showSearchClientsToAdd(group._id.toString)).toFuture
+                    Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
                   else {
                     val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
+                    // TODO replace with AddMembersToAccessGroupRequest after APB-6886
                     val updateGroupRequest = UpdateAccessGroupRequest(clients = Some(toSave))
                     groupService.updateGroup(groupId, updateGroupRequest).map(_ =>
-                      Redirect(controller.showGroupClientsUpdatedConfirmation(groupId))
+                      Redirect(controller.showGroupClientsUpdatedConfirmation(groupId)) // update to controller.showExistingGroupClients(summary.groupId, None, None)
                     )
                   }
                 }
@@ -271,11 +284,11 @@ class ManageGroupClientsController @Inject()
   }
 
   def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         if (selectedClients.isDefined) {
             sessionCacheService.delete(SELECTED_CLIENTS)
-              .map(_ => Ok(clients_update_complete(group.groupName)))
+              .map(_ => Ok(clients_update_complete(summary)))
           }
           else Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
       }

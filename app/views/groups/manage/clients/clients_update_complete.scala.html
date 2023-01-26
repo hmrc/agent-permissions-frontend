@@ -17,15 +17,16 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
+@import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, a: a, govukPanel: GovukPanel)
 
-@(groupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(summary: GroupSummary)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@layout(title = msgs("group.manage.confirm.updated.clients.h1", groupName)) {
+@layout(title = msgs("group.manage.confirm.updated.clients.h1", summary.groupName)) {
 
     @govukPanel(
-        Panel(title = Text(msgs("group.manage.confirm.updated.clients.h1", groupName)))
+        Panel(title = Text(msgs("group.manage.confirm.updated.clients.h1", summary.groupName)))
     )
 
     @h2("common.what.happens.next")

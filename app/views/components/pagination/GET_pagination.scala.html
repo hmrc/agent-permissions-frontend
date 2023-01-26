@@ -28,20 +28,20 @@
 
 
 <nav class="govuk-pagination" role="navigation" aria-label="results">
-    <ul class="govuk-pagination__list">
-        @if(!pagination.firstPage) {
-            <div class="govuk-pagination__prev">
-                <a class="pagination_link"
-                href="@{baseUrl}?page=@{pagination.currentPageNumber - 1}&pageSize=@{pagination.pageSize}@{additionalParams.map( entry => "&" + entry._1 + "=" + entry._2)}"
-                rel="prev">
-                    <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-                        <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
-                    </svg>
-                    <span class="govuk-pagination__link-title">@msgs("common.previous")</span>
-                </a>
-            </div>
-        }
+    @if(!pagination.firstPage) {
+    <div class="govuk-pagination__prev">
+        <a class="pagination_link"
+           href="@{baseUrl}?page=@{pagination.currentPageNumber - 1}&pageSize=@{pagination.pageSize}@{additionalParams.map( entry => "&" + entry._1 + "=" + entry._2)}"
+        rel="prev">
+        <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+            <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+        </svg>
+        <span class="govuk-pagination__link-title">@msgs("common.previous")</span>
+        </a>
+    </div>
+    }
 
+    <ul class="govuk-pagination__list">
         @if(pagination.totalPages < 20) {
             @for(pageNum <- 1 to pagination.totalPages) {
                 @pagination_li(pagination, pageNum, baseUrl, additionalParams)

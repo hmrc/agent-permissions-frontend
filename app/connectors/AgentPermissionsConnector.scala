@@ -56,8 +56,8 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def getGroupSummaries(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
-  def unassignedClients(arn: Arn)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
+  def unassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]]
 
   def getPaginatedClientsForCustomGroup(id: String)
                          (page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
@@ -223,14 +223,24 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def unassignedClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
+  def unassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
     val url = s"$baseUrl/agent-permissions/arn/${arn.value}/unassigned-clients"
+    val queryParams: Seq[(String, String)] = Seq(
+      "page" -> Some(page.toString),
+      "pageSize" -> Some(pageSize.toString),
+      "search" -> search,
+      "filter" -> filter
+    ).collect { case (k, Some(v)) => (k, v) }
     monitor("ConsumedAPI-unassigned-clients-GET") {
-      http.GET[HttpResponse](url).map { response: HttpResponse =>
+      http.GET[HttpResponse](url, queryParams).map { response: HttpResponse =>
         response.status match {
           case OK =>
-            val clients = response.json.as[Seq[Client]]
-            clients.map(DisplayClient.fromClient(_))
+            val paginatedClients = response.json.as[PaginatedList[Client]]
+            PaginatedList[DisplayClient](
+              pageContent = paginatedClients.pageContent.map(DisplayClient.fromClient(_)),
+              paginationMetaData = paginatedClients.paginationMetaData
+            )
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error getting unassigned clients for arn $arn, from $url", anyOtherStatus)
         }

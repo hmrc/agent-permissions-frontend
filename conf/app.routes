@@ -106,9 +106,9 @@ POST    /manage-group/:groupType/:groupId/team-members/review      controllers.M
 GET     /manage-group/:groupType/:groupId/team-members/confirm     controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String, groupType: String)
 
 # UNASSIGNED CLIENTS
-GET     /unassigned-clients                                     controllers.UnassignedClientController.showUnassignedClients
+GET     /unassigned-clients                                     controllers.UnassignedClientController.showUnassignedClients(page: Option[Int] ?= None)
 POST    /unassigned-clients                                     controllers.UnassignedClientController.submitAddUnassignedClients
-GET     /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.showSelectedUnassignedClients
+GET     /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.showSelectedUnassignedClients(page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
 POST    /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.submitSelectedUnassignedClients
 GET     /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients
 POST    /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients
@@ -136,8 +136,8 @@ POST    /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMembe
 GET     /manage-team-members/assigned-to-groups/:id     controllers.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id: String)
 
 # Assistant / 'Standard' user views
-GET     /your-account/group-clients/:groupId     controllers.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId: String)
-GET     /your-account/other-clients              controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly
+GET     /your-account/group-clients/:groupId     controllers.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] ?= None)
+GET     /your-account/other-clients              controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly(page: Option[Int] ?= None)
 
 GET     /you-have-been-timed-out    controllers.TimeoutController.timedOut
 GET     /keep-alive                 controllers.TimeoutController.keepAlive

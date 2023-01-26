@@ -18,6 +18,7 @@
 @import controllers.routes
 @import views.html.main_layout
 @import views.html.partials.clients_table_filter_form
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
     layout: main_layout,
@@ -27,7 +28,8 @@
 
 @(
     group: DisplayGroup,
-    filterForm: Form[SearchFilter]
+    filterForm: Form[SearchFilter],
+    paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
@@ -55,7 +57,8 @@
         @clients_table_filter_form(
             None,
             filterForm,
-            routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(group._id)
+            routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(group._id),
+            paginationMetaData
         )
     }
 

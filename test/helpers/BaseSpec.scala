@@ -49,6 +49,7 @@ abstract class BaseSpec
     with TeamMemberServiceMocks
     with ClientServiceMocks
     with SessionServiceMocks
+    with SessionCacheOperationsMocks
     with AgentPermissionsConnectorMocks
     with HttpClientMocks
     with OptInServiceMocks

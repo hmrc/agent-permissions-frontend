@@ -23,34 +23,35 @@ import models.{AddClientsToGroup, AddTeamMembersToGroup, DisplayClient, TeamMemb
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
+import services.{SessionCacheOperationsService, ClientService, GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 @Deprecated
 class CreateGroupController @Inject()(
-     groupAction: GroupAction,
-     authAction: AuthAction,
-     sessionAction: SessionAction,
-     mcc: MessagesControllerComponents,
-     group_name: group_name,
-     confirm_group_name: confirm_group_name,
-     access_group_name_exists: access_group_name_exists,
-     val select_clients: select_clients,
-     review_clients_to_add: review_clients_to_add,
-     team_members_list: team_members_list,
-     review_team_members_to_add: review_team_members_to_add,
-     check_your_answers: check_your_answers,
-     group_created: group_created,
-     val sessionCacheService: SessionCacheService,
-     val groupService: GroupService,
-     clientService: ClientService,
-     optInStatusAction: OptInStatusAction,
-     teamMemberService: TeamMemberService
+                                       groupAction: GroupAction,
+                                       authAction: AuthAction,
+                                       sessionAction: SessionAction,
+                                       mcc: MessagesControllerComponents,
+                                       group_name: group_name,
+                                       confirm_group_name: confirm_group_name,
+                                       access_group_name_exists: access_group_name_exists,
+                                       val select_clients: select_clients,
+                                       review_clients_to_add: review_clients_to_add,
+                                       team_members_list: team_members_list,
+                                       review_team_members_to_add: review_team_members_to_add,
+                                       check_your_answers: check_your_answers,
+                                       group_created: group_created,
+                                       val sessionCacheService: SessionCacheService,
+                                       val sessionCacheOps: SessionCacheOperationsService,
+                                       val groupService: GroupService,
+                                       clientService: ClientService,
+                                       optInStatusAction: OptInStatusAction,
+                                       teamMemberService: TeamMemberService
    )(
      implicit val appConfig: AppConfig,
      ec: ExecutionContext,
@@ -181,7 +182,7 @@ class CreateGroupController @Inject()(
                 Ok(select_clients(clients, groupName, formWithErrors))
             },
             formData => {
-              clientService
+              sessionCacheOps
                 .saveSelectedOrFilteredClients(arn)(formData)(clientService.getAllClients)
                 .flatMap(_ => {
                   if (formData.submit == CONTINUE_BUTTON) {

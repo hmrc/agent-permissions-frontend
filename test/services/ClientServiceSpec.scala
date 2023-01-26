@@ -18,11 +18,12 @@ package services
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, clientFilteringKeys}
+import controllers.{FILTERED_CLIENTS, SELECTED_CLIENTS}
 import helpers.BaseSpec
-import models.{AddClientsToGroup, DisplayClient}
+import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -114,16 +115,16 @@ class ClientServiceSpec extends BaseSpec {
   "getUnassignedClients" should {
     "Gets them from mockAgentPermissionsConnector" in {
       //given
-      (mockAgentPermissionsConnector.unassignedClients(_: Arn)( _: HeaderCarrier, _: ExecutionContext))
-        .expects(arn, *, *)
-        .returning(Future.successful(displayClients)).once()
+      (mockAgentPermissionsConnector.unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, 1, 20, *, *, *, *)
+        .returning(Future.successful(PaginatedListBuilder.build(page = 1, pageSize = 20, fullList = displayClients))).once()
 
       //when
-      val unassignedClients: Seq[DisplayClient] = await(service.getUnassignedClients(arn))
+      val unassignedClients: PaginatedList[DisplayClient] = await(service.getUnassignedClients(arn)(1, 20))
 
 
       //then
-      unassignedClients shouldBe displayClients
+      unassignedClients.pageContent shouldBe displayClients
     }
   }
 
@@ -184,78 +185,6 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "saveSelectedOrFilteredClients" should {
-
-    "work for CONTINUE_BUTTON" in {
-
-      val CLIENTS = displayClients.take(8)
-      //expect
-      expectGetClients(arn)(fakeClients.take(8))
-      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 2)
-      expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
-
-      val expectedPutSelected = List(
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456783","friendly name 3","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456784","friendly name 4","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456785","friendly name 5","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456786","friendly name 6","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456787","friendly name 7","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456788","friendly name 8","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false)
-      )
-      expectDeleteSessionItems(clientFilteringKeys)
-      expectPutSessionItem(SELECTED_CLIENTS, expectedPutSelected)
-
-      val formData = AddClientsToGroup(None, None, Some(CLIENTS.map(_.id).toList), CONTINUE_BUTTON)
-
-      //when
-      await(service.saveSelectedOrFilteredClients(arn)(formData)(service.getAllClients))
-
-    }
-
-    "work for FILTER_BUTTON" in {
-      //given
-      val CLIENTS = displayClients.take(8)
-
-      val formData = AddClientsToGroup(
-        Some("searchTerm"),
-        Some("filterTerm"),
-        Some(CLIENTS.map(_.id).toList),
-        FILTER_BUTTON
-      )
-
-      val expectedPutSelected = List(
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456783","friendly name 3","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456784","friendly name 4","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456785","friendly name 5","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456786","friendly name 6","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456787","friendly name 7","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456788","friendly name 8","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false)
-      )
-
-      //expect
-      expectGetClients(arn)(fakeClients.take(8))
-      expectGetSessionItem(SELECTED_CLIENTS, CLIENTS.take(2), 3)
-      expectGetSessionItem(FILTERED_CLIENTS, CLIENTS.takeRight(1))
-      expectPutSessionItem(SELECTED_CLIENTS, expectedPutSelected)
-      expectPutSessionItem(CLIENT_SEARCH_INPUT, "searchTerm")
-      expectPutSessionItem(CLIENT_FILTER_INPUT, "filterTerm")
-      expectPutSessionItem(FILTERED_CLIENTS, Nil)
-
-      //when
-      await(service.saveSelectedOrFilteredClients(arn)(formData)(service.getAllClients))
-
-    }
-
-  }
-
   "addSelectablesToSession" should {
     
     "work as expected with none set as selected " in{
@@ -287,122 +216,6 @@ class ClientServiceSpec extends BaseSpec {
 
       //when
       await(service.addSelectablesToSession(displayClients.take(3).toList)(SELECTED_CLIENTS, FILTERED_CLIENTS))
-    }
-  }
-
-  "filteredClients save filtered clients to session and return filtered clients" should {
-    "WHEN the search term doesn't match any" in {
-      //given
-      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("zzzzzz"))
-      val selectedClients = displayClients.take(1)
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients.takeRight(2))
-      expectPutSessionItem(FILTERED_CLIENTS, Nil)
-
-      //when
-      val filteredClients = await(service.filterClients(formData)(selectedClients))
-
-      filteredClients shouldBe Nil
-    }
-
-    "WHEN the search term DOES MATCH SOME but none are selected" in {
-      //given
-      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("friendly name"))
-      val clients = displayClients.take(1)
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients.takeRight(2))
-      expectPutSessionItem(FILTERED_CLIENTS, displayClients.take(1))
-
-      //when
-      val filteredClients = await(service.filterClients(formData)(clients))
-
-      filteredClients shouldBe displayClients.take(1)
-
-    }
-
-    "WHEN the search term DOES MATCH SOME and there are SELECTED clients that match those passed in" in {
-      //given
-      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("friendly name"))
-      val clients = displayClients.take(5)
-      //the ones that match the SELECTED_CLIENTS session items will be marked as selected = true
-      val expectedClients = clients.zipWithIndex.map(zip => if(zip._2 < 3) zip._1.copy(selected = true) else zip._1)
-      expectGetSessionItem(SELECTED_CLIENTS, clients.take(3))
-      expectPutSessionItem(FILTERED_CLIENTS, expectedClients)
-
-      //when
-      val filteredClients = await(service.filterClients(formData)(clients))
-
-      //first 2 clients should be
-      filteredClients shouldBe expectedClients
-
-    }
-  }
-
-  "saveSearch" should {
-
-    "PUT search terms to session" in {
-      //expect
-      val searchTerm = Some("blah")
-      val filterTerm = Some("MTD-VAT")
-      expectPutSessionItem[String](CLIENT_SEARCH_INPUT, searchTerm.get)
-      expectPutSessionItem[String](CLIENT_FILTER_INPUT, filterTerm.get)
-
-      //when
-      await(service.saveSearch(searchTerm, filterTerm))
-
-    }
-
-    "delete session items if both are empty" in {
-      //expect
-      val searchTerm = Some("")
-      val filterTerm = Some("")
-      expectDeleteSessionItems(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
-
-      //when
-      await(service.saveSearch(searchTerm, filterTerm))
-
-    }
-  }
-
-  "savePageOfClients" should {
-
-    "ADD selected clients to SELECTED_CLIENTS for current page" in {
-
-      //expect
-      val clientsSelectedOnThisPage = displayClients.take(4)
-      val selectedClientIdsPosted = clientsSelectedOnThisPage.map(_.id).toList
-      val alreadySelectedClients = displayClients.takeRight(2)
-      expectGetSessionItem(SELECTED_CLIENTS, alreadySelectedClients)
-      expectGetSessionItem(CURRENT_PAGE_CLIENTS, displayClients.take(6))
-      expectDeleteSessionItems(clientFilteringKeys)
-      val expectedToBeSaved = (alreadySelectedClients ++ clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
-
-      expectPutSessionItem(SELECTED_CLIENTS, expectedToBeSaved)
-
-      val formData = AddClientsToGroup(None, None, Some(selectedClientIdsPosted), CONTINUE_BUTTON)
-
-      //when
-      await(service.savePageOfClients(formData))
-
-    }
-
-    "ADD selected clients to SELECTED_CLIENTS for current page and REMOVE existing ones on page that are not selected" in {
-
-      //expect
-      val clientsSelectedOnThisPage = displayClients.take(4).takeRight(2)
-      val selectedClientIdsPosted = clientsSelectedOnThisPage.map(_.id).toList
-      val alreadySelectedClients = displayClients.take(2) // <-- these were the already selected clients
-      expectGetSessionItem(SELECTED_CLIENTS, alreadySelectedClients)
-      expectGetSessionItem(CURRENT_PAGE_CLIENTS, displayClients.take(6))
-      expectDeleteSessionItems(clientFilteringKeys)
-      //we expect to save in session ordered by name and 'selected = true'
-      val expectedToBeSaved = (clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
-      expectPutSessionItem(SELECTED_CLIENTS, expectedToBeSaved)
-
-
-      val formData = AddClientsToGroup(None, None, Some(selectedClientIdsPosted), CONTINUE_BUTTON)
-
-      //when
-      await(service.savePageOfClients(formData))
-
     }
   }
 

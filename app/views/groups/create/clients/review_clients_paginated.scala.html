@@ -89,10 +89,10 @@
             rows = tableRows,
         )
 
-        @if(paginationMetaData.get.totalPages > 1) {
+        @if(paginationMetaData.exists(_.totalPages > 1)) {
             @GET_pagination(
             pagination = paginationMetaData.get,
-            baseUrl = routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None))
+            baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
         }
 
         @formWithCSRF(action = formAction) {

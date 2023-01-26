@@ -33,6 +33,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
+import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary.convertCustomGroup
 import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, _}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -210,7 +211,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
-      implicit val requestWithQueryParams = FakeRequest(GET,
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
@@ -245,7 +246,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectDeleteSessionItems(clientFilteringKeys)
 
       //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(GET,
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           s"?submit=clear"
       )
@@ -272,10 +273,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val pageNumber = 2
       //and we have PAGINATION_BUTTON filter in query params
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] =
+        FakeRequest(GET,
+          ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url +
           s"?submit=${PAGINATION_BUTTON}_$pageNumber"
-      )
+        )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -488,7 +490,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups(None,None).url}" in {
 
-        implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
             .withFormUrlEncodedBody(
                             "clients[0]" -> displayClients.head.id,
               "clients[1]" -> displayClients.last.id,
@@ -515,19 +518,20 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
-          ctrlRoute.showReviewSelectedClients(grpId).url
+          ctrlRoute.showReviewSelectedClients(grpId, None, None).url
       }
 
       "display error when button is CONTINUE_BUTTON, selected in session and ALL deselected" in {
         // given
-        implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url
-        ).withSession(SessionKeys.sessionId -> "session-x")
-          .withFormUrlEncodedBody(
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+            .withSession(SessionKeys.sessionId -> "session-x")
+            .withFormUrlEncodedBody(
             "clients" -> "",
             "search" -> "",
             "filter" -> "",
             "submit" -> CONTINUE_BUTTON
-          )
+            )
 
         expectAuthOkOptedInReady()
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
@@ -559,13 +563,13 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         val paginationButton = PAGINATION_BUTTON + "_2"
 
-        implicit val request = FakeRequest("POST",
-          ctrlRoute.submitManageGroupClients(grpId).url
-        ).withSession(SessionKeys.sessionId -> "session-x")
-          .withFormUrlEncodedBody(
-          "clients" -> "",
-            "submit" -> paginationButton
-        )
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+            .withSession(SessionKeys.sessionId -> "session-x")
+            .withFormUrlEncodedBody(
+              "clients" -> "",
+              "submit" -> paginationButton
+            )
 
         expectAuthOkOptedInReady()
         expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
@@ -588,9 +592,10 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     "display error when button is CONTINUE_BUTTON, no clients were selected" in {
       // given
 
-      implicit val request = FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url
-      ).withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
           "clients" -> "",
           "search" -> "",
           "filter" -> "",
@@ -617,48 +622,80 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   }
 
-  s"GET showReviewSelectedClients on url ${ctrlRoute.showReviewSelectedClients(grpId).url}" should {
+  s"GET showReviewSelectedClients on url ${ctrlRoute.showReviewSelectedClients(grpId, None, None).url}" should {
 
-    "REDIRECT to showSearchClientsToAdd when no SELECTED_CLIENTS in session" in {
+    "REDIRECT to showSearchClientsToAdd if no SELECTED_CLIENTS in session" in {
       //given
       expectAuthOkOptedInReady()
 
       expectGetSessionItemNone(SELECTED_CLIENTS)
-      expectGetGroupById(grpId, Some(accessGroup))
+      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
 
       //when
-      val result = controller.showReviewSelectedClients(grpId)(request)
+      val result = controller.showReviewSelectedClients(grpId, None, None)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showSearchClientsToAdd(grpId).url
     }
 
-    "Render correctly when SELECTED_CLIENTS are in session" in {
-      //given
-      expectAuthOkOptedInReady()
+    "Render correctly if SELECTED_CLIENTS are in session" when {
+      "on first page, no params" in {
+        //given
+        expectAuthOkOptedInReady()
 
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectGetGroupById(grpId, Some(accessGroup))
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+        expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
 
-      //when
-      val result = controller.showReviewSelectedClients(grpId)(request)
+        //when
+        val result = controller.showReviewSelectedClients(grpId, None, None)(request)
 
-      //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 3 clients"
-      html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
-      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
-      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
-      answerRadios
-        .select("label[for=answer]")
-        .text() shouldBe "Yes, add or remove clients"
-      answerRadios
-        .select("label[for=answer-no]")
-        .text() shouldBe "No, continue to next section"
-      html.select(Css.submitButton).text() shouldBe "Save and continue"
+        //then
+        status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "You have selected 3 clients"
+        html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 3
+        html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
+        val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
+        answerRadios
+          .select("label[for=answer]")
+          .text() shouldBe "Yes, add or remove clients"
+        answerRadios
+          .select("label[for=answer-no]")
+          .text() shouldBe "No, continue to next section"
+        html.select(Css.submitButton).text() shouldBe "Save and continue"
+      }
+
+      "on page 2 with page size 1" in {
+        //given
+        expectAuthOkOptedInReady()
+
+        expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+        expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+
+        //when
+        val result = controller.showReviewSelectedClients(grpId, Some(2), Some(1))(request)
+
+        //then
+        status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "You have selected 3 clients"
+        html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 1
+
+        val paginationListItems = html.select(Css.pagination_li)
+        paginationListItems.size() shouldBe 3
+        paginationListItems.get(0).text() shouldBe "1" // first pagination item
+
+        paginationListItems.get(1).text() shouldBe "2"  // second pagination item
+        paginationListItems.get(1).hasClass("govuk-pagination__item--current")
+
+        paginationListItems.get(2).text() shouldBe "3"  // 3rd pagination item
+        paginationListItems.get(2).select("a")
+          .attr("href") shouldBe ctrlRoute.showReviewSelectedClients(accessGroup._id.toString, Some(3), Some(1)).url
+
+      }
 
     }
   }
@@ -670,12 +707,13 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       expectAuthOkOptedInReady()
 
-      implicit val request = FakeRequest("POST", s"${controller.submitReviewSelectedClients(grpId)}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients(grpId)}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetSessionItem(SELECTED_CLIENTS, Seq(displayClients.head, displayClients.last))
-      expectGetGroupById(grpId, Some(accessGroup))
+      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
       expectUpdateGroup(grpId,
         UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name))))
       )
@@ -690,15 +728,15 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     s"redirect to showSearchClientsToAdd on url '${ctrlRoute.showSearchClientsToAdd(grpId)}' " +
       s"when page is submitted with answer 'YES'/'true'" in {
 
-      implicit val request = FakeRequest("POST",
-          s"${controller.submitReviewSelectedClients(grpId)}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients(grpId)}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
 
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectGetGroupById(grpId, Some(accessGroup))
+      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
 
       val result = controller.submitReviewSelectedClients(grpId)(request)
 
@@ -709,16 +747,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients(grpId)}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients(grpId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectGetGroupById(grpId, Some(accessGroup))
+      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
 
       val result = controller.submitReviewSelectedClients(grpId)(request)
 
@@ -738,7 +774,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       expectAuthOkOptedInReady()
 
-      expectGetGroupById(grpId, Some(accessGroup))
+      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectDeleteSessionItem(SELECTED_CLIENTS)
 
@@ -763,7 +799,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     s"redirect to ${ctrlRoute.showSearchClientsToAdd(grpId)} when there are no selected clients" in {
 
       expectAuthOkOptedInReady()
-      expectGetGroupById(grpId, Some(accessGroup))
+      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
 
       expectGetSessionItemNone(SELECTED_CLIENTS)
 

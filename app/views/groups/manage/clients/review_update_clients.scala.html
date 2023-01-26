@@ -20,6 +20,7 @@
 @import views.components.models._
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+@import views.html.components.pagination.GET_pagination
 
 @this(
     layout: main_layout,
@@ -31,6 +32,7 @@
     checkbox: checkbox,
     radioButtons: radioButtons,
     formWithCSRF: FormWithCSRF,
+    GET_pagination: GET_pagination,
     summaryErrors: SummaryErrors
 )
 
@@ -38,7 +40,7 @@
     clients: Seq[DisplayClient],
     group: GroupSummary,
     form: Form[Boolean],
-    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
+    paginationMetaData: PaginationMetaData = PaginationMetaData(true,true,0,1,10,1,10)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -62,7 +64,7 @@
             @if(group.groupName != ""){
                 @caption(msgs("common.caption.group.name", group.groupName))
             }
-            @h1(msgs("group.clients.review.h1", clients.size))
+            @h1(msgs("group.clients.review.h1", paginationMetaData.totalSize))
         </div>
 
         @table(
@@ -76,6 +78,14 @@
             ),
             rows = tableRows,
         )
+
+        @if(paginationMetaData.totalPages > 1) {
+            @GET_pagination(
+                pagination = paginationMetaData,
+                baseUrl = controllers.routes.ManageGroupClientsController.showReviewSelectedClients(group.groupId, None, None),
+                additionalParams = form.data
+            )
+        }
 
         @formWithCSRF(action = routes.ManageGroupClientsController.submitReviewSelectedClients(group.groupId)) {
             @radioButtons(

@@ -30,7 +30,6 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients.search_clients
-import views.html.groups.manage._
 import views.html.groups.manage.clients._
 
 import javax.inject.{Inject, Singleton}
@@ -200,7 +199,7 @@ class ManageGroupClientsController @Inject()
                     // checks selected clients from session cache AFTER saving (removed de-selections)
                     if(nowSelectedClients.nonEmpty) {
                       sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
-                        Redirect(controller.showReviewSelectedClients(groupId))
+                        Redirect(controller.showReviewSelectedClients(groupId, None, None))
                       )
                     } else { // display empty error
                       for {
@@ -240,7 +239,7 @@ class ManageGroupClientsController @Inject()
               paginatedList.pageContent,
               summary,
               YesNoForm.form(),
-              Option(paginatedList.paginationMetaData)
+              paginatedList.paginationMetaData
             ))
           }.toFuture
       }
@@ -264,17 +263,17 @@ class ManageGroupClientsController @Inject()
                     paginatedList.pageContent,
                     summary,
                     formWithErrors,
-                    Option(paginatedList.paginationMetaData)
+                    paginatedList.paginationMetaData
                   )).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
                   else {
                     val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
-                    // TODO replace with AddMembersToAccessGroupRequest
+                    // TODO replace with AddMembersToAccessGroupRequest after APB-6886
                     val updateGroupRequest = UpdateAccessGroupRequest(clients = Some(toSave))
                     groupService.updateGroup(groupId, updateGroupRequest).map(_ =>
-                      Redirect(controller.showGroupClientsUpdatedConfirmation(groupId))
+                      Redirect(controller.showGroupClientsUpdatedConfirmation(groupId)) // update to controller.showExistingGroupClients(summary.groupId, None, None)
                     )
                   }
                 }
@@ -289,7 +288,7 @@ class ManageGroupClientsController @Inject()
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         if (selectedClients.isDefined) {
             sessionCacheService.delete(SELECTED_CLIENTS)
-              .map(_ => Ok(clients_update_complete(summary.groupName)))
+              .map(_ => Ok(clients_update_complete(summary)))
           }
           else Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
       }

@@ -26,7 +26,7 @@ import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import utils.ViewUtils
-import views.html.groups.create.groupType.{review_group_type, select_group_tax_type, select_group_type}
+import views.html.groups.create.groupType.{review_group_type, select_group_tax_type, select_group_type, exceed_group_selection}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -46,6 +46,7 @@ class CreateGroupSelectGroupTypeController @Inject()
   select_group_type: select_group_type,
   select_group_tax_type: select_group_tax_type,
   review_group_type: review_group_type,
+  exceed_group_selection: exceed_group_selection
 )(implicit val appConfig: AppConfig, ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
@@ -94,8 +95,13 @@ class CreateGroupSelectGroupTypeController @Inject()
 
   def showSelectTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
     withGroupTypeAndAuthorised { (_, arn) =>
+
       clientService.getAvailableTaxServiceClientCount(arn).map(info =>
-        Ok(select_group_tax_type(TaxServiceGroupTypeForm.form, info))
+
+        if(info.isEmpty)
+          Ok(exceed_group_selection())
+        else
+          Ok(select_group_tax_type(TaxServiceGroupTypeForm.form, info))
       )
     }
   }

@@ -19,6 +19,6 @@ package models
 case class AddClientsToGroup(
     search: Option[String] = None,
     filter: Option[String] = None,
-    clients: Option[List[String]] = None,
+    clients: Option[Seq[String]] = None,
     submit: String = ""
 )

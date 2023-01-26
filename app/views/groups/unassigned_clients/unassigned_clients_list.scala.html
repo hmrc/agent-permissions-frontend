@@ -18,6 +18,11 @@
 @import views.html.main_layout
 @import views.html.partials.selectable_clients_table_form
 @import views.html.partials.search_and_filter
+@import controllers.routes
+@import models.AddClientsToGroup
+@import views.html.partials.paginated_selectable_clients_table_form
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+
 
 @this(
     layout: main_layout,
@@ -27,12 +32,14 @@
     selectable_clients_table_form: selectable_clients_table_form,
     formWithCSRF: FormWithCSRF,
     search_and_filter: search_and_filter,
-    summaryErrors: SummaryErrors
+    summaryErrors: SummaryErrors,
+    paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
 )
 
 @(
     unassignedClients: Seq[DisplayClient],
     form: Form[AddClientsToGroup],
+    paginationMetaData: Option[PaginationMetaData]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @errorHref = @{
@@ -59,14 +66,11 @@ withSearchAndErrorPrefix(
 
     @summaryErrors(form.errors, Some(errorHref))
 
-    @if(!unassignedClients.isEmpty) {
-        @selectable_clients_table_form(unassignedClients, form,
-            routes.UnassignedClientController.submitAddUnassignedClients
-        )
+    @if(unassignedClients.nonEmpty) {
+        @paginated_selectable_clients_table_form(unassignedClients, form, routes.UnassignedClientController.submitAddUnassignedClients, paginationMetaData, showFilter = true)
     } else {
 
         @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
-
             @search_and_filter(form, true)
         }
 
@@ -76,3 +80,39 @@ withSearchAndErrorPrefix(
     }
 
 }
+
+    @*
+@(
+        clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
+groupName: String,
+form: Form[AddClientsToGroup],
+formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
+backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSearchClients.url),
+paginationMetaData: Option[PaginationMetaData] = None
+    )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+
+@errorHref = @{
+    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
+}
+
+@layout(
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+    backLinkHref = backUrl,
+    formErrors = Seq.empty,
+    fullWidth = true) {
+
+    @summaryErrors(form.errors, Some(errorHref))
+
+    <div class="govuk-!-width-two-thirds">
+        @caption(msgs("common.caption.group.name", groupName))
+        @h1(msgs("group.client.list.h1", groupName))
+        @p("group.client.list.p1")
+    </div>
+
+    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData)
+
+}
+
+
+*@

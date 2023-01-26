@@ -29,12 +29,12 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.{FakeRequest, Helpers}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
-class CreateGroupSelectClientsControllerSpec extends BaseSpec {
+class fCreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
@@ -42,6 +42,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
+  implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService] // TODO move to a 'real' (in-memory store) session cache service and you won't have to mock either SessionCacheService or SessionCacheServiceOperations!
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
   private val groupName = "XYZ"
@@ -55,12 +56,13 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       bind(classOf[ClientService]).toInstance(mockClientService)
       bind(classOf[GroupService]).toInstance(mockGroupService)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
+      bind(classOf[SessionCacheOperationsService]).toInstance(mockSessionCacheOps)
     }
   }
 
   override implicit lazy val fakeApplication: Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
-    
+
   val controller: CreateGroupSelectClientsController = fakeApplication.injector.instanceOf[CreateGroupSelectClientsController]
 
   val fakeClients: Seq[Client] = List.tabulate(25)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))

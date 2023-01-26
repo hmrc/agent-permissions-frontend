@@ -20,6 +20,7 @@
 @import views.html.main_layout
 @import views.html.helper.CSPNonce
 @import views.html.partials.clients_table_filter_form
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
     layout: main_layout,
@@ -30,12 +31,13 @@
 
 @(
     unassignedClients: Seq[DisplayClient],
-    filterForm: Form[SearchFilter]
+    filterForm: Form[SearchFilter],
+    paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
 @layout(
-    title = withSearchAndErrorPrefix(!filterForm.errors.isEmpty,
+    title = withSearchAndErrorPrefix(filterForm.errors.nonEmpty,
                                      msgs("assistant.clients.unassigned.h1"),
                                      filterForm("filter").value, filterForm("search").value),
     backLinkHref = Some(appConfig.agentServicesAccountYourAssistantAccountUrl),
@@ -47,17 +49,18 @@
         @p("assistant.clients.unassigned.p")
     </div>
 
-    @if(!unassignedClients.isEmpty) {
+    @if(unassignedClients.nonEmpty) {
         @clients_table_filter_form(
             Some(unassignedClients),
             filterForm,
-            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly
+            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly(),
+            paginationMetaData
         )
     } else {
         @clients_table_filter_form(
             None,
             filterForm,
-            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly
+            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly()
         )
     }
 

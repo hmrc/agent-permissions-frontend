@@ -23,27 +23,31 @@ import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.DisplayClient
 import org.jsoup.Jsoup
+import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{ClientService, GroupService, SessionCacheService}
+import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import services.{ClientService, GroupService, InMemorySessionCacheService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
-class UnassignedClientControllerSpec extends BaseSpec {
+class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
-  implicit val mockSessionService: SessionCacheService = mock[SessionCacheService]
+  implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
   implicit val mockClientService: ClientService = mock[ClientService]
 
   private val ctrlRoutes: ReverseUnassignedClientController = routes.UnassignedClientController
 
+  override def beforeEach(): Unit = {
+    mockSessionService.values.clear()
+  }
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -68,23 +72,20 @@ class UnassignedClientControllerSpec extends BaseSpec {
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
   val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
-    GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
+    GroupSummary(s"groupId$i", s"with none setname $i", Some(i * 3), i * 4))
 
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
 
-  s"GET ${ctrlRoutes.showUnassignedClients.url}" should {
+  s"GET ${ctrlRoutes.showUnassignedClients().url}" should {
 
     "render unassigned clients list" in {
       // given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
-      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
-      expectGetSessionItemNone(SELECTED_CLIENTS)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetUnassignedClients(arn)(displayClients)
       //when
-      val result = controller.showUnassignedClients(request)
+      val result = controller.showUnassignedClients()(request)
 
       //then
       status(result) shouldBe OK
@@ -94,9 +95,9 @@ class UnassignedClientControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Unassigned clients"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
-      val tr = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val tr = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
       tr.size() shouldBe 3
 
 
@@ -106,15 +107,12 @@ class UnassignedClientControllerSpec extends BaseSpec {
       // given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
-      expectGetSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-      expectGetSessionItemNone(SELECTED_CLIENTS)
-      expectGetUnassignedClients(arn)(displayClients)
-
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(CLIENT_SEARCH_INPUT, "friendly1"))
+      expectGetUnassignedClients(arn)(displayClients, search = Some("friendly1"))
 
       //when
-      val result = controller.showUnassignedClients(request)
+      val result = controller.showUnassignedClients()(request)
 
       //then
       status(result) shouldBe OK
@@ -123,23 +121,19 @@ class UnassignedClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for 'friendly1' Unassigned clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Unassigned clients"
 
-      html.select(H2).text() shouldBe "Filter results for 'friendly1'"
-
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
-      val tr = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val tr = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
       tr.size() shouldBe 1
 
       html.select("input#search").attr("value") shouldBe "friendly1"
-
-
     }
 
   }
 
   s"POST ${ctrlRoutes.submitAddUnassignedClients.url}" should {
 
-    s"save selected unassigned clients and redirect to ${ctrlRoutes.showSelectedUnassignedClients} " +
+    s"save selected unassigned clients and redirect to ${ctrlRoutes.showSelectedUnassignedClients()} " +
       s"when button is Continue and form is valid" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -155,18 +149,20 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectSaveSelectedOrFilteredClients(arn)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(CURRENT_PAGE_CLIENTS, displayClients))
 
       val result = controller.submitAddUnassignedClients()(request)
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe s"${ctrlRoutes.showSelectedUnassignedClients.url}"
+      redirectLocation(result).get shouldBe s"${ctrlRoutes.showSelectedUnassignedClients().url}"
 
+      // check that the selected clients have been added to the session cache value
+      await(mockSessionService.get(SELECTED_CLIENTS)).map(_.map(_.id)) shouldBe Some(List(displayClients.head.id, displayClients.last.id))
     }
 
-    s"""save selected unassigned clients and redirect to ${ctrlRoutes.showUnassignedClients}
+    s"""save selected unassigned clients and redirect to ${ctrlRoutes.showUnassignedClients()}
       when button is FILTER (i.e. not CONTINUE)""" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -175,22 +171,24 @@ class UnassignedClientControllerSpec extends BaseSpec {
             "clients[0]" -> displayClients.head.id,
             "clients[1]" -> displayClients.last.id,
             "search" -> "",
-            "filter" -> "VAT",
+            "filter" -> "HMRC-MTD-VAT",
             "submit" -> FILTER_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectSaveSelectedOrFilteredClients(arn)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(CURRENT_PAGE_CLIENTS, displayClients))
 
       val result = controller.submitAddUnassignedClients()(request)
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe s"${ctrlRoutes.showUnassignedClients.url}"
+      redirectLocation(result).get shouldBe s"${ctrlRoutes.showUnassignedClients().url}"
 
+      // check that the selected clients have been added to the session cache value
+      await(mockSessionService.get(SELECTED_CLIENTS)).map(_.map(_.id)) shouldBe Some(List(displayClients.head.id, displayClients.last.id))
     }
 
     "present page with errors when form validation fails" in {
@@ -207,7 +205,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetUnassignedClients(arn)(displayClients)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -216,39 +214,39 @@ class UnassignedClientControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${ctrlRoutes.showSelectedUnassignedClients.url}" should {
+  s"GET ${ctrlRoutes.showSelectedUnassignedClients().url}" should {
 
     "redirect if NO CLIENTS SELECTED are in session" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_CLIENTS)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.delete(SELECTED_CLIENTS))
       expectIsArnAllowed(allowed = true)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       //when
-      val result = controller.showSelectedUnassignedClients(request)
+      val result = controller.showSelectedUnassignedClients()(request)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoutes.showUnassignedClients.url
+      redirectLocation(result).get shouldBe ctrlRoutes.showUnassignedClients().url
     }
 
     "render html when there are groups" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
       //when
-      val result = controller.showSelectedUnassignedClients(request)
+      val result = controller.showSelectedUnassignedClients()(request)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 3 clients"
-      html.select(Css.tableWithId("sortable-table")).select("tbody tr").size() shouldBe 3
+      html.select(Css.tableWithId("selected-clients")).select("tbody tr").size() shouldBe 3
       //and the back link should go to the unassigned clients tab
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/unassigned-clients"
 
@@ -270,26 +268,27 @@ class UnassignedClientControllerSpec extends BaseSpec {
     "redirect if no selected clients in session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_CLIENTS) // <-- we are testing this
+      
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.delete(SELECTED_CLIENTS)) // <-- we are testing this
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoutes.showUnassignedClients.url)
+      redirectLocation(result) shouldBe Some(ctrlRoutes.showUnassignedClients().url)
     }
 
-    s"redirect if yes to ${ctrlRoutes.showUnassignedClients.url}" in {
+    s"redirect if yes to ${ctrlRoutes.showUnassignedClients().url}" in {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients.url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
@@ -298,7 +297,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoutes.showUnassignedClients.url)
+      redirectLocation(result) shouldBe Some(ctrlRoutes.showUnassignedClients().url)
     }
 
     s"redirect if no to ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients}" in {
@@ -308,11 +307,10 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
@@ -330,10 +328,11 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
 
 
       //when
@@ -361,7 +360,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupsForArn(arn)(groupSummaries)
@@ -375,7 +375,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Which access groups would you like to add the selected clients to? - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Which access groups would you like to add the selected clients to?"
       //and the back link should go to the unassigned clients tab
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients.url
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
 
       //checkboxes
 
@@ -412,7 +412,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
       //given
       val groupSummaries = Seq.empty
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupsForArn(arn)(groupSummaries)
@@ -427,7 +428,7 @@ class UnassignedClientControllerSpec extends BaseSpec {
       html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe pageHeading
       //and the back link should go to the unassigned clients tab
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients.url
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
 
       //checkboxes
 
@@ -449,7 +450,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("createNew" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
@@ -472,9 +474,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
         ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId)
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectPutSessionItem(GROUPS_FOR_UNASSIGNED_CLIENTS, Seq(expectedGroupAddedTo.groupName))
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupsForArn(arn)(groupSummaries)
@@ -501,7 +502,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupsForArn(arn)(groupSummaries)
@@ -531,7 +533,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("createNew" -> "true", "groups[0]" -> "12412312")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupsForArn(arn)(groupSummaries)
@@ -556,9 +559,8 @@ class UnassignedClientControllerSpec extends BaseSpec {
     "render correctly the select groups for unassigned clients page" in {
       //given
       val groups = Seq("South West", "London")
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(GROUPS_FOR_UNASSIGNED_CLIENTS, groups)
-      expectDeleteSessionItem(SELECTED_CLIENTS)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groups))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
@@ -578,13 +580,13 @@ class UnassignedClientControllerSpec extends BaseSpec {
       listItems.get(1).text shouldBe groups(1)
       //and the back link should not be present
       html.select(Css.backLink).size() shouldBe 0
-
+      await(mockSessionService.get(SELECTED_CLIENTS)) shouldBe None
     }
 
     "redirect when no group names in session" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(GROUPS_FOR_UNASSIGNED_CLIENTS)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.delete(GROUPS_FOR_UNASSIGNED_CLIENTS))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 

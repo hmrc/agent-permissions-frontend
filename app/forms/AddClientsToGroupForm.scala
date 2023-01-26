@@ -27,7 +27,7 @@ object AddClientsToGroupForm {
     mapping(
       "search" -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
       "filter" -> optional(text),
-      "clients" -> optional(list(text)),
+      "clients" -> optional(seq(text)),
       "submit" -> text
     )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
       .verifying("error.select-clients.empty", data => {

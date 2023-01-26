@@ -196,6 +196,30 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
+
+    "render error page if info is empty" in {
+
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+
+      implicit val request = FakeRequest("GET",
+        ctrlRoute.showSelectTaxServiceGroupType.url)
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectGetAvailableTaxServiceClientCount(arn)(List(0,0,0,0,0))
+
+      //when
+      val result = controller.showSelectTaxServiceGroupType()(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      //      println(html.select("main"))
+      html.title() should include( "All access groups have been created")
+      html.select(Css.H1).text() shouldBe "You have already created all the tax service access groups"
+      html.select(Css.linkStyledAsButton).text() shouldBe "Create custom access group"
+    }
+
   }
 
   "submitSelectTaxServiceGroupType" should {

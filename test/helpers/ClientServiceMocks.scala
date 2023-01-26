@@ -52,11 +52,12 @@ trait ClientServiceMocks extends MockFactory {
       "HMRC-CGT-PD" -> numberOfEachService(2),
       "HMRC-PPT-ORG" -> numberOfEachService(3),
       "HMRC-TERS" -> numberOfEachService(4)
-    )
+    ).filter { case (service, count) => count != 0 }
     (clientService
       .getAvailableTaxServiceClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful data).once()
+
   }
 
   def expectSaveSearch(arn: Arn)(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit clientService: ClientService): Unit =

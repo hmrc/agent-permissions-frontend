@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
-import helpers.Css.{H1, H2}
+import helpers.Css.H1
 import helpers.{BaseSpec, Css}
 import models.DisplayClient
 import org.jsoup.Jsoup
@@ -29,8 +29,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady, AccessGroupSummary => GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -96,17 +95,17 @@ class ManageClientControllerSpec extends BaseSpec {
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
   private val ctrlRoute: ReverseManageClientController = routes.ManageClientController
 
-  s"GET ${ctrlRoute.showAllClients.url}" should {
+  s"GET ${ctrlRoute.showClients(None).url}" should {
 
     "render the manage clients list with no query params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetAllClientsFromService(arn)(displayClients)
+      expectGetPageOfClients(arn, 1, 10)(displayClients)
 
       //when
-      val result = controller.showAllClients()(request)
+      val result = controller.showClients(None)(request)
 
       //then
       status(result) shouldBe OK
@@ -115,14 +114,14 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Manage clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("manage-clients-list")).select("thead th")
       th.size() shouldBe 4
       th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
       th.get(3).text() shouldBe "Actions"
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("manage-clients-list")).select("tbody tr")
 
       trs.size() shouldBe 3
 
@@ -136,17 +135,15 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetAllClientsFromService(arn)(displayClients)
+      expectGetPageOfClients(arn, 1, 10)(displayClients)
 
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showAllClients.url +
-          "?submit=filter&search=friendly1&filter="
-      )
+      val url = ctrlRoute.showClients(None).url + "?submit=filter&search=friendly1&filter="
+      implicit val requestWithQueryParams = FakeRequest(GET, url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showAllClients()(requestWithQueryParams)
+      val result = controller.showClients(Option(1))(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -154,10 +151,10 @@ class ManageClientControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Filter results for 'friendly1' Manage clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
-      html.select(H2).text() shouldBe "Filter results for 'friendly1'"
+      html.select("p#filter-results-info").text() shouldBe "Showing 1 to 3 of 40 clients with reference: ‘friendly1’"
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
-      trs.size() shouldBe 1
+      val trs = html.select(Css.tableWithId("manage-clients-list")).select("tbody tr")
+      trs.size() shouldBe 3
     }
 
     "render with filter that matches nothing" in {
@@ -165,7 +162,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetAllClientsFromService(arn)(displayClients)
+      expectGetPageOfClientsNone(arn)
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
@@ -177,16 +174,19 @@ class ManageClientControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showAllClients()(requestWithQueryParams)
+      val result = controller.showClients(Option(1))(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Agent services account - GOV.UK"
       html.select(Css.H1).text shouldBe "Manage clients"
-      html.select(H2).text shouldBe "No clients found"
+      html.select("p#filter-results-info").isEmpty
+      html.select("p#no-clients-found h2").text() shouldBe ""
+      html.select("p#no-clients-found p").text() shouldBe ""
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+
+      val trs = html.select(Css.tableWithId("manage-clients-list")).select("tbody tr")
       trs.size() shouldBe 0
     }
 
@@ -195,23 +195,20 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(true)
       expectOptInStatusOk(arn)(OptedInReady)
-      expectGetAllClientsFromService(arn)(displayClients)
+      expectGetPageOfClients(arn, 1, 10)(displayClients)
       
       //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showAllClients.url +
-          s"?submit=clear"
-      )
+      implicit val requestWithQueryParams = FakeRequest(
+        GET, ctrlRoute.showClients(None).url + s"?submit=clear")
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showAllClients()(requestWithQueryParams)
+      val result = controller.showClients(Option(1))(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get
-        .shouldBe(ctrlRoute.showAllClients.url)
+      redirectLocation(result).get shouldBe ctrlRoute.showClients(None).url + "?page=1"
     }
 
   }

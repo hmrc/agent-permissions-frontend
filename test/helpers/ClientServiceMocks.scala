@@ -113,6 +113,19 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful paginatedList)
   }
 
+  def expectGetPageOfClientsNone(arn: Arn, page: Int = 1, pageSize: Int = 10)
+                            (implicit clientService: ClientService): Unit = {
+    val paginatedList = PaginatedList(
+      pageContent = Seq.empty[DisplayClient],
+      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = false, 0, 0, 0, 0, 0)
+    )
+    (clientService
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)( _: Request[_], _: HeaderCarrier,
+        _: ExecutionContext))
+      .expects(arn, page, pageSize, *, *, *)
+      .returning(Future successful paginatedList)
+  }
+
   def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
                                  (implicit clientService: ClientService): Unit =
     (clientService

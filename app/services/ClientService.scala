@@ -38,7 +38,7 @@ trait ClientService {
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
   def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
-                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
 
   def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
@@ -56,7 +56,7 @@ trait ClientService {
 
   def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)(getClients: Arn => Future[Seq[DisplayClient]])
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
+                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
 
   def savePageOfClients(formData: AddClientsToGroup)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]]
@@ -65,7 +65,7 @@ trait ClientService {
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
   def getAvailableTaxServiceClientCount(arn: Arn)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
 
 }
 
@@ -102,7 +102,7 @@ class ClientServiceImpl @Inject()(
   }
 
   def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
-                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     if (searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty) {
       sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
     } else {
@@ -194,9 +194,9 @@ class ClientServiceImpl @Inject()(
   def savePageOfClients(formData: AddClientsToGroup)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 
-    val clientsInSession = for{
-      _ <- formData.search.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
-      _ <- formData.filter.fold(Future.successful(("","")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
+    val clientsInSession = for {
+      _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
+      _ <- formData.filter.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
       existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
       currentPageClients <- sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty))
       clientIdsToAdd = formData.clients.getOrElse(Seq.empty)
@@ -209,11 +209,11 @@ class ClientServiceImpl @Inject()(
         .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
     } yield (newSelectedClients)
-    clientsInSession.flatMap(_=>
-    formData.submit.trim match {
-      case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_=> clientsInSession)
-      case _ => clientsInSession
-    }
+    clientsInSession.flatMap(_ =>
+      formData.submit.trim match {
+        case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_ => clientsInSession)
+        case _ => clientsInSession
+      }
     )
 
   }
@@ -263,7 +263,7 @@ class ClientServiceImpl @Inject()(
   }
 
   def getAvailableTaxServiceClientCount(arn: Arn)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
     agentPermissionsConnector.getAvailableTaxServiceClientCount(arn)
   }
 

@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.{UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
+import connectors.UpdateTaxServiceGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.TeamMember.toAgentUser
@@ -26,7 +26,6 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary.convertTaxServiceGroup
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -61,7 +60,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   private val controller: ReverseManageTaxGroupTeamMembersController = routes.ManageTaxGroupTeamMembersController
 
   def showExistingGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxServiceAccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
       groupService.getTeamMembersFromGroup(group.arn)(convertedTeamMembers).map { members =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
@@ -71,7 +70,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
             existing_tax_group_team_members(
               paginatedMembers,
               SearchAndFilterForm.form(),
-              group = convertTaxServiceGroup(group),
+              group = GroupSummary.fromAccessGroup(group),
             )
           )
         ) {
@@ -85,14 +84,14 @@ class ManageTaxGroupTeamMembersController @Inject()(
               )
             val form = SearchAndFilterForm.form().fill(searchFilter)
             val paginatedMembers = paginationForMembers(members = filteredMembers, page = page.getOrElse(1))
-            Ok(existing_tax_group_team_members(paginatedMembers, form, convertTaxServiceGroup(group)))
+            Ok(existing_tax_group_team_members(paginatedMembers, form, GroupSummary.fromAccessGroup(group)))
         }
       }
     }
   }
 
   def showManageGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxServiceAccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
@@ -111,7 +110,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
         Ok(
           update_paginated_tax_group_team_members(
             result._1.pageContent,
-            convertTaxServiceGroup(group),
+            GroupSummary.fromAccessGroup(group),
             AddTeamMembersToGroupForm.form().fill(
               AddTeamMembersToGroup(search = teamMembersSearchTerm, members = None)
             ),
@@ -126,7 +125,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxServiceAccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
@@ -186,7 +185,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def showReviewSelectedTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxServiceAccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
@@ -194,7 +193,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
             Ok(
               review_update_tax_group_team_members(
                 paginationForMembers(members, 10, page.getOrElse(1)),
-                convertTaxServiceGroup(group),
+                GroupSummary.fromAccessGroup(group),
                 YesNoForm.form()
               )
             ).toFuture
@@ -205,7 +204,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxServiceAccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         maybeSelectedTeamMembers
           .fold(
@@ -219,7 +218,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
                   Ok(
                     review_update_tax_group_team_members(
                       paginationForMembers(members, 10, 1),
-                      convertTaxServiceGroup(group),
+                      GroupSummary.fromAccessGroup(group),
                       formWithErrors
                     )
                   ).toFuture
@@ -242,7 +241,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxServiceAccessGroup =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         sessionCacheService.delete(SELECTED_TEAM_MEMBERS).map(_ =>
           if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
@@ -252,7 +251,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
     }
   }
 
-  def agentUsersInGroupAsTeamMembers(group: TaxServiceAccessGroup): Seq[TeamMember] = {
+  def agentUsersInGroupAsTeamMembers(group: TaxGroup): Seq[TeamMember] = {
     group.teamMembers.map { maybeUsers: Set[AgentUser] =>
       maybeUsers.toSeq
         .map(UserDetails.fromAgentUser)

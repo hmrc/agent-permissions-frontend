@@ -26,7 +26,6 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary.convertCustomGroup
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -60,7 +59,7 @@ class ManageGroupTeamMembersController @Inject()(
   private val controller: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
   def showExistingGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
       groupService.getTeamMembersFromGroup(group.arn)(convertedTeamMembers).map { members =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
@@ -70,7 +69,7 @@ class ManageGroupTeamMembersController @Inject()(
             existing_custom_group_team_members(
               paginatedMembers,
               SearchAndFilterForm.form(),
-              convertCustomGroup(group),
+              GroupSummary.fromAccessGroup(group),
             )
           )
         ) {
@@ -84,14 +83,14 @@ class ManageGroupTeamMembersController @Inject()(
               )
             val form = SearchAndFilterForm.form().fill(searchFilter)
             val paginatedMembers = paginationForMembers(members = filteredMembers, page = page.getOrElse(1))
-            Ok(existing_custom_group_team_members(paginatedMembers, form, convertCustomGroup(group)))
+            Ok(existing_custom_group_team_members(paginatedMembers, form, GroupSummary.fromAccessGroup(group)))
         }
       }
     }
   }
 
   def showManageGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
@@ -110,7 +109,7 @@ class ManageGroupTeamMembersController @Inject()(
         Ok(
           update_paginated_team_members(
             result._1.pageContent,
-            convertCustomGroup(group),
+            GroupSummary.fromAccessGroup(group),
             AddTeamMembersToGroupForm.form().fill(
               AddTeamMembersToGroup(search = teamMembersSearchTerm, members = None)
             ),
@@ -125,7 +124,7 @@ class ManageGroupTeamMembersController @Inject()(
   }
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
@@ -185,7 +184,7 @@ class ManageGroupTeamMembersController @Inject()(
   }
 
   def showReviewSelectedTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
@@ -193,7 +192,7 @@ class ManageGroupTeamMembersController @Inject()(
             Ok(
               review_update_team_members(
                 paginationForMembers(members, 10, page.getOrElse(1)),
-                convertCustomGroup(group),
+                GroupSummary.fromAccessGroup(group),
                 YesNoForm.form()
               )
             ).toFuture
@@ -204,7 +203,7 @@ class ManageGroupTeamMembersController @Inject()(
   }
 
   def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         maybeSelectedTeamMembers
           .fold(
@@ -218,7 +217,7 @@ class ManageGroupTeamMembersController @Inject()(
                   Ok(
                     review_update_team_members(
                       paginationForMembers(members),
-                      convertCustomGroup(group),
+                      GroupSummary.fromAccessGroup(group),
                       formWithErrors
                     )
                   ).toFuture
@@ -241,7 +240,7 @@ class ManageGroupTeamMembersController @Inject()(
   }
 
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         sessionCacheService.delete(SELECTED_TEAM_MEMBERS).map(_ =>
           if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
@@ -251,7 +250,7 @@ class ManageGroupTeamMembersController @Inject()(
     }
   }
 
-  def agentUsersInGroupAsTeamMembers(group: AccessGroup): Seq[TeamMember] = {
+  def agentUsersInGroupAsTeamMembers(group: CustomGroup): Seq[TeamMember] = {
     group.teamMembers.map { maybeUsers: Set[AgentUser] =>
       maybeUsers.toSeq
         .map(UserDetails.fromAgentUser)

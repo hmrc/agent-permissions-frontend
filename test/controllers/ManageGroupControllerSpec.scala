@@ -31,7 +31,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, TaxServiceAccessGroup => TaxGroup, _}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -48,9 +48,9 @@ class ManageGroupControllerSpec extends BaseSpec {
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   val groupId = "xyz"
-  private val agentUser: AgentUser =
-    AgentUser(RandomStringUtils.random(5), "Rob the Agent")
-  val accessGroup: AccessGroup = AccessGroup(new ObjectId(),
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+
+  val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
                                 arn,
                                 "Bananas",
                                 LocalDate.of(2020, 3, 10).atStartOfDay(),
@@ -261,7 +261,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the rename groups page" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       //when
       val result = controller.showRenameGroup(groupId)(request)
@@ -362,7 +362,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
       expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -424,7 +424,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -496,7 +496,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -511,7 +511,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_RENAMED_FROM, "Previous Name")
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       //when
       val result = controller.showGroupRenamed(groupId)(request)
@@ -578,7 +578,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the DELETE group page" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       //when
       val result = controller.showDeleteGroup(groupId)(request)
@@ -606,7 +606,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthOkOptedInReady()
       expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
-      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.fromAccessGroup(accessGroup)))
       expectDeleteGroup(accessGroup._id.toString)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -631,7 +631,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the DASHBOARD group page when 'no' selected" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -663,7 +663,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       //when
       val result = controller.submitDeleteGroup(groupId)(request)

@@ -23,7 +23,7 @@ import org.scalamock.handlers.{CallHandler4, CallHandler6}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, PaginationMetaData, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, Arn, PaginationMetaData, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 
@@ -39,7 +39,7 @@ trait GroupServiceMocks extends MockFactory {
       .expects(arn, *, *, *)
       .returning(Future successful teamMembers).once()
 
-  def expectGetGroupById(id: String, maybeGroup: Option[AccessGroup])(
+  def expectGetGroupById(id: String, maybeGroup: Option[CustomGroup])(
     implicit groupService: GroupService): Unit =
     (groupService
       .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))

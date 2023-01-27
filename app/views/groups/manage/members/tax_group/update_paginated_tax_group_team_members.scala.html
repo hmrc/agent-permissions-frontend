@@ -19,8 +19,8 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.main_layout
 @import views.html.partials.paginated_selectable_team_members_table_form
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary
+@import uk.gov.hmrc.agentmtdidentifiers.model.CustomGroup
+@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 
 @this(
     layout: main_layout,
@@ -32,7 +32,7 @@
 
 @(
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
-    group: AccessGroupSummary,
+    group: GroupSummary,
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
     formAction: Call,

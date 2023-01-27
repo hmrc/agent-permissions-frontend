@@ -25,7 +25,7 @@ import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.mvc.Request
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, AgentUser, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
@@ -246,12 +246,12 @@ class GroupServiceSpec extends BaseSpec {
       //given
       val grpId = "grp1"
       val agentUser = AgentUser("agent1", "Bob Smith")
-      val expectedGroup = Some(AccessGroup(Arn("arn1"), "Bangers & Mash",
+      val expectedGroup = Some(CustomGroup(Arn("arn1"), "Bangers & Mash",
         LocalDateTime.MIN, LocalDateTime.MIN, agentUser, agentUser, None, None))
       expectGetGroupSuccess(grpId, expectedGroup)
 
       //when
-      val output: Option[AccessGroup] = await(service.getGroup(grpId))
+      val output: Option[CustomGroup] = await(service.getGroup(grpId))
 
       //then
       output shouldBe expectedGroup

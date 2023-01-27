@@ -24,7 +24,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, TaxServiceAccessGroup => TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, TaxGroup}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage.clients._
 
@@ -61,7 +61,7 @@ class ManageTaxGroupClientsController @Inject()
           })
           paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
         } yield Ok(existing_tax_group_clients(
-          group = GroupSummary.convertTaxServiceGroup(group),
+          group = GroupSummary.fromAccessGroup(group),
           groupClients = paginatedClients.pageContent,
           form = SearchAndFilterForm.form(), // TODO fill form when reloading page via pagination
           paginationMetaData = Some(paginatedClients.paginationMetaData)
@@ -77,7 +77,7 @@ class ManageTaxGroupClientsController @Inject()
             })
             paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
           } yield Ok(existing_tax_group_clients(
-            group = GroupSummary.convertTaxServiceGroup(group),
+            group = GroupSummary.fromAccessGroup(group),
             groupClients = paginatedClients.pageContent,
             form = SearchAndFilterForm.form().fill(searchFilter),
             paginationMetaData = Some(paginatedClients.paginationMetaData)

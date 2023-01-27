@@ -33,8 +33,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary.convertCustomGroup
-import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, _}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -55,7 +54,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
-  val accessGroup: AccessGroup = AccessGroup(new ObjectId(),
+  val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
                                 arn,
                                 "Bananas",
                                 LocalDate.of(2020, 3, 10).atStartOfDay(),
@@ -116,7 +115,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+      val summary = GroupSummary.fromAccessGroup(groupWithClients)
 
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -162,7 +161,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+      val summary = GroupSummary.fromAccessGroup(groupWithClients)
 
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -200,7 +199,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+      val summary = GroupSummary.fromAccessGroup(groupWithClients)
 
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -240,7 +239,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+      val summary = GroupSummary.fromAccessGroup(groupWithClients)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectDeleteSessionItems(clientFilteringKeys)
@@ -266,7 +265,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       val groupWithClients = accessGroup.copy(clients =
         Some(displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
-      val summary = AccessGroupSummary.convertCustomGroup(groupWithClients)
+      val summary = GroupSummary.fromAccessGroup(groupWithClients)
 
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -294,7 +293,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showSearchClientsToAdd(grpId).url}" should {
     "render the client search page" in {
-      val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
 
@@ -320,7 +319,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
 
     "render the client search page with inputs saved in session" in {
-      val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "Harry")
@@ -364,7 +363,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     //    }
 
     "save search terms and redirect" in {
-      val summary = AccessGroupSummary.convertCustomGroup(accessGroup)
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectSaveSearch(Some("Harry"), Some("HMRC-MTD-VAT"))
@@ -629,7 +628,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
 
       expectGetSessionItemNone(SELECTED_CLIENTS)
-      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       //when
       val result = controller.showReviewSelectedClients(grpId, None, None)(request)
@@ -645,7 +644,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectAuthOkOptedInReady()
 
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-        expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+        expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
         //when
         val result = controller.showReviewSelectedClients(grpId, None, None)(request)
@@ -672,7 +671,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectAuthOkOptedInReady()
 
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-        expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+        expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
         //when
         val result = controller.showReviewSelectedClients(grpId, Some(2), Some(1))(request)
@@ -713,7 +712,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetSessionItem(SELECTED_CLIENTS, Seq(displayClients.head, displayClients.last))
-      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
       expectUpdateGroup(grpId,
         UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name))))
       )
@@ -736,7 +735,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
 
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       val result = controller.submitReviewSelectedClients(grpId)(request)
 
@@ -754,7 +753,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       val result = controller.submitReviewSelectedClients(grpId)(request)
 
@@ -774,7 +773,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //given
       expectAuthOkOptedInReady()
 
-      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectDeleteSessionItem(SELECTED_CLIENTS)
 
@@ -799,7 +798,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     s"redirect to ${ctrlRoute.showSearchClientsToAdd(grpId)} when there are no selected clients" in {
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(grpId, Some(convertCustomGroup(accessGroup)))
+      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
 
       expectGetSessionItemNone(SELECTED_CLIENTS)
 

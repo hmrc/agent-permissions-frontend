@@ -50,7 +50,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
   val groupId = "xyz"
   private val agentUser: AgentUser = AgentUser(random(5), "Rob the Agent")
-  val taxGroup: TaxServiceAccessGroup = new TaxServiceAccessGroup(
+  val taxGroup: TaxGroup = new TaxGroup(
     new ObjectId(),
     arn,
     "Bananas",

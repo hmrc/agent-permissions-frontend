@@ -20,7 +20,7 @@ import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
 import play.api.Logging
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, TaxServiceAccessGroup => TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, TaxGroup}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}

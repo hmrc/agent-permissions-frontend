@@ -17,11 +17,11 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroup
+@import uk.gov.hmrc.agentmtdidentifiers.model.CustomGroup
 @import views.components.models.{LegendData, RadioData}
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
 @import views.html.components.pagination.GET_pagination
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary
+@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 
 
 @this(
@@ -36,7 +36,7 @@
 
 @(
     paginatedList: PaginatedList[TeamMember],
-    group: AccessGroupSummary,
+    group: GroupSummary,
     form: Form[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

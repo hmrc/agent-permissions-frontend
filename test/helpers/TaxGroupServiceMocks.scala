@@ -20,7 +20,7 @@ import akka.Done
 import connectors.{CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
 import org.scalamock.scalatest.MockFactory
 import services.TaxGroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, Arn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{TaxGroup, Arn}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -26,7 +26,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, _}
+import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, _}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients.search_clients
@@ -171,7 +171,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty

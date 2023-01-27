@@ -57,7 +57,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
-  val accessGroup: AccessGroup = AccessGroup(new ObjectId(),
+  val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
@@ -67,8 +67,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     None,
     None)
 
-  val taxGroup: TaxServiceAccessGroup
-    = TaxServiceAccessGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "HMRC-MTD-VAT", automaticUpdates = true, None)
+  val taxGroup: TaxGroup
+    = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "HMRC-MTD-VAT", automaticUpdates = true, None)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 

@@ -29,7 +29,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady, GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

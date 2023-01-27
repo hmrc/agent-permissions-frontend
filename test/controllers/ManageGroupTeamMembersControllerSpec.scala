@@ -48,7 +48,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   val groupId = "xyz"
   private val agentUser: AgentUser = AgentUser(random(5), "Rob the Agent")
-  val accessGroup: AccessGroup = AccessGroup(new ObjectId(),
+  val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),

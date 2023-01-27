@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{TaxServiceAccessGroup => TaxGroup, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{TaxGroup, GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage.manage_existing_groups
 import views.html.groups.manage.delete._
@@ -99,7 +99,7 @@ class ManageGroupController @Inject()(
 
   def showRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
-      Ok(rename_group(GroupNameForm.form().fill(group.groupName), GroupSummary.convertTaxServiceGroup(group), groupId, isCustom = false)).toFuture
+      Ok(rename_group(GroupNameForm.form().fill(group.groupName), GroupSummary.fromAccessGroup(group), groupId, isCustom = false)).toFuture
     }
   }
 
@@ -127,7 +127,7 @@ class ManageGroupController @Inject()(
         .form()
         .bindFromRequest
         .fold(
-          formWithErrors => Ok(rename_group(formWithErrors, GroupSummary.convertTaxServiceGroup(group), groupId, isCustom = false)).toFuture,
+          formWithErrors => Ok(rename_group(formWithErrors, GroupSummary.fromAccessGroup(group), groupId, isCustom = false)).toFuture,
           (newName: String) => {
             for {
               _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, group.groupName)
@@ -168,7 +168,7 @@ class ManageGroupController @Inject()(
 
   def showDeleteTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
-      Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), GroupSummary.convertTaxServiceGroup(group), isCustom = false)).toFuture
+      Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), GroupSummary.fromAccessGroup(group), isCustom = false)).toFuture
     }
   }
 
@@ -200,7 +200,7 @@ class ManageGroupController @Inject()(
         .bindFromRequest
         .fold(
           formWithErrors =>
-            Ok(confirm_delete_group(formWithErrors, GroupSummary.convertTaxServiceGroup(group))).toFuture,
+            Ok(confirm_delete_group(formWithErrors, GroupSummary.fromAccessGroup(group))).toFuture,
           (answer: Boolean) => {
             if (answer) {
               for {

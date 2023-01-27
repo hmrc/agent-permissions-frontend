@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, UpdateAccessGroupRequest}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, GroupSummary}
 import controllers._
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
@@ -36,7 +36,7 @@ trait GroupService {
 
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(groupId: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]]
+              (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[CustomGroup]]
 
   def getCustomSummary(groupId: String)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
@@ -89,7 +89,7 @@ class GroupServiceImpl @Inject()(
 
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[AccessGroup]] =
+              (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[CustomGroup]] =
     agentPermissionsConnector.getGroup(id)
 
   def getCustomSummary(id: String)

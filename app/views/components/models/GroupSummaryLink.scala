@@ -16,7 +16,7 @@
 
 package views.components.models
 
-/** provides terser data for AccessGroupSummary */
+/** provides terser data for GroupSummary */
 case class GroupSummaryLink(
     groupId: String,
     groupName: String,

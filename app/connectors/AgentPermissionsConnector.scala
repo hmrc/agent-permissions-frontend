@@ -25,7 +25,7 @@ import models.DisplayClient
 import play.api.Logging
 import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary, TaxServiceAccessGroup => TaxGroup, _}
+import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, TaxGroup, _}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -65,7 +65,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]]
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]]
 
   def getCustomSummary(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
@@ -283,14 +283,14 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AccessGroup]] = {
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
       http
         .GET[HttpResponse](url)
         .map { response =>
           response.status match {
-            case OK => response.json.asOpt[AccessGroup]
+            case OK => response.json.asOpt[CustomGroup]
             case NOT_FOUND =>
               logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
               None

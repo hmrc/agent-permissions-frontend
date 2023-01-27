@@ -18,7 +18,7 @@
 @import controllers.routes
 @import views.components.models.{LegendData, RadioData}
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.AccessGroupSummary
+@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 
 @this(
     layout: main_layout,
@@ -30,7 +30,7 @@
 
 @(
     form: Form[Boolean],
-    group: AccessGroupSummary,
+    group: GroupSummary,
     isCustom: Boolean = true
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

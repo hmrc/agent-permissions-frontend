@@ -16,7 +16,7 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary, PaginatedList}
+@import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, PaginatedList}
 @import views.components.models.{LegendData, RadioData}
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
@@ -34,7 +34,7 @@
 
 @(
     paginatedList: PaginatedList[TeamMember],
-    group: AccessGroupSummary,
+    group: GroupSummary,
     form: Form[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

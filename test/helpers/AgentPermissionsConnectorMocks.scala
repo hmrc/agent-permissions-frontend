@@ -22,8 +22,8 @@ import models.DisplayClient
 import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.BAD_REQUEST
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Arn, OptinStatus}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, AgentUser, Arn, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -115,7 +115,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .expects(arn, agentUser, *, *)
       .returning(Future successful groups)
 
-  def expectGetGroupSuccess(id: String, group: Option[AccessGroup])(
+  def expectGetGroupSuccess(id: String, group: Option[CustomGroup])(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))

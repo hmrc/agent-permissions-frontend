@@ -32,7 +32,7 @@ import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirec
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroupSummary => GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -80,8 +80,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
   private val agentUser: AgentUser =
     AgentUser(RandomStringUtils.random(5), "Rob the Agent")
 
-  val accessGroup: AccessGroup =
-    AccessGroup(new ObjectId(),
+  val accessGroup: CustomGroup =
+    CustomGroup(new ObjectId(),
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),

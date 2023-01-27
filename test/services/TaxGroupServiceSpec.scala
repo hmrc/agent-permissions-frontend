@@ -20,7 +20,7 @@ import akka.Done
 import connectors._
 import helpers.BaseSpec
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, TaxServiceAccessGroup => TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, TaxGroup}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime.MIN

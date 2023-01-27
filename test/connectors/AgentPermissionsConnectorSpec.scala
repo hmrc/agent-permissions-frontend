@@ -24,7 +24,7 @@ import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AccessGroup, AgentUser, Client, OptedInReady, PaginatedList, PaginationMetaData, AccessGroupSummary => GroupSummary, TaxServiceAccessGroup => TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, AgentUser, Client, OptedInReady, PaginatedList, PaginationMetaData, GroupSummary, TaxGroup}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
@@ -357,7 +357,7 @@ class AgentPermissionsConnectorSpec
       val groupId = 234234
       val agent = AgentUser("agentId", "Bob Builder")
       val accessGroup =
-        AccessGroup(arn,
+        CustomGroup(arn,
           "groupName",
           anyDate,
           anyDate,

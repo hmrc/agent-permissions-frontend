@@ -81,7 +81,7 @@ class AssistantViewOnlyController @Inject()(
   }
 
   def showExistingGroupClientsViewOnly(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAssistant(groupId) { group: AccessGroup =>
+    withGroupForAuthorisedOptedAssistant(groupId) { group: CustomGroup =>
       val displayGroup = DisplayGroup.fromAccessGroup(group)
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold(

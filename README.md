@@ -59,6 +59,7 @@ POST pagination is used when we want to persist selections/deselection between p
 It should then be listening on port 9452
 
     browse http://localhost:9401/agent-services-account/manage-account  
+    Note: This agent-services-account however the start of the journey for agent-permissions-frontend
 
 
 ### License

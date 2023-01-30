@@ -25,10 +25,10 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{TaxGroup, GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, GroupSummary, TaxGroup}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.manage.manage_existing_groups
 import views.html.groups.manage.delete._
+import views.html.groups.manage.manage_existing_groups
 import views.html.groups.manage.rename._
 
 import javax.inject.{Inject, Singleton}
@@ -92,7 +92,7 @@ class ManageGroupController @Inject()(
   }
 
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary, arn) =>
       Ok(rename_group(GroupNameForm.form().fill(summary.groupName), summary, groupId, isCustom = true)).toFuture
     }
   }
@@ -104,7 +104,7 @@ class ManageGroupController @Inject()(
   }
 
   def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       GroupNameForm
         .form()
         .bindFromRequest
@@ -161,7 +161,7 @@ class ManageGroupController @Inject()(
   }
 
   def showDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), summary)).toFuture
     }
   }
@@ -173,7 +173,7 @@ class ManageGroupController @Inject()(
   }
 
   def submitDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       YesNoForm
         .form("group.delete.select.error")
         .bindFromRequest

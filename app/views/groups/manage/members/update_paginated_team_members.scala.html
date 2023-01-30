@@ -15,12 +15,9 @@
  *@
 
 @import config.AppConfig
-@import controllers.routes
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, PaginationMetaData}
 @import views.html.main_layout
 @import views.html.partials.paginated_selectable_team_members_table_form
-@import uk.gov.hmrc.agentmtdidentifiers.model.CustomGroup
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 
 @this(
     layout: main_layout,
@@ -35,8 +32,6 @@
     group: GroupSummary,
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
-    formAction: Call,
-    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url),
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -51,9 +46,19 @@
             ("search").value)
 }
 
+@backUrl = @{
+    if(group.isTaxGroup())controllers.routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
+    else controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
+}
+
+@formAction = @{
+    if(group.isTaxGroup()) controllers.routes.ManageTaxGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId)
+    else controllers.routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId)
+}
+
 @layout(
     title = pageTitle,
-    backLinkHref = backUrl,
+    backLinkHref = Some(backUrl),
     formErrors = Seq.empty,
     fullWidth = true,
 ) {

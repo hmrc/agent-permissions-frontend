@@ -62,7 +62,7 @@ class ManageGroupClientsController @Inject()
 
   // custom clients
   def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold( // fresh page load or pagination reload
         groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20)).map({ paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
@@ -102,7 +102,7 @@ class ManageGroupClientsController @Inject()
 
   // add or remove for now...?
   def showSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           Ok(
@@ -119,7 +119,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def submitSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       SearchAndFilterForm
         .form()
         .bindFromRequest
@@ -228,7 +228,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
@@ -247,7 +247,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def submitReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold(
@@ -284,7 +284,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withSummaryForAuthorisedOptedAgent(groupId) { summary: GroupSummary =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         if (selectedClients.isDefined) {
             sessionCacheService.delete(SELECTED_CLIENTS)

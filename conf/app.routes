@@ -98,20 +98,12 @@ GET     /manage-custom-group/:groupId/update-clients/complete   controllers.Mana
 GET     /manage-tax-group/:groupId/clients     controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 
 # Manage groups - team members
-GET     /manage-tax-group/:groupId/team-members             controllers.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, page: Option[Int])
-GET     /manage-tax-group/:groupId/team-members/update      controllers.ManageTaxGroupTeamMembersController.showManageGroupTeamMembers(groupId: String, page: Option[Int])
-POST    /manage-tax-group/:groupId/team-members/update      controllers.ManageTaxGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String)
-GET     /manage-tax-group/:groupId/team-members/review      controllers.ManageTaxGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String, page: Option[Int])
-POST    /manage-tax-group/:groupId/team-members/review      controllers.ManageTaxGroupTeamMembersController.submitReviewSelectedTeamMembers(groupId: String)
-GET     /manage-tax-group/:groupId/team-members/confirm     controllers.ManageTaxGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
-
-GET     /manage-team-members/:groupId       controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, page: Option[Int])
-GET     /update-team-members/:groupId       controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: String, page: Option[Int])
-POST    /update-team-members/:groupId       controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String)
-GET     /team-members-selected/:groupId     controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String, page: Option[Int])
-POST    /team-members-selected/:groupId     controllers.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(groupId: String)
-GET     /team-members-updated/:groupId      controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String)
-
+GET     /manage-group/:groupType/:groupId/team-members             controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, groupType: String, page: Option[Int])
+GET     /manage-group/:groupType/:groupId/team-members/update      controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: String, groupType: String, page: Option[Int])
+POST    /manage-group/:groupType/:groupId/team-members/update      controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String, groupType: String )
+GET     /manage-group/:groupType/:groupId/team-members/review      controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String, groupType: String, page: Option[Int])
+POST    /manage-group/:groupType/:groupId/team-members/review      controllers.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(groupId: String, groupType: String)
+GET     /manage-group/:groupType/:groupId/team-members/confirm     controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: String, groupType: String)
 
 # UNASSIGNED CLIENTS
 GET     /unassigned-clients                                     controllers.UnassignedClientController.showUnassignedClients

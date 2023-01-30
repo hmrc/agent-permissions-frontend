@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
@@ -97,10 +97,10 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
   val teamMembers2: Seq[TeamMember] = userDetails2.map(TeamMember.fromUserDetails)
 
-  val controller: ManageTaxGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageTaxGroupTeamMembersController]
-  private val ctrlRoute: ReverseManageTaxGroupTeamMembersController = routes.ManageTaxGroupTeamMembersController
+  val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
+  private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  s"GET ${ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString,  "tax", None).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
@@ -111,7 +111,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString, "tax")(request)
 
       //then
       status(result) shouldBe OK
@@ -137,7 +137,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //given
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url +
+        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, "tax", None).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -150,7 +150,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString, "tax")(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -173,7 +173,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url + "?submit=filter&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, "tax", None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -184,7 +184,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString, "tax")(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -207,7 +207,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, "tax", None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -218,7 +218,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString, "tax")(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -238,7 +238,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, "tax", None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -249,15 +249,15 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(taxGroup._id.toString, "tax")(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString,  "tax", None).url)
     }
   }
 
-  s"GET ${ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, None).url}" should {
+  s"GET ${ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, "tax", None).url}" should {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
@@ -272,7 +272,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
 
       //when
-      val result = controller.showManageGroupTeamMembers(taxGroup._id.toString, None)(request)
+      val result = controller.showManageGroupTeamMembers(taxGroup._id.toString, "tax", None)(request)
 
       //then
       status(result) shouldBe OK
@@ -309,7 +309,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, membersInGroup)
 
       //when
-      val result = controller.showManageGroupTeamMembers(taxGroup._id.toString, None)(request)
+      val result = controller.showManageGroupTeamMembers(taxGroup._id.toString, "tax", None)(request)
 
       //then
       status(result) shouldBe OK
@@ -351,7 +351,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
 
       //when
-      val result = controller.showManageGroupTeamMembers(taxGroup._id.toString, None)(request)
+      val result = controller.showManageGroupTeamMembers(taxGroup._id.toString, "tax", None)(request)
 
       //then
       status(result) shouldBe OK
@@ -374,12 +374,12 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString).url}" should {
+  s"POST to ${ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString, "tax").url}" should {
 
-    s"successfully post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString, None).url}" in {
+    s"successfully post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString, "tax", None).url}" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString).url)
+        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString, "tax").url)
           .withFormUrlEncodedBody(
             "members[0]" -> teamMembers.head.id,
             "members[1]" -> teamMembers.last.id,
@@ -397,10 +397,10 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
 
-      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString, None)
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString,  "tax", None)
         .url
 
     }
@@ -408,7 +408,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     "display error when none selected and CONTINUE button pressed" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString).url)
+        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString, "tax").url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -424,7 +424,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetFilteredTeamMembersElseAll(arn)(teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -439,7 +439,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     "NOT display error when filter button is pushed with no search value" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString).url)
+        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString, "tax").url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -456,7 +456,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe SEE_OTHER
 
@@ -465,7 +465,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     s"go to next page when $PAGINATION_BUTTON is pushed" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString).url)
+        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString, "tax").url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -482,17 +482,17 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, Option(2)).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, "tax", Option(2)).url)
 
     }
 
-    s"redirect to ${ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, None).url} when the Filter is clicked " in {
+    s"redirect to ${ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, "tax", None).url} when the Filter is clicked " in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString).url)
+        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup._id.toString, "tax").url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "1",
@@ -509,14 +509,14 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString, "tax")(request)
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, None).url
+        ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString,  "tax", None).url
     }
   }
 
-  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString, None).url}" should {
+  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString,  "tax", None).url}" should {
 
 
     "redirect if no team members selected in session" in {
@@ -528,12 +528,12 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.showReviewSelectedTeamMembers(taxGroup._id.toString, "tax")(request)
 
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, None).url
+        ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString,  "tax", None).url
     }
 
     "render correctly the manage group REVIEW SELECTED page" in {
@@ -545,7 +545,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(taxGroup._id.toString, Option(1))(request)
+      val result = controller.showReviewSelectedTeamMembers(taxGroup._id.toString, "tax", Option(1))(request)
 
       //then
       status(result) shouldBe OK
@@ -563,7 +563,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       paginationListItems.get(0).text() shouldBe "1"
       paginationListItems.get(1).text() shouldBe "2"
       paginationListItems.get(1).select("a")
-        .attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString, Option(2)).url + "&pageSize=10"
+        .attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString, "tax", Option(2)).url + "&pageSize=10"
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected team members?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
@@ -578,12 +578,12 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitReviewSelectedTeamMembers(taxGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax").url}" should {
 
-    s"redirect to '${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString)}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString, "tax")}' page with answer 'false'" in {
 
       implicit val request = FakeRequest("POST",
-        s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)}")
+        s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")}")
         .withFormUrlEncodedBody("answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -594,18 +594,18 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
       expectUpdateTaxGroup(taxGroup._id.toString, UpdateTaxServiceGroupRequest(teamMembers = Some(agentUsers)))
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute
-        .showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString).url
+        .showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString, "tax").url
     }
 
-    s"redirect to '${ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, None)}'" +
+    s"redirect to '${ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString,  "tax", None)}'" +
       s" page with answer 'true'" in {
 
       implicit val request = FakeRequest("POST",
-        s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)}")
+        s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")}")
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -615,10 +615,10 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString,  "tax", None).url
     }
 
     s"render errors when no radio button selected" in {
@@ -626,7 +626,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)}")
+          s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -636,7 +636,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -647,12 +647,12 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url}' when no SELECTED_TEAM_MEMBERS in session" in {
+    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString,  "tax", None).url}' when no SELECTED_TEAM_MEMBERS in session" in {
 
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)}")
+          s"${controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -662,15 +662,15 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString)(request)
+      val result = controller.submitReviewSelectedTeamMembers(taxGroup._id.toString, "tax")(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(taxGroup._id.toString,  "tax", None).url)
 
     }
   }
 
-  s"GET ${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString, "tax").url}" should {
 
     "redirect if no team members selected in session" in {
       //given
@@ -682,12 +682,12 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
       //when
-      val result = controller.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString)(request)
+      val result = controller.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString, "tax")(request)
 
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString, None).url
+        ctrlRoute.showManageGroupTeamMembers(taxGroup._id.toString,  "tax", None).url
     }
 
     "render correctly the manage TEAM MEMBERS UPDATED page" in {
@@ -700,7 +700,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
       //when
-      val result = controller.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString)(request)
+      val result = controller.showGroupTeamMembersUpdatedConfirmation(taxGroup._id.toString, "tax")(request)
 
       //then
       status(result) shouldBe OK

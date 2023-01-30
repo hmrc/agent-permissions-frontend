@@ -32,7 +32,6 @@ import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirec
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

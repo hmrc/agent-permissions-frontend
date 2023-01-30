@@ -37,6 +37,8 @@
     group: GroupSummary
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@groupType = @{if(group.isTaxGroup()) "tax" else "custom"}
+
     @layout(
         title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.manage.members", group.groupName), None, form("search").value),
         backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url),
@@ -58,17 +60,13 @@
         @existing_members_table_filter_form(
             paginatedMembers.pageContent,
             form,
-            if(group.isTaxGroup()) routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None)
-            else routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None),
-
+            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None),
             Option(paginatedMembers.paginationMetaData)
         )
 
         @link_as_button(
             key = "group.selected.teamMembers.change",
-            href =
-                if(group.isTaxGroup()) routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url
-                else routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url,
+            href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, groupType, None).url,
             id = "update-team-members-button")
 
     } else {

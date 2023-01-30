@@ -23,9 +23,9 @@ import org.scalamock.handlers.{CallHandler4, CallHandler6}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, Arn, PaginationMetaData, GroupSummary}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, CustomGroup, GroupSummary, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,6 +52,7 @@ trait GroupServiceMocks extends MockFactory {
       .getCustomSummary(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful maybeSummary)
+      .once()
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService

@@ -155,7 +155,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-group/custom/groupId1/team-members"
 
       val backlink = html.select(backLink)
       backlink.size() shouldBe 1
@@ -247,7 +247,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for GroupName1"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-team-members/groupId1"
+        .attr("href") shouldBe "/agent-permissions/manage-group/custom/groupId1/team-members"
 
       val backlink = html.select(backLink)
       backlink.size() shouldBe 1

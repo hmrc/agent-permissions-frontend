@@ -22,7 +22,7 @@ import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, TaxGroup, GroupSummary, Arn}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import views.html.groups.manage.group_not_found
@@ -60,26 +60,52 @@ class GroupAction @Inject()
     }
   }
 
-  //TODO include tax summaries?
-  def withSummaryForAuthorisedOptedAgent(groupId: String)
-                                      (body: GroupSummary => Future[Result])
-                                      (implicit ec: ExecutionContext,
-                                       hc: HeaderCarrier,
-                                       request: MessagesRequest[AnyContent],
-                                       appConfig: AppConfig): Future[Result] = {
+  def withAccessGroupForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
+                                            (callback: (AccessGroup, Arn) => Future[Result])
+                                            (implicit ec: ExecutionContext, hc: HeaderCarrier,
+                                             request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getCustomSummary(groupId).flatMap(_.fold(groupNotFound)(body(_)))
+        if (isCustom) {
+          groupService
+            .getGroup(groupId)
+            .flatMap(_.fold(groupNotFound)(customGroup => callback(customGroup, arn)))
+        } else {
+          taxGroupService
+            .getGroup(groupId)
+            .flatMap(_.fold(groupNotFound)(taxGroup => callback(taxGroup, arn)))
+        }
       }
     }
   }
 
-  def withTaxGroupForAuthorisedOptedAgent(groupId: String)
-                                      (body: TaxGroup => Future[Result])
-                                      (implicit ec: ExecutionContext,
-                                       hc: HeaderCarrier,
-                                       request: MessagesRequest[AnyContent],
-                                       appConfig: AppConfig): Future[Result] = {
+  def withGroupSummaryForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
+                                             (callback: (GroupSummary, Arn) => Future[Result])
+                                             (implicit ec: ExecutionContext,
+                                              hc: HeaderCarrier,
+                                              request: MessagesRequest[AnyContent],
+                                              appConfig: AppConfig): Future[Result] = {
+    authAction.isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        if (isCustom) {
+          groupService
+            .getCustomSummary(groupId)
+            .flatMap(_.fold(groupNotFound)(callback(_, arn)))
+        } else {
+          taxGroupService
+            .getGroup(groupId)
+            .flatMap(_.fold(groupNotFound)(taxGroup => callback(GroupSummary.fromAccessGroup(taxGroup), arn)))
+        }
+      }
+    }
+  }
+
+  def withTaxGroupForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
+                                         (body: TaxGroup => Future[Result])
+                                         (implicit ec: ExecutionContext,
+                                          hc: HeaderCarrier,
+                                          request: MessagesRequest[AnyContent],
+                                          appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         taxGroupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
@@ -89,8 +115,8 @@ class GroupAction @Inject()
 
   @Deprecated // use withGroupTypeAndAuthorised for the new flow
   def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])
-                                                  (implicit ec: ExecutionContext, hc: HeaderCarrier,
-                                                   request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+                                          (implicit ec: ExecutionContext, hc: HeaderCarrier,
+                                           request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         maybeGroupName.fold(Redirect(controllers.routes.CreateGroupController.showGroupName).toFuture) {
@@ -113,17 +139,17 @@ class GroupAction @Inject()
   }
 
   def withGroupNameAndAuthorised(body: (String, String, Arn) => Future[Result])
-                                          (implicit ec: ExecutionContext, hc: HeaderCarrier,
-                                           request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+                                (implicit ec: ExecutionContext, hc: HeaderCarrier,
+                                 request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
         maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType).toFuture)(
           groupType =>
-        sessionAction.withSessionItem[String](GROUP_NAME) { maybeGroupName =>
-          maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
-            groupName => body(groupName, groupType, arn)
-          }
-        })
+            sessionAction.withSessionItem[String](GROUP_NAME) { maybeGroupName =>
+              maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
+                groupName => body(groupName, groupType, arn)
+              }
+            })
       }
     }
   }

@@ -58,13 +58,17 @@
         @existing_members_table_filter_form(
             paginatedMembers.pageContent,
             form,
-            routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None),
+            if(group.isTaxGroup()) routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None)
+            else routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None),
+
             Option(paginatedMembers.paginationMetaData)
         )
 
         @link_as_button(
             key = "group.selected.teamMembers.change",
-            href = routes.ManageTaxGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url,
+            href =
+                if(group.isTaxGroup()) routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url
+                else routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url,
             id = "update-team-members-button")
         
     } else {

@@ -29,27 +29,28 @@ import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
-import views.html.groups.manage.members.tax_group.{existing_tax_group_team_members, review_update_tax_group_team_members, update_paginated_tax_group_team_members}
-import views.html.groups.manage.members.team_members_update_complete
+import views.html.groups.manage.members.tax_group.{review_update_tax_group_team_members}
+import views.html.groups.manage.members.{existing_group_team_members, team_members_update_complete, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ManageTaxGroupTeamMembersController @Inject()(
-      groupAction: GroupAction,
-      sessionAction: SessionAction,
-      mcc: MessagesControllerComponents,
-      val sessionCacheService: SessionCacheService,
-      groupService: GroupService,
-      teamMemberService: TeamMemberService,
-      existing_tax_group_team_members: existing_tax_group_team_members,
-      team_members_list: team_members_list,
-      update_paginated_tax_group_team_members: update_paginated_tax_group_team_members,
-      review_update_tax_group_team_members: review_update_tax_group_team_members,
-      team_members_update_complete: team_members_update_complete,
-    )
-       (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+class ManageTaxGroupTeamMembersController @Inject()
+(
+   groupAction: GroupAction,
+   sessionAction: SessionAction,
+   mcc: MessagesControllerComponents,
+   val sessionCacheService: SessionCacheService,
+   groupService: GroupService,
+   teamMemberService: TeamMemberService,
+   existing_group_team_members: existing_group_team_members,
+   team_members_list: team_members_list,
+   update_paginated_team_members: update_paginated_team_members,
+   review_update_tax_group_team_members: review_update_tax_group_team_members,
+   team_members_update_complete: team_members_update_complete,
+ )
+ (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {
@@ -60,14 +61,15 @@ class ManageTaxGroupTeamMembersController @Inject()(
   private val controller: ReverseManageTaxGroupTeamMembersController = routes.ManageTaxGroupTeamMembersController
 
   def showExistingGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, false) { (group, arn) =>
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
-      groupService.getTeamMembersFromGroup(group.arn)(convertedTeamMembers).map { members =>
+      groupService
+        .getTeamMembersFromGroup(arn)(convertedTeamMembers).map { members =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
         val paginatedMembers = paginationForMembers(members = members, page = page.getOrElse(1))
         searchFilter.submit.fold( //i.e. fresh page load
           Ok(
-            existing_tax_group_team_members(
+            existing_group_team_members(
               paginatedMembers,
               SearchAndFilterForm.form(),
               group = GroupSummary.fromAccessGroup(group),
@@ -84,14 +86,19 @@ class ManageTaxGroupTeamMembersController @Inject()(
               )
             val form = SearchAndFilterForm.form().fill(searchFilter)
             val paginatedMembers = paginationForMembers(members = filteredMembers, page = page.getOrElse(1))
-            Ok(existing_tax_group_team_members(paginatedMembers, form, GroupSummary.fromAccessGroup(group)))
+            Ok(
+              existing_group_team_members(
+                paginatedMembers,
+                form,
+                GroupSummary.fromAccessGroup(group))
+            )
         }
       }
     }
   }
 
   def showManageGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, false) { (group, arn) =>
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
@@ -106,17 +113,15 @@ class ManageTaxGroupTeamMembersController @Inject()(
       } yield (pageMembersForArn: PaginatedList[TeamMember], maybeFilterTerm)
       result.map { result =>
         val teamMembersSearchTerm = result._2
-        val backUrl = controller.showExistingGroupTeamMembers(groupId, None)
+
         Ok(
-          update_paginated_tax_group_team_members(
+          update_paginated_team_members(
             result._1.pageContent,
             GroupSummary.fromAccessGroup(group),
             AddTeamMembersToGroupForm.form().fill(
               AddTeamMembersToGroup(search = teamMembersSearchTerm, members = None)
             ),
             msgKey = "update",
-            formAction = controller.submitManageGroupTeamMembers(groupId),
-            backUrl = backUrl,
             Option(result._1.paginationMetaData)
           )
         )
@@ -125,7 +130,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, false) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
@@ -185,7 +190,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def showReviewSelectedTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, false) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
           .fold(Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
@@ -204,7 +209,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, false) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         maybeSelectedTeamMembers
           .fold(
@@ -241,7 +246,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
   }
 
   def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, false) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         sessionCacheService.delete(SELECTED_TEAM_MEMBERS).map(_ =>
           if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
@@ -251,7 +256,7 @@ class ManageTaxGroupTeamMembersController @Inject()(
     }
   }
 
-  def agentUsersInGroupAsTeamMembers(group: TaxGroup): Seq[TeamMember] = {
+  def agentUsersInGroupAsTeamMembers(group: AccessGroup): Seq[TeamMember] = {
     group.teamMembers.map { maybeUsers: Set[AgentUser] =>
       maybeUsers.toSeq
         .map(UserDetails.fromAgentUser)

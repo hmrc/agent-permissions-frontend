@@ -23,9 +23,8 @@ import helpers.BaseSpec
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
-import play.api.mvc.Request
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, AgentUser, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime

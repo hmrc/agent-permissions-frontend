@@ -28,7 +28,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, OptedInReady, UserDetails, GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, GroupSummary, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -219,11 +219,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       linksToGroups.size() shouldBe 3
       linksToGroups.get(0).text() shouldBe "groupName"
       linksToGroups.get(0).attr("href") shouldBe
-        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(0).groupId,None).url
+        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(0).groupId, "custom", None).url
 
       linksToGroups.get(2).text() shouldBe "groupName2"
       linksToGroups.get(2).attr("href") shouldBe
-        controllers.routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(2).groupId,None).url
+        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(2).groupId, "tax", None).url
 
     }
   }

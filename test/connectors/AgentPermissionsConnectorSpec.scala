@@ -24,13 +24,12 @@ import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, AgentUser, Client, OptedInReady, PaginatedList, PaginationMetaData, GroupSummary, TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
-import java.time.LocalDateTime.MIN
 
 class AgentPermissionsConnectorSpec
   extends BaseSpec

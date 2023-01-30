@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.UpdateAccessGroupRequest
+import connectors.{UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.TeamMember.toAgentUser
@@ -37,19 +37,19 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class ManageGroupTeamMembersController @Inject()
 (
-    groupAction: GroupAction,
-    sessionAction: SessionAction,
-    mcc: MessagesControllerComponents,
-    val sessionCacheService: SessionCacheService,
-    groupService: GroupService,
-    teamMemberService: TeamMemberService,
-    existing_group_team_members: existing_group_team_members,
-    team_members_list: team_members_list,
-    update_paginated_team_members: update_paginated_team_members,
-    review_update_team_members: review_update_team_members,
-    team_members_update_complete: team_members_update_complete,
-  )
-  (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+  groupAction: GroupAction,
+  sessionAction: SessionAction,
+  mcc: MessagesControllerComponents,
+  val sessionCacheService: SessionCacheService,
+  groupService: GroupService,
+  teamMemberService: TeamMemberService,
+  existing_group_team_members: existing_group_team_members,
+  team_members_list: team_members_list,
+  update_paginated_team_members: update_paginated_team_members,
+  review_update_team_members: review_update_team_members,
+  team_members_update_complete: team_members_update_complete,
+)
+(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {
@@ -59,8 +59,10 @@ class ManageGroupTeamMembersController @Inject()
 
   private val controller: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  def showExistingGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withAccessGroupForAuthorisedOptedAgent(groupId) { (group, arn) =>
+  def isCustom(groupType: String): Boolean = "custom".equalsIgnoreCase(groupType)
+
+  def showExistingGroupTeamMembers(groupId: String, groupType: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
       groupService
         .getTeamMembersFromGroup(arn)(convertedTeamMembers).map { members =>
@@ -76,7 +78,7 @@ class ManageGroupTeamMembersController @Inject()
           )
         ) {
           case CLEAR_BUTTON =>
-            Redirect(controller.showExistingGroupTeamMembers(groupId, page))
+            Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, page))
           case FILTER_BUTTON =>
             val lowerCaseSearchTerm = searchFilter.search.getOrElse("").toLowerCase
             val filteredMembers = members
@@ -91,8 +93,8 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def showManageGroupTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withAccessGroupForAuthorisedOptedAgent(groupId) { (group, _) =>
+  def showManageGroupTeamMembers(groupId: String, groupType: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
         selectedTeamMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
@@ -122,8 +124,8 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def submitManageGroupTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withAccessGroupForAuthorisedOptedAgent(groupId) { (group, _) =>
+  def submitManageGroupTeamMembers(groupId: String, groupType: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
         AddTeamMembersToGroupForm
@@ -131,15 +133,18 @@ class ManageGroupTeamMembersController @Inject()
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              teamMemberService.getFilteredTeamMembersElseAll(group.arn).map {
+              teamMemberService
+                .getFilteredTeamMembersElseAll(arn).map {
                 maybeTeamMembers =>
-                  Ok(team_members_list(
-                    maybeTeamMembers,
-                    group.groupName,
-                    formWithErrors,
-                    formAction = controller.submitManageGroupTeamMembers(groupId),
-                    backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url)
-                  ))
+                  Ok(
+                    team_members_list(
+                      maybeTeamMembers,
+                      group.groupName,
+                      formWithErrors,
+                      formAction = controller.submitManageGroupTeamMembers(groupId, groupType),
+                      backUrl = Some(controller.showExistingGroupTeamMembers(groupId, groupType, None).url)
+                    )
+                  )
               }
             },
             formData => {
@@ -154,27 +159,27 @@ class ManageGroupTeamMembersController @Inject()
 
                   hasSelected.flatMap(selectedNotEmpty => {
                     if (selectedNotEmpty) {
-                      Redirect(controller.showReviewSelectedTeamMembers(groupId, None)).toFuture
+                      Redirect(controller.showReviewSelectedTeamMembers(groupId, groupType, None)).toFuture
                     } else { // render page with empty error
                       for {
-                        teamMembers <- teamMemberService.getAllTeamMembers(group.arn)
+                        teamMembers <- teamMemberService.getAllTeamMembers(arn)
                       } yield
                         Ok(
                           team_members_list(
                             teamMembers,
                             group.groupName,
                             AddTeamMembersToGroupForm.form().withError("members", "error.select-members.empty"),
-                            formAction = controller.submitManageGroupTeamMembers(groupId),
-                            backUrl = Some(controller.showExistingGroupTeamMembers(groupId, None).url),
+                            formAction = controller.submitManageGroupTeamMembers(groupId, groupType),
+                            backUrl = Some(controller.showExistingGroupTeamMembers(groupId, groupType, None).url),
                           )
                         )
                     }
                   })
                 } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                   val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                  Redirect(controller.showManageGroupTeamMembers(groupId, Option(pageToShow))).toFuture
+                  Redirect(controller.showManageGroupTeamMembers(groupId, groupType, Option(pageToShow))).toFuture
                 }
-                else Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
+                else Redirect(controller.showManageGroupTeamMembers(groupId, groupType, None)).toFuture
               )
             }
           )
@@ -182,16 +187,16 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def showReviewSelectedTeamMembers(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withAccessGroupForAuthorisedOptedAgent(groupId) { (group, _) =>
+  def showReviewSelectedTeamMembers(groupId: String, groupType: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
-          .fold(Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
+          .fold(Redirect(controller.showManageGroupTeamMembers(groupId, groupType, None)).toFuture
           )(members => {
             Ok(
               review_update_team_members(
                 paginationForMembers(members, 10, page.getOrElse(1)),
-                GroupSummary.fromAccessGroup(group),
+                group,
                 YesNoForm.form()
               )
             ).toFuture
@@ -201,12 +206,12 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def submitReviewSelectedTeamMembers(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withAccessGroupForAuthorisedOptedAgent(groupId) { (group, _) =>
+  def submitReviewSelectedTeamMembers(groupId: String, groupType: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         maybeSelectedTeamMembers
           .fold(
-            Redirect(controller.showExistingGroupTeamMembers(groupId, None)).toFuture
+            Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)).toFuture
           ) { members => {
             YesNoForm
               .form("group.teamMembers.review.error")
@@ -216,19 +221,26 @@ class ManageGroupTeamMembersController @Inject()
                   Ok(
                     review_update_team_members(
                       paginationForMembers(members),
-                      GroupSummary.fromAccessGroup(group),
+                      group,
                       formWithErrors
                     )
                   ).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
-                    Redirect(controller.showManageGroupTeamMembers(group._id.toString, None)).toFuture
+                    Redirect(controller.showManageGroupTeamMembers(group.groupId, groupType, None)).toFuture
                   else {
                     val selectedMembers = Some(members.map(tm => toAgentUser(tm)).toSet)
-                    val groupRequest = UpdateAccessGroupRequest(teamMembers = selectedMembers)
-                    groupService.updateGroup(groupId, groupRequest).map(_ =>
-                      Redirect(controller.showGroupTeamMembersUpdatedConfirmation(groupId))
-                    )
+                    if (group.isTaxGroup()) {
+                      val groupRequest = UpdateTaxServiceGroupRequest(teamMembers = selectedMembers)
+                      taxGroupService.updateGroup(groupId, groupRequest).map(_ =>
+                        Redirect(controller.showGroupTeamMembersUpdatedConfirmation(groupId, groupType))
+                      )
+                    } else {
+                      val groupRequest = UpdateAccessGroupRequest(teamMembers = selectedMembers)
+                      groupService.updateGroup(groupId, groupRequest).map(_ =>
+                        Redirect(controller.showGroupTeamMembersUpdatedConfirmation(groupId, groupType))
+                      )
+                    }
                   }
                 }
               )
@@ -238,12 +250,14 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def showGroupTeamMembersUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withAccessGroupForAuthorisedOptedAgent(groupId) { (group, _) =>
+  def showGroupTeamMembersUpdatedConfirmation(groupId: String, groupType: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
         sessionCacheService.delete(SELECTED_TEAM_MEMBERS).map(_ =>
-          if (selectedTeamMembers.isDefined) Ok(team_members_update_complete(group.groupName))
-          else Redirect(controller.showManageGroupTeamMembers(groupId, None))
+          if (selectedTeamMembers.isDefined)
+            Ok(team_members_update_complete(group.groupName))
+          else
+            Redirect(controller.showManageGroupTeamMembers(groupId, groupType, None))
         )
       }
     }

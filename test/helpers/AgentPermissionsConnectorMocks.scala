@@ -22,8 +22,7 @@ import models.DisplayClient
 import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.BAD_REQUEST
-import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, AgentUser, Arn, OptinStatus}
-import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}

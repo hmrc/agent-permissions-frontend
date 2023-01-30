@@ -23,6 +23,7 @@
 
 @(teamMember: TeamMember, teamMemberGroups: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+
     @roleText = @{
         val role = teamMember.credentialRole.getOrElse("")
         if(role == "Admin" || role == "User") {
@@ -65,11 +66,8 @@
                     @p("common.details.not-assigned")
                 } else {
                     @ul_html(items = teamMemberGroups.map{ group =>
-                        if(group.taxService.isEmpty){
-                            a(group.groupName, href = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url)
-                        }else{
-                            a(group.groupName, href = routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url)
-                        }
+                        val groupType = if (group.isTaxGroup()) "tax" else "custom"
+                        a(group.groupName, href = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None).url)
                     })
                 }
                 @a("common.details.assign-to-group",

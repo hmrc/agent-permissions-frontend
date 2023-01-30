@@ -46,19 +46,12 @@
             ("search").value)
 }
 
-@backUrl = @{
-    if(group.isTaxGroup())controllers.routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
-    else controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
-}
+@groupType = @{if(group.isTaxGroup()) "tax" else "custom"}
 
-@formAction = @{
-    if(group.isTaxGroup()) controllers.routes.ManageTaxGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId)
-    else controllers.routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId)
-}
 
 @layout(
     title = pageTitle,
-    backLinkHref = Some(backUrl),
+    backLinkHref = Some(controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None).url),
     formErrors = Seq.empty,
     fullWidth = true,
 ) {
@@ -71,7 +64,12 @@
         @p(s"group.${msgKey}.members.list.p1")
     </div>
 
-    @paginated_selectable_team_members_table_form(teamMembers, form, formAction, paginationMetaData)
+    @paginated_selectable_team_members_table_form(
+        teamMembers,
+        form,
+        controllers.routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId, groupType),
+        paginationMetaData
+    )
 
 }
 

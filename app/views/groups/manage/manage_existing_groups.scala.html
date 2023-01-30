@@ -100,9 +100,9 @@
                         "common.teamMembers",
                         summary.teamMemberCount.toString,
                         if(summary.taxService.isDefined){
-                            routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, None)
+                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, "tax", None)
                         }else{
-                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, None)
+                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, "custom", None)
                         },
                         linkMsgKey = "group.manage.members",
                         linkClasses = Some("govuk-!-width-one-half"),

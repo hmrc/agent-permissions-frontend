@@ -48,30 +48,12 @@
         )
     }
 
-    @backUrl = @{
-        if(group.isTaxGroup())
-            routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
-        else
-            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
-    }
+    @groupType = @{if(group.isTaxGroup()) "tax" else "custom"}
 
-    @formAction = @{
-        if(group.isTaxGroup())
-            controllers.routes.ManageTaxGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId)
-        else
-            routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId)
-    }
-
-    @paginationUrl = @{
-        if(group.isTaxGroup())
-            controllers.routes.ManageTaxGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, None)
-        else
-            controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, None)
-    }
 
     @layout(
         title = msgs("group.teamMembers.review.title", group.groupName),
-        backLinkHref = Option(backUrl),
+        backLinkHref = Option(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None).url),
         fullWidth = true,
         formErrors = form.errors
     ) {
@@ -100,7 +82,7 @@
         @if(paginatedList.paginationMetaData.totalPages > 1) {
             @GET_pagination(
                 pagination = paginatedList.paginationMetaData,
-                baseUrl = paginationUrl,
+                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, groupType, None),
                 additionalParams = form.data
             )
         }
@@ -112,7 +94,7 @@
         </div>
     }
 
-    @formWithCSRF(action = formAction) {
+    @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId, groupType)) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

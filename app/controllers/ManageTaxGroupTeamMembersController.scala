@@ -29,8 +29,7 @@ import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
-import views.html.groups.manage.members.tax_group.{review_update_tax_group_team_members}
-import views.html.groups.manage.members.{existing_group_team_members, team_members_update_complete, update_paginated_team_members}
+import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, team_members_update_complete, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -47,7 +46,7 @@ class ManageTaxGroupTeamMembersController @Inject()
    existing_group_team_members: existing_group_team_members,
    team_members_list: team_members_list,
    update_paginated_team_members: update_paginated_team_members,
-   review_update_tax_group_team_members: review_update_tax_group_team_members,
+   review_update_team_members: review_update_team_members,
    team_members_update_complete: team_members_update_complete,
  )
  (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
@@ -196,7 +195,7 @@ class ManageTaxGroupTeamMembersController @Inject()
           .fold(Redirect(controller.showManageGroupTeamMembers(groupId, None)).toFuture
           )(members => {
             Ok(
-              review_update_tax_group_team_members(
+              review_update_team_members(
                 paginationForMembers(members, 10, page.getOrElse(1)),
                 GroupSummary.fromAccessGroup(group),
                 YesNoForm.form()
@@ -221,7 +220,7 @@ class ManageTaxGroupTeamMembersController @Inject()
               .fold(
                 formWithErrors => {
                   Ok(
-                    review_update_tax_group_team_members(
+                    review_update_team_members(
                       paginationForMembers(members, 10, 1),
                       GroupSummary.fromAccessGroup(group),
                       formWithErrors

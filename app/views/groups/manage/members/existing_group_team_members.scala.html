@@ -28,7 +28,7 @@
     submit_button: submit_button,
     textbox: textbox, checkbox: checkbox,
     search_and_filter: search_and_filter,
-        existing_members_table_filter_form: existing_members_table_filter_form
+    existing_members_table_filter_form: existing_members_table_filter_form
 )
 
 @(
@@ -70,7 +70,7 @@
                 if(group.isTaxGroup()) routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url
                 else routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, None).url,
             id = "update-team-members-button")
-        
+
     } else {
         <div id="members">
             @h2("team-members.not-found.heading")

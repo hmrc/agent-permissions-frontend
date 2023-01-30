@@ -48,9 +48,30 @@
         )
     }
 
+    @backUrl = @{
+        if(group.isTaxGroup())
+            routes.ManageTaxGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
+        else
+            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, None).url
+    }
+
+    @formAction = @{
+        if(group.isTaxGroup())
+            controllers.routes.ManageTaxGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId)
+        else
+            routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId)
+    }
+
+    @paginationUrl = @{
+        if(group.isTaxGroup())
+            controllers.routes.ManageTaxGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, None)
+        else
+            controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, None)
+    }
+
     @layout(
         title = msgs("group.teamMembers.review.title", group.groupName),
-        backLinkHref = Some(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId.toString, None).url),
+        backLinkHref = Option(backUrl),
         fullWidth = true,
         formErrors = form.errors
     ) {
@@ -79,7 +100,7 @@
         @if(paginatedList.paginationMetaData.totalPages > 1) {
             @GET_pagination(
                 pagination = paginatedList.paginationMetaData,
-                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId.toString, None),
+                baseUrl = paginationUrl,
                 additionalParams = form.data
             )
         }
@@ -91,7 +112,7 @@
         </div>
     }
 
-    @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId.toString)) {
+    @formWithCSRF(action = formAction) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

@@ -129,9 +129,10 @@ group.tax-service.answer.label=Add new clients to this access group automaticall
 group.tax-service.answer.hint=If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service.
 group.tax-service.select.error=Select the tax type for this access group
 
-group.tax-service.review.h1=All “{0}” clients have been selected
+
+group.tax-service.review.h1=You have selected all “{0}” clients
 group.tax-service.review.legend=Continue with selected clients?
-group.tax-service.review.yes=Yes, continue to adding team members
+group.tax-service.review.yes.2=Yes, continue to naming group
 group.tax-service.review.no=No, start again
 group.tax-service.review.error=Select yes if you would like to create a group of this type
 

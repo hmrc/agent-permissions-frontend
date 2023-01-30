@@ -295,7 +295,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "All “Capital Gains Tax on UK Property account” clients have been selected - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "All “Capital Gains Tax on UK Property account” clients have been selected"
+      html.select(Css.H1).text() shouldBe "You have selected all “Capital Gains Tax on UK Property account” clients"
 
       val form = html.select("form")
       form.attr("method") shouldBe "POST"
@@ -303,7 +303,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       form.select(Css.legend).text() shouldBe "Continue with selected clients?"
 
       val radios = html.select(Css.radioButtonsField("answer-radios"))
-      radios.select("label[for=answer]").text() shouldBe "Yes, continue to adding team members"
+      radios.select("label[for=answer]").text() shouldBe "Yes, continue to naming group"
       radios.select("label[for=answer-no]").text() shouldBe "No, start again"
 
       html.select(Css.submitButton).text() shouldBe "Save and continue"
@@ -330,7 +330,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Error: All “VAT” clients have been selected - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "All “VAT” clients have been selected"
+      html.select(Css.H1).text() shouldBe "You have selected all “VAT” clients"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you would like to create a group of this type"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you would like to create a group of this type"
      }

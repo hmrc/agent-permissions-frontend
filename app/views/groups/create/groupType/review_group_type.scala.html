@@ -30,11 +30,11 @@
 @(form: Form[Boolean], taxServiceGroupType: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("group.tax-service.review.h2", displayTaxServiceFromServiceKey(taxServiceGroupType)),
+    title = msgs("group.tax-service.review.h1", displayTaxServiceFromServiceKey(taxServiceGroupType)),
     formErrors = form.errors,
     backLinkHref = Some(routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType.url)
 ) {
-    @h1(msgs("group.tax-service.review.h2", displayTaxServiceFromServiceKey(taxServiceGroupType)))
+    @h1(msgs("group.tax-service.review.h1", displayTaxServiceFromServiceKey(taxServiceGroupType)))
 
     @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType) {
 

@@ -278,8 +278,9 @@ error.group.filter.required=You must enter a group name or part of it
 error.group.filter.invalid=Group name must not include the characters < or >
 group-name-filter.text.label=Filter by group name
 
-client.select.groups.h1=Which access groups would you like to add {0} to?
+client.select.groups.h1=Which custom access groups would you like to add {0} to?
 client.select.groups.p1=Client is currently in these access groups:
+client.select.groups.hint=You can only add clients to custom groups manually. Select all that apply.
 client.select.groups.none=Client is currently not in any access groups
 error.client.select.groups.empty=You must select at least one group
 client.select.groups.none.h1=There are no available groups to add {0} to

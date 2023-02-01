@@ -270,6 +270,7 @@ group-name-filter.text.label=Hidlo yn ôl enw’r grŵp
 
 client.select.groups.h1=At ba grwpiau mynediad yr ydych am ychwanegu {0}?
 client.select.groups.p1=Mae’r cleient yn aelod o’r grwpiau mynediad hyn ar hyn o bryd:
+client.select.groups.hint=You can only add clients to custom groups manually. Select all that apply.
 client.select.groups.none=Nid yw'r cleient mewn unrhyw grwpiau mynediad ar hyn o bryd
 error.client.select.groups.empty=Mae’n rhaid i chi ddewis o leiaf un grŵp
 client.select.groups.none.h1=Does dim grwpiau ar gael i ychwanegu {0} atynt

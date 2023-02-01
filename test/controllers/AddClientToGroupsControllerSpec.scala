@@ -64,6 +64,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
   private val client: DisplayClient = displayClients.head
   private val ctrlRoute: ReverseAddClientToGroupsController = routes.AddClientToGroupsController
+  private val submitUrl: String = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id).url
 
   def AuthOkWithClient(client: DisplayClient = client): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -88,8 +89,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.title() shouldBe "Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently in these access groups:"
       html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group 1"
       html.select(Css.li("already-in-groups")).get(1).text() shouldBe "Group 2"
@@ -99,6 +100,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val fieldset = form.select("fieldset.govuk-fieldset")
       fieldset.isEmpty shouldBe false // <-- fieldset needed for a11y
 
+      html.select("#groups-hint").text() shouldBe "You can only add clients to custom groups manually. Select all that apply."
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
       checkboxes size() shouldBe 3
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
@@ -126,8 +128,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.title() shouldBe "Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently not in any access groups"
       html.select(Css.li("already-in-groups")).isEmpty shouldBe true
       val form = html.select(Css.form)
@@ -172,8 +174,6 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
 
   }
-
-  private val submitUrl: String = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id).url
 
   s"POST to $submitUrl" should {
 
@@ -233,8 +233,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.title() shouldBe "Error: Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
       //a11y: error should link to first group in the checkboxes
       html.select(Css.errorSummaryForField("groupId3")).text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"

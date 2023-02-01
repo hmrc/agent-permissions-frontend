@@ -80,6 +80,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     expectLookupTeamMember(arn)(teamMember)
   }
 
+  private val submitUrl: String = ctrlRoute.submitSelectGroupsForTeamMember(teamMember.id).url
+
   s"GET ${ctrlRoute.showSelectGroupsForTeamMember(teamMember.id).url}" should {
 
     "render correctly the html" in {
@@ -109,6 +111,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val fieldset = form.select("fieldset.govuk-fieldset")
       fieldset.isEmpty shouldBe false // <-- fieldset needed for a11y
 
+      html.select("#groups-hint").text() shouldBe "Select all that apply"
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
       checkboxes size() shouldBe 3
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
@@ -188,8 +191,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
 
   }
-
-  private val submitUrl: String = ctrlRoute.submitSelectGroupsForTeamMember(teamMember.id).url
 
   s"POST to $submitUrl" should {
 

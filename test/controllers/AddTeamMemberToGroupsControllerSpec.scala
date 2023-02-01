@@ -24,14 +24,14 @@ import models.TeamMember
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.http.SessionKeys
 
-import scala.concurrent.{ExecutionContext, Future}
 
 class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
@@ -42,7 +42,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
@@ -71,20 +71,25 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
-  val teamMember = teamMembers(0)
+  val teamMember: TeamMember = teamMembers.head
+
+  def AuthOkWithTeamMember(teamMember: TeamMember = teamMember): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectIsArnAllowed(allowed = true)
+    expectLookupTeamMember(arn)(teamMember)
+  }
 
   s"GET ${ctrlRoute.showSelectGroupsForTeamMember(teamMember.id).url}" should {
 
     "render correctly the html" in {
       //given
+      //TODO update to mix of custom and tax group summaries
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupTeamMember(arn)(teamMember)
+      AuthOkWithTeamMember()
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
@@ -126,11 +131,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = Seq.empty
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      AuthOkWithTeamMember()
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
-      expectLookupTeamMember(arn)(teamMember)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
@@ -164,11 +166,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
+      AuthOkWithTeamMember()
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
-      expectLookupTeamMember(arn)(teamMember)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
@@ -201,14 +200,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         val groupSummaries = (1 to 5)
           .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
 
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
-
-        (mockTeamMemberService
-          .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
-          .expects(arn, teamMember.id, *, *)
-          .returning(Future successful Some(teamMember))
-
         val expectedAddRequest1 = AddMembersToAccessGroupRequest(
           teamMembers = Some(Set(TeamMember.toAgentUser(teamMember)))
         )
@@ -216,10 +207,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
           teamMembers = Some(Set(TeamMember.toAgentUser(teamMember)))
         )
 
-        expectAddMembersToGroup(groupSummaries(3).groupId, expectedAddRequest1)
-        expectAddMembersToGroup(groupSummaries(4).groupId, expectedAddRequest2)
-
-        implicit val request =
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", submitUrl)
             .withFormUrlEncodedBody(
               "groups[0]" -> groupSummaries(3).groupId,
@@ -228,7 +216,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        AuthOkWithTeamMember()
+        expectAddMembersToGroup(groupSummaries(3).groupId, expectedAddRequest1)
+        expectAddMembersToGroup(groupSummaries(4).groupId, expectedAddRequest2)
         expectPutSessionItem(
           GROUP_IDS_ADDED_TO,
           Seq(groupSummaries(3).groupId, groupSummaries(4).groupId)
@@ -249,19 +239,14 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupTeamMember(arn)(teamMember)
-      expectGetGroupsForArn(arn)(groupSummaries)
-      expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
-
-
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", submitUrl)
           .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      AuthOkWithTeamMember()
+      expectGetGroupsForArn(arn)(groupSummaries)
+      expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
       val result = controller.submitSelectGroupsForTeamMember(teamMember.id)(request)
 
@@ -284,11 +269,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      AuthOkWithTeamMember()
       expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupTeamMember(arn)(teamMember)
       expectGetGroupsForArn(arn)(groupSummaries)
 
       //when

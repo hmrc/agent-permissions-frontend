@@ -57,7 +57,7 @@ class AddTeamMemberToGroupsController @Inject()(
           Ok(
             select_groups(
               membersGroups,
-              allGroups.diff(membersGroups),
+              allGroups.diff(membersGroups).filter(s => !s.isTaxGroup()), // TODO remove filter on tax groups APB-6925
               tm,
               AddGroupsToClientForm.form()
             )
@@ -76,7 +76,7 @@ class AddTeamMemberToGroupsController @Inject()(
             Ok(
               select_groups(
                 membersGroups,
-                allGroups.diff(membersGroups),
+                allGroups.diff(membersGroups).filter(s => !s.isTaxGroup()), // should be any groups not already in (APB-6925)
                 tm,
                 formErrors
               )
@@ -86,6 +86,7 @@ class AddTeamMemberToGroupsController @Inject()(
       }, { groupIds =>
         val agentUser = TeamMember.toAgentUser(tm)
         Future.sequence(groupIds.map { grp =>
+          // TODO change to add to tax service groups as well as custom groups (APB-6925)
           groupService.addMembersToGroup(
             grp, AddMembersToAccessGroupRequest(teamMembers = Some(Set(agentUser))
             ))

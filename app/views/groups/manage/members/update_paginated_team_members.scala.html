@@ -46,12 +46,9 @@
             ("search").value)
 }
 
-@groupType = @{if(group.isTaxGroup()) "tax" else "custom"}
-
-
 @layout(
     title = pageTitle,
-    backLinkHref = Some(controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None).url),
+    backLinkHref = Some(controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, group.groupType, None).url),
     formErrors = Seq.empty,
     fullWidth = true,
 ) {
@@ -67,7 +64,7 @@
     @paginated_selectable_team_members_table_form(
         teamMembers,
         form,
-        controllers.routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId, groupType),
+        controllers.routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId, group.groupType),
         paginationMetaData
     )
 

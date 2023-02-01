@@ -66,8 +66,8 @@
                     @p("common.details.not-assigned")
                 } else {
                     @ul_html(items = teamMemberGroups.map{ group =>
-                        val groupType = if (group.isTaxGroup()) "tax" else "custom"
-                        a(group.groupName, href = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None).url)
+                        a( group.groupName,
+                            href = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, group.groupType, None).url)
                     })
                 }
                 @a("common.details.assign-to-group",

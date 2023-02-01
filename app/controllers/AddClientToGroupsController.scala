@@ -55,7 +55,7 @@ class AddClientToGroupsController @Inject()(
           Ok(
             select_groups(
               clientGroups,
-              allGroups.diff(clientGroups),
+              allGroups.diff(clientGroups).filter(s => !s.isTaxGroup()), // only custom groups they're not already in
               displayClient,
               AddGroupsToClientForm.form()
             )
@@ -74,7 +74,7 @@ class AddClientToGroupsController @Inject()(
             Ok(
               select_groups(
                 clientGroups,
-                allGroups.diff(clientGroups),
+                allGroups.diff(clientGroups).filter(s => !s.isTaxGroup()), // only custom groups they're not already in
                 displayClient,
                 formErrors
               )

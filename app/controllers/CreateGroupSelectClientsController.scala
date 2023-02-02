@@ -23,7 +23,7 @@ import models.{AddClientsToGroup, DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.{ClientService, GroupService, SessionCacheService}
+import services.{SessionCacheOperationsService, ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups._
@@ -43,6 +43,7 @@ class CreateGroupSelectClientsController @Inject()
   review_clients_paginated: review_clients_paginated,
   review_clients_to_add: review_clients_to_add,
   val sessionCacheService: SessionCacheService,
+  val sessionCacheOps: SessionCacheOperationsService,
   val groupService: GroupService,
   clientService: ClientService
 )(
@@ -83,7 +84,7 @@ class CreateGroupSelectClientsController @Inject()
           formWithErrors => {
             Ok(search_clients(formWithErrors, groupName, Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url))).toFuture
           }, formData => {
-            clientService.saveSearch(formData.search, formData.filter).flatMap(_ => {
+            sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture
             })
           })
@@ -134,7 +135,7 @@ class CreateGroupSelectClientsController @Inject()
             },
             formData => {
               // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
-              clientService
+              sessionCacheOps
                 .savePageOfClients(formData)
                 .flatMap(nowSelectedClients => {
                   if (formData.submit == CONTINUE_BUTTON) {

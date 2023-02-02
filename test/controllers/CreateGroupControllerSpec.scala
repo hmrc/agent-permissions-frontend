@@ -30,7 +30,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import play.api.test.{FakeRequest, Helpers}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService, TeamMemberService}
+import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -44,6 +44,7 @@ class CreateGroupControllerSpec extends BaseSpec {
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockTeamService: TeamMemberService = mock[TeamMemberService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
+  implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService] // TODO move to a 'real' (in-memory store) session cache service and you won't have to mock either SessionCacheService or SessionCacheServiceOperations!
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
   private val groupName = "XYZ"
@@ -58,6 +59,7 @@ class CreateGroupControllerSpec extends BaseSpec {
       bind(classOf[TeamMemberService]).toInstance(mockTeamService)
       bind(classOf[GroupService]).toInstance(mockGroupService)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
+      bind(classOf[SessionCacheOperationsService]).toInstance(mockSessionCacheOps)
     }
   }
 

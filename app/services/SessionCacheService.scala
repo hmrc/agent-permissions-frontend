@@ -16,8 +16,7 @@
 
 package services
 
-import controllers.{SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS}
-import models.{DisplayClient, TeamMember}
+import com.google.inject.ImplementedBy
 import play.api.libs.json.{Reads, Writes}
 import play.api.mvc.Request
 import repository.SessionCacheRepository
@@ -26,26 +25,17 @@ import uk.gov.hmrc.mongo.cache.DataKey
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@ImplementedBy(classOf[SessionCacheServiceImpl])
+trait SessionCacheService {
+  def get[T](dataKey: DataKey[T])(implicit reads: Reads[T], request: Request[_]): Future[Option[T]]
+  def put[T](dataKey: DataKey[T], value: T)(implicit writes: Writes[T], request: Request[_], ec: ExecutionContext): Future[(String, String)]
+  def delete[T](dataKey: DataKey[T])(implicit request: Request[_]): Future[Unit]
+  def deleteAll(dataKeys: Seq[DataKey[_]])(implicit request: Request[_], ec: ExecutionContext): Future[Unit]
+}
+
+
 @Singleton
-class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheRepository) {
-
-  def saveSelectedClients(clients: Seq[DisplayClient])
-                         (implicit request: Request[_], ec: ExecutionContext): Future[(String, String)] = {
-    sessionCacheRepository.putSession[Seq[DisplayClient]](SELECTED_CLIENTS, clients.map(dc => dc.copy(selected = true)))
-  }
-
-  def saveSelectedTeamMembers(teamMembers: Seq[TeamMember])
-                             (implicit request: Request[_], ec: ExecutionContext): Future[(String, String)] = {
-
-    sessionCacheRepository.putSession[Seq[TeamMember]](
-      SELECTED_TEAM_MEMBERS,
-      teamMembers.map(member => member.copy(selected = true))
-    )
-  }
-
-  def clearSelectedTeamMembers()(implicit request: Request[_]): Future[Unit] = {
-    sessionCacheRepository.deleteFromSession(SELECTED_TEAM_MEMBERS)
-  }
+class SessionCacheServiceImpl @Inject()(sessionCacheRepository: SessionCacheRepository) extends SessionCacheService {
 
   def get[T](dataKey: DataKey[T])
             (implicit reads: Reads[T], request: Request[_]): Future[Option[T]] = {
@@ -66,4 +56,25 @@ class SessionCacheService @Inject()(sessionCacheRepository: SessionCacheReposito
             (implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
     Future.traverse(dataKeys)(key=> sessionCacheRepository.deleteFromSession(key)).map(_ => ())
   }
+}
+
+// In-memory implementation to use in tests.
+class InMemorySessionCacheService(initialValues: Map[String, Any] = Map.empty) extends SessionCacheService {
+// TODO test this class.
+  val values: scala.collection.mutable.Map[String, Any] = scala.collection.mutable.Map(initialValues.toSeq: _*)
+
+  def get[T](dataKey: DataKey[T])(implicit reads: Reads[T], request: Request[_]): Future[Option[T]] = Future.successful(values.get(dataKey.unwrap).map(_.asInstanceOf[T]))
+  def put[T](dataKey: DataKey[T], value: T)(implicit writes: Writes[T], request: Request[_], ec: ExecutionContext): Future[(String, String)] = {
+    values += dataKey.unwrap -> (value: Any)
+    Future.successful(("", ""))
+  }
+  def delete[T](dataKey: DataKey[T])(implicit request: Request[_]): Future[Unit] = {
+    values.remove(dataKey.unwrap)
+    Future.successful(())
+  }
+  def deleteAll(dataKeys: Seq[DataKey[_]])(implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
+    dataKeys.map(_.unwrap).foreach(values.remove)
+    Future.successful(())
+  }
+
 }

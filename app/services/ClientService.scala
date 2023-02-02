@@ -19,8 +19,8 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, ToFuture, clientFilteringKeys}
-import models.{AddClientsToGroup, DisplayClient}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS, ToFuture}
+import models.DisplayClient
 import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,29 +37,18 @@ trait ClientService {
   def getFilteredClientsElseAll(arn: Arn)
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
-  def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
-                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
-
   def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[DisplayClient]]
 
-
-  def getUnassignedClients(arn: Arn)
-                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
+  def getUnassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
+                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]]
 
   def lookupClient(arn: Arn)(clientId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]]
 
   def lookupClients(arn: Arn)(ids: Option[List[String]])
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[DisplayClient]]
-
-  def saveSelectedOrFilteredClients(arn: Arn)
-                                   (formData: AddClientsToGroup)(getClients: Arn => Future[Seq[DisplayClient]])
-                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
-
-  def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)
                            (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
@@ -101,39 +90,27 @@ class ClientServiceImpl @Inject()(
     }
   }
 
-  def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
-                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-    if (searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty) {
-      sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
-    } else {
-      for {
-        _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchTerm.getOrElse(""))
-        _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, filterTerm.getOrElse(""))
-      } yield ()
-    }
-  }
-
   def getPaginatedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
     for {
-      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT) // TODO these search/filter terms should be passed from outside. This function description mentions nothing about filtering and finding this here is unexpected and confusing.
+      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT) // TODO these search/filter terms should be passed from outside. This function description mentions nothing about filtering and finding this here is unexpected and confusing.
       pageOfClients <-
         agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize, searchTerm, filterTerm)
-      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
+      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS) // TODO This logic to pre-mark clients should probably be done by the caller. Ideally this function should and not touch the session cache at all!
       existingSelectedClientIds = maybeSelectedClients.getOrElse(Nil).map(_.id)
       pageOfClientsMarkedSelected = pageOfClients
         .pageContent
         .map(cl => DisplayClient.fromClient(cl))
         .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
       pageOfDisplayClients = PaginatedList(pageOfClientsMarkedSelected, pageOfClients.paginationMetaData)
-      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
+      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)  // TODO this side-effect does not belong in this 'get' type function! Move it to the caller site!
     } yield pageOfDisplayClients
   }
 
-  def getUnassignedClients(arn: Arn)
-                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] =
-    agentPermissionsConnector.unassignedClients(arn)
+  def getUnassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
+                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] =
+    agentPermissionsConnector.unassignedClients(arn)(page, pageSize, search, filter)
 
   def lookupClient(arn: Arn)
                   (clientId: String)
@@ -158,102 +135,6 @@ class ClientServiceImpl @Inject()(
       es3AsDisplayClients = es3Clients.map(client => DisplayClient.fromClient(client))
     } yield es3AsDisplayClients
   }
-
-  // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
-  def saveSelectedOrFilteredClients(arn: Arn)
-                                   (formData: AddClientsToGroup)
-                                   (getClients: Arn => Future[Seq[DisplayClient]])
-                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
-
-    val selectedClientIds = formData.clients.getOrElse(Seq.empty)
-
-    val allClients = for {
-      clients <- getClients(arn)
-      selectedClientsToAddToSession = clients
-        .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
-      _ <- addSelectablesToSession(selectedClientsToAddToSession)(SELECTED_CLIENTS, FILTERED_CLIENTS)
-    } yield clients
-
-    allClients.flatMap { clients =>
-      formData.submit.trim match {
-        case FILTER_BUTTON =>
-          if (formData.search.isEmpty && formData.filter.isEmpty) {
-            sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
-          } else {
-            for {
-              _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
-              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
-              _ <- filterClients(formData)(clients)
-            } yield ()
-          }
-        case _ => sessionCacheService.deleteAll(clientFilteringKeys)
-      }
-    }
-  }
-
-  def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
-
-    val clientsInSession = for {
-      _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
-      _ <- formData.filter.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
-      existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
-      currentPageClients <- sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty))
-      clientIdsToAdd = formData.clients.getOrElse(Seq.empty)
-      currentClientsToAddOrKeep = currentPageClients.filter(cl => clientIdsToAdd.contains(cl.id))
-      idsToRemove = currentPageClients.map(_.id).diff(clientIdsToAdd)
-      newSelectedClients = (existingSelectedClients ++ currentClientsToAddOrKeep)
-        .map(_.copy(selected = true))
-        .distinct
-        .filterNot(cl => idsToRemove.contains(cl.id))
-        .sortBy(_.name)
-      _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
-    } yield (newSelectedClients)
-    clientsInSession.flatMap(_ =>
-      formData.submit.trim match {
-        case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_ => clientsInSession)
-        case _ => clientsInSession
-      }
-    )
-
-  }
-
-  def filterClients(formData: AddClientsToGroup)
-                   (displayClients: Seq[DisplayClient])
-                   (implicit request: Request[Any], ec: ExecutionContext)
-  : Future[Seq[DisplayClient]] = {
-
-    val filterTerm = formData.filter
-    val searchTerm = formData.search
-    val eventualSelectedClientIds = sessionCacheService.get(SELECTED_CLIENTS).map(_.map(_.map(_.id)))
-
-    eventualSelectedClientIds.flatMap(maybeSelectedClientIds => {
-
-      val selectedClientIds = maybeSelectedClientIds.getOrElse(Nil)
-
-      for {
-        clients <- Future.successful(displayClients)
-        resultByTaxService = filterTerm.fold(clients)(term =>
-          if (term == "TRUST") clients.filter(_.taxService.contains("HMRC-TERS"))
-          else clients.filter(_.taxService == term)
-        )
-        resultByName = searchTerm.fold(resultByTaxService) { term =>
-          resultByTaxService.filter(_.name.toLowerCase.contains(term.toLowerCase))
-        }
-        resultByTaxRef = searchTerm.fold(resultByTaxService) {
-          term => resultByTaxService.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase))
-        }
-        consolidatedResult = (resultByName ++ resultByTaxRef).distinct
-        result = consolidatedResult
-          .map(dc => if (selectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
-          .toVector
-        _ <- sessionCacheService.put(FILTERED_CLIENTS, result)
-      } yield result
-    }
-    )
-
-  }
-
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit request: Request[_],
                                                                                      hc: HeaderCarrier,

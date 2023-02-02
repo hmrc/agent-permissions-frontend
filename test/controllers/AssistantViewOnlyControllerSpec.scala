@@ -94,7 +94,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
   val controller: AssistantViewOnlyController = fakeApplication.injector.instanceOf[AssistantViewOnlyController]
   private val ctrlRoute: ReverseAssistantViewOnlyController = routes.AssistantViewOnlyController
 
-  s"GET ${ctrlRoute.showUnassignedClientsViewOnly.url}" should {
+  s"GET ${ctrlRoute.showUnassignedClientsViewOnly().url}" should {
 
     "render unassigned clients list with no query params" in {
       // given
@@ -105,7 +105,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectGetUnassignedClientsSuccess(arn, displayClients)
 
       //when
-      val result = controller.showUnassignedClientsViewOnly(request)
+      val result = controller.showUnassignedClientsViewOnly()(request)
 
       //then
       status(result) shouldBe OK
@@ -129,17 +129,17 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      expectGetUnassignedClientsSuccess(arn, displayClients)
+      expectGetUnassignedClientsSuccess(arn, displayClients, search = Some("friendly1"))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showUnassignedClientsViewOnly.url +
+        ctrlRoute.showUnassignedClientsViewOnly().url +
           "?submit=filter&search=friendly1&filter="
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showUnassignedClientsViewOnly(requestWithQueryParams)
+      val result = controller.showUnassignedClientsViewOnly()(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -161,19 +161,19 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      expectGetUnassignedClientsSuccess(arn, displayClients)
+      val NON_MATCHING_FILTER = "HMRC-CGT-PD" //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
 
-      //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
-      val NON_MATCHING_FILTER = "HMRC-CGT-PD"
+      expectGetUnassignedClientsSuccess(arn, displayClients, search = Some("friendly1"), filter = Some(NON_MATCHING_FILTER))
+
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showUnassignedClientsViewOnly.url +
+        ctrlRoute.showUnassignedClientsViewOnly().url +
           s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showUnassignedClientsViewOnly(requestWithQueryParams)
+      val result = controller.showUnassignedClientsViewOnly()(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -199,19 +199,19 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showUnassignedClientsViewOnly.url +
+        ctrlRoute.showUnassignedClientsViewOnly().url +
           s"?submit=clear"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showUnassignedClientsViewOnly(requestWithQueryParams)
+      val result = controller.showUnassignedClientsViewOnly()(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get
-        .shouldBe(ctrlRoute.showUnassignedClientsViewOnly.url)
+        .shouldBe(ctrlRoute.showUnassignedClientsViewOnly().url)
     }
 
   }

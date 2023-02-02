@@ -17,11 +17,10 @@
 package services
 
 import com.google.inject.AbstractModule
-import controllers._
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, SELECTED_CLIENTS}
 import helpers.BaseSpec
-import models.{DisplayClient, TeamMember}
+import models.DisplayClient
 import play.api.Application
-import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
 
 class SessionCacheServiceSpec extends BaseSpec {
@@ -43,77 +42,33 @@ class SessionCacheServiceSpec extends BaseSpec {
 
   val service = fakeApplication.injector.instanceOf[SessionCacheService]
 
+  // TODO test get, put
 
-  "saveSelectedClients" should {
+  "delete" should {
+    "delete given key from session cache repo" in {
+      (for {
+        _ <- sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq(DisplayClient("whatever", "", "", "")))
+        _ <- sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "searchTerm")
+        _ <- service.delete(CLIENT_SEARCH_INPUT)
+      } yield ()).futureValue
 
-    "Add selected clients to SessionCache Repo" in {
-      //given
-      val clients = Seq(DisplayClient("whatever", "", "", ""))
-
-      val (initialEmptySession, savedClients) = (for {
-        emptySession <- sessionCacheRepo.getFromSession(SELECTED_CLIENTS)
-        _ <- service.saveSelectedClients(clients)
-        savedClients <- sessionCacheRepo.getFromSession(SELECTED_CLIENTS)
-      } yield (emptySession, savedClients)).futureValue
-
-      //then
-      initialEmptySession.isDefined shouldBe false
-      savedClients.isDefined shouldBe true
-      savedClients.get.head.hmrcRef shouldBe "whatever"
+      sessionCacheRepo.getFromSession(SELECTED_CLIENTS).futureValue shouldBe defined
+      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe empty
     }
   }
 
-  "saveSelectedTeamMembers" should {
-    "puts Selected Team members in SessionCache Repo" in {
-      //given
-      val teamMembers: Seq[TeamMember] =
-        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com", Some(s"user$i")))
+  "deleteAll" should {
+    "delete all given keys from session cache repo" in {
+      (for {
+        _ <- sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq(DisplayClient("whatever", "", "", "")))
+        _ <- sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "searchTerm")
+        _ <- sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "filterTerm")
+        _ <- service.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
+      } yield ()).futureValue
 
-      //when
-      await(service.saveSelectedTeamMembers(teamMembers))
-
-      //then
-      val maybeMembers = await(
-        sessionCacheRepo.getFromSession[Seq[TeamMember]](
-          SELECTED_TEAM_MEMBERS))
-
-      maybeMembers.isDefined shouldBe true
-      maybeMembers.get(0) shouldBe TeamMember("name1",
-                                              "x1@xyz.com",
-        Some("user1"),
-                                              None,
-                                              true)
-      maybeMembers.get(1) shouldBe TeamMember("name2",
-                                              "x2@xyz.com",
-        Some("user2"),
-                                              None,
-                                              true)
-      maybeMembers.get(2) shouldBe TeamMember("name3",
-                                              "x3@xyz.com",
-        Some("user3"),
-                                              None,
-                                              true)
-    }
-  }
-
-  "clearSelectedTeamMembers" should {
-    "Remove selected Team members from SessionCache Repo" in {
-      //given
-      val teamMembers: Seq[TeamMember] =
-        (1 to 3).map(i => TeamMember(s"name$i", s"x$i@xyz.com", Some(s"user$i")))
-
-      val (membersInSessionCache, clearedSessionCacheValue) = (for {
-        _ <- sessionCacheRepo.putSession(SELECTED_TEAM_MEMBERS,
-                                         teamMembers)
-        membersInSessionCache <- sessionCacheRepo.getFromSession(
-          SELECTED_TEAM_MEMBERS)
-        _ <- service.clearSelectedTeamMembers()
-        clearedSessionCache <- sessionCacheRepo.getFromSession(
-          SELECTED_TEAM_MEMBERS)
-      } yield (membersInSessionCache, clearedSessionCache)).futureValue
-
-      membersInSessionCache.get.length shouldBe 3
-      clearedSessionCacheValue.isDefined shouldBe false
+      sessionCacheRepo.getFromSession(SELECTED_CLIENTS).futureValue shouldBe defined
+      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe empty
+      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe empty
     }
   }
 

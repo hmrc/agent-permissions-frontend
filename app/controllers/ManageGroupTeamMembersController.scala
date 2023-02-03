@@ -49,7 +49,11 @@ class ManageGroupTeamMembersController @Inject()
   review_update_team_members: review_update_team_members,
   team_members_update_complete: team_members_update_complete,
 )
-(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+(
+  implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {

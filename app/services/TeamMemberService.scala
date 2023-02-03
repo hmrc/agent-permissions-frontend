@@ -101,7 +101,12 @@ class TeamMemberServiceImpl @Inject()(
       })
       firstMemberInPage = (page - 1) * pageSize
       lastMemberInPage = page * pageSize
-      pageOfMembers = filteredMembers.slice(firstMemberInPage, lastMemberInPage)
+      //because someone might change the filter selection and click last page when there's only 1 page of results.
+      pageOfMembers = if(filteredMembers.size > firstMemberInPage){
+        filteredMembers.slice(firstMemberInPage, lastMemberInPage)
+      }else{
+        filteredMembers.slice(0, Math.min(pageSize, filteredMembers.size))
+      }
       numPages = Math.ceil(filteredMembers.length.toDouble / pageSize.toDouble).toInt
       maybeSelectedTeamMembers <- sessionCacheService.get[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
       existingSelectedIds = maybeSelectedTeamMembers.getOrElse(Nil).map(_.id)

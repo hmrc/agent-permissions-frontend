@@ -50,8 +50,11 @@ class ManageGroupClientsController @Inject()
   existing_clients: existing_clients,
   search_clients: search_clients,
   clients_update_complete: clients_update_complete
-)(implicit val appConfig: AppConfig, ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+)(
+  implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {

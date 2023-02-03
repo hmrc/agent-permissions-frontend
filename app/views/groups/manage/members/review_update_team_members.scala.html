@@ -48,12 +48,10 @@
         )
     }
 
-    @groupType = @{if(group.isTaxGroup()) "tax" else "custom"}
-
 
     @layout(
         title = msgs("group.teamMembers.review.title", group.groupName),
-        backLinkHref = Option(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None).url),
+        backLinkHref = Option(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, group.groupType, None).url),
         fullWidth = true,
         formErrors = form.errors
     ) {
@@ -82,7 +80,7 @@
         @if(paginatedList.paginationMetaData.totalPages > 1) {
             @GET_pagination(
                 pagination = paginatedList.paginationMetaData,
-                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, groupType, None),
+                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, group.groupType, None),
                 additionalParams = form.data
             )
         }
@@ -94,7 +92,7 @@
         </div>
     }
 
-    @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId, groupType)) {
+    @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId, group.groupType)) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

@@ -39,14 +39,17 @@ class ManageTaxGroupClientsController @Inject()
   clientService: ClientService,
   val sessionCacheService: SessionCacheService,
   existing_tax_group_clients: existing_tax_group_clients,
-)(implicit val appConfig: AppConfig, ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+)(
+  implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
   with I18nSupport
   with Logging {
 
   import groupAction._
 
-  private val controller: ReverseManageTaxGroupClientsController= routes.ManageTaxGroupClientsController
+  private val controller: ReverseManageTaxGroupClientsController = routes.ManageTaxGroupClientsController
 
   def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None)
   : Action[AnyContent] = Action.async { implicit request =>

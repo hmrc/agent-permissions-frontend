@@ -252,5 +252,4 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     }
   }
 
-
 }

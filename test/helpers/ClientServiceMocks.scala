@@ -16,11 +16,13 @@
 
 package helpers
 
-import models.{AddClientsToGroup, DisplayClient}
+import controllers.PaginationUtil
+import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.ClientService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -60,29 +62,13 @@ trait ClientServiceMocks extends MockFactory {
 
   }
 
-  def expectSaveSearch(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit clientService: ClientService): Unit =
-    (clientService
-      .saveSearch(_: Option[String], _: Option[String])
-      (_: Request[_], _: HeaderCarrier, _: ExecutionContext))
-      .expects(searchTerm, filterTerm, *, *, *)
-      .returning(Future.successful(()))
-      .once()
-
-  def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit clientService: ClientService): Unit =
-    (clientService
-      .saveSelectedOrFilteredClients(_: Arn)(_: AddClientsToGroup)
-      (_: Arn => Future[Seq[DisplayClient]])(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
-      .expects(arn, *, *, *, *, *)
-      .returning(Future.successful(()))
-      .once()
-
   def expectGetUnassignedClients(arn: Arn)
-                                (clients: Seq[DisplayClient])
+                                (clients: Seq[DisplayClient], page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                                 (implicit clientService: ClientService): Unit =
     (clientService
-      .getUnassignedClients(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
-      .expects(arn, *, *, *)
-      .returning(Future successful clients).once()
+      .getUnassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, page, pageSize, search, filter, *, *, *)
+      .returning(Future.successful(PaginatedListBuilder.build(page = page, pageSize = pageSize, fullList = PaginationUtil.filterClients(clients, search, filter)))).once()
 
   def expectLookupClient(arn: Arn)
                         (client: DisplayClient)
@@ -125,13 +111,4 @@ trait ClientServiceMocks extends MockFactory {
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }
-
-  def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
-                                 (implicit clientService: ClientService): Unit =
-    (clientService
-      .savePageOfClients(_: AddClientsToGroup)
-      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
-      .expects(formData, *, *, *)
-      .returning(Future successful members)
-
 }

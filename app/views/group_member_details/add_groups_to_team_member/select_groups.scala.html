@@ -15,7 +15,7 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
+@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 @import controllers.routes
 @import views.components.models.CheckboxData
 @import views.html.main_layout
@@ -77,7 +77,7 @@
                 <fieldset class="govuk-fieldset">
                     @checkboxes(
                         id = Some("groups"),
-                        hint = Some("Select all that apply"),
+                        hint = Some(msgs("unassigned.client.assign.hint")),
                         field = form("groups"),
                         name = "groups[]",
                         items = availableGroups.map { g =>

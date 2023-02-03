@@ -298,7 +298,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "You have selected all “Capital Gains Tax on UK Property account” clients"
 
       val form = html.select("form")
-      form.attr("method") shouldBe "POST"
+      form.attr("method") should include("POST")
       form.attr("action") shouldBe ctrlRoute.submitReviewTaxServiceGroupType.url
       form.select(Css.legend).text() shouldBe "Continue with selected clients?"
 

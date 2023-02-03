@@ -24,6 +24,7 @@ import models.DisplayClient
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, SessionCacheService}
@@ -40,7 +41,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
@@ -61,20 +62,25 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"Client $i"))
 
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
-  private val client: DisplayClient = displayClients(0)
+  private val client: DisplayClient = displayClients.head
   private val ctrlRoute: ReverseAddClientToGroupsController = routes.AddClientToGroupsController
-  
+  private val submitUrl: String = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id).url
+
+  def AuthOkWithClient(client: DisplayClient = client): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectIsArnAllowed(allowed = true)
+    expectLookupClient(arn)(client)
+  }
+
   s"GET ${ctrlRoute.showSelectGroupsForClient(client.id).url}" should {
 
     "render correctly the html" in {
       //given
-      val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+      val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4)) ++ Seq(GroupSummary("groupIdTax", "VAT", None, 8, Some("HMRC-MTD-VAT")))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupClient(arn)(client)
+      AuthOkWithClient()
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
@@ -83,8 +89,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.title() shouldBe "Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently in these access groups:"
       html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group 1"
       html.select(Css.li("already-in-groups")).get(1).text() shouldBe "Group 2"
@@ -94,6 +100,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val fieldset = form.select("fieldset.govuk-fieldset")
       fieldset.isEmpty shouldBe false // <-- fieldset needed for a11y
 
+      html.select("#groups-hint").text() shouldBe "You can only add clients to custom groups manually. Select all that apply."
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
       checkboxes size() shouldBe 3
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
@@ -112,10 +119,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = Seq.empty
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupClient(arn)(client)
+      AuthOkWithClient()
       expectGetGroupsForArn(arn)(groupSummaries)
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
@@ -124,8 +128,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.title() shouldBe "Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Client is currently not in any access groups"
       html.select(Css.li("already-in-groups")).isEmpty shouldBe true
       val form = html.select(Css.form)
@@ -148,10 +152,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupClient(arn)(client)
+      AuthOkWithClient()
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
@@ -174,8 +175,6 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
   }
 
-  private val submitUrl: String = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id).url
-
   s"POST to $submitUrl" should {
 
     "add client to the selected groups and redirect" when {
@@ -185,17 +184,13 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         val groupSummaries = (1 to 5)
           .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
 
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
-        expectLookupClient(arn)(client)
-
         val expectedAddRequest1 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         expectAddMembersToGroup(groupSummaries(3).groupId, expectedAddRequest1)
 
         val expectedAddRequest2 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         expectAddMembersToGroup(groupSummaries(4).groupId, expectedAddRequest2)
 
-        implicit val request =
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", submitUrl)
             .withFormUrlEncodedBody(
               "groups[0]" -> groupSummaries(3).groupId,
@@ -204,7 +199,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+        AuthOkWithClient()
         expectPutSessionItem(GROUP_IDS_ADDED_TO, Seq(groupSummaries(3).groupId,groupSummaries(4).groupId))
 
         val result = controller.submitSelectGroupsForClient(client.id)(request)
@@ -222,18 +217,14 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupClient(arn)(client)
+      AuthOkWithClient()
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", submitUrl)
           .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
           .withSession(SessionKeys.sessionId -> "session-x")
-
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
 
       val result = controller.submitSelectGroupsForClient(client.id)(request)
 
@@ -242,8 +233,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Which access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Which access groups would you like to add Client 0 to?"
+      html.title() shouldBe "Error: Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
       //a11y: error should link to first group in the checkboxes
       html.select(Css.errorSummaryForField("groupId3")).text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"
@@ -257,11 +248,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      AuthOkWithClient()
       expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectLookupClient(arn)(client)
       expectGetGroupsForArn(arn)(groupSummaries)
 
       //when

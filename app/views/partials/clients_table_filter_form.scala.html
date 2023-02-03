@@ -18,19 +18,23 @@
 @import controllers.routes
 @import play.api.libs.json.Json
 @import views.html.partials.search_and_filter
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import views.html.components.pagination.GET_pagination
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
     caption: caption, govukSkipLink: GovukSkipLink,
     table: table, search_and_filter: search_and_filter,
     filter_buttons: filter_buttons,
-    textbox: textbox, input_select: input_select
+    textbox: textbox, input_select: input_select,
+    GET_pagination: GET_pagination
 )
 
 @(
     clients: Option[Seq[DisplayClient]] = None,
     form: Form[SearchFilter],
-    formAction: Call
+    formAction: Call,
+    paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -59,8 +63,6 @@
             @h2(withSearchPrefix("", form("filter").value, form("search").value))
         }
 
-        <div class="govuk-!-margin-bottom-8 scrollable-table-container" id="clients" tabindex="0">
-
         @table(
             caption = Some("common.clients"),
             captionClasses = "govuk-visually-hidden",
@@ -82,10 +84,23 @@
             ),
             rows = tableRows,
         )
-        </div>
 
-        @p(msgs("common.total.clients", clients.get.length),
-        id = Some("clients-in-group"))
+        @if(paginationMetaData.exists(_.totalPages > 1)) {
+            @GET_pagination(
+                pagination = paginationMetaData.get,
+                baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
+            @p(
+                msgs("paginated.clients.showing",
+                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+                paginationMetaData.get.totalSize
+            )
+            )
+        } else {
+            @p(msgs("common.total.clients", clients.fold(0)(_.length)))
+        }
+
+
     } else {
         <div id="clients">
             @h2("clients.not-found.heading")

@@ -269,16 +269,36 @@ class AgentPermissionsConnectorSpec
     "return successfully" in {
       //given
       val clients = Set(Client("taxService~identKey~hmrcRef", "name"))
+      val paginatedClients = PaginatedList(clients.toSeq, PaginationMetaData(
+        lastPage = false,
+        firstPage = true,
+        totalSize = 1,
+        totalPages = 1,
+        pageSize = 20,
+        currentPageNumber = 1,
+        currentPageSize = 1
+      ))
       val displayClients = Seq(DisplayClient.fromClient(Client("taxService~identKey~hmrcRef", "name")))
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
-      val mockJsonResponseBody = Json.toJson(clients).toString
+      val mockJsonResponseBody = Json.toJson(paginatedClients).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
       expectHttpClientGETWithUrl[HttpResponse](expectedUrl, mockResponse)
 
       //then
-      connector.unassignedClients(arn).futureValue shouldBe displayClients
+      connector.unassignedClients(arn)(page = 1, pageSize = 20).futureValue shouldBe PaginatedList(
+        displayClients,
+        PaginationMetaData(
+          lastPage = false,
+          firstPage = true,
+          totalSize = 1,
+          totalPages = 1,
+          pageSize = 20,
+          currentPageNumber = 1,
+          currentPageSize = 1
+        )
+      )
     }
 
     "throw an exception for any other HTTP response code" in {
@@ -289,7 +309,7 @@ class AgentPermissionsConnectorSpec
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
-        await(connector.unassignedClients(arn))
+        await(connector.unassignedClients(arn)(page = 1, pageSize = 20))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }

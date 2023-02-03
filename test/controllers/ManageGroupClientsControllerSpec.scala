@@ -32,7 +32,7 @@ import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
+import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -47,6 +47,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
+  implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService] // TODO move to a 'real' (in-memory store) session cache service and you won't have to mock either SessionCacheService or SessionCacheServiceOperations!
   implicit lazy val mockGroupService: GroupService = mock[GroupService]
   implicit lazy val mockTaxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit lazy val mockClientService: ClientService = mock[ClientService]
@@ -73,6 +74,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
+      bind(classOf[SessionCacheOperationsService]).toInstance(mockSessionCacheOps)
       bind(classOf[GroupService]).toInstance(mockGroupService)
       bind(classOf[ClientService]).toInstance(mockClientService)
       bind(classOf[TaxGroupService]).toInstance(mockTaxGroupService)

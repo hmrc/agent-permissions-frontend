@@ -22,13 +22,14 @@ import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
 import forms._
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.Logging
-import play.api.data.FormError
+import play.api.data.{Form, FormError}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.{ClientService, GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups._
+import views.html.groups.create.clients._
 import views.html.groups.manage._
 import views.html.groups.unassigned_clients._
 
@@ -44,8 +45,9 @@ class UnassignedClientController @Inject()(
                                             optInStatusAction: OptInStatusAction,
                                             sessionAction: SessionAction,
                                             val sessionCacheService: SessionCacheService,
+                                            val sessionCacheOps: SessionCacheOperationsService,
                                             unassigned_clients_list: unassigned_clients_list,
-                                            review_clients_to_add: review_clients_to_add,
+                                            review_clients_paginated: review_clients_paginated,
                                             select_groups_for_clients: select_groups_for_clients,
                                             clients_added_to_groups_complete: clients_added_to_groups_complete
     )
@@ -55,40 +57,43 @@ class UnassignedClientController @Inject()(
   with I18nSupport
     with Logging {
 
-  import sessionAction.withSessionItem
   import authAction._
   import optInStatusAction._
+  import sessionAction.withSessionItem
 
   private val controller: ReverseUnassignedClientController = routes.UnassignedClientController
 
-  def showUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+  private val UNASSIGNED_CLIENTS_PAGE_SIZE = 20
+
+  private def renderUnassignedClients(arn: Arn, form: Form[AddClientsToGroup], page: Option[Int], pageSize: Option[Int] = None, search: Option[String] = None, filter: Option[String] = None)(implicit request: Request[_]): Future[Result] =
+    for {
+      maybeSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
+      unmarkedPaginatedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE), search = search, filter = filter)
+      markedPaginatedClients =
+        unmarkedPaginatedClients.copy(
+        pageContent = unmarkedPaginatedClients.pageContent.map( c => if(maybeSelectedClients.isEmpty) c else c.copy(selected = maybeSelectedClients.get.map(_.id).contains(c.id)))
+      )
+      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, markedPaginatedClients.pageContent)
+    } yield {
+      val defaultFormData: AddClientsToGroup = AddClientsToGroup()
+      Ok(
+        unassigned_clients_list(
+          markedPaginatedClients.pageContent,
+          form = form.fill(form.value.getOrElse(defaultFormData).copy(search = search, filter = filter)),
+          paginationMetaData = Some(markedPaginatedClients.paginationMetaData)
+        )
+      )
+    }
+
+
+  def showUnassignedClients(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[String](CLIENT_FILTER_INPUT) { filterTerm =>
-          withSessionItem[String](CLIENT_SEARCH_INPUT) { searchTerm =>
-            withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
-                clientService.getUnassignedClients(arn).map(unassignedClients => {
-                  val filteredClients =
-                    unassignedClients
-                      .filter(dc => filterTerm.isEmpty || filterTerm.get == "" || dc.taxService.equalsIgnoreCase(filterTerm.get))
-                      .filter(dc => searchTerm.isEmpty || dc.name.toLowerCase.contains(searchTerm.get.toLowerCase))
-                      .map( c => if(maybeSelectedClients.isEmpty) c else c.copy(selected = maybeSelectedClients.get.map(_.id).contains(c.id)))
-                  Ok(
-                    unassigned_clients_list(
-                      filteredClients,
-                      AddClientsToGroupForm.form().fill(
-                        AddClientsToGroup(
-                          search = searchTerm,
-                          filter = filterTerm,
-                          clients = None)
-                      )
-                      )
-                  )
-                }
-                )
-              }
-            }
-        }
+        for {
+          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+          result <- renderUnassignedClients(arn, form = AddClientsToGroupForm.form(), page = page, search = search, filter = filter)
+        } yield result
       }
     }
   }
@@ -96,42 +101,40 @@ class UnassignedClientController @Inject()(
   def submitAddUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-        AddClientsToGroupForm
-          .form().bindFromRequest()
-          .fold(
-            formWithErrors =>
-              clientService
-                .getUnassignedClients(arn)
-                .map(clients => Ok(unassigned_clients_list(clients, formWithErrors))),
-            formData => {
-              clientService
-                .saveSelectedOrFilteredClients(arn)(formData)(clientService.getUnassignedClients)
-                .map(_ =>
-                if (formData.submit == CONTINUE_BUTTON)
-                  Redirect(controller.showSelectedUnassignedClients)
-                else Redirect(controller.showUnassignedClients)
-              )
-            }
-          )
+        new POSTPaginatedSearchableClientSelectHandler(sessionCacheService, sessionCacheOps) {
+          val renderPage: Form[AddClientsToGroup] => Future[Result] = formData =>
+            for {
+              search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+              filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+              result <- renderUnassignedClients(arn, form = formData, page = Some(1), search = search, filter = filter)
+            } yield result
+          val reloadCall: (Option[Int], Option[String], Option[String]) => Call = {
+            case (pageNumber, _, _) => controller.showUnassignedClients(pageNumber)
+          }
+          val onContinue: AddClientsToGroup => Future[Result] = _ => Future.successful(Redirect(controller.showSelectedUnassignedClients()))
+        }.handlePost
       }
     }
   }
 
-  def showSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
+  def showSelectedUnassignedClients(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
           selectedClients
             .fold {
-              Redirect(controller.showUnassignedClients).toFuture
+              Redirect(controller.showUnassignedClients()).toFuture
             } { clients =>
+              val paginatedClients = PaginatedListBuilder.build(page = page.getOrElse(1), pageSize = pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE), fullList = clients)
+
               Ok(
-                review_clients_to_add(
-                  clients = clients,
+                review_clients_paginated(
+                  clients = paginatedClients.pageContent,
                   groupName = "",
                   form = YesNoForm.form(),
-                  backUrl = Some(controller.showUnassignedClients.url),
-                  continueCall = controller.submitSelectedUnassignedClients
+                  backUrl = Some(controller.showUnassignedClients().url),
+                  formAction = controller.submitSelectedUnassignedClients,
+                  paginationMetaData = Some(paginatedClients.paginationMetaData)
                 )
               ).toFuture
             }
@@ -143,26 +146,26 @@ class UnassignedClientController @Inject()(
   def submitSelectedUnassignedClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
-          selectedClients
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
+          maybeSelected
             .fold {
-              Redirect(controller.showUnassignedClients).toFuture
+              Redirect(controller.showUnassignedClients()).toFuture
             } { clients =>
               YesNoForm
                 .form("group.clients.review.error")
                 .bindFromRequest
                 .fold(
                   formWithErrors => {
-                    Ok(review_clients_to_add(
+                    Ok(review_clients_paginated(
                       clients,
                       "",
                       formWithErrors,
-                      backUrl = Some(controller.showUnassignedClients.url),
-                      continueCall = controller.submitSelectedUnassignedClients)
+                      backUrl = Some(controller.showUnassignedClients().url),
+                      formAction = controller.submitSelectedUnassignedClients)
                     ).toFuture
                   }, (yes: Boolean) => {
                     if (yes) {
-                      Redirect(controller.showUnassignedClients).toFuture
+                      Redirect(controller.showUnassignedClients()).toFuture
                     } else {
                       Redirect(controller.showSelectGroupsForSelectedUnassignedClients).toFuture
                     }

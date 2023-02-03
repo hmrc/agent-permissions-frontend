@@ -35,83 +35,81 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ManageGroupController @Inject()(
-                                       authAction: AuthAction,
-                                       groupAction: GroupAction,
-                                       mcc: MessagesControllerComponents,
-                                       groupService: GroupService,
-                                       taxGroupService: TaxGroupService,
-                                       optInStatusAction: OptInStatusAction,
-                                       manage_existing_groups: manage_existing_groups,
-                                       rename_group: rename_group,
-                                       rename_group_complete: rename_group_complete,
-                                       confirm_delete_group: confirm_delete_group,
-                                       delete_group_complete: delete_group_complete
-                                     )
-                                     (implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                      implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+class ManageGroupController @Inject()
+(
+  authAction: AuthAction,
+  groupAction: GroupAction,
+  mcc: MessagesControllerComponents,
+  groupService: GroupService,
+  taxGroupService: TaxGroupService,
+  optInStatusAction: OptInStatusAction,
+  manage_existing_groups: manage_existing_groups,
+  rename_group: rename_group,
+  rename_group_complete: rename_group_complete,
+  confirm_delete_group: confirm_delete_group,
+  delete_group_complete: delete_group_complete
+)
+(
+  implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
 
-  with I18nSupport
-  with Logging {
+
+    with I18nSupport
+    with Logging {
 
   import authAction._
   import groupAction._
   import optInStatusAction._
 
-  def showManageGroups(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showManageGroups(page:Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-        searchFilter.submit.fold({ //i.e. regular page load with no params
-          groupService.getPaginatedGroupSummaries(arn)(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
+          val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+          searchFilter.submit.fold({ //i.e. regular page load with no params
+            groupService.getPaginatedGroupSummaries(arn)(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
             sessionCacheService.deleteAll(teamMemberFilteringKeys ++ clientFilteringKeys)
             Ok(manage_existing_groups(
               pagination.pageContent,
               SearchAndFilterForm.form(),
               Some(pagination.paginationMetaData)
             ))
-          }
-        }
-        ) { //either the 'filter' button or the 'clear' filter button was clicked
-          case FILTER_BUTTON =>
-            groupService.getPaginatedGroupSummaries(
-              arn,
-              searchFilter.search.getOrElse("")
-            )(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
-              Ok(manage_existing_groups(
-                pagination.pageContent,
-                SearchAndFilterForm.form().fill(searchFilter),
-                Some(pagination.paginationMetaData)
-              ))
             }
-          case CLEAR_BUTTON =>
-            Redirect(routes.ManageGroupController.showManageGroups(None, None)).toFuture
-        }
+          }
+          ) { //either the 'filter' button or the 'clear' filter button was clicked
+            case FILTER_BUTTON =>
+              groupService.getPaginatedGroupSummaries(
+                arn,
+                searchFilter.search.getOrElse("")
+              )(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
+                Ok(manage_existing_groups(
+                  pagination.pageContent,
+                  SearchAndFilterForm.form().fill(searchFilter),
+                  Some(pagination.paginationMetaData)
+                ))
+              }
+            case CLEAR_BUTTON =>
+              Redirect(routes.ManageGroupController.showManageGroups(None, None)).toFuture
+          }
       }
     }
   }
 
   def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary, arn) =>
       Ok(rename_group(GroupNameForm.form().fill(summary.groupName), summary, groupId, isCustom = true)).toFuture
     }
   }
 
   def showRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) =>
-      Ok(
-        rename_group(
-          GroupNameForm.form().fill(group.groupName),
-          group,
-          groupId,
-          isCustom = false
-        )
-      ).toFuture
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+      Ok(rename_group(GroupNameForm.form().fill(group.groupName), GroupSummary.fromAccessGroup(group), groupId, isCustom = false)).toFuture
     }
   }
 
   def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       GroupNameForm
         .form()
         .bindFromRequest
@@ -129,18 +127,15 @@ class ManageGroupController @Inject()(
   }
 
   def submitRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
       GroupNameForm
         .form()
         .bindFromRequest
         .fold(
-          formWithErrors =>
-            Ok(
-              rename_group(formWithErrors, groupSummary, groupId, isCustom = false)
-            ).toFuture,
+          formWithErrors => Ok(rename_group(formWithErrors, GroupSummary.fromAccessGroup(group), groupId, isCustom = false)).toFuture,
           (newName: String) => {
             for {
-              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, groupSummary.groupName)
+              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, group.groupName)
               patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
               _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
             } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
@@ -161,13 +156,13 @@ class ManageGroupController @Inject()(
   }
 
   def showTaxGroupRenamed(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
-      sessionCacheService
-        .get(GROUP_RENAMED_FROM)
-        .map(oldName =>
-          Ok(rename_group_complete(oldName.get, groupSummary.groupName))
-        )
-    }
+    withTaxGroupForAuthorisedOptedAgent(groupId) { group: TaxGroup =>
+        sessionCacheService
+          .get(GROUP_RENAMED_FROM)
+          .map(oldName =>
+            Ok(rename_group_complete(oldName.get, group.groupName))
+          )
+      }
   }
 
   def showDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -197,7 +192,7 @@ class ManageGroupController @Inject()(
                 _ <- groupService.deleteGroup(groupId)
               } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
-              Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
+              Redirect(routes.ManageGroupController.showManageGroups(None,None).url).toFuture
           }
         )
     }

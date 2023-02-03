@@ -68,7 +68,7 @@
 @govukSkipLink(
     SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-teamMembers")))
 )
-
+xx
 @formWithCSRF(action = formAction) {
 
     @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
@@ -99,21 +99,10 @@
                 id = Some("multi-select-table"),
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
-                    (
-                            span(""), Map("id" -> "select-all")
-                    ),
-                    (
-                            Html(msgs("group.members.list.table.th1")),
-                            Map("aria-sort" -> "ascending")
-                    ),
-                    (
-                            Html(msgs("group.members.list.table.th2")),
-                            Map("aria-sort" -> "none")
-                    ),
-                    (
-                            Html(msgs("group.members.list.table.th3")),
-                            Map("aria-sort" -> "none")
-                    )
+                    (span(""), Map.empty),
+                    (Html(msgs("group.members.list.table.th1")), Map.empty),
+                    (Html(msgs("group.members.list.table.th2")), Map.empty),
+                    (Html(msgs("group.members.list.table.th3")), Map.empty)
                 ),
                 rows = tableRows,
             )

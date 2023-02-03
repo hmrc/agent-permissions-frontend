@@ -129,6 +129,7 @@ GET     /manage-clients/assigned-to-groups/:id          controllers.AddClientToG
 
 # Manage team members
 GET     /manage-team-members                            controllers.ManageTeamMemberController.showPageOfTeamMembers(page: Option[Int])
+POST    /manage-team-members                            controllers.ManageTeamMemberController.submitPageOfTeamMembers
 GET     /manage-team-members/team-member-details/:id    controllers.ManageTeamMemberController.showTeamMemberDetails(id: String)
 
 GET     /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(id: String)

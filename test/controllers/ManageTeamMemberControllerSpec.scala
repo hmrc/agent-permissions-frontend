@@ -26,7 +26,7 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, POST, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, GroupSummary, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -131,6 +131,57 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
         .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
+    }
+
+    "go to correct page when PAGINATION_BUTTON is clicked" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      val dude = "dude"
+      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
+
+      val pageToNavigateTo : Int = 2
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
+        .withFormUrlEncodedBody(
+          "submit" -> s"${PAGINATION_BUTTON}_$pageToNavigateTo",
+          "search" -> dude
+        )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(Option(pageToNavigateTo)).url)
+    }
+
+    "go to correct page when FILTER_BUTTON is clicked" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      val dude = "dude"
+      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
+
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
+        .withFormUrlEncodedBody(
+          "submit" -> FILTER_BUTTON,
+          "search" -> dude
+        )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 

@@ -117,12 +117,15 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       trs.size() shouldBe 5
     }
 
-    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+  }
+
+  s"POST ${ctrlRoute.submitPageOfTeamMembers.url}" should {
+
+    "redirect and clear filter when CLEAR FILTER is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetPageOfTeamMembers(arn)(teamMembers)
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
 
       //and we have CLEAR filter in query params
@@ -138,7 +141,6 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
     }
-
   }
 
   s"GET ${ctrlRoute.showTeamMemberDetails(memberId).url}" should {

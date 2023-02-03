@@ -16,7 +16,6 @@
 
 package controllers
 
-import akka.Done
 import config.AppConfig
 import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.SearchAndFilterForm
@@ -29,19 +28,24 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
-class ManageTeamMemberController @Inject()(
-                                            authAction: AuthAction,
-                                            mcc: MessagesControllerComponents,
-                                            groupService: GroupService,
-                                            teamMemberService: TeamMemberService,
-                                            optInStatusAction: OptInStatusAction,
-                                            manage_team_members: manage_team_members,
-                                            team_member_details: team_member_details)
-                                          (implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                           implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+class ManageTeamMemberController @Inject()
+(
+  authAction: AuthAction,
+  mcc: MessagesControllerComponents,
+  groupService: GroupService,
+  teamMemberService: TeamMemberService,
+  optInStatusAction: OptInStatusAction,
+  manage_team_members: manage_team_members,
+  team_member_details: team_member_details
+)
+(
+  implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {
@@ -49,46 +53,51 @@ class ManageTeamMemberController @Inject()(
   import authAction._
   import optInStatusAction._
 
+  val PAGINATION_REGEX = "(pagination_)(\\d+)".r
+
+  private val controller: ReverseManageTeamMemberController = routes.ManageTeamMemberController
+
   def showPageOfTeamMembers(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-        searchFilter
-          .search
-          .fold(Future.successful(Done))( searchTerm =>
-            sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, searchTerm).map(_=> Done))
-          .flatMap(_ =>
-            teamMemberService
-              .getPageOfTeamMembers(arn)(page.getOrElse(1), 10)
-              .flatMap { paginatedMembers =>
-                searchFilter.submit.fold(
-                  //no filter/clear was applied
-                  Ok(
-                    manage_team_members(
-                      teamMembers = paginatedMembers.pageContent,
-                      form = SearchAndFilterForm.form(),
-                      paginationMetaData = Some(paginatedMembers.paginationMetaData)
-                    )
-                  ).toFuture
-                )({
-                  //clear/filter buttons pressed
-                  case CLEAR_BUTTON =>
-                    sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
-                      .map(_=>
-                        Redirect(routes.ManageTeamMemberController.showPageOfTeamMembers(None))
-                      )
-                  case FILTER_BUTTON =>
-                    Ok(
-                      manage_team_members(
-                        teamMembers = paginatedMembers.pageContent,
-                        form = SearchAndFilterForm.form().fill(searchFilter),
-                        paginationMetaData = Some(paginatedMembers.paginationMetaData)
-                      )
-                    ).toFuture
-                })
-              }
+        val eventualTuple = for {
+          search <- sessionCacheService.get(TEAM_MEMBER_SEARCH_INPUT)
+          pageOfMembers <- teamMemberService.getPageOfTeamMembers(arn)(page.getOrElse(1), 10)
+        } yield (search, pageOfMembers)
+        eventualTuple.map(tuple => {
+          Ok(
+            manage_team_members(
+              teamMembers = tuple._2.pageContent,
+              form = SearchAndFilterForm.form().fill(SearchFilter(tuple._1, None, None)),
+              paginationMetaData = Some(tuple._2.paginationMetaData)
+            )
           )
+        }
+        )
+      }
+    }
+  }
 
+  def submitPageOfTeamMembers: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+        searchFilter.submit.fold(
+          Redirect(routes.ManageTeamMemberController.showPageOfTeamMembers(Some(1))).toFuture
+        )({
+          case CLEAR_BUTTON =>
+            sessionCacheService
+              .delete(TEAM_MEMBER_SEARCH_INPUT)
+              .map(_ => Redirect(controller.showPageOfTeamMembers(None)))
+          case PAGINATION_REGEX(_, pageToShow) =>
+            sessionCacheService
+              .put(TEAM_MEMBER_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+              .map(_ => Redirect(controller.showPageOfTeamMembers(Option(pageToShow.toInt))))
+          case FILTER_BUTTON =>
+            sessionCacheService
+              .put(TEAM_MEMBER_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+              .map(_ => Redirect(controller.showPageOfTeamMembers(None)))
+        })
       }
     }
   }
@@ -100,10 +109,12 @@ class ManageTeamMemberController @Inject()(
           case Some(teamMember) =>
             groupService.groupSummariesForTeamMember(arn, teamMember)
               .map(gs =>
-                Ok(team_member_details(
-                  teamMember = teamMember,
-                  teamMemberGroups = gs
-                ))
+                Ok(
+                  team_member_details(
+                    teamMember = teamMember,
+                    teamMemberGroups = gs
+                  )
+                )
               )
           case _ => Redirect(routes.ManageTeamMemberController.showPageOfTeamMembers(None)).toFuture
         }

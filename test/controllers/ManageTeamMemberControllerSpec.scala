@@ -26,7 +26,7 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, GroupSummary, OptedInReady, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -87,10 +87,12 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
     "render the manage team members list" in {
       //given
+      val searchTerm = "ab"
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetPageOfTeamMembers(arn)(teamMembers)
+      expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, searchTerm)
 
       //when
       val result = controller.showPageOfTeamMembers(Some(1))(request)
@@ -99,8 +101,10 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
+      html.title() shouldBe s"Filter results for '$searchTerm' Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
+
+      html.select(Css.inputTextWithId("search")).attr("value") shouldBe searchTerm
 
       val th = html.select(Css.tableWithId("members")).select("thead th")
       th.size() shouldBe 4
@@ -113,61 +117,81 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       trs.size() shouldBe 5
     }
 
-    "render the manage team members list with query params" in {
-      //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetPageOfTeamMembers(arn)(teamMembers.take(3))
-      val searchTerm = "john1"
-      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, searchTerm)
+  }
 
-      implicit val requestWithQueryParams =
-        FakeRequest(GET,
-          ctrlRoute.showPageOfTeamMembers(None).url + s"?submit=filter&search=$searchTerm&filter=")
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+  s"POST ${ctrlRoute.submitPageOfTeamMembers.url}" should {
 
-      //when
-      val result = controller.showPageOfTeamMembers(Option(1))(requestWithQueryParams)
-
-      //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Filter results for '" + searchTerm + "' Manage team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage team members"
-      html.select(Css.paragraphs).get(0).text shouldBe s"Showing 1 to 3 of 40 team members for the search term " +
-        s"‘$searchTerm’"
-
-      val trs = html.select(Css.tableWithId("members")).select("tbody tr")
-      trs.size() shouldBe 3
-    }
-
-    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+    "redirect and clear filter when CLEAR FILTER is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetPageOfTeamMembers(arn)(teamMembers)
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
 
       //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showPageOfTeamMembers(None).url +
-          "?submit=clear"
-      )
+      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
+        .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showPageOfTeamMembers()(requestWithQueryParams)
+      val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
     }
 
+    "go to correct page when PAGINATION_BUTTON is clicked" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      val dude = "dude"
+      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
+
+      val pageToNavigateTo : Int = 2
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
+        .withFormUrlEncodedBody(
+          "submit" -> s"${PAGINATION_BUTTON}_$pageToNavigateTo",
+          "search" -> dude
+        )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(Option(pageToNavigateTo)).url)
+    }
+
+    "go to correct page when FILTER_BUTTON is clicked" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      val dude = "dude"
+      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
+
+      //and we have CLEAR filter in query params
+      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
+        .withFormUrlEncodedBody(
+          "submit" -> FILTER_BUTTON,
+          "search" -> dude
+        )
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
+    }
   }
 
   s"GET ${ctrlRoute.showTeamMemberDetails(memberId).url}" should {
@@ -227,6 +251,5 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
     }
   }
-
 
 }

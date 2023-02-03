@@ -16,12 +16,14 @@
 
 @import config.AppConfig
 @import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
-@import controllers.routes
 @import views.html.main_layout
 
 @this(layout: main_layout, h1: h1, h2: h2, h3: h3, p: p, a: a, span: span, ul_html: ul_html)
 
-@(teamMember: TeamMember, teamMemberGroups: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    teamMember: TeamMember,
+    teamMemberGroups: Seq[GroupSummary]
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
     @roleText = @{
@@ -55,7 +57,10 @@
 
                 <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-                @a("common.return.manage-team-members", href = routes.ManageTeamMemberController.showPageOfTeamMembers(None).url)
+                @a(
+                    "common.return.manage-team-members",
+                    href = routes.ManageTeamMemberController.showPageOfTeamMembers(None).url
+                )
 
             </div>
 
@@ -66,12 +71,17 @@
                     @p("common.details.not-assigned")
                 } else {
                     @ul_html(items = teamMemberGroups.map{ group =>
-                        val groupType = if (group.isTaxGroup()) "tax" else "custom"
-                        a(group.groupName, href = routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, groupType, None).url)
+
+                        a( group.groupName,
+                            href = routes.ManageGroupTeamMembersController
+                                    .showExistingGroupTeamMembers(group.groupId, group.groupType, None).url)
+
                     })
                 }
-                @a("common.details.assign-to-group",
-                    href = routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id).url)
+                @a(
+                    "common.details.assign-to-group",
+                    href = routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id).url
+                )
 
             </div>
         </div>

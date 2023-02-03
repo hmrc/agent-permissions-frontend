@@ -35,6 +35,7 @@ object Css {
     s".govuk-error-summary__body li a[href=#${id}]"
   }
   def errorForField(id: String): String = s"p#${id}-error.govuk-error-message"
+  def inputTextWithId(id: String): String = s"input[type=text]#$id"
   def labelFor(id: String): String = s"label[for=${id}]"
   def radioButtonsField(id: String): String = s"form .govuk-radios#$id"
   def tableWithId(id: String) = s"table.govuk-table#$id"

@@ -35,21 +35,26 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ManageGroupController @Inject()(
-       authAction: AuthAction,
-       groupAction: GroupAction,
-       mcc: MessagesControllerComponents,
-       groupService: GroupService,
-       taxGroupService: TaxGroupService,
-       optInStatusAction: OptInStatusAction,
-       manage_existing_groups: manage_existing_groups,
-       rename_group: rename_group,
-       rename_group_complete: rename_group_complete,
-       confirm_delete_group: confirm_delete_group,
-       delete_group_complete: delete_group_complete
-     )
-     (implicit val appConfig: AppConfig, ec: ExecutionContext,
-      implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+class ManageGroupController @Inject()
+(
+  authAction: AuthAction,
+  groupAction: GroupAction,
+  mcc: MessagesControllerComponents,
+  groupService: GroupService,
+  taxGroupService: TaxGroupService,
+  optInStatusAction: OptInStatusAction,
+  manage_existing_groups: manage_existing_groups,
+  rename_group: rename_group,
+  rename_group_complete: rename_group_complete,
+  confirm_delete_group: confirm_delete_group,
+  delete_group_complete: delete_group_complete
+)
+(
+  implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
+
 
     with I18nSupport
     with Logging {

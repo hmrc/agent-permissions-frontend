@@ -33,20 +33,24 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ManageClientController @Inject()(
-                                        authAction: AuthAction,
-                                        mcc: MessagesControllerComponents,
-                                        val sessionCacheService: SessionCacheService,
-                                        groupService: GroupService,
-                                        clientService: ClientService,
-                                        manage_clients_list: manage_clients_list,
-                                        client_details: client_details,
-                                        update_client_reference: update_client_reference,
-                                        update_client_reference_complete: update_client_reference_complete,
-                                        client_not_found: client_not_found,
-                                        optInStatusAction: OptInStatusAction)
-                                      (implicit val appConfig: AppConfig, ec: ExecutionContext,
-                                       implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
+class ManageClientController @Inject()
+(
+  authAction: AuthAction,
+  mcc: MessagesControllerComponents,
+  val sessionCacheService: SessionCacheService,
+  groupService: GroupService,
+  clientService: ClientService,
+  manage_clients_list: manage_clients_list,
+  client_details: client_details,
+  update_client_reference: update_client_reference,
+  update_client_reference_complete: update_client_reference_complete,
+  client_not_found: client_not_found,
+  optInStatusAction: OptInStatusAction)
+(
+  implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {
@@ -60,29 +64,29 @@ class ManageClientController @Inject()(
       isOptedIn(arn) { _ =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
         (searchFilter.search.isDefined || searchFilter.filter.isDefined)
-          .fold(Future.successful(Done))(_=>
-            for{
-               _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
-               _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+          .fold(Future.successful(Done))(_ =>
+            for {
+              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
+              _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
             } yield (Done)
           ).flatMap(_ =>
-            clientService
-              .getPaginatedClients(arn)(page.getOrElse(1), 10)
-              .map { paginatedList =>
+          clientService
+            .getPaginatedClients(arn)(page.getOrElse(1), 10)
+            .map { paginatedList =>
               searchFilter
                 .submit
                 .fold(
-                //ie default page load
-                Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form()))
-              )({
-                //clear/filter buttons pressed
-                case CLEAR_BUTTON =>
-                  Redirect(routes.ManageClientController.showClients(Option(1)))
-                case FILTER_BUTTON =>
-                  Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form().fill(searchFilter)))
-              })
+                  //ie default page load
+                  Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form()))
+                )({
+                  //clear/filter buttons pressed
+                  case CLEAR_BUTTON =>
+                    Redirect(routes.ManageClientController.showClients(Option(1)))
+                  case FILTER_BUTTON =>
+                    Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form().fill(searchFilter)))
+                })
             }
-          )
+        )
       }
     }
   }
@@ -108,10 +112,12 @@ class ManageClientController @Inject()(
       isOptedIn(arn) { _ =>
         clientService.lookupClient(arn)(clientId).map {
           case Some(client) =>
-            Ok(update_client_reference(
-              client = client,
-              form = ClientReferenceForm.form().fill(client.name)
-            ))
+            Ok(
+              update_client_reference(
+                client = client,
+                form = ClientReferenceForm.form().fill(client.name)
+              )
+            )
           case None => throw new RuntimeException("client reference supplied did not match any client")
         }
       }

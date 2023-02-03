@@ -91,7 +91,7 @@ class AddTeamMembersToGroupFormSpec
       val params = Map(
         search -> List.empty,
         members -> List.empty,
-        "submit" -> List("continue"),
+        "submit" -> List("continue")
       )
       val boundForm = AddTeamMembersToGroupForm.form().bindFromRequest(params)
 
@@ -103,7 +103,7 @@ class AddTeamMembersToGroupFormSpec
       val params = Map(
         search -> List("abc"),
         members -> List(member1.id, member2.id),
-        "submit" -> List("filter"),
+        "submit" -> List("filter")
       )
       val boundForm = AddTeamMembersToGroupForm
         .form()
@@ -120,7 +120,7 @@ class AddTeamMembersToGroupFormSpec
       val params = Map(
         search -> List("bad<search>"),
         members -> List(member1.id, member2.id),
-        "submit" -> List("filter"),
+        "submit" -> List("filter")
       )
       val boundForm = AddTeamMembersToGroupForm
         .form()
@@ -134,7 +134,7 @@ class AddTeamMembersToGroupFormSpec
       val params = Map(
         search -> List.empty,
         members -> List(member1.id, member2.id),
-        "submit" -> List("filter"),
+        "submit" -> List("filter")
       )
       val boundForm = AddTeamMembersToGroupForm
         .form()
@@ -147,7 +147,7 @@ class AddTeamMembersToGroupFormSpec
       val params = Map(
         search -> List.empty,
         members -> List.empty,
-        "submit" -> List("clear"),
+        "submit" -> List("clear")
       )
       val boundForm = AddTeamMembersToGroupForm
         .form()

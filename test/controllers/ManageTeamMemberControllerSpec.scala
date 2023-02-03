@@ -142,6 +142,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 3
+      
     }
 
     "redirect to baseUrl when CLEAR FILTER is clicked" in {

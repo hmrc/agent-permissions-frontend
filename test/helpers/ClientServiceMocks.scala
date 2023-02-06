@@ -16,6 +16,7 @@
 
 package helpers
 
+import akka.Done
 import controllers.PaginationUtil
 import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
@@ -76,7 +77,16 @@ trait ClientServiceMocks extends MockFactory {
     (clientService
       .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.id, *, *)
-      .returning(Future successful Some(client)).once()
+      .returning(Future successful Some(client))
+      .once()
+
+  def expectUpdateClientReference(arn: Arn, client: DisplayClient, newName: String)
+                                 (implicit clientService: ClientService): Unit =
+    (clientService
+      .updateClientReference(_: Arn, _: DisplayClient, _: String)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, client, newName, *, *, *)
+      .returning(Future successful Done)
+      .once()
 
   def expectLookupClientNotFound(arn: Arn)
                                 (clientId: String)

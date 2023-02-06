@@ -126,6 +126,9 @@ class ManageClientControllerSpec extends BaseSpec {
 
     }
 
+  }
+  s"GET ${ctrlRoute.submitPageOfClients.url}" should {
+
     "render the manage clients list with search term posted" in {
       //given
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -148,6 +151,33 @@ class ManageClientControllerSpec extends BaseSpec {
       redirectLocation(result) shouldBe Some(ctrlRoute.showPageOfClients(None).url)
     }
 
+    "Render page 1 if the search terms are changed, even if you ask for page 5" in {
+      //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(CLIENT_SEARCH_INPUT, "old search term")
+      expectGetSessionItem(CLIENT_FILTER_INPUT, "VAT")
+      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
+      expectPutSessionItem(CLIENT_FILTER_INPUT, "")
+
+      val url = ctrlRoute.submitPageOfClients.url
+      implicit val fakeRequest = FakeRequest(POST, url)
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withFormUrlEncodedBody(
+          "search"-> "friendly1",
+          "submit"-> s"${PAGINATION_BUTTON}_2"
+        )
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitPageOfClients(fakeRequest)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(ctrlRoute.showPageOfClients(None).url + "?page=1")
+    }
+
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -162,6 +192,26 @@ class ManageClientControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> "Bearer XYZ")
           .withFormUrlEncodedBody("submit"-> CLEAR_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitPageOfClients(fakeRequest)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showPageOfClients(None).url
+    }
+
+    "redirect  when form is empty" in {
+      //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+
+      //and we have CLEAR filter in query params
+      implicit val fakeRequest =
+        FakeRequest(POST, ctrlRoute.submitPageOfClients.url)
+          .withHeaders("Authorization" -> "Bearer XYZ")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
       val result = controller.submitPageOfClients(fakeRequest)
@@ -313,17 +363,26 @@ class ManageClientControllerSpec extends BaseSpec {
 
     s"redirect to ${ctrlRoute.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
       //given
+      val newClientReference = "whatever"
       val expectedClient = displayClients.head
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectLookupClient(arn)(expectedClient)
+      expectPutSessionItem(CLIENT_REFERENCE, newClientReference)
+      expectUpdateClientReference(arn, expectedClient, newClientReference)
+
+      implicit val request = FakeRequest(POST, ctrlRoute.submitUpdateClientReference(expectedClient.id).url)
+        .withFormUrlEncodedBody("clientRef" -> newClientReference)
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
       val result = controller.submitUpdateClientReference(expectedClient.id)(request)
 
       //then
-      status(result) shouldBe OK
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(ctrlRoute.showClientReferenceUpdatedComplete(expectedClient.id).url)
 
     }
 

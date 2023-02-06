@@ -156,7 +156,7 @@ class ManageClientController @Inject()
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         clientService.lookupClient(arn)(clientId).map {
-          case Some(client) =>
+            case Some(client) =>
             ClientReferenceForm.form()
               .bindFromRequest()
               .fold(
@@ -175,7 +175,6 @@ class ManageClientController @Inject()
                 }
               )
           case None => throw new RuntimeException("client reference supplied did not match any client")
-
         }
       }
     }

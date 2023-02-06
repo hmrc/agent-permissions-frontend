@@ -30,6 +30,7 @@ object CodeCoverageSettings {
     ".*confirm_added.template",
     ".*group_not_found.template",
     ".*unassigned_clients_list.template",
+    ".*PaginationUtil.*",
     ".*ViewUtils.*",
     ".*GroupAction.*",
     ".*ClientAction.*",
@@ -42,6 +43,7 @@ object CodeCoverageSettings {
     ".*review_clients_paginated.template",
     ".*GET_pagination.template",
     ".*POST_pagination.template",
+    ".*pagination_li.template",
     ".*search_clients.template"
   )
 

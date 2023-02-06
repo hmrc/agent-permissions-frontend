@@ -26,9 +26,8 @@ import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
-import repository.SessionCacheRepository
-import services.{ClientService, GroupService}
+import play.api.test.Helpers.{POST, await, contentAsString, defaultAwaitTimeout, redirectLocation}
+import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Client, GroupSummary, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -37,16 +36,11 @@ import uk.gov.hmrc.http.SessionKeys
 class ManageClientControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
-    mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector =
-    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
-
-  lazy val sessionCacheRepo: SessionCacheRepository =
-    new SessionCacheRepository(mongoComponent, timestampSupport)
+  implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -55,7 +49,7 @@ class ManageClientControllerSpec extends BaseSpec {
         .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[ClientService]).toInstance(mockClientService)
-      bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
+      bind(classOf[SessionCacheService]).toInstance(sessionCacheService)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(mockGroupService)
     }
@@ -95,17 +89,19 @@ class ManageClientControllerSpec extends BaseSpec {
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
   private val ctrlRoute: ReverseManageClientController = routes.ManageClientController
 
-  s"GET ${ctrlRoute.showClients(None).url}" should {
+  s"GET ${ctrlRoute.showPageOfClients(None).url}" should {
 
-    "render the manage clients list with no query params" in {
+    "render the manage clients list with no search " in {
       //given
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetPageOfClients(arn, 1, 10)(displayClients)
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
 
       //when
-      val result = controller.showClients(None)(request)
+      val result = controller.showPageOfClients(None)(request)
 
       //then
       status(result) shouldBe OK
@@ -130,85 +126,49 @@ class ManageClientControllerSpec extends BaseSpec {
 
     }
 
-    "render the manage clients list with search params" in {
+    "render the manage clients list with search term posted" in {
       //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectGetPageOfClients(arn, 1, 10)(displayClients)
+      expectIsArnAllowed(allowed = true)
+      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
+      expectPutSessionItem(CLIENT_FILTER_INPUT, "")
 
-      val url = ctrlRoute.showClients(None).url + "?submit=filter&search=friendly1&filter="
-      implicit val requestWithQueryParams = FakeRequest(GET, url)
+      val url = ctrlRoute.submitPageOfClients.url
+      implicit val fakeRequest = FakeRequest(POST, url)
         .withHeaders("Authorization" -> "Bearer XYZ")
+        .withFormUrlEncodedBody("search"-> "friendly1", "submit"-> FILTER_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showClients(Option(1))(requestWithQueryParams)
+      val result = controller.submitPageOfClients(fakeRequest)
 
       //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-
-      html.title() shouldBe "Filter results for 'friendly1' Manage clients - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage clients"
-      html.select("p#filter-results-info").text() shouldBe "Showing 1 to 3 of 40 clients with reference: ‘friendly1’"
-
-      val trs = html.select(Css.tableWithId("manage-clients-list")).select("tbody tr")
-      trs.size() shouldBe 3
-    }
-
-    "render with filter that matches nothing" in {
-      //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectGetPageOfClientsNone(arn)
-
-      //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
-      val NON_MATCHING_FILTER = "HMRC-CGT-PD"
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        routes.ManageTeamMemberController.showPageOfTeamMembers(None).url +
-          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
-      )
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
-
-      //when
-      val result = controller.showClients(Option(1))(requestWithQueryParams)
-
-      //then
-      status(result) shouldBe OK
-      val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text shouldBe "Manage clients"
-      html.select("p#filter-results-info").isEmpty
-      html.select("p#no-clients-found h2").text() shouldBe ""
-      html.select("p#no-clients-found p").text() shouldBe ""
-
-
-      val trs = html.select(Css.tableWithId("manage-clients-list")).select("tbody tr")
-      trs.size() shouldBe 0
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(ctrlRoute.showPageOfClients(None).url)
     }
 
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectGetPageOfClients(arn, 1, 10)(displayClients)
+      expectIsArnAllowed(allowed = true)
+      expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
+      expectDeleteSessionItem(CLIENT_FILTER_INPUT)
       
       //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(
-        GET, ctrlRoute.showClients(None).url + s"?submit=clear")
+      implicit val fakeRequest =
+        FakeRequest(POST, ctrlRoute.submitPageOfClients.url)
         .withHeaders("Authorization" -> "Bearer XYZ")
+          .withFormUrlEncodedBody("submit"-> CLEAR_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showClients(Option(1))(requestWithQueryParams)
+      val result = controller.submitPageOfClients(fakeRequest)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showClients(None).url + "?page=1"
+      redirectLocation(result).get shouldBe ctrlRoute.showPageOfClients(None).url
     }
 
   }
@@ -218,9 +178,9 @@ class ManageClientControllerSpec extends BaseSpec {
     "render not found for invalid id" in {
       //given
       val invalidClientId = "invalid id"
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       expectLookupClientNotFound(arn)(invalidClientId)
 
       //when
@@ -238,9 +198,9 @@ class ManageClientControllerSpec extends BaseSpec {
     "render the clients details page with NO GROUPS" in {
       //given
       val expectedClient = displayClients.head
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
       expectLookupClient(arn)(expectedClient)
 
@@ -259,9 +219,9 @@ class ManageClientControllerSpec extends BaseSpec {
     "render the clients details page with list of groups" in {
       //given
       val expectedClient = displayClients.head
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       expectLookupClient(arn)(expectedClient)
       expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
 
@@ -294,9 +254,9 @@ class ManageClientControllerSpec extends BaseSpec {
     "render update_client_reference with existing client reference" in {
       //given
       val expectedClient = displayClients.head
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       expectLookupClient(arn)(expectedClient)
       //when
       val result = controller.showUpdateClientReference(expectedClient.id)(request)
@@ -313,9 +273,9 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render update_client_reference for invalid id" in {
       //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       expectLookupClientNotFound(arn)("invalid")
 
       //when
@@ -329,9 +289,9 @@ class ManageClientControllerSpec extends BaseSpec {
     "render update_client_reference without a client reference" in {
       //given
       val expectedClient = displayClients.head.copy(name = "")
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       expectLookupClient(arn)(expectedClient)
 
       //when
@@ -354,9 +314,9 @@ class ManageClientControllerSpec extends BaseSpec {
     s"redirect to ${ctrlRoute.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
       //given
       val expectedClient = displayClients.head
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectOptInStatusOk(arn)(OptedInReady)
-      expectIsArnAllowed(true)
+      expectIsArnAllowed(allowed = true)
       expectLookupClient(arn)(expectedClient)
 
       //when
@@ -369,9 +329,9 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "display errors for update_client_details" in {
       //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       val expectedClient = displayClients.head
       expectLookupClient(arn)(expectedClient)
 
@@ -391,10 +351,10 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render client_details_complete with new client reference" in {
       //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
-      await(sessionCacheRepo.putSession(CLIENT_REFERENCE, "The New Name"))
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(CLIENT_REFERENCE, "The New Name")
       val expectedClient = displayClients.head
       expectLookupClient(arn)(expectedClient)
 
@@ -413,9 +373,9 @@ class ManageClientControllerSpec extends BaseSpec {
 
     s"GET showClientReferenceUpdatedComplete for invalid client id" in {
       //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(true)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectIsArnAllowed(allowed = true)
       val invalidClientId = "not found id"
       expectLookupClientNotFound(arn)(invalidClientId)
 

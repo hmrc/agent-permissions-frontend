@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.partials.search_and_filter
-@import views.html.components.pagination.GET_pagination
+@import views.html.components.pagination.POST_pagination
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
 
 @this(
@@ -26,13 +26,15 @@
     govukSkipLink: GovukSkipLink,
     filter_buttons: filter_buttons,
     search_and_filter: search_and_filter,
-    input_select: input_select, GET_pagination: GET_pagination
+    input_select: input_select,
+    formWithCSRF: FormWithCSRF,
+    POST_pagination: POST_pagination
 )
 
 @(
     paginatedList: PaginatedList[DisplayClient],
     form: Form[SearchFilter],
-    formAction: Call = routes.ManageClientController.showClients(None),
+    formAction: Call = routes.ManageClientController.submitPageOfClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
@@ -60,7 +62,7 @@
         )
     )
 
-    @views.html.helper.form(action = formAction) {
+    @formWithCSRF(action = formAction) {
 
         @search_and_filter(form, true)
 
@@ -78,15 +80,14 @@
                     @if(form.data.nonEmpty
                             && (form.data.get("search").isDefined || form.data.get("filter").isDefined)) {
 
-                        @if(form.data.get("search").isDefined) {
+                        @if(form.get.search.isDefined) {
                             @span(
-                                msgs("client.search.results.label",
-                                form.data.get("search").get)
+                                msgs("client.search.results.label", form.get.search.get)
                             )
                         }
-                        @if(form.data.get("filter").isDefined) {
+                        @if(form.get.filter.isDefined && !form.get.filter.get.isEmpty) {
                             @span(msgs("client.filter.results.label",
-                                displayTaxServiceFromServiceKey(form.data.get("filter").get)))
+                                displayTaxServiceFromServiceKey(form.get.filter.get)))
                         }
                     }
                 </p>
@@ -106,11 +107,7 @@
             )
 
             @if(paginatedList.paginationMetaData.totalPages > 1) {
-                @GET_pagination(
-                    pagination = paginatedList.paginationMetaData,
-                    baseUrl = formAction,
-                    additionalParams = form.data
-                )
+                @POST_pagination(pagination = paginatedList.paginationMetaData)
             }
 
         } else {

@@ -32,7 +32,7 @@
 @(
     paginatedList: PaginatedList[DisplayClient],
     form: Form[SearchFilter],
-    formAction: Call = routes.ManageClientController.showClients(None),
+    formAction: Call = routes.ManageClientController.submitPageOfClients,
     backUrl: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

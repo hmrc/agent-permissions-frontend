@@ -116,7 +116,8 @@ GET     /manage-access-group/clients-assigned                   controllers.Unas
 
 
 # Manage clients
-GET     /manage-clients                        controllers.ManageClientController.showClients(page: Option[Int])
+GET     /manage-clients                        controllers.ManageClientController.showPageOfClients(page: Option[Int])
+POST    /manage-clients                        controllers.ManageClientController.submitPageOfClients
 GET     /manage-clients/client-details/:id     controllers.ManageClientController.showClientDetails(id: String)
 
 GET     /manage-clients/client-details/update-client-reference/:id    controllers.ManageClientController.showUpdateClientReference(id: String)

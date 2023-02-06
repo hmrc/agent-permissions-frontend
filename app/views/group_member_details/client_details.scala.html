@@ -37,7 +37,7 @@
 
 @layout(
     title = msgs("details.clients"),
-    backLinkHref = Some(routes.ManageClientController.showClients(None).url),
+    backLinkHref = Some(routes.ManageClientController.showPageOfClients(None).url),
     fullWidth = true
 ) {
 
@@ -56,7 +56,7 @@
 
             <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-            @a("common.return.manage-clients", href = routes.ManageClientController.showClients(None).url)
+            @a("common.return.manage-clients", href = routes.ManageClientController.showPageOfClients(None).url)
 
         </div>
 

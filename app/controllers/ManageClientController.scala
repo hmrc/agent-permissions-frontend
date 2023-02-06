@@ -45,8 +45,8 @@ class ManageClientController @Inject()
   update_client_reference: update_client_reference,
   update_client_reference_complete: update_client_reference_complete,
   client_not_found: client_not_found,
-  optInStatusAction: OptInStatusAction)
-(
+  optInStatusAction: OptInStatusAction
+)(
   implicit val appConfig: AppConfig,
   ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi
@@ -58,35 +58,63 @@ class ManageClientController @Inject()
   import authAction._
   import optInStatusAction._
 
+  val controller: ReverseManageClientController = routes.ManageClientController
+  val PAGINATION_REGEX = "(pagination_)(\\d+)".r
+
   // All clients does not include IRV
-  def showClients(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showPageOfClients(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        val eventualTuple = for {
+          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+          clients <- clientService.getPaginatedClients(arn)(page.getOrElse(1), 10)
+        } yield (search, filter, clients)
+        eventualTuple.map(tuple => {
+          val form = SearchAndFilterForm.form().fill(SearchFilter(tuple._1, tuple._2, None))
+          Ok(
+            manage_clients_list(
+              tuple._3,
+              form = form,
+            )
+          )
+        }
+        )
+      }
+    }
+  }
+
+  def submitPageOfClients: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-        (searchFilter.search.isDefined || searchFilter.filter.isDefined)
-          .fold(Future.successful(Done))(_ =>
-            for {
-              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
-              _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
-            } yield (Done)
-          ).flatMap(_ =>
-          clientService
-            .getPaginatedClients(arn)(page.getOrElse(1), 10)
-            .map { paginatedList =>
-              searchFilter
-                .submit
-                .fold(
-                  //ie default page load
-                  Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form()))
-                )({
-                  //clear/filter buttons pressed
-                  case CLEAR_BUTTON =>
-                    Redirect(routes.ManageClientController.showClients(Option(1)))
-                  case FILTER_BUTTON =>
-                    Ok(manage_clients_list(paginatedList, SearchAndFilterForm.form().fill(searchFilter)))
-                })
-            }
-        )
+        searchFilter.submit.fold(
+          Redirect(controller.showPageOfClients(None)).toFuture
+        )({
+          case CLEAR_BUTTON =>
+            val eventualDone = for {
+              _ <- sessionCacheService.delete(CLIENT_SEARCH_INPUT)
+              _ <- sessionCacheService.delete(CLIENT_FILTER_INPUT)
+            } yield Done
+            eventualDone.map(_=> Redirect(controller.showPageOfClients(None)))
+          case PAGINATION_REGEX(_, pageToShow) =>
+            sessionCacheService.get(CLIENT_SEARCH_INPUT).flatMap(search => {
+              sessionCacheService.get(CLIENT_FILTER_INPUT).flatMap(filter => {
+                val page = if (searchFilter.search == search && (searchFilter.filter.getOrElse("") == filter.getOrElse("") )) pageToShow.toInt else 1
+                sessionCacheService
+                  .put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+                  .flatMap(_ =>
+                    sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
+                  )
+                  .map(_ => Redirect(controller.showPageOfClients(Option(page))))
+              })
+            })
+          case FILTER_BUTTON =>
+            sessionCacheService
+              .put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+              .flatMap(_ => sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse("")))
+              .map(_ => Redirect(controller.showPageOfClients(None)))
+        })
       }
     }
   }
@@ -128,7 +156,7 @@ class ManageClientController @Inject()
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         clientService.lookupClient(arn)(clientId).map {
-          case Some(client) =>
+            case Some(client) =>
             ClientReferenceForm.form()
               .bindFromRequest()
               .fold(
@@ -147,7 +175,6 @@ class ManageClientController @Inject()
                 }
               )
           case None => throw new RuntimeException("client reference supplied did not match any client")
-
         }
       }
     }

@@ -27,6 +27,7 @@
     table: table, search_and_filter: search_and_filter,
     filter_buttons: filter_buttons,
     textbox: textbox, input_select: input_select,
+    formWithCSRF: FormWithCSRF,
     GET_pagination: GET_pagination
 )
 
@@ -53,7 +54,7 @@
     content = Text(msgs("common.skip-to-clients"))
 ))
 
-@views.html.helper.form(action = formAction) {
+@formWithCSRF(action = formAction) {
 
     @search_and_filter(form, true)
 
@@ -71,15 +72,15 @@
             headings = Seq(
                 (
                     Html(msgs("group.client.list.table.th1")),
-                    Map("aria-sort" -> "none")
+                    Map.empty
                 ),
                 (
                     Html(msgs("group.client.list.table.th2")),
-                    Map("aria-sort" -> "none")
+                    Map.empty
                 ),
                 (
                     Html(msgs("group.client.list.table.th3")),
-                    Map("aria-sort" -> "none")
+                    Map.empty
                 )
             ),
             rows = tableRows,

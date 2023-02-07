@@ -18,7 +18,6 @@ package helpers
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, GroupRequest, UpdateAccessGroupRequest}
-import controllers.PaginationUtil
 import models.DisplayClient
 import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
@@ -26,6 +25,7 @@ import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+import utils.FilterUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -94,7 +94,7 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
     (agentPermissionsConnector
       .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, search, filter, *, *)
-      .returning(Future.successful(PaginatedListBuilder.build(page = page, pageSize = pageSize, fullList = PaginationUtil.filterClients(clients, search, filter))) )
+      .returning(Future.successful(PaginatedListBuilder.build(page = page, pageSize = pageSize, fullList = FilterUtils.filterClients(clients, search, filter))) )
 
   def expectGetGroupsForClientSuccess(
                                        arn: Arn,

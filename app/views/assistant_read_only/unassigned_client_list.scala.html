@@ -15,10 +15,7 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
-@import views.components.models.SummaryListData
 @import views.html.main_layout
-@import views.html.helper.CSPNonce
 @import views.html.partials.clients_table_filter_form
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
@@ -53,14 +50,14 @@
         @clients_table_filter_form(
             Some(unassignedClients),
             filterForm,
-            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly(),
+            routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly,
             paginationMetaData
         )
     } else {
         @clients_table_filter_form(
             None,
             filterForm,
-            routes.AssistantViewOnlyController.showUnassignedClientsViewOnly()
+            routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly
         )
     }
 

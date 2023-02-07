@@ -27,6 +27,7 @@ import services.ClientService
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.FilterUtils
 import views.html.assistant_read_only._
 
 import javax.inject.{Inject, Singleton}
@@ -56,51 +57,75 @@ class AssistantViewOnlyController @Inject()(
   def showUnassignedClientsViewOnly(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
-        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-        def render(searchFilter: SearchFilter): Future[Result] =
-          clientService.getUnassignedClients(arn)(page.getOrElse(1), UNASSIGNED_CLIENTS_PAGE_SIZE, searchFilter.search, searchFilter.filter).map { clients =>
-            Ok(unassigned_client_list(clients.pageContent, SearchAndFilterForm.form().fill(searchFilter), Some(clients.paginationMetaData)))
-          }
-        searchFilter.submit match {
-          case None => //no filter/clear was applied
-            render(SearchFilter(None, None, None))
-          //either the 'filter' button or the 'clear' filter button was clicked
-          case Some(CLEAR_BUTTON) =>
-            Redirect(routes.AssistantViewOnlyController.showUnassignedClientsViewOnly(page)).toFuture
-          case Some(FILTER_BUTTON) =>
-            render(searchFilter)
-          case _ => Future.successful(BadRequest)
+        for {
+          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+          unassignedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), UNASSIGNED_CLIENTS_PAGE_SIZE, search, filter)
+        } yield {
+          Ok(
+            unassigned_client_list(
+              unassignedClients.pageContent,
+              SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+              Some(unassignedClients.paginationMetaData))
+          )
         }
       }
     }
   }
 
-  def showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAssistant(groupId) { group: CustomGroup =>
-      val displayGroup = DisplayGroup.fromAccessGroup(group)
-      val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-      def render(searchFilter: SearchFilter): Future[Result] = {
-        val filteredClients = PaginationUtil.filterClients(displayGroup.clients, searchFilter.search, searchFilter.filter)
-        val paginated = PaginatedListBuilder.build(page = page.getOrElse(1), pageSize = UNASSIGNED_CLIENTS_PAGE_SIZE, fullList = filteredClients)
-        Future.successful(Ok(
-          existing_group_client_list(
-            group = displayGroup.copy(clients = paginated.pageContent),
-            filterForm = SearchAndFilterForm.form().fill(searchFilter),
-            paginationMetaData = Some(paginated.paginationMetaData)
-          )
-        ))
-      }
-      searchFilter.submit match {
-        case None => //no filter/clear was applied
-          render(SearchFilter(None, None, None))
-      //either the 'filter' button or the 'clear' filter button was clicked
-        case Some(CLEAR_BUTTON) =>
-          Future.successful(Redirect(routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId)))
-        case Some(FILTER_BUTTON) =>
-          render(searchFilter)
-        case _ => Future.successful(BadRequest)
+  // This endpoint exists in order to POST search/filter terms (GET form submit is disallowed by organisation policy)
+  def submitUnassignedClientsViewOnly: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAssistant { arn =>
+      isOptedIn(arn) { _ =>
+        updateSearchFilter(redirectTo = routes.AssistantViewOnlyController.showUnassignedClientsViewOnly())
       }
     }
   }
 
+
+  def showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedOptedAssistant(groupId) { group: CustomGroup =>
+      for {
+        search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+        filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+        displayGroup = DisplayGroup.fromAccessGroup(group)
+        filteredClients = FilterUtils.filterClients(displayGroup.clients, search, filter)
+        paginated = PaginatedListBuilder.build(page = page.getOrElse(1), pageSize = UNASSIGNED_CLIENTS_PAGE_SIZE, fullList = filteredClients)
+      } yield {
+        Ok(
+          existing_group_client_list(
+            group = displayGroup.copy(clients = paginated.pageContent),
+            filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+            paginationMetaData = Some(paginated.paginationMetaData)
+          )
+        )
+      }
+    }
+  }
+
+  // This endpoint exists in order to POST search/filter terms (GET form submit is disallowed by organisation policy)
+  def submitExistingGroupClientsViewOnly(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAssistant { arn =>
+      isOptedIn(arn) { _ =>
+        updateSearchFilter(redirectTo = routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId))
+      }
+    }
+  }
+
+  private def updateSearchFilter(redirectTo: Call)(implicit request: Request[_]): Future[Result] = {
+    val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+    searchFilter.submit match {
+      case Some(CLEAR_BUTTON) =>
+        sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT)).map { _ =>
+          Redirect(redirectTo)
+        }
+      case Some(FILTER_BUTTON) => for {
+        _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+        _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
+      } yield {
+        Redirect(redirectTo)
+      }
+      case _ => Future.successful(BadRequest)
+    }
+  }
 }

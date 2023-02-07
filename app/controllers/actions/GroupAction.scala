@@ -46,7 +46,7 @@ class GroupAction @Inject()
 
   import optInStatusAction._
 
-  @deprecated("use withSummaryForAuthorisedOptedAgent")
+  @deprecated("use withGroupSummaryForAuthorisedOptedAgent")
   def withGroupForAuthorisedOptedAgent(groupId: String)
                                       (body: CustomGroup => Future[Result])
                                       (implicit ec: ExecutionContext,
@@ -100,6 +100,7 @@ class GroupAction @Inject()
     }
   }
 
+  // TODO use withGroupSummaryForAuthorisedOptedAgent or withAccessGroupForAuthorisedOptedAgent
   def withTaxGroupForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
                                          (body: TaxGroup => Future[Result])
                                          (implicit ec: ExecutionContext,

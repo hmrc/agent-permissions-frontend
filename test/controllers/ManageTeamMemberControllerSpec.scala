@@ -115,6 +115,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 5
+
+      val paginationItems = html.select(Css.pagination_li)
+      paginationItems.size() shouldBe 4
+      paginationItems.select("a").get(0).text() shouldBe "2"
+      paginationItems.select("a").get(0).attr("href") startsWith "/agent-permissions/manage-team-members?page=2"
     }
 
   }

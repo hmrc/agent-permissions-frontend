@@ -121,6 +121,11 @@ class ManageClientControllerSpec extends BaseSpec {
 
       trs.size() shouldBe 3
 
+      val paginationItems = html.select(Css.pagination_li)
+      paginationItems.size() shouldBe 4
+      paginationItems.select("a").get(0).text() shouldBe "2"
+      paginationItems.select("a").get(0).attr("href") startsWith "/agent-permissions/manage-clients?page=2"
+
       html.select(".hmrc-report-technical-issue").text() shouldBe "Is this page not working properly? (opens in new tab)"
       html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
 

@@ -115,6 +115,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 5
+
+      val paginationItems = html.select(Css.pagination_li)
+      paginationItems.size() shouldBe 4
+      paginationItems.select("a").get(0).text() shouldBe "2"
+      paginationItems.select("a").get(0).attr("href") startsWith "/agent-permissions/manage-team-members?page=2"
     }
 
   }
@@ -140,32 +145,6 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
-    }
-
-    "go to correct page when PAGINATION_BUTTON is clicked" in {
-      //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      val dude = "dude"
-      expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
-
-      val pageToNavigateTo : Int = 2
-      //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
-        .withFormUrlEncodedBody(
-          "submit" -> s"${PAGINATION_BUTTON}_$pageToNavigateTo",
-          "search" -> dude
-        )
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
-
-      //when
-      val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
-
-      //then
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(Option(pageToNavigateTo)).url)
     }
 
     "go to correct page when FILTER_BUTTON is clicked" in {

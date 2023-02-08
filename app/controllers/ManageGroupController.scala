@@ -56,42 +56,61 @@ class ManageGroupController @Inject()
 ) extends FrontendController(mcc)
 
 
-    with I18nSupport
-    with Logging {
+  with I18nSupport
+  with Logging {
 
   import authAction._
   import groupAction._
   import optInStatusAction._
 
-  def showManageGroups(page:Option[Int] = None, pageSize: Option[Int] = None) : Action[AnyContent] = Action.async { implicit request =>
+  val controller: ReverseManageGroupController = controllers.routes.ManageGroupController
+
+  def showManageGroups(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-          val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-          searchFilter.submit.fold({ //i.e. regular page load with no params
-            groupService.getPaginatedGroupSummaries(arn)(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
-            sessionCacheService.deleteAll(teamMemberFilteringKeys ++ clientFilteringKeys)
-            Ok(manage_existing_groups(
-              pagination.pageContent,
-              SearchAndFilterForm.form(),
-              Some(pagination.paginationMetaData)
-            ))
-            }
-          }
-          ) { //either the 'filter' button or the 'clear' filter button was clicked
-            case FILTER_BUTTON =>
-              groupService.getPaginatedGroupSummaries(
-                arn,
-                searchFilter.search.getOrElse("")
-              )(page.getOrElse(1), pageSize.getOrElse(5)).map { pagination =>
+        sessionCacheService.get(GROUP_SEARCH_INPUT)
+          .flatMap(maybeSearchTerm => {
+            groupService
+              .getPaginatedGroupSummaries(arn, maybeSearchTerm.getOrElse(""))(page.getOrElse(1), pageSize.getOrElse(5))
+              .map { pagination =>
                 Ok(manage_existing_groups(
                   pagination.pageContent,
-                  SearchAndFilterForm.form().fill(searchFilter),
+                  SearchAndFilterForm.form().fill(SearchFilter(maybeSearchTerm, None, None)),
                   Some(pagination.paginationMetaData)
                 ))
               }
-            case CLEAR_BUTTON =>
-              Redirect(routes.ManageGroupController.showManageGroups(None, None)).toFuture
           }
+          )
+      }
+    }
+  }
+
+  def submitManageGroups: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
+        searchFilter.submit.fold(
+          Redirect(controller.showManageGroups(None, None)).toFuture
+        ) {
+          case CLEAR_BUTTON =>
+            sessionCacheService
+              .delete(GROUP_SEARCH_INPUT)
+              .map(_ => Redirect(controller.showManageGroups(None, None)))
+          case PAGINATION_REGEX(_, pageToShow) =>
+            sessionCacheService.get(GROUP_SEARCH_INPUT).flatMap(search => {
+              if (searchFilter.search == search) {
+                Redirect(controller.showManageGroups(Some(pageToShow.toInt), None)).toFuture
+              } else {
+                sessionCacheService
+                  .put(GROUP_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+                  .map(_ => Redirect(controller.showManageGroups(None, None)))
+              }
+            })
+          case FILTER_BUTTON =>
+            sessionCacheService
+              .put(GROUP_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+              .map(_ => Redirect(controller.showManageGroups(None, None)))
+        }
       }
     }
   }
@@ -191,7 +210,7 @@ class ManageGroupController @Inject()
                 _ <- groupService.deleteGroup(groupId)
               } yield Redirect(routes.ManageGroupController.showGroupDeleted.url)
             } else
-              Redirect(routes.ManageGroupController.showManageGroups(None,None).url).toFuture
+              Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
           }
         )
     }

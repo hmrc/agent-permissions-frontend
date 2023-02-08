@@ -28,7 +28,7 @@ import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
+import play.api.test.Helpers.{GET, POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.GroupService
 import uk.gov.hmrc.agentmtdidentifiers.model._
@@ -123,6 +123,30 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
     }
 
+    "set session cache values appropriately when submitting with search/filter terms" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectOptInStatusOk(arn)(OptedInReady)
+
+      val requestWithFormBody = FakeRequest(POST,
+        ctrlRoute.submitUnassignedClientsViewOnly.url)
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+        .withFormUrlEncodedBody("submit" -> "filter", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
+
+      //when
+      val result = controller.submitUnassignedClientsViewOnly()(requestWithFormBody)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result) shouldBe Some(ctrlRoute.showUnassignedClientsViewOnly(None).url)
+
+      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
+      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT")
+    }
+
     "render the unassigned clients list with search params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
@@ -131,15 +155,10 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       expectGetUnassignedClientsSuccess(arn, displayClients, search = Some("friendly1"))
 
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showUnassignedClientsViewOnly().url +
-          "?submit=filter&search=friendly1&filter="
-      )
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
 
       //when
-      val result = controller.showUnassignedClientsViewOnly()(requestWithQueryParams)
+      val result = controller.showUnassignedClientsViewOnly()(request)
 
       //then
       status(result) shouldBe OK
@@ -165,15 +184,11 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       expectGetUnassignedClientsSuccess(arn, displayClients, search = Some("friendly1"), filter = Some(NON_MATCHING_FILTER))
 
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showUnassignedClientsViewOnly().url +
-          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
-      )
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, NON_MATCHING_FILTER).futureValue
 
       //when
-      val result = controller.showUnassignedClientsViewOnly()(requestWithQueryParams)
+      val result = controller.showUnassignedClientsViewOnly()(request)
 
       //then
       status(result) shouldBe OK
@@ -191,29 +206,33 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       trs.size() shouldBe 0
     }
 
-    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+    "clear filters from cache and redirect to base URL when 'clear' is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showUnassignedClientsViewOnly().url +
-          s"?submit=clear"
-      )
+      val requestWithFormBody = FakeRequest(POST,
+        ctrlRoute.submitUnassignedClientsViewOnly.url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
+        .withFormUrlEncodedBody("submit" -> "clear" /* ! */, "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
+
+      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
 
       //when
-      val result = controller.showUnassignedClientsViewOnly()(requestWithQueryParams)
+      val result = controller.submitUnassignedClientsViewOnly()(requestWithFormBody)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get
-        .shouldBe(ctrlRoute.showUnassignedClientsViewOnly().url)
-    }
 
+      redirectLocation(result) shouldBe Some(ctrlRoute.showUnassignedClientsViewOnly(None).url)
+
+      // check that filter values have been removed
+      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe None
+      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe None
+    }
   }
 
   s"GET ${ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url}" should {
@@ -225,7 +244,6 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectOptInStatusOk(arn)(OptedInReady)
 
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
-
 
       //when
       val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(request)
@@ -247,6 +265,31 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
     }
 
+    "set session cache values appropriately when submitting with search/filter terms" in {
+      //given
+      expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectOptInStatusOk(arn)(OptedInReady)
+
+      val requestWithFormBody = FakeRequest(POST,
+        ctrlRoute.submitUnassignedClientsViewOnly.url)
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+        .withFormUrlEncodedBody("submit" -> "filter", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
+
+      //when
+      val result = controller.submitExistingGroupClientsViewOnly(accessGroup._id.toString)(requestWithFormBody)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url)
+
+      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
+      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT")
+    }
+
+
     s"render group ${accessGroup.groupName} clients list with search params" in {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
@@ -255,15 +298,11 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
 
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
-          "?submit=filter&search=friendly1&filter="
-      )
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "").futureValue
 
       //when
-      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe OK
@@ -291,15 +330,12 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
-          s"?submit=filter&search=friendly1&filter=$NON_MATCHING_FILTER"
-      )
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+
+      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, NON_MATCHING_FILTER).futureValue
 
       //when
-      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(requestWithQueryParams)
+      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(request)
 
       //then
       status(result) shouldBe OK
@@ -315,32 +351,32 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       trs.size() shouldBe 0
     }
 
-    "redirect to baseUrl when CLEAR FILTER is clicked" in {
+    "clear filters from cache and redirect to base URL when 'clear' is clicked" in {
       //given
       expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedInReady)
 
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
-
-      //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url +
-          s"?submit=clear"
-      )
+      val requestWithFormBody = FakeRequest(POST,
+        ctrlRoute.submitUnassignedClientsViewOnly.url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
+        .withFormUrlEncodedBody("submit" -> "clear" /* ! */, "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
+
+      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
 
       //when
-      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(requestWithQueryParams)
+      val result = controller.submitExistingGroupClientsViewOnly(accessGroup._id.toString)(requestWithFormBody)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get
-        .shouldBe(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url)
+
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url)
+
+      // check that filter values have been removed
+      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe None
+      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe None
     }
-
   }
-
-
 }

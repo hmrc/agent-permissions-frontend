@@ -59,7 +59,6 @@ class ManageClientController @Inject()
   import optInStatusAction._
 
   val controller: ReverseManageClientController = routes.ManageClientController
-  val PAGINATION_REGEX = "(pagination_)(\\d+)".r
 
   // All clients does not include IRV
   def showPageOfClients(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>

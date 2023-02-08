@@ -17,7 +17,6 @@
 package helpers
 
 import akka.Done
-import controllers.PaginationUtil
 import models.DisplayClient
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
@@ -25,6 +24,7 @@ import services.ClientService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.FilterUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -69,7 +69,7 @@ trait ClientServiceMocks extends MockFactory {
     (clientService
       .getUnassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, search, filter, *, *, *)
-      .returning(Future.successful(PaginatedListBuilder.build(page = page, pageSize = pageSize, fullList = PaginationUtil.filterClients(clients, search, filter)))).once()
+      .returning(Future.successful(PaginatedListBuilder.build(page = page, pageSize = pageSize, fullList = FilterUtils.filterClients(clients, search, filter)))).once()
 
   def expectLookupClient(arn: Arn)
                         (client: DisplayClient)

@@ -17,7 +17,7 @@
 package controllers
 
 import forms.{AddClientsToGroupForm, SearchAndFilterForm}
-import models.{AddClientsToGroup, DisplayClient, SearchFilter}
+import models.{AddClientsToGroup, SearchFilter}
 import play.api.data.Forms.{single, text}
 import play.api.data.{Form, FormBinding}
 import play.api.mvc.Results.Redirect
@@ -121,18 +121,5 @@ abstract class POSTPaginatedSearchableClientSelectHandler(sessionCacheService: S
         }
       }
     }.handlePost
-  }
-}
-
-object PaginationUtil {
-  def filterClients(clients: Seq[DisplayClient], search: Option[String], filter: Option[String]): Seq[DisplayClient] = {
-    clients
-      .filter(_.name.toLowerCase.contains(search.getOrElse("").toLowerCase))
-      .filter(dc =>
-        filter match {
-          case None => true
-          case Some(fltr) => dc.taxService.equalsIgnoreCase(fltr) || (fltr == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
-        }
-      )
   }
 }

@@ -33,7 +33,7 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = withSearchAndErrorPrefix(!filterForm.errors.isEmpty,
+    title = withSearchAndErrorPrefix(filterForm.errors.nonEmpty,
                                      msgs("assistant.clients.group.h1", group.name),
                                      filterForm("filter").value,
                                      filterForm("search").value
@@ -51,13 +51,13 @@
         @clients_table_filter_form(
             Some(group.clients),
             filterForm,
-            routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(group._id)
+            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(group._id)
         )
     } else {
         @clients_table_filter_form(
             None,
             filterForm,
-            routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(group._id),
+            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(group._id),
             paginationMetaData
         )
     }

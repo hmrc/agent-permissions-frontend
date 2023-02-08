@@ -46,6 +46,7 @@ package object controllers {
   final val PAGINATION_BUTTON: String = "pagination"
   final val CUSTOM_GROUP: String = "custom group"
   final val TAX_SERVICE_GROUP: String = "tax service group"
+  val PAGINATION_REGEX = "(pagination_)(\\d+)".r
 
   val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
   val optedInStatii = Seq(OptedInReady, OptedInNotReady, OptedInSingleUser)
@@ -65,6 +66,8 @@ package object controllers {
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
   val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")
+
+  val GROUP_SEARCH_INPUT: DataKey[String] = DataKey("GROUP_SEARCH_INPUT")
 
   val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("filteredTeamMembers")
   val CURRENT_PAGE_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("CURRENT_PAGE_TEAM_MEMBERS")

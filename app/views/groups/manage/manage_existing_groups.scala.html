@@ -27,7 +27,8 @@
     table: table, textbox: textbox, summary_list: summary_list,
     a_button: link_as_button, search_and_filter: search_and_filter,
     GET_pagination: GET_pagination,
-    summaryErrors: SummaryErrors
+    summaryErrors: SummaryErrors,
+    formWithCSRF: FormWithCSRF,
 )
 
 @(
@@ -65,7 +66,7 @@
         )
     </div>
 
-    @views.html.helper.form(routes.ManageGroupController.showManageGroups(None,None)) {
+    @formWithCSRF(routes.ManageGroupController.submitManageGroups) {
         @search_and_filter(
             filterGroupSummaryForm,
             withFilter = false,

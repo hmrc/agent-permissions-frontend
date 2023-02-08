@@ -51,14 +51,14 @@ class ManageGroupControllerSpec extends BaseSpec {
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
 
   val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
-                                arn,
-                                "Bananas",
-                                LocalDate.of(2020, 3, 10).atStartOfDay(),
-                                null,
-                                agentUser,
-                                agentUser,
-                                None,
-                                None)
+    arn,
+    "Bananas",
+    LocalDate.of(2020, 3, 10).atStartOfDay(),
+    null,
+    agentUser,
+    agentUser,
+    None,
+    None)
 
   val taxGroup: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "", automaticUpdates = true, None)
 
@@ -108,16 +108,17 @@ class ManageGroupControllerSpec extends BaseSpec {
   val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
   private val ctrlRoute: ReverseManageGroupController = routes.ManageGroupController
 
-  s"GET ${ctrlRoute.showManageGroups(None,None).url}" should {
+  s"GET ${ctrlRoute.showManageGroups(None, None).url}" should {
 
-    // TODO add test for pagination with more than one page? :P
     "render correctly the manage groups page" in {
 
       //given
       expectAuthOkOptedInReady()
+      val searchTerm = "ab"
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
-      expectGetPageOfGroupsForArn(arn)(1, 5)(groupSummaries)
-      expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
+      expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(groupSummaries)
+      expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
+
       //when
       val result = controller.showManageGroups(None, None)(request)
 
@@ -168,8 +169,9 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthOkOptedInReady()
-      expectGetPageOfGroupsForArn(arn)(1, 5)(Seq.empty)
-      expectDeleteSessionItems(teamMemberFilteringKeys ++ clientFilteringKeys)
+      val searchTerm = "ab"
+      expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(Nil)
+      expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
 
       //when
       val result = controller.showManageGroups(None, None)(request)
@@ -203,14 +205,16 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4))
       val searchTerm = expectedGroupSummaries(0).groupName
-      expectGetPageOfGroupsForArn(arn, searchTerm)(1, 5)(Seq(expectedGroupSummaries.head))
+      expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(Seq(expectedGroupSummaries.head))
+      expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
+
       val requestWithQuery = FakeRequest(GET,
-         ctrlRoute.showManageGroups(None,None).url + s"?submit=filter&search=$searchTerm")
-        .withHeaders("AuthorizatiManageGroupControllerSpec.scala:229on" -> "Bearer XYZ")
+        ctrlRoute.showManageGroups(None, None).url)
+        .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showManageGroups(None,None)(requestWithQuery)
+      val result = controller.showManageGroups(None, None)(requestWithQuery)
 
       //then
       status(result) shouldBe OK
@@ -256,6 +260,109 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"POST to ${ctrlRoute.submitManageGroups.url}" should {
+
+    "redirect to showManageGroups and work for FILTER_BUTTON" in {
+
+      //given
+      expectAuthOkOptedInReady()
+      expectPutSessionItem(GROUP_SEARCH_INPUT, "xx")
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitManageGroups.url)
+          .withFormUrlEncodedBody(
+            "search" -> "xx",
+            "submit" -> FILTER_BUTTON
+          )
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitManageGroups(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url
+    }
+
+    "redirect to showManageGroups and work for CLEAR_BUTTON" in {
+
+      //given
+      expectAuthOkOptedInReady()
+      expectDeleteSessionItem(GROUP_SEARCH_INPUT)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitManageGroups.url)
+          .withFormUrlEncodedBody(
+            "submit" -> CLEAR_BUTTON
+          )
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitManageGroups(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url
+    }
+
+    "redirect to showManageGroups and work for PAGINATION_BUTTON and redirect to page requested when search term is unchanged" in {
+
+      //given
+      expectAuthOkOptedInReady()
+      expectGetSessionItem(GROUP_SEARCH_INPUT, "abc")
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitManageGroups.url)
+          .withFormUrlEncodedBody(
+            "search"-> "abc",
+            "submit" -> s"${PAGINATION_BUTTON}_2",
+          )
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitManageGroups(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url + "?page=2"
+    }
+
+    "redirect to showManageGroups and work for PAGINATION_BUTTON and redirect to page 1 when search term is changed" in {
+
+      //given
+      expectAuthOkOptedInReady()
+      val oldSearchTerm = "abc"
+      expectGetSessionItem(GROUP_SEARCH_INPUT, oldSearchTerm)
+      val updatedSearchTerm = "def"
+      expectPutSessionItem(GROUP_SEARCH_INPUT, updatedSearchTerm)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST",
+          ctrlRoute.submitManageGroups.url)
+          .withFormUrlEncodedBody(
+            "search"-> updatedSearchTerm,
+            "submit" -> s"${PAGINATION_BUTTON}_2",
+          )
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitManageGroups(request)
+
+      //then
+      oldSearchTerm should not be updatedSearchTerm
+      status(result) shouldBe SEE_OTHER
+      //NB: no "?page=2" on url as we redirect to page 1 when you change search term
+      redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url
+    }
+
+  }
   s"GET ${ctrlRoute.showRenameGroup(groupId).url}" should {
 
     "render correctly the rename groups page" in {
@@ -303,7 +410,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Back to manage groups page"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
   }
 
@@ -352,7 +459,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Back to manage groups page"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
   }
 
@@ -363,11 +470,11 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
-      expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"),None,None))
+      expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"), None, None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    ctrlRoute.submitRenameGroup(groupId).url)
+          ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -391,7 +498,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    ctrlRoute.submitRenameGroup(groupId).url)
+          ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -411,7 +518,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Back to manage groups page"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
     "render errors when no group name is specified" in {
@@ -483,7 +590,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.linkStyledAsButton)
         .text() shouldBe "Back to manage groups page"
       html.select(Css.linkStyledAsButton)
-        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
     "render errors when no group name is specified" in {
@@ -535,7 +642,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
       val dashboardLink = html.select("main a#back-to-dashboard")
       dashboardLink.text() shouldBe "Return to manage access groups"
-      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
   }
 
@@ -569,7 +676,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
       val dashboardLink = html.select("main a#back-to-dashboard")
       dashboardLink.text() shouldBe "Return to manage access groups"
-      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+      dashboardLink.attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
   }
 
@@ -611,9 +718,9 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    ctrlRoute
-                      .submitDeleteGroup(accessGroup._id.toString)
-                      .url)
+          ctrlRoute
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -635,9 +742,9 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-                    ctrlRoute
-                      .submitDeleteGroup(accessGroup._id.toString)
-                      .url)
+          ctrlRoute
+            .submitDeleteGroup(accessGroup._id.toString)
+            .url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -649,7 +756,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       //and
       redirectLocation(result) shouldBe Some(
-        ctrlRoute.showManageGroups(None,None).url)
+        ctrlRoute.showManageGroups(None, None).url)
 
     }
 
@@ -657,10 +764,10 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-        ctrlRoute.submitDeleteGroup(groupId).url)
-        .withFormUrlEncodedBody("answer" -> "")
-        .withHeaders("Authorization" -> s"Bearer whatever")
-        .withSession(SessionKeys.sessionId -> "session-x")
+          ctrlRoute.submitDeleteGroup(groupId).url)
+          .withFormUrlEncodedBody("answer" -> "")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
@@ -701,7 +808,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Return to manage access groups"
       html
         .select("a#returnToDashboard")
-        .attr("href") shouldBe ctrlRoute.showManageGroups(None,None).url
+        .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
       html.select(Css.backLink).size() shouldBe 0
     }
   }
@@ -781,7 +888,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       //and
       redirectLocation(result) shouldBe Some(
-        ctrlRoute.showManageGroups(None,None).url)
+        ctrlRoute.showManageGroups(None, None).url)
 
     }
 

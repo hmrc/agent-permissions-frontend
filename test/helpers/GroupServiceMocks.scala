@@ -60,7 +60,7 @@ trait GroupServiceMocks extends MockFactory {
       .expects(arn, *, *, *)
       .returning(Future.successful(groups)).once()
 
-  def expectGetPageOfGroupsForArn(arn: Arn, filterTerm: String = "")(page:Int, pageSize:Int)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
+  def expectGetPaginatedGroupSummaries(arn: Arn, filterTerm: String = "")(page:Int, pageSize:Int)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
       .getPaginatedGroupSummaries(_: Arn, _: String)(_:Int,_:Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, filterTerm, page, pageSize, *, *, *)

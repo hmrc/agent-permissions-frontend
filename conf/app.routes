@@ -66,7 +66,8 @@ GET     /group-created                        controllers.CreateGroupController.
 # Deprecated for 1000+ above (create group)
 
 # Manage groups
-GET     /manage-access-groups                controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])
+GET     /manage-access-groups             controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])
+POST    /manage-access-groups             controllers.ManageGroupController.submitManageGroups
 
 GET     /rename-custom-group/:groupId     controllers.ManageGroupController.showRenameGroup(groupId: String)
 POST    /rename-custom-group/:groupId     controllers.ManageGroupController.submitRenameGroup(groupId: String)

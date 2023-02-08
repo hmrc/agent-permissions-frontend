@@ -70,13 +70,9 @@ class ManageClientController @Inject()
           clients <- clientService.getPaginatedClients(arn)(page.getOrElse(1), 10)
         } yield (search, filter, clients)
         eventualTuple.map(tuple => {
-          val form = SearchAndFilterForm.form().fill(SearchFilter(tuple._1, tuple._2, None))
-          Ok(
-            manage_clients_list(
-              tuple._3,
-              form = form,
-            )
-          )
+          val (search, filter, clients) = (tuple._1, tuple._2, tuple._3)
+          val form = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None))
+          Ok(manage_clients_list(clients, form))
         }
         )
       }
@@ -95,19 +91,7 @@ class ManageClientController @Inject()
               _ <- sessionCacheService.delete(CLIENT_SEARCH_INPUT)
               _ <- sessionCacheService.delete(CLIENT_FILTER_INPUT)
             } yield Done
-            eventualDone.map(_=> Redirect(controller.showPageOfClients(None)))
-          case PAGINATION_REGEX(_, pageToShow) =>
-            sessionCacheService.get(CLIENT_SEARCH_INPUT).flatMap(search => {
-              sessionCacheService.get(CLIENT_FILTER_INPUT).flatMap(filter => {
-                val page = if (searchFilter.search == search && (searchFilter.filter.getOrElse("") == filter.getOrElse("") )) pageToShow.toInt else 1
-                sessionCacheService
-                  .put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
-                  .flatMap(_ =>
-                    sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
-                  )
-                  .map(_ => Redirect(controller.showPageOfClients(Option(page))))
-              })
-            })
+            eventualDone.map(_ => Redirect(controller.showPageOfClients(None)))
           case FILTER_BUTTON =>
             sessionCacheService
               .put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
@@ -155,7 +139,7 @@ class ManageClientController @Inject()
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         clientService.lookupClient(arn)(clientId).map {
-            case Some(client) =>
+          case Some(client) =>
             ClientReferenceForm.form()
               .bindFromRequest()
               .fold(

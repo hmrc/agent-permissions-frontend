@@ -24,6 +24,7 @@ import models.{AddClientsToGroup, DisplayClient}
 import play.api.Logging
 import play.api.data.{Form, FormError}
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.JsNumber
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
@@ -67,12 +68,15 @@ class UnassignedClientController @Inject()(
 
   private def renderUnassignedClients(arn: Arn, form: Form[AddClientsToGroup], page: Option[Int], pageSize: Option[Int] = None, search: Option[String] = None, filter: Option[String] = None)(implicit request: Request[_]): Future[Result] =
     for {
+      // TODO considerable duplication between this code and ClientService.getPaginatedClients. Unify please at next opportunity.
       maybeSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
       unmarkedPaginatedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE), search = search, filter = filter)
       markedPaginatedClients =
         unmarkedPaginatedClients.copy(
         pageContent = unmarkedPaginatedClients.pageContent.map( c => if(maybeSelectedClients.isEmpty) c else c.copy(selected = maybeSelectedClients.get.map(_.id).contains(c.id)))
       )
+      totalClientsSelected = maybeSelectedClients.fold(0)(_.length)
+      metadataWithExtra = unmarkedPaginatedClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(totalClientsSelected))))  // This extra data is needed to display correct 'selected' count in front-end
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, markedPaginatedClients.pageContent)
     } yield {
       val defaultFormData: AddClientsToGroup = AddClientsToGroup()
@@ -80,7 +84,7 @@ class UnassignedClientController @Inject()(
         unassigned_clients_list(
           markedPaginatedClients.pageContent,
           form = form.fill(form.value.getOrElse(defaultFormData).copy(search = search, filter = filter)),
-          paginationMetaData = Some(markedPaginatedClients.paginationMetaData)
+          paginationMetaData = Some(metadataWithExtra)
         )
       )
     }

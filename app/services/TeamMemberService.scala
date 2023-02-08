@@ -20,6 +20,7 @@ import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
 import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
 import models.{AddTeamMembersToGroup, TeamMember}
+import play.api.libs.json.JsNumber
 import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -112,14 +113,21 @@ class TeamMemberServiceImpl @Inject()(
       existingSelectedIds = maybeSelectedTeamMembers.getOrElse(Nil).map(_.id)
       pageOfMembersMarkedSelected = pageOfMembers
         .map(dc => if (existingSelectedIds.contains(dc.id)) dc.copy(selected = true) else dc)
-      pageOfDisplayTeamMembers = PaginatedList[TeamMember](
-        pageContent = pageOfMembersMarkedSelected,
-        paginationMetaData =
-          PaginationMetaData(page == numPages, page == 1, filteredMembers.length, numPages, pageSize, page, pageOfMembers.length)
-
-      )
+      totalMembersSelected = maybeSelectedTeamMembers.fold(0)(_.length)
       _ <- sessionCacheService.put(CURRENT_PAGE_TEAM_MEMBERS, pageOfMembersMarkedSelected)
-    } yield pageOfDisplayTeamMembers
+    } yield PaginatedList[TeamMember](
+      pageContent = pageOfMembersMarkedSelected,
+      paginationMetaData = PaginationMetaData(
+        page == numPages,
+        page == 1,
+        filteredMembers.length,
+        numPages,
+        pageSize,
+        page,
+        pageOfMembers.length,
+        extra = Some(Map("totalSelected" -> JsNumber(totalMembersSelected))) // This extra data is needed to display correct 'selected' count in front-end
+      )
+    )
   }
 
   // returns team members from agent-user-client-details, selecting previously selected team members

@@ -37,7 +37,7 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
   // TODO this whole class needs documenting, as it's not clear what it's doing.
 
   def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
-                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+                (implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
     if (searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty) {
       sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
     } else {
@@ -52,7 +52,7 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
   def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)
                                    (getClients: Arn => Future[Seq[DisplayClient]]) // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
-                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
+                                   (implicit ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
 
     val selectedClientIds = formData.clients.getOrElse(Seq.empty)
 
@@ -81,7 +81,7 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
   }
 
   def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
+                       (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 
     val clientsInSession = for {
       _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
@@ -141,6 +141,5 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
       } yield result
     }
     )
-
   }
 }

@@ -21,6 +21,7 @@ import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS, ToFuture}
 import models.DisplayClient
+import play.api.libs.json.JsNumber
 import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -103,9 +104,10 @@ class ClientServiceImpl @Inject()(
         .pageContent
         .map(cl => DisplayClient.fromClient(cl))
         .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
-      pageOfDisplayClients = PaginatedList(pageOfClientsMarkedSelected, pageOfClients.paginationMetaData)
+      totalClientsSelected = maybeSelectedClients.fold(0)(_.length)
+      metadataWithExtra = pageOfClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(totalClientsSelected))))  // This extra data is needed to display correct 'selected' count in front-end
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)  // TODO this side-effect does not belong in this 'get' type function! Move it to the caller site!
-    } yield pageOfDisplayClients
+    } yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
   }
 
   def getUnassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)

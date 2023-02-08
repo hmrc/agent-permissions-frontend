@@ -177,7 +177,6 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      //      println(html.select("main"))
       html.title() shouldBe "Group based on tax service - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Group based on tax service"
 
@@ -214,7 +213,6 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      //      println(html.select("main"))
       html.title() should include( "All access groups have been created")
       html.select(Css.H1).text() shouldBe "You have already created all the tax service access groups"
       html.select(Css.linkStyledAsButton).text() shouldBe "Create custom access group"

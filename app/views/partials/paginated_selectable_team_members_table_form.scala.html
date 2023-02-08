@@ -65,6 +65,10 @@
 
 }
 
+@* Values used by JS selected client counter to enable counting selections on other pages. *@
+@totalResults = @{paginationMetaData.fold(teamMembers.length)(_.totalSize)}
+@totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
+
 @govukSkipLink(
     SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-teamMembers")))
 )
@@ -113,12 +117,12 @@
         }
         @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
         @* the following 2 paragraphs are dependent on whether js enabled or not*@
-        @p(key = msgs("common.total.team-members.selected", teamMembers.count(_.selected), teamMembers.length),
+        @p(key = msgs("common.total.team-members.selected", totalSelected),
             id = Some("member-count-text"),
             attrs = Map("role" -> "status")
         )
 
-        @p(key = msgs("already.selected.members.nonjs", teamMembers.count(_.selected), teamMembers.length),
+        @p(key = msgs("already.selected.members.nonjs", totalSelected),
             id = Some("member-count-text-non-js"),
         )
 

@@ -428,7 +428,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(2).select("td").get(3).text() shouldBe "VAT"
 
       //TODO - this is wrong right?
-      html.select("p#member-count-text").text() shouldBe "Selected 0 clients of 3"
+      html.select("p#member-count-text").text() shouldBe "0 clients selected across all searches"
     }
 
     "render correctly the manage group CLIENTS page when there are no clients to add found" in {

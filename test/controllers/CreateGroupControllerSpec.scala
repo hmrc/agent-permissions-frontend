@@ -415,12 +415,12 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 4
       th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
 
       trs.size() shouldBe 10
       // first row
@@ -455,7 +455,7 @@ class CreateGroupControllerSpec extends BaseSpec {
         .title() shouldBe s"Filter results for 'blah' and 'VAT' Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Select clients"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 0
       html.select(Css.H2).text() shouldBe "No clients found"
       html.select(Css.paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
@@ -755,12 +755,12 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe s"You have selected 3 clients"
       html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectClients.url
 
-      val th = html.select(Css.tableWithId("client-table")).select("thead th")
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 3
       th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
-      val trs = html.select(Css.tableWithId("client-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
 
       trs.size() shouldBe 3
       // first row
@@ -945,13 +945,13 @@ class CreateGroupControllerSpec extends BaseSpec {
         .select(Css.backLink)
         .attr("href") shouldBe ctrlRoute.showReviewSelectedClients.url
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("members")).select("thead th")
       th.size() shouldBe 4
       th.get(1).text() shouldBe "Name"
       th.get(2).text() shouldBe "Email"
       th.get(3).text() shouldBe "Role"
       val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+        html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 10
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "John"
@@ -987,13 +987,13 @@ class CreateGroupControllerSpec extends BaseSpec {
 
       html.select(H2).text() shouldBe "Filter results for 'John'"
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("members")).select("thead th")
       th.size() shouldBe 4
       th.get(1).text() shouldBe "Name"
       th.get(2).text() shouldBe "Email"
       th.get(3).text() shouldBe "Role"
 
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 
       trs.size() shouldBe 10
       // first row
@@ -1026,10 +1026,10 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Select team members"
 
       // No table
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("members")).select("thead th")
       th.size() shouldBe 0
       val trs =
-        html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+        html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 0
 
       // Not found content

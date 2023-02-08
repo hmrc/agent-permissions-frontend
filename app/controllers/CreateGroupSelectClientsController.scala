@@ -102,8 +102,7 @@ class CreateGroupSelectClientsController @Inject()
                 groupName,
                 backUrl = Some(controller.showSearchClients.url),
                 form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
-                paginationMetaData = Some(paginatedClients.paginationMetaData)
-              )
+                paginationMetaData = Some(paginatedClients.paginationMetaData))
             )
           }
         }
@@ -130,7 +129,8 @@ class CreateGroupSelectClientsController @Inject()
                     clients = paginatedClients.pageContent,
                     groupName = groupName,
                     form = formWithErrors,
-                    paginationMetaData = Some(paginatedClients.paginationMetaData))
+                    paginationMetaData = Some(paginatedClients.paginationMetaData)
+                  )
                 )
             },
             formData => {

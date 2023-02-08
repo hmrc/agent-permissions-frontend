@@ -755,12 +755,12 @@ class CreateGroupControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe s"You have selected 3 clients"
       html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectClients.url
 
-      val th = html.select(Css.tableWithId("sortable-table")).select("thead th")
+      val th = html.select(Css.tableWithId("client-table")).select("thead th")
       th.size() shouldBe 3
       th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
-      val trs = html.select(Css.tableWithId("sortable-table")).select("tbody tr")
+      val trs = html.select(Css.tableWithId("client-table")).select("tbody tr")
 
       trs.size() shouldBe 3
       // first row

@@ -139,7 +139,9 @@ GET     /manage-team-members/assigned-to-groups/:id     controllers.AddTeamMembe
 
 # Assistant / 'Standard' user views
 GET     /your-account/group-clients/:groupId     controllers.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] ?= None)
+POST    /your-account/group-clients/:groupId     controllers.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(groupId: String)
 GET     /your-account/other-clients              controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly(page: Option[Int] ?= None)
+POST    /your-account/other-clients              controllers.AssistantViewOnlyController.submitUnassignedClientsViewOnly
 
 GET     /you-have-been-timed-out    controllers.TimeoutController.timedOut
 GET     /keep-alive                 controllers.TimeoutController.keepAlive

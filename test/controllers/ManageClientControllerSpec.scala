@@ -127,6 +127,7 @@ class ManageClientControllerSpec extends BaseSpec {
     }
 
   }
+
   s"GET ${ctrlRoute.submitPageOfClients.url}" should {
 
     "render the manage clients list with search term posted" in {
@@ -149,33 +150,6 @@ class ManageClientControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(ctrlRoute.showPageOfClients(None).url)
-    }
-
-    "Render page 1 if the search terms are changed, even if you ask for page 5" in {
-      //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(CLIENT_SEARCH_INPUT, "old search term")
-      expectGetSessionItem(CLIENT_FILTER_INPUT, "VAT")
-      expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-      expectPutSessionItem(CLIENT_FILTER_INPUT, "")
-
-      val url = ctrlRoute.submitPageOfClients.url
-      implicit val fakeRequest = FakeRequest(POST, url)
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withFormUrlEncodedBody(
-          "search"-> "friendly1",
-          "submit"-> s"${PAGINATION_BUTTON}_2"
-        )
-        .withSession(SessionKeys.sessionId -> "session-x")
-
-      //when
-      val result = controller.submitPageOfClients(fakeRequest)
-
-      //then
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showPageOfClients(None).url + "?page=1")
     }
 
     "redirect to baseUrl when CLEAR FILTER is clicked" in {

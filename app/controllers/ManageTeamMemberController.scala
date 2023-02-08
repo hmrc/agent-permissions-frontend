@@ -65,11 +65,12 @@ class ManageTeamMemberController @Inject()
           pageOfMembers <- teamMemberService.getPageOfTeamMembers(arn)(page.getOrElse(1), 10)
         } yield (search, pageOfMembers)
         eventualTuple.map(tuple => {
+          val (search, paginatedMembers) = (tuple._1, tuple._2)
           Ok(
             manage_team_members(
-              teamMembers = tuple._2.pageContent,
-              form = SearchAndFilterForm.form().fill(SearchFilter(tuple._1, None, None)),
-              paginationMetaData = Some(tuple._2.paginationMetaData)
+              teamMembers = paginatedMembers.pageContent,
+              form = SearchAndFilterForm.form().fill(SearchFilter(search, None, None)),
+              paginationMetaData = Some(paginatedMembers.paginationMetaData)
             )
           )
         }
@@ -89,10 +90,6 @@ class ManageTeamMemberController @Inject()
             sessionCacheService
               .delete(TEAM_MEMBER_SEARCH_INPUT)
               .map(_ => Redirect(controller.showPageOfTeamMembers(None)))
-          case PAGINATION_REGEX(_, pageToShow) =>
-            sessionCacheService
-              .put(TEAM_MEMBER_SEARCH_INPUT, searchFilter.search.getOrElse(""))
-              .map(_ => Redirect(controller.showPageOfTeamMembers(Option(pageToShow.toInt))))
           case FILTER_BUTTON =>
             sessionCacheService
               .put(TEAM_MEMBER_SEARCH_INPUT, searchFilter.search.getOrElse(""))

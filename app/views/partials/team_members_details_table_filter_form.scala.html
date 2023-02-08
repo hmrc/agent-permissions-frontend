@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
-@import views.html.components.pagination.POST_pagination
+@import views.html.components.pagination.GET_pagination
 @import views.html.partials.search_and_filter
 
 @this(
@@ -28,7 +28,7 @@
         filter_buttons: filter_buttons,
         search_and_filter: search_and_filter,
         input_select: input_select,
-        POST_pagination: POST_pagination,
+        GET_pagination:GET_pagination,
         formWithCSRF: FormWithCSRF,
 )
 
@@ -106,7 +106,10 @@
             )
 
             @if(paginationMetaData.get.totalPages > 1) {
-                @POST_pagination(pagination = paginationMetaData.get)
+                @GET_pagination(
+                    pagination = paginationMetaData.get,
+                    baseUrl = routes.ManageTeamMemberController.showPageOfTeamMembers(None)
+                )
             }
 
         } else {

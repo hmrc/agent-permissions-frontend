@@ -392,7 +392,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // given
       AssistantAuthOk()
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
-      //? expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
+      // TODO check these expectations, ideally get rid of need for sessionCacheRepo.putSession
+      // ? expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectGetPageOfClients(taxGroup.arn)(displayClients)
 
       //when
@@ -411,7 +412,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       // no filter by tax service on the form
       html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
-      html.select(Css.labelFor("filter")).text() shouldBe None
+      html.select(Css.labelFor("filter")).size() shouldBe 0
 
       // table without tax service column
       val th = html.select(Css.tableWithId("clients")).select("thead th")
@@ -427,7 +428,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       AssistantAuthOk()
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
 
-      expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
+      // ? expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       //expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
       sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
 
@@ -465,7 +466,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
 
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
-      expectPutSessionItem(CLIENT_SEARCH_INPUT, "nothing") //not matching any setup clients
+      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "nothing").futureValue //not matching any setup clients
+      //expectPutSessionItem(CLIENT_SEARCH_INPUT, "nothing") //not matching any setup clients
 
       expectGetPageOfClients(taxGroup.arn)(Seq.empty[DisplayClient])
 
@@ -476,8 +478,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       // title should not mention tax service filter
-      // TODO - should have Filter results for 'nothing'
-      html.title() shouldBe s"${taxGroup.groupName} clients - Agent services account - GOV.UK"
+      html.title() shouldBe s"Filter results for 'nothing' ${taxGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${taxGroup.groupName} clients"
 
       html.select(H2).text shouldBe "No clients found"

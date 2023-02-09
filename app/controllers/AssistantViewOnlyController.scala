@@ -19,15 +19,13 @@ package controllers
 import config.AppConfig
 import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
 import forms._
-import models.{DisplayGroup, SearchFilter}
+import models.SearchFilter
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.ClientService
+import services.{ClientService, SessionCacheOperationsService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import utils.FilterUtils
 import views.html.assistant_read_only._
 
 import javax.inject.{Inject, Singleton}
@@ -40,6 +38,7 @@ class AssistantViewOnlyController @Inject()(
          mcc: MessagesControllerComponents,
          optInStatusAction: OptInStatusAction,
          clientService: ClientService,
+         sessionCacheOps: SessionCacheOperationsService,
          unassigned_client_list: unassigned_client_list,
          existing_group_client_list: existing_group_client_list
        )(implicit val appConfig: AppConfig, ec: ExecutionContext,
@@ -52,7 +51,7 @@ class AssistantViewOnlyController @Inject()(
   import groupAction._
   import optInStatusAction._
 
-  private val UNASSIGNED_CLIENTS_PAGE_SIZE = 20
+  private val CLIENTS_PAGE_SIZE = 20
 
   def showUnassignedClientsViewOnly(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAssistant { arn =>
@@ -60,7 +59,7 @@ class AssistantViewOnlyController @Inject()(
         for {
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-          unassignedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), UNASSIGNED_CLIENTS_PAGE_SIZE, search, filter)
+          unassignedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE, search, filter)
         } yield {
           Ok(
             unassigned_client_list(
@@ -82,24 +81,21 @@ class AssistantViewOnlyController @Inject()(
     }
   }
 
-
   def showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAssistant(groupId) { group: CustomGroup =>
-      for {
-        search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-        filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-        displayGroup = DisplayGroup.fromAccessGroup(group)
-        filteredClients = FilterUtils.filterClients(displayGroup.clients, search, filter)
-        paginated = PaginatedListBuilder.build(page = page.getOrElse(1), pageSize = UNASSIGNED_CLIENTS_PAGE_SIZE, fullList = filteredClients)
-      } yield {
-        Ok(
-          existing_group_client_list(
-            group = displayGroup.copy(clients = paginated.pageContent),
-            filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
-            paginationMetaData = Some(paginated.paginationMetaData)
-          )
-        )
-      }
+    withGroupForAuthorisedAssistant(groupId) { (group: AccessGroup, _: Arn) =>
+      val summary = GroupSummary.fromAccessGroup(group)
+        for {
+          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+          list <- groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize = CLIENTS_PAGE_SIZE)
+        } yield {
+          Ok(existing_group_client_list(
+              clients = list._1,
+              summary = summary,
+              filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+              paginationMetaData = Some(list._2)
+          ))
+        }
     }
   }
 
@@ -112,19 +108,67 @@ class AssistantViewOnlyController @Inject()(
     }
   }
 
-  private def updateSearchFilter(redirectTo: Call)(implicit request: Request[_]): Future[Result] = {
+  def showExistingTaxClientsViewOnly(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withGroupForAuthorisedAssistant(groupId, isCustom = false) { (group: AccessGroup, arn: Arn) =>
+      val summary = GroupSummary.fromAccessGroup(group)
+        for {
+          // needs Tax service saved to session on page load
+          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter =  if (group.asInstanceOf[TaxGroup].service == "HMRC-TERS") {
+            Some("TRUST")
+          } else {
+            Some(group.asInstanceOf[TaxGroup].service)
+          }
+          _ <- sessionCacheOps.saveSearch(search, filter)
+          list <- clientService.getPaginatedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE)
+        } yield
+          Ok(existing_group_client_list(
+            clients = list.pageContent,
+            summary = summary,
+            filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+            paginationMetaData = Some(list.paginationMetaData)
+          ))
+    }
+  }
+
+  // This endpoint exists in order to POST search/filter terms (GET form submit is disallowed by organisation policy)
+  def submitExistingTaxClientsViewOnly(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAssistant { arn =>
+      isOptedIn(arn) { _ =>
+        updateSearchFilter(
+          redirectTo = routes.AssistantViewOnlyController.showExistingTaxClientsViewOnly(groupId),
+          ignoreTaxService = true
+        )
+      }
+    }
+  }
+
+  private def updateSearchFilter(redirectTo: Call, ignoreTaxService: Boolean = false)(implicit request: Request[_]): Future[Result] = {
     val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
     searchFilter.submit match {
       case Some(CLEAR_BUTTON) =>
-        sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT)).map { _ =>
-          Redirect(redirectTo)
+        if(ignoreTaxService) {
+          sessionCacheService.delete(CLIENT_SEARCH_INPUT).map { _ =>
+            Redirect(redirectTo)
+          }
+        } else {
+          sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT)).map { _ =>
+            Redirect(redirectTo)
+          }
         }
-      case Some(FILTER_BUTTON) => for {
-        _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
-        _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
-      } yield {
-        Redirect(redirectTo)
-      }
+      case Some(FILTER_BUTTON) =>
+        if(ignoreTaxService) {
+          sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse("")).map { _ =>
+            Redirect(redirectTo)
+          }
+        } else {
+          for {
+            _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+            _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
+          } yield {
+            Redirect(redirectTo)
+          }
+        }
       case _ => Future.successful(BadRequest)
     }
   }

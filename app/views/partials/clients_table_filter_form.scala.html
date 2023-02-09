@@ -32,6 +32,7 @@
 )
 
 @(
+    isCustom: Boolean = true,
     clients: Option[Seq[DisplayClient]] = None,
     form: Form[SearchFilter],
     formAction: Call,
@@ -39,14 +40,22 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
-        Seq(
-            Html(client.name),
-            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService))
-        )
-    )
-    )
+    if(isCustom) {
+        clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
+            Seq(
+                Html(client.name),
+                Html(displayObfuscatedReference(client.name, client.hmrcRef)),
+                Html(displayTaxServiceFromServiceKey(client.taxService))
+            )
+        ))
+    } else {
+        clients.fold(Seq.empty[Seq[Html]])(_.map(client =>
+            Seq(
+                Html(client.name),
+                Html(displayObfuscatedReference(client.name, client.hmrcRef))
+            )
+        ))
+    }
 }
 
 @govukSkipLink(SkipLink(
@@ -56,33 +65,35 @@
 
 @formWithCSRF(action = formAction) {
 
-    @search_and_filter(form, true)
+    @search_and_filter(form, isCustom)
 
     @if(clients.getOrElse(Seq.empty).nonEmpty) {
 
-        @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
+        @if(isCustom && (withSearchPrefix("", form("filter").value, form("search").value) != "") ) {
             @h2(withSearchPrefix("", form("filter").value, form("search").value))
+        }
+
+        @if(!isCustom && (withSearchPrefix("", None, form("search").value) != "")) {
+            @h2(withSearchPrefix("", None, form("search").value))
         }
 
         @table(
             caption = Some("common.clients"),
             captionClasses = "govuk-visually-hidden",
-            id = Some("sortable-table"),
+            id = Some("clients"),
             attrs = Map.empty,
-            headings = Seq(
-                (
-                    Html(msgs("group.client.list.table.th1")),
-                    Map.empty
-                ),
-                (
-                    Html(msgs("group.client.list.table.th2")),
-                    Map.empty
-                ),
-                (
-                    Html(msgs("group.client.list.table.th3")),
-                    Map.empty
-                )
-            ),
+            headings = if(isCustom) {
+                    Seq(
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty),
+                    (Html(msgs("group.client.list.table.th3")), Map.empty)
+                    )
+                } else {
+                    Seq(
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty)
+                    )
+                },
             rows = tableRows,
         )
 

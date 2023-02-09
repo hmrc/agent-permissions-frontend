@@ -139,12 +139,14 @@ POST    /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMembe
 GET     /manage-team-members/assigned-to-groups/:id     controllers.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id: String)
 
 # Assistant / 'Standard' user views
-GET     /your-account/group-clients/:groupId     controllers.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] ?= None)
-POST    /your-account/group-clients/:groupId     controllers.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(groupId: String)
-GET     /your-account/other-clients              controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly(page: Option[Int] ?= None)
-POST    /your-account/other-clients              controllers.AssistantViewOnlyController.submitUnassignedClientsViewOnly
+GET     /your-account/group-clients/custom/:groupId     controllers.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] ?= None)
+POST    /your-account/group-clients/custom/:groupId     controllers.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(groupId: String)
+GET     /your-account/group-clients/tax/:groupId        controllers.AssistantViewOnlyController.showExistingTaxClientsViewOnly(groupId: String, page: Option[Int] ?= None)
+POST    /your-account/group-clients/tax/:groupId        controllers.AssistantViewOnlyController.submitExistingTaxClientsViewOnly(groupId: String)
+GET     /your-account/other-clients                     controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly(page: Option[Int] ?= None)
+POST    /your-account/other-clients                     controllers.AssistantViewOnlyController.submitUnassignedClientsViewOnly
 
-GET     /you-have-been-timed-out    controllers.TimeoutController.timedOut
-GET     /keep-alive                 controllers.TimeoutController.keepAlive
-GET     /sign-out                   controllers.TimeoutController.signOut
+GET     /you-have-been-timed-out                        controllers.TimeoutController.timedOut
+GET     /keep-alive                                     controllers.TimeoutController.keepAlive
+GET     /sign-out                                       controllers.TimeoutController.signOut
 

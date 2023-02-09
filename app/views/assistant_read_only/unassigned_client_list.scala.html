@@ -48,6 +48,7 @@
 
     @if(unassignedClients.nonEmpty) {
         @clients_table_filter_form(
+            true,
             Some(unassignedClients),
             filterForm,
             routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly,
@@ -55,6 +56,7 @@
         )
     } else {
         @clients_table_filter_form(
+            true,
             None,
             filterForm,
             routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly

@@ -465,7 +465,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       AssistantAuthOk()
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
 
-      expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
+      //expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "nothing").futureValue //not matching any setup clients
       //expectPutSessionItem(CLIENT_SEARCH_INPUT, "nothing") //not matching any setup clients
 

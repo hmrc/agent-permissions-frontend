@@ -19,6 +19,7 @@ package utils
 import models.DisplayClient
 
 object FilterUtils {
+  //TODO move to tests, unused in code
   // Ideally we won't need this logic here any more after the backend becomes able to serve all client lists as paginated.
   def filterClients(clients: Seq[DisplayClient], search: Option[String], filter: Option[String]): Seq[DisplayClient] = {
     clients

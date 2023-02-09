@@ -48,7 +48,7 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
     }
   }
 
-  // TODO What is the difference between this and savePageOfClients?
+  // TODO Remove once 1000+ released & CreateGroupController deleted
   def saveSelectedOrFilteredClients(arn: Arn)
                                    (formData: AddClientsToGroup)
                                    (getClients: Arn => Future[Seq[DisplayClient]]) // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
@@ -107,7 +107,7 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
 
   }
 
-  // TODO Needs documenting
+  // TODO Remove once 1000+ released & CreateGroupController deleted
   def filterClients(formData: AddClientsToGroup)
                    (displayClients: Seq[DisplayClient])
                    (implicit request: Request[Any], ec: ExecutionContext)

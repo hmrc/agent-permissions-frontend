@@ -18,6 +18,7 @@
 @import controllers.routes
 @import views.html.main_layout
 @import views.html.partials.clients_table_filter_form
+@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
@@ -27,15 +28,16 @@
 )
 
 @(
-    group: DisplayGroup,
+    clients: Seq[DisplayClient],
+    summary: GroupSummary,
     filterForm: Form[SearchFilter],
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = withSearchAndErrorPrefix(filterForm.errors.nonEmpty,
-                                     msgs("assistant.clients.group.h1", group.name),
-                                     filterForm("filter").value,
+                                     msgs("assistant.clients.group.h1", summary.groupName),
+                                     if(summary.isCustomGroup()) {filterForm("filter").value} else {None},
                                      filterForm("search").value
     ),
     backLinkHref = Some(appConfig.agentServicesAccountYourAssistantAccountUrl),
@@ -43,21 +45,23 @@
 ) {
 
     <div class="govuk-!-width-two-thirds">
-        @h1(msgs("assistant.clients.group.h1", group.name))
+        @h1(msgs("assistant.clients.group.h1", summary.groupName))
         @p("assistant.clients.group.p")
     </div>
 
-    @if(group.clients.nonEmpty) {
+    @if(clients.nonEmpty) {
         @clients_table_filter_form(
-            Some(group.clients),
+            summary.isCustomGroup(),
+            Some(clients),
             filterForm,
-            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(group._id)
+            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId)
         )
     } else {
         @clients_table_filter_form(
+            summary.isCustomGroup(),
             None,
             filterForm,
-            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(group._id),
+            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
             paginationMetaData
         )
     }

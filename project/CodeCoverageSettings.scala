@@ -32,6 +32,7 @@ object CodeCoverageSettings {
     ".*unassigned_clients_list.template",
     ".*PaginationUtil.*",
     ".*ViewUtils.*",
+    ".*FilterUtils.*",
     ".*GroupAction.*",
     ".*ClientAction.*",
     ".*TeamMemberAction.*",

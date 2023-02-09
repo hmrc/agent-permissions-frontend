@@ -46,7 +46,7 @@ class GroupAction @Inject()
 
   import optInStatusAction._
 
-  @deprecated("use withSummaryForAuthorisedOptedAgent")
+  @deprecated("use withGroupSummaryForAuthorisedOptedAgent")
   def withGroupForAuthorisedOptedAgent(groupId: String)
                                       (body: CustomGroup => Future[Result])
                                       (implicit ec: ExecutionContext,
@@ -100,6 +100,7 @@ class GroupAction @Inject()
     }
   }
 
+  // TODO use withGroupSummaryForAuthorisedOptedAgent or withAccessGroupForAuthorisedOptedAgent
   def withTaxGroupForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
                                          (body: TaxGroup => Future[Result])
                                          (implicit ec: ExecutionContext,
@@ -154,8 +155,8 @@ class GroupAction @Inject()
     }
   }
 
-  def withGroupForAuthorisedOptedAssistant(groupId: String)
-                                          (body: CustomGroup => Future[Result])
+  def withGroupForAuthorisedAssistant(groupId: String, isCustom: Boolean = true)
+                                          (callback: (AccessGroup, Arn) => Future[Result])
                                           (implicit ec: ExecutionContext,
                                            hc: HeaderCarrier,
                                            request: MessagesRequest[AnyContent],
@@ -163,8 +164,15 @@ class GroupAction @Inject()
   : Future[Result] = {
     authAction.isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getGroup(groupId).flatMap(
-          _.fold(groupNotFound)(body(_)))
+        if (isCustom) {
+          groupService
+            .getGroup(groupId)
+            .flatMap(_.fold(groupNotFound)(customGroup => callback(customGroup, arn)))
+        } else {
+          taxGroupService
+            .getGroup(groupId)
+            .flatMap(_.fold(groupNotFound)(taxGroup => callback(taxGroup, arn)))
+        }
       }
     }
   }

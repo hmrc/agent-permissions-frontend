@@ -17,10 +17,11 @@
 import models.{DisplayClient, TeamMember}
 import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future
+import scala.util.matching.Regex
 
 package object controllers {
 
@@ -46,7 +47,7 @@ package object controllers {
   final val PAGINATION_BUTTON: String = "pagination"
   final val CUSTOM_GROUP: String = "custom group"
   final val TAX_SERVICE_GROUP: String = "tax service group"
-  val PAGINATION_REGEX = "(pagination_)(\\d+)".r
+  val PAGINATION_REGEX: Regex = "(pagination_)(\\d+)".r
 
   val isEligibleToOptIn: OptinStatus => Boolean = status => status == OptedOutEligible
   val optedInStatii = Seq(OptedInReady, OptedInNotReady, OptedInSingleUser)

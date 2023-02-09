@@ -6,6 +6,7 @@ common.errorSummary.heading=Mae problem wedi codi
 
 common.yes.label=Iawn
 common.no.label=Na
+
 common.caption.group.name=Grŵp mynediad {0}
 common.continue=Yn eich blaen
 common.what.happens.next=Yr hyn sy’n digwydd nesaf

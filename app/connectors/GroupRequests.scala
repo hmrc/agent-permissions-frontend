@@ -58,3 +58,9 @@ case class UpdateTaxServiceGroupRequest(
 object UpdateTaxServiceGroupRequest {
   implicit val format: OFormat[UpdateTaxServiceGroupRequest] = Json.format[UpdateTaxServiceGroupRequest]
 }
+
+case class AddOneTeamMemberToGroupRequest(teamMember: AgentUser)
+
+object AddOneTeamMemberToGroupRequest {
+  implicit val format: OFormat[AddOneTeamMemberToGroupRequest] = Json.format[AddOneTeamMemberToGroupRequest]
+}

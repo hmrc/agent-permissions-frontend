@@ -84,7 +84,7 @@
                             CheckboxData(
                                 id = g.groupId,
                                 label = g.groupName,
-                                value = g.groupId
+                                value = s"${g.groupType}_${g.groupId}"
                             )
                         },
                         legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden")))

@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddOneTeamMemberToGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import models.TeamMember
@@ -27,7 +27,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{GroupService, SessionCacheService, TeamMemberService}
+import services.{GroupService, SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
@@ -37,8 +37,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserMemberDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit val mockGroupService: GroupService = mock[GroupService]
+  implicit val groupService: GroupService = mock[GroupService]
+  implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
@@ -47,8 +47,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     override def configure(): Unit = {
       bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
-      bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserMemberDetailsConnector)
-      bind(classOf[GroupService]).toInstance(mockGroupService)
+      bind(classOf[TaxGroupService]).toInstance(taxGroupService)
+      bind(classOf[GroupService]).toInstance(groupService)
       bind(classOf[TeamMemberService]).toInstance(mockTeamMemberService)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
     }
@@ -198,32 +198,24 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
       s"At least 1 checkbox is checked for the group to add to" in {
         //given
-        val groupSummaries = (1 to 5)
-          .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        AuthOkWithTeamMember()
 
-        val expectedAddRequest1 = AddMembersToAccessGroupRequest(
-          teamMembers = Some(Set(TeamMember.toAgentUser(teamMember)))
-        )
-        val expectedAddRequest2 = AddMembersToAccessGroupRequest(
-          teamMembers = Some(Set(TeamMember.toAgentUser(teamMember)))
-        )
+        val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        val expectedAddRequest1 = AddOneTeamMemberToGroupRequest(TeamMember.toAgentUser(teamMembers.head))
+        val expectedAddRequest2 = AddOneTeamMemberToGroupRequest(TeamMember.toAgentUser(teamMembers.head))
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", submitUrl)
             .withFormUrlEncodedBody(
-              "groups[0]" -> groupSummaries(3).groupId,
-              "groups[1]" -> groupSummaries(4).groupId,
+              "groups[0]" -> s"${GroupType.CUSTOM}_${groupSummaries(3).groupId}",
+              "groups[1]" -> s"${GroupType.TAX_SERVICE}_${groupSummaries(4).groupId}",
               "submit" -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        AuthOkWithTeamMember()
-        expectAddMembersToGroup(groupSummaries(3).groupId, expectedAddRequest1)
-        expectAddMembersToGroup(groupSummaries(4).groupId, expectedAddRequest2)
-        expectPutSessionItem(
-          GROUP_IDS_ADDED_TO,
-          Seq(groupSummaries(3).groupId, groupSummaries(4).groupId)
-        )
+        expectAddOneMemberToGroup(groupSummaries(3).groupId, expectedAddRequest1)
+        expectAddOneMemberToTaxGroup(groupSummaries(4).groupId, expectedAddRequest2)
+        expectPutSessionItem(GROUP_IDS_ADDED_TO, Seq(groupSummaries(3).groupId, groupSummaries(4).groupId))
 
         val result = controller.submitSelectGroupsForTeamMember(teamMember.id)(request)
 

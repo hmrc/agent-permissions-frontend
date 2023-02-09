@@ -18,8 +18,8 @@ package services
 
 import akka.Done
 import com.google.inject.ImplementedBy
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, UpdateAccessGroupRequest}
-import uk.gov.hmrc.agentmtdidentifiers.model.{CustomGroup, Arn, Client, PaginatedList, PaginationMetaData, UserDetails, GroupSummary}
+import connectors.{AddMembersToAccessGroupRequest, AddOneTeamMemberToGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector, GroupRequest, UpdateAccessGroupRequest}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, CustomGroup, GroupSummary, PaginatedList, PaginationMetaData, UserDetails}
 import controllers._
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
@@ -73,6 +73,9 @@ trait GroupService {
 
   def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def addOneMemberToGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
   def groupNameCheck(arn: Arn, groupName: String)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
@@ -173,6 +176,10 @@ class GroupServiceImpl @Inject()(
   def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
     agentPermissionsConnector.addMembersToGroup(id, groupRequest)
+
+  def addOneMemberToGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    agentPermissionsConnector.addOneTeamMemberToGroup(id, groupRequest)
 
   def groupNameCheck(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     agentPermissionsConnector.groupNameCheck(arn, groupName)

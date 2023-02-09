@@ -41,6 +41,12 @@ package object controllers {
     }
   }
 
+  object GroupType {
+    val CUSTOM = "custom"
+    val TAX_SERVICE = "tax"
+    def isCustom(groupType: String): Boolean = CUSTOM.equalsIgnoreCase(groupType)
+  }
+
   final val CONTINUE_BUTTON: String = "continue"
   final val  CLEAR_BUTTON: String = "clear"
   final val FILTER_BUTTON: String = "filter"

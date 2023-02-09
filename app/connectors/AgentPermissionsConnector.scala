@@ -56,19 +56,19 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def getGroupSummaries(arn: Arn)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
-  def unassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
+  def unassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]]
 
   def getPaginatedClientsForCustomGroup(id: String)
-                         (page: Int = 1, pageSize: Int = 20, search: Option[String]= None, filter: Option[String]= None)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
+                                       (page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
 
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]]
 
   def getCustomSummary(id: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
@@ -110,6 +110,11 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def updateTaxGroup(groupId: String, group: UpdateTaxServiceGroupRequest)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
+  def addOneTeamMemberToGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def addOneTeamMemberToTaxGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
 }
 
@@ -312,28 +317,28 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   def getCustomSummary(id: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] = {
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] = {
     val url = s"$baseUrl/agent-permissions/custom-group/$id"
-        monitor("ConsumedAPI-customGroupSummary-GET") {
-          http
-            .GET[HttpResponse](url)
-            .map { response =>
-              response.status match {
-                case OK => response.json.asOpt[GroupSummary]
-                case NOT_FOUND =>
-                  logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
-                  None
-                case anyOtherStatus =>
-                  throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
-              }
-            }
+    monitor("ConsumedAPI-customGroupSummary-GET") {
+      http
+        .GET[HttpResponse](url)
+        .map { response =>
+          response.status match {
+            case OK => response.json.asOpt[GroupSummary]
+            case NOT_FOUND =>
+              logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+              None
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
+          }
         }
+    }
   }
 
 
   def getPaginatedClientsForCustomGroup(id: String)
-                         (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext)
+                                       (page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[Client]] = {
     val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
     val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
@@ -378,6 +383,22 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
             case OK => Done
             case anyOtherStatus =>
               throw UpstreamErrorResponse(s"error PUTing members to group request to $url", anyOtherStatus)
+          }
+        }
+    }
+  }
+
+  override def addOneTeamMemberToGroup(id: String, body: AddOneTeamMemberToGroupRequest)
+                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/groups/$id/members/add"
+    monitor("ConsumedAPI- add one team member to group - PATCH") {
+      http
+        .PATCH[AddOneTeamMemberToGroupRequest, HttpResponse](url, body)
+        .map { response =>
+          response.status match {
+            case OK => Done
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(s"Error adding member to group request to $url", anyOtherStatus)
           }
         }
     }
@@ -500,6 +521,22 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
             case OK => Done
             case anyOtherStatus =>
               throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
+          }
+        }
+    }
+  }
+
+  override def addOneTeamMemberToTaxGroup(id: String, body: AddOneTeamMemberToGroupRequest)
+                                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/tax-group/$id/members/add"
+    monitor("ConsumedAPI- add one team member to tax group - PATCH") {
+      http
+        .PATCH[AddOneTeamMemberToGroupRequest, HttpResponse](url, body)
+        .map { response =>
+          response.status match {
+            case OK => Done
+            case anyOtherStatus =>
+              throw UpstreamErrorResponse(s"Error adding member to tax group HTTP request to $url", anyOtherStatus)
           }
         }
     }

@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import controllers.GroupType.{CUSTOM, TAX_SERVICE}
 import controllers.actions.AuthAction
 import helpers.Css.H1
 import helpers.{BaseSpec, Css}
@@ -222,11 +223,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       linksToGroups.size() shouldBe 3
       linksToGroups.get(0).text() shouldBe "groupName"
       linksToGroups.get(0).attr("href") shouldBe
-        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(0).groupId, "custom", None).url
+        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(0).groupId, CUSTOM, None).url
 
       linksToGroups.get(2).text() shouldBe "groupName2"
       linksToGroups.get(2).attr("href") shouldBe
-        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(2).groupId, "tax", None).url
+        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(2).groupId, TAX_SERVICE, None).url
 
     }
   }

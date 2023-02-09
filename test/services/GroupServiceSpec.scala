@@ -28,6 +28,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class GroupServiceSpec extends BaseSpec {
@@ -319,7 +320,7 @@ class GroupServiceSpec extends BaseSpec {
         GroupSummary("2", "Carrots", Some(1), 1),
         GroupSummary("3", "Potatoes", Some(1), 1),
       )
-      val expectedClient = DisplayClient("hmrc", "Bob", "tax", "ident")
+      val expectedClient = DisplayClient("hmrc", "Bob", "VAT", "ident")
 
       (mockAgentPermissionsConnector.getGroupsForClient(_: Arn, _: String)
       (_: HeaderCarrier, _: ExecutionContext))
@@ -391,5 +392,28 @@ class GroupServiceSpec extends BaseSpec {
       output shouldBe true
     }
   }
+
+  "add team member to a group" should {
+    "call patch/update on agentPermissionsConnector" in {
+
+      //given
+      val groupId = UUID.randomUUID().toString
+      val agent = AgentUser("agentId", "Bob Builder")
+      val payload = AddOneTeamMemberToGroupRequest(agent)
+
+      (mockAgentPermissionsConnector
+        .addOneTeamMemberToGroup(_: String, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, payload, *, *)
+        .returning(Future successful Done)
+        .once()
+
+      //when
+      val response = service.addOneMemberToGroup(groupId, payload).futureValue
+
+      //then
+      response shouldBe Done
+    }
+
+    }
 
 }

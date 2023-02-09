@@ -732,4 +732,74 @@ class AgentPermissionsConnectorSpec
     }
 
   }
+
+  "PATCH add one team member to a custom group" should {
+
+    "return Done when response code is OK" in {
+
+      //given
+      val groupId = 234234.toString
+      val agent = AgentUser("agentId", "Bob Builder")
+      val groupRequest = AddOneTeamMemberToGroupRequest(agent)
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/add"
+      val mockResponse = HttpResponse.apply(OK, "response Body")
+      expectHttpClientPATCH[AddOneTeamMemberToGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+
+      //when
+      connector.addOneTeamMemberToGroup(groupId, groupRequest).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      //given
+      val groupId = 234234.toString
+      val agent = AgentUser("agentId", "Bob Builder")
+      val groupRequest = AddOneTeamMemberToGroupRequest(agent)
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/add"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      expectHttpClientPATCH[AddOneTeamMemberToGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.addOneTeamMemberToGroup(groupId, groupRequest))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+  }
+
+  "PATCH add one team member to a tax service group" should {
+
+    "return Done when response code is OK" in {
+
+      //given
+      val groupId = 234234.toString
+      val agent = AgentUser("agentId", "Bob Builder")
+      val groupRequest = AddOneTeamMemberToGroupRequest(agent)
+      val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId/members/add"
+      val mockResponse = HttpResponse.apply(OK, "response Body")
+      expectHttpClientPATCH[AddOneTeamMemberToGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+
+      //when
+      connector.addOneTeamMemberToTaxGroup(groupId, groupRequest).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      //given
+      val groupId = 234234.toString
+      val agent = AgentUser("agentId", "Bob Builder")
+      val groupRequest = AddOneTeamMemberToGroupRequest(agent)
+      val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId/members/add"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
+      expectHttpClientPATCH[AddOneTeamMemberToGroupRequest, HttpResponse](url, groupRequest, mockResponse)
+
+      //then
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.addOneTeamMemberToTaxGroup(groupId, groupRequest))
+      }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+  }
 }

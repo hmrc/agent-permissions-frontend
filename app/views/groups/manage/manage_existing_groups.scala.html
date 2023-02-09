@@ -20,6 +20,7 @@
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
+@import controllers.GroupType._
 
 @this(
     layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,
@@ -101,9 +102,9 @@
                         "common.teamMembers",
                         summary.teamMemberCount.toString,
                         if(summary.taxService.isDefined){
-                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, "tax", None)
-                        }else{
-                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, "custom", None)
+                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, TAX_SERVICE, None)
+                        } else {
+                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, CUSTOM, None)
                         },
                         linkMsgKey = "group.manage.members",
                         linkClasses = Some("govuk-!-width-one-half"),

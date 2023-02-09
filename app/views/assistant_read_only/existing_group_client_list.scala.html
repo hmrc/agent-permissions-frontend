@@ -54,7 +54,8 @@
             summary.isCustomGroup(),
             Some(clients),
             filterForm,
-            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId)
+            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
+            paginationMetaData
         )
     } else {
         @clients_table_filter_form(

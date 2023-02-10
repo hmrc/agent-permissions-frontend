@@ -31,17 +31,15 @@
             displayObfuscatedReference(clientRef, client.hmrcRef)),
         classes=Some("govuk-panel--confirmation")
     )
-    <span class="govuk-!-font-size-36">@msgs("client-reference.updated.panel")</span>
-    <span class="govuk-!-font-size-36" style="word-break: break-word; white-space: break-spaces;">@clientRef</span>
-
+    <span class="govuk-!-font-size-36">@msgs("client-reference.updated.h1")</span>
 }
 
-@layout(title = msgs("client-reference.updated.title"), fullWidth = false) {
+@layout(title = msgs("client-reference.updated.h1"), fullWidth = false) {
 
     @govukPanel(Panel(title = HtmlContent(panelContent)))
 
     @h2("common.what.happens.next")
-    @p("client-reference.updated.p")
+    @p(msgs("client-reference.updated.p", clientRef))
     @a( "common.return.manage-clients",
         id = Some("returnToManageClients"),
         href = routes.ManageClientController.showPageOfClients(None).url)

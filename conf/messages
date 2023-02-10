@@ -269,10 +269,8 @@ error.client-reference.required=Enter client reference
 error.client-reference.max-length=Client reference must be 80 characters or fewer
 error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 
-client-reference.updated.title=Client reference updated
-client-reference.updated.panel=Client reference updated to
-client-reference.updated.p=You have updated this client reference in your access groups. This will not change the client reference in other Government Gateway services.
-
+client-reference.updated.h1=Client reference will update shortly
+client-reference.updated.p=You have asked us to update this client reference in your agent services account. We’ll update it to {0} in the next two hours. We will not change the client reference in other HMRC online services.
 error.group.filter.max.length=You can only enter 32 characters or fewer
 error.group.filter.required=You must enter a group name or part of it
 error.group.filter.invalid=Group name must not include the characters < or >

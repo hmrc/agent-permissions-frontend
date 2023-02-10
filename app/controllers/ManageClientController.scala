@@ -173,10 +173,7 @@ class ManageClientController @Inject()
               Future.successful(NotFound(client_not_found()))
             )(client =>
               sessionCacheService.get(CLIENT_REFERENCE).map(newName =>
-                Ok(update_client_reference_complete(
-                  client,
-                  clientRef = newName.get
-                ))
+                Ok(update_client_reference_complete(client, clientRef = newName.get))
               )
             )
           )

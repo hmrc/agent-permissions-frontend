@@ -17,7 +17,7 @@
 package helpers
 
 import com.google.inject.AbstractModule
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -54,7 +54,8 @@ abstract class BaseSpec
     with HttpClientMocks
     with OptInServiceMocks
     with CleanMongoCollectionSupport
-    with AgentUserClientDetailsConnectorMocks {
+    with AgentUserClientDetailsConnectorMocks
+    with IntegrationPatience {
 
   implicit val ec: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global

@@ -407,6 +407,40 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     }
 
+    "remove any tax service groups from the available choices for these unassigned clients" in {
+      //given
+      val groupSummaries = List(
+        GroupSummary(s"id1", s"custom group", Some(3), 4),
+        GroupSummary(s"id2", s"tax service group", Some(3), 4, Some("VAT")))
+
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetGroupsForArn(arn)(groupSummaries)
+
+      //when
+      val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      //checkboxes
+
+      val form = html.select("main form")
+      val checkboxes = form.select("#available-groups .govuk-checkboxes__item")
+      val checkboxLabels = checkboxes.select("label")
+      val checkboxInputs = checkboxes.select("input[type='checkbox']")
+
+
+      checkboxes.size shouldBe 1
+      checkboxLabels.get(0).text shouldBe "custom group"
+
+      checkboxInputs.get(0).attr("name") shouldBe "groups[]"
+      checkboxInputs.get(0).attr("value") shouldBe "id1"
+    }
+
 
     "render html when there are no available groups for these unassigned clients" in {
       //given

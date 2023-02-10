@@ -34,7 +34,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Client, OptedInReady}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
-class fCreateGroupSelectClientsControllerSpec extends BaseSpec {
+class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]

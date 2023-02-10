@@ -114,12 +114,12 @@ you-have-opted-out.h1=Rydych wedi analluogi grwpiau mynediad
 you-have-opted-out.p1=Mae angen i chi allgofnodi a mewngofnodi eto i weld y newid hwn – ar ôl hynny bydd pob aelod o’r tîm yn gallu gweld a rheoli materion treth pob cleient.
 you-have-opted-out.p2=Bydd eich cyfrif yn dangos eich bod wedi dewis analluogi grwpiau mynediad. Os ydych am ailalluogi’r nodwedd hon, gallwch wneud hynny o’ch tudalen ‘Rheoli cyfrif’ yn eich gwasanaethau asiant.
 
-group.type.h1=Create an access group
-group.type.label=How would you like to create this group?
-group.type.custom.label=Custom access group
-group.type.custom.hint=Select clients based on any criteria. 
-group.type.tax.service.label=Access group based on tax service
-group.type.tax.service.hint=Select all clients for one tax service. <br>These groups can be set to update automatically when you get new clients.
+group.type.h1=Creu grŵp mynediad
+group.type.label=Sut hoffech chi greu'r grŵp hwn?
+group.type.custom.label=Grŵp mynediad personol
+group.type.custom.hint=Dewiswch gleientiaid yn seiliedig ar unrhyw feini prawf. Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol. 
+group.type.tax.service.label=Grŵp mynediad yn seiliedig ar wasanaeth treth
+group.type.tax.service.hint=Dewiswch bob cleient ar gyfer un gwasanaeth treth. <br>Gellir gosod y grwpiau hyn i ddiweddaru'n awtomatig pan fyddwch yn cael cleientiaid newydd.
 
 group.create.h1=Creu grŵp mynediad
 group.create.name.label=Beth hoffech alw’r grŵp mynediad hwn?
@@ -136,7 +136,9 @@ group.name.confirm.required.error=Dewiswch ‘Iawn’ os yw enw’r grŵp mynedi
 group.client.search.h1=Search for clients
 
 group.client.list.h1=Dewiswch gleientiaid
-group.client.list.p1=Dewiswch gleientiaid ar gyfer y grŵp mynediad hwn drwy dicio’r blychau. Gallwch dicio’r blwch yn rhes y pennyn i ddewis pob un. Gallwch hefyd hidlo yn ôl y cyfeirnod treth, y cyfeirnod cleient neu’r gwasanaeth treth.
+group.client.list.p1=Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol.
+group.client.list.1.h2=Yn dangos {0} chanlyniad ar ‘{1}’
+group.client.list.2.h2=Yn dangos {0} chanlyniad ar ‘{1}’ a ‘{2}’
 client-filter.text.label=Hidlo yn ôl y cyfeirnod treth neu’r cyfeirnod cleient
 client-filter.select.label=Hidlo yn ôl y gwasanaeth treth
 

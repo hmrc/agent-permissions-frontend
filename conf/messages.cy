@@ -44,10 +44,10 @@ common.return.manage-team-members=Yn ôl i reoli aelodau o’r tîm
 common.total.clients=Yn dangos cyfanswm o <strong>{0}</strong> o gleientiaid
 common.total.team-members=Yn dangos cyfanswm o <strong>{0}</strong> aelod o’r tîm
 
-common.total.team-members.selected=Dewiswyd <strong>{0}</strong> aelod tîm allan o <strong>{1}</strong>
-common.total.clients.selected=Dewiswyd <strong>{0}</strong> o gleientiaid allan o <strong>{1}</strong>
-already.selected.clients.nonjs=Ar hyn o bryd mae gennych <strong>{0}</strong> cleient o <strong>{1}</strong> yn eich grŵp
-already.selected.members.nonjs=Ar hyn o bryd mae gennych <strong>{0}</strong> aelod tîm o <strong>{1}</strong> yn eich grŵp
+common.total.team-members.selected=<strong>{0}</strong> team members selected across all searches
+common.total.clients.selected=<strong>{0}</strong> clients selected across all searches
+already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients in your group
+already.selected.members.nonjs=You currently have <strong>{0}</strong> team members in your group
 
 unassigned-clients.not-found.heading=Ni chanfuwyd unrhyw gleientiaid sydd heb eu neilltuo
 unassigned-clients.not-found.p=Diweddarwch eich hidlyddion a rhowch gynnig arall arni. Fel arall, cliriwch eich hidlyddion i weld pob un o’ch cleientiaid sydd heb eu neilltuo

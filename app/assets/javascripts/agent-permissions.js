@@ -1,3 +1,6 @@
+// Hack to work out how many clients/members are selected on other pages so we can report a correct total count
+var selectedOnOtherPages = 0;
+
 $(document).ready(function () {
     /* Ministry of Justice frontend components
     *  ---------------------------------------
@@ -6,14 +9,19 @@ $(document).ready(function () {
     */
 
     // MOJ multi-select & sortable table
-    const table = document.getElementById('sortable-table');
+    const clientTable = document.getElementById('clients');
+    const memberTable = document.getElementById('members');
     const multiSelectTable = document.getElementById("multi-select-table");
+    var table = null;
+    if (clientTable != null) { table = clientTable; }
+        else if (memberTable != null) { table = memberTable; }
+        else if (multiSelectTable != null) { table = multiSelectTable; }
 
-    if(table !== null || multiSelectTable !== null){
+    if(table !== null){
         window.MOJFrontend.initAll();   // activates multi-select
-        if (table !== null) {
-            new SortableTable(table);       // Needed because table has multi-select data module
-        }
+        // if (table !== null) {
+        //     new SortableTable(table);       // Needed because table has multi-select data module
+        // }
         if (multiSelectTable !== null) {
             var tbl = document.querySelectorAll('#multi-select-table tbody input[type="checkbox"]:not(:checked)')
             //the config for this moj multi select doesn't seem to work. only way to
@@ -34,11 +42,21 @@ $(document).ready(function () {
         span.remove();
     }
 
-    $('#sortable-table input[type=checkbox]').on("change", () => {
-        const selectedCount = $('#sortable-table input[type=checkbox]:checked:not(#checkboxes-all)').length
-        $('#member-count-text strong')[0].innerHTML = selectedCount;
-    });
+    function countSelectedOnCurrentPage() {
+        return $('#'+table.id+' input[type=checkbox]:checked:not(#checkboxes-all)').length;
+    }
 
-    $("#filter-buttons-wrapper button")
+    function currentlyDisplayedSelectionCount() {
+        return Number($("#member-count-text strong").text()) || 0;
+    }
+
+    // Hack to work out how many clients/members are selected on other pages so we can report a correct total count
+    selectedOnOtherPages = (table == null) ?  0 : (currentlyDisplayedSelectionCount() - countSelectedOnCurrentPage());
+
+    if (table != null) {
+        $('#'+table.id+' input[type=checkbox]').on("change", () => {
+            $('#member-count-text strong')[0].innerHTML = selectedOnOtherPages + countSelectedOnCurrentPage();
+        });
+    }
 
 });

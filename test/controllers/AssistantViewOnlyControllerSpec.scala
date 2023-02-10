@@ -298,6 +298,10 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       html.select(H2).text shouldBe "Filter results for 'friendly1'"
 
+
+      val th = html.select(Css.tableWithId("clients")).select("thead th")
+      th.size() shouldBe 3
+
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
       trs.size() shouldBe 1
     }

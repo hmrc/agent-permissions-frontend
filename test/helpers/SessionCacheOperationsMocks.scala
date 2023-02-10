@@ -30,8 +30,8 @@ trait SessionCacheOperationsMocks extends MockFactory {
   def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit sessionCacheOps: SessionCacheOperationsService): Unit =
     (sessionCacheOps
       .saveSelectedOrFilteredClients(_: Arn)(_: AddClientsToGroup)
-      (_: Arn => Future[Seq[DisplayClient]])(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
-      .expects(arn, *, *, *, *, *)
+      (_: Arn => Future[Seq[DisplayClient]])(_: ExecutionContext, _: Request[_]))
+      .expects(arn, *, *, *, *)
       .returning(Future.successful(()))
       .once()
 
@@ -39,15 +39,15 @@ trait SessionCacheOperationsMocks extends MockFactory {
                                  (implicit sessionCacheOps: SessionCacheOperationsService): Unit =
     (sessionCacheOps
       .savePageOfClients(_: AddClientsToGroup)
-      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
-      .expects(formData, *, *, *)
+      (_: ExecutionContext, _: Request[_]))
+      .expects(formData, *, *)
       .returning(Future successful members)
 
   def expectSaveSearch(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit sessionCacheOps: SessionCacheOperationsService): Unit =
     (sessionCacheOps
       .saveSearch(_: Option[String], _: Option[String])
-      (_: Request[_], _: HeaderCarrier, _: ExecutionContext))
-      .expects(searchTerm, filterTerm, *, *, *)
+      (_: Request[_], _: ExecutionContext))
+      .expects(searchTerm, filterTerm, *, *)
       .returning(Future.successful(()))
       .once()
 }

@@ -20,6 +20,7 @@ import connectors.AgentUserClientDetailsConnector
 import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, teamMemberFilteringKeys}
 import helpers.BaseSpec
 import models.{AddTeamMembersToGroup, TeamMember}
+import play.api.libs.json.JsNumber
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData, UserDetails}
 
@@ -262,7 +263,7 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectPutSessionItem(CURRENT_PAGE_TEAM_MEMBERS, expectedPage)
       val page: PaginatedList[TeamMember] = await(service.getPageOfTeamMembers(arn)(1, pageSize))
 
-      page.paginationMetaData shouldBe PaginationMetaData(false, true, users.length, 4, pageSize, 1, pageSize)
+      page.paginationMetaData shouldBe PaginationMetaData(false, true, users.length, 4, pageSize, 1, pageSize, Some(Map("totalSelected" -> JsNumber(3))))
       page.pageContent shouldBe
         List(TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None, true),
           TeamMember("Name 2", "bob2@accounting.com", Some("user2"), None, true),
@@ -291,7 +292,7 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectPutSessionItem(CURRENT_PAGE_TEAM_MEMBERS, expectedPage)
       val page: PaginatedList[TeamMember] = await(service.getPageOfTeamMembers(arn)(1, pageSize))
 
-      page.paginationMetaData shouldBe PaginationMetaData(false, true, 9, 2, 5, 1, 5)
+      page.paginationMetaData shouldBe PaginationMetaData(false, true, 9, 2, 5, 1, 5, Some(Map("totalSelected" -> JsNumber(0))))
       page.pageContent shouldBe
         Seq(
           TeamMember("Name 1", "bob1@accounting.com",   Some("user1"), None ),

@@ -88,7 +88,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       val radios = html.select(Css.radioButtonsField("answer-radios"))
       radios.select("label[for=answer]").text() shouldBe "Custom access group"
-      radios.select("#answer-item-hint").text() shouldBe "Select clients based on any criteria."
+      radios.select("#answer-item-hint").text() shouldBe "Select clients based on any criteria. You can have a total of 1,200 clients and team members in a custom access group."
       radios.select("#answer-no-item-hint")
         .text() shouldBe "Select all clients for one tax service. These groups can be set to update automatically when you get new clients."
       radios.select("label[for=answer-no]").text() shouldBe "Access group based on tax service"

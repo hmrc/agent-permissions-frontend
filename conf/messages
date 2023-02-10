@@ -118,8 +118,8 @@ you-have-opted-out.p2=Your account will show that you have chosen to turn off ac
 group.type.h1=Create an access group
 group.type.label=How would you like to create this group?
 group.type.error=Select the type of access group you want to create
-group.type.custom.label=Custom access group
-group.type.custom.hint=Select clients based on any criteria. 
+group.type.custom.label=Custom access group  
+group.type.custom.hint=Select clients based on any criteria. You can have a total of 1,200 clients and team members in a custom access group.
 group.type.tax.service.label=Access group based on tax service
 group.type.tax.service.hint=Select all clients for one tax service. <br>These groups can be set to update automatically when you get new clients.
 
@@ -149,7 +149,9 @@ group.client.search.h1=Search for clients
 
 group.client.list.h1=Select clients
 select.members.list.h1=Select team members
-group.client.list.p1=Select clients for this access group by ticking the boxes. You can tick the check box in the header row to select all. You can also filter by tax reference, client reference or tax service.
+group.client.list.p1=You can have a total of 1,200 clients and team members in a custom access group.
+group.client.list.1.h2=Showing {0} results for ‘{1}’
+group.client.list.2.h2=Showing {0} results for ‘{1}’ and ‘{2}’
 client-filter.text.label=Filter by tax reference or client reference
 client-filter.select.label=Filter by tax service
 client-filter.select.label.empty-option=Choose tax service

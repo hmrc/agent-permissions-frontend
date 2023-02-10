@@ -103,7 +103,7 @@
                 id = Some("multi-select-table"),
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
-                    (span(""), Map.empty),
+                    (span(""), Map("id" -> "select-all")),
                     (Html(msgs("group.members.list.table.th1")), Map.empty),
                     (Html(msgs("group.members.list.table.th2")), Map.empty),
                     (Html(msgs("group.members.list.table.th3")), Map.empty)

@@ -18,7 +18,7 @@ package services
 
 import akka.Done
 import com.google.inject.ImplementedBy
-import connectors.{AgentPermissionsConnector, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
+import connectors.{AddOneTeamMemberToGroupRequest, AgentPermissionsConnector, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
 import play.api.Logging
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, TaxGroup}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,6 +28,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[TaxGroupServiceImpl])
 trait TaxGroupService {
+  def addOneMemberToGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
 
   def getTaxGroupClientCount(arn: Arn)
                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
@@ -72,5 +75,9 @@ class TaxGroupServiceImpl @Inject()
   def updateGroup(groupId: String, group: UpdateTaxServiceGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
     agentPermissionsConnector.updateTaxGroup(groupId, group)
+
+  def addOneMemberToGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    agentPermissionsConnector.addOneTeamMemberToTaxGroup(id, groupRequest)
 
 }

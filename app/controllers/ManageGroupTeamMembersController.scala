@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import connectors.{UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
+import controllers.GroupType.isCustom
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.TeamMember.toAgentUser
@@ -63,10 +64,9 @@ class ManageGroupTeamMembersController @Inject()
 
   private val controller: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  def isCustom(groupType: String): Boolean = "custom".equalsIgnoreCase(groupType)
 
   def showExistingGroupTeamMembers(groupId: String, groupType: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
+    withAccessGroupForAuthorisedOptedAgent(groupId, GroupType.isCustom(groupType)) { (group, arn) =>
       val convertedTeamMembers = agentUsersInGroupAsTeamMembers(group)
       groupService
         .getTeamMembersFromGroup(arn)(convertedTeamMembers).map { members =>

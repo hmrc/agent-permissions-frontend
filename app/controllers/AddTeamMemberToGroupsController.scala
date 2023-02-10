@@ -17,35 +17,37 @@
 package controllers
 
 import config.AppConfig
-import connectors.AddMembersToAccessGroupRequest
+import connectors.AddOneTeamMemberToGroupRequest
 import controllers.actions.TeamMemberAction
 import forms.AddGroupsToClientForm
 import models.TeamMember
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.GroupService
+import services.{GroupService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details.add_groups_to_team_member.{confirm_added, select_groups}
 
 import javax.inject.{Inject, Singleton}
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AddTeamMemberToGroupsController @Inject()(
-       teamMemberAction: TeamMemberAction,
-       mcc: MessagesControllerComponents,
-       groupService: GroupService,
-       select_groups: select_groups,
-       confirm_added: confirm_added
-     )(implicit val appConfig: AppConfig,
-       ec: ExecutionContext,
-       implicit override val messagesApi: MessagesApi
-     ) extends FrontendController(mcc)
+                                                 teamMemberAction: TeamMemberAction,
+                                                 mcc: MessagesControllerComponents,
+                                                 groupService: GroupService,
+                                                 taxGroupService: TaxGroupService,
+                                                 select_groups: select_groups,
+                                                 confirm_added: confirm_added
+                                               )(implicit val appConfig: AppConfig,
+                                                 ec: ExecutionContext,
+                                                 implicit override val messagesApi: MessagesApi
+                                               ) extends FrontendController(mcc)
 
-    with I18nSupport
-    with Logging {
+  with I18nSupport
+  with Logging {
 
   import teamMemberAction._
 
@@ -57,7 +59,7 @@ class AddTeamMemberToGroupsController @Inject()(
           Ok(
             select_groups(
               membersGroups,
-              allGroups.diff(membersGroups).filter(s => !s.isTaxGroup()), // TODO remove filter on tax groups APB-6925
+              allGroups.diff(membersGroups),
               tm,
               AddGroupsToClientForm.form()
             )
@@ -76,7 +78,7 @@ class AddTeamMemberToGroupsController @Inject()(
             Ok(
               select_groups(
                 membersGroups,
-                allGroups.diff(membersGroups).filter(s => !s.isTaxGroup()), // should be any groups not already in (APB-6925)
+                allGroups.diff(membersGroups),
                 tm,
                 formErrors
               )
@@ -85,13 +87,18 @@ class AddTeamMemberToGroupsController @Inject()(
         }
       }, { groupIds =>
         val agentUser = TeamMember.toAgentUser(tm)
-        Future.sequence(groupIds.map { grp =>
-          // TODO change to add to tax service groups as well as custom groups (APB-6925)
-          groupService.addMembersToGroup(
-            grp, AddMembersToAccessGroupRequest(teamMembers = Some(Set(agentUser))
-            ))
-        }).map { _ =>
-          sessionCacheService.put[Seq[String]](GROUP_IDS_ADDED_TO, groupIds)
+        val groupsAddedTo: mutable.MutableList[String] = new mutable.MutableList()
+        Future.sequence(groupIds.map { groupId => {
+          val typeAndGroupId = groupId.split("_")
+          groupsAddedTo += typeAndGroupId(1)
+          if (GroupType.CUSTOM == typeAndGroupId(0)) {
+            groupService.addOneMemberToGroup(typeAndGroupId(1), AddOneTeamMemberToGroupRequest(agentUser))
+          } else {
+            taxGroupService.addOneMemberToGroup(typeAndGroupId(1), AddOneTeamMemberToGroupRequest(agentUser))
+          }
+        }
+        }).map {_ =>
+          sessionCacheService.put[Seq[String]](GROUP_IDS_ADDED_TO, groupsAddedTo)
           Redirect(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id))
         }
       }

@@ -17,7 +17,7 @@
 package helpers
 
 import akka.Done
-import connectors.{CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
+import connectors.{AddOneTeamMemberToGroupRequest, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
 import org.scalamock.scalatest.MockFactory
 import services.TaxGroupService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, TaxGroup}
@@ -72,4 +72,11 @@ trait TaxGroupServiceMocks extends MockFactory {
       .expects(id, payload, *, *)
       .returning(Future.successful(Done))
       .once()
+
+  def expectAddOneMemberToTaxGroup(id: String, payload: AddOneTeamMemberToGroupRequest)
+                               (implicit taxGroupService: TaxGroupService): Unit =
+    (taxGroupService
+      .addOneMemberToGroup(_: String, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, payload, *, *)
+      .returning(Future successful Done)
 }

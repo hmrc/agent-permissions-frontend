@@ -17,7 +17,7 @@
 package helpers
 
 import akka.Done
-import connectors.{AddMembersToAccessGroupRequest, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AddOneTeamMemberToGroupRequest, UpdateAccessGroupRequest}
 import models.{DisplayClient, TeamMember}
 import org.scalamock.handlers.{CallHandler4, CallHandler6}
 import org.scalamock.scalatest.MockFactory
@@ -116,6 +116,13 @@ trait GroupServiceMocks extends MockFactory {
                        (implicit groupService: GroupService): Unit =
     (groupService
       .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, payload, *, *)
+      .returning(Future successful Done)
+
+  def expectAddOneMemberToGroup(id: String, payload: AddOneTeamMemberToGroupRequest)
+                             (implicit groupService: GroupService): Unit =
+    (groupService
+      .addOneMemberToGroup(_: String, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 

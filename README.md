@@ -33,7 +33,10 @@ Team members are government gateway accounts created by an Administrator (Admin 
 
 
 ### FE Dependencies
-The [sortable table](https://design-patterns.service.justice.gov.uk/components/sortable-table/) & [multi-select](https://design-patterns.service.justice.gov.uk/components/multi-select/) components have been adapted from [MOJ frontend](https://github.com/ministryofjustice/moj-frontend/releases) via importing compiled files - currently using version 1.4.2 (modified)
+The [sortable table](https://design-patterns.service.justice.gov.uk/components/sortable-table/) & [multi-select](https://design-patterns.service.justice.gov.uk/components/multi-select/) components have been adapted from [MOJ frontend](https://github.com/ministryofjustice/moj-frontend/releases) via importing compiled files - currently using version 1.4.2 (modified, will need updating)
+
+MOJ frontend [requires jQuery](https://design-patterns.service.justice.gov.uk/get-started/setting-up-javascript/), it is included as a minified file rather than a link to external source due to security issues.
+
 
 #### Pagination
 

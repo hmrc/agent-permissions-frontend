@@ -403,10 +403,12 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Client reference updated - Agent services account - GOV.UK"
+      html.title() shouldBe "Client reference will update shortly - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
-        .text() shouldBe "Tax reference: ending in 6780 Client reference updated to The New Name"
+        .text() shouldBe "Tax reference: ending in 6780 Client reference will update shortly"
+      html.select(Css.paragraphs).get(0)
+        .text()shouldBe "You have asked us to update this client reference in your agent services account. We’ll update it to The New Name in the next two hours. We will not change the client reference in other HMRC online services."
     }
 
     s"GET showClientReferenceUpdatedComplete for invalid client id" in {

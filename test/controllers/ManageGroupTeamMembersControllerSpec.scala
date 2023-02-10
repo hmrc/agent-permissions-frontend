@@ -26,7 +26,6 @@ import models.{AddTeamMembersToGroup, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils.random
 import org.jsoup.Jsoup
 import org.mongodb.scala.bson.ObjectId
-import org.scalatest.concurrent.IntegrationPatience
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded

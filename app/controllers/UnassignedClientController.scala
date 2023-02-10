@@ -185,7 +185,10 @@ class UnassignedClientController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         groupService.getGroupSummaries(arn).map(groups =>
-          Ok(select_groups_for_clients(SelectGroupsForm.form().fill(SelectGroups(None, None)), groups)))
+          Ok(
+            select_groups_for_clients(
+              SelectGroupsForm.form().fill(SelectGroups(None, None)),
+              groups.filter(_.isCustomGroup()))))
       }
     }
   }

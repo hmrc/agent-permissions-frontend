@@ -188,7 +188,7 @@ class AddTeamMembersToGroupFormSpec
         .unbind(model) shouldBe Map(
         "search" -> "Ab",
         "members[0]" -> member1.id,
-        "submit" -> FILTER_BUTTON,
+        "submit" -> FILTER_BUTTON
       )
     }
 

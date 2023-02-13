@@ -87,7 +87,7 @@ class AgentUserClientDetailsConnectorSpec
     "return a PaginatedList[Client] when status response is OK" in {
       val clients = Seq(
         Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Bob"),
-        Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12347", friendlyName = "Builder"),
+        Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12347", friendlyName = "Builder")
       )
       val meta = PaginationMetaData(
         lastPage = false,

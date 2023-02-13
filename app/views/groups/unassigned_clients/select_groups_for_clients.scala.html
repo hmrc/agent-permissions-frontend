@@ -53,6 +53,7 @@
     }
 
     @h1(heading)
+    @p("unassigned.client.assign.p1")
     @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
         @if(groups.isEmpty) {
             @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")

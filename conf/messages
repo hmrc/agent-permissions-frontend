@@ -170,6 +170,7 @@ group.clients.review.no.label=No, continue to next section
 group.clients.review.error=Select yes if you need to add or remove selected clients
 
 group.select.members.list.h1=Select team members
+group.select.members.list.p1=You can have a total of 1,200 clients and team members in a custom access group.
 group.update.members.list.h1=Update team members in this group
 group.update.members.list.p1=You can have a total of 1,200 clients and team members in a custom access group.
 group.members.list.filter.label=Filter by name or email

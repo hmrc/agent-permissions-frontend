@@ -60,7 +60,7 @@ withSearchAndErrorPrefix(!form.errors.isEmpty,
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", groupName))
         @h1("group.client.list.update.h1")
-        @p("group.client.list.update.p")
+        @p("common.group.max.clients")
     </div>
 
     @selectable_clients_table_form(clients, form, routes.ManageGroupClientsController.submitManageGroupClients(groupId), paginationMetaData)

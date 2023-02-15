@@ -24,6 +24,7 @@ common.custom-group=Custom group
 common.tax-group=Tax service group
 common.add=Add
 common.remove=Remove
+common.group.max.clients=You can have a total of 1,200 clients and team members in a custom access group.
 
 save.and.continue.button=Save and continue
 submit.button=Submit
@@ -149,7 +150,6 @@ group.client.search.h1=Search for clients
 
 group.client.list.h1=Select clients
 select.members.list.h1=Select team members
-group.client.list.p1=You can have a total of 1,200 clients and team members in a custom access group.
 group.client.list.1.h2=Showing {0} results for ‘{1}’
 group.client.list.2.h2=Showing {0} results for ‘{1}’ and ‘{2}’
 client-filter.text.label=Filter by tax reference or client reference
@@ -170,9 +170,7 @@ group.clients.review.no.label=No, continue to next section
 group.clients.review.error=Select yes if you need to add or remove selected clients
 
 group.select.members.list.h1=Select team members
-group.select.members.list.p1=You can have a total of 1,200 clients and team members in a custom access group.
 group.update.members.list.h1=Update team members in this group
-group.update.members.list.p1=You can have a total of 1,200 clients and team members in a custom access group.
 group.members.list.filter.label=Filter by name or email
 group.members.list.table.th1=Name
 group.members.list.table.th2=Email
@@ -216,7 +214,6 @@ group.existing.clients.tax.info=This is a tax service group which updates automa
 group.existing.clients.button=Update clients
 group.existing.custom.groups.button=Create custom access group
 group.client.list.update.h1=Update clients in this group
-group.client.list.update.p=You can have a total of 1,200 clients and team members in a custom access group.
 group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
 
@@ -242,7 +239,6 @@ group.manage.confirm.updated.team-members.p=The team members you selected can vi
 unassigned.client.list.p=These clients are visible to all team members.
 unassigned.client.assign.hint=Select all that apply
 unassigned.client.assign.h1=Which access groups would you like to add the selected clients to?
-unassigned.client.assign.p1=You can have a total of 1,200 clients and team members in a custom access group.
 unassigned.client.assign.existing.or.new.error=You cannot add to existing groups at the same time as creating a new group
 unassigned.client.assign.nothing.selected.error=You must select an access group or add a new group
 unassigned.client.no.groups.h1=You do not have any access groups. Add these clients to a new access group

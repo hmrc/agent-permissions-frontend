@@ -75,7 +75,7 @@
         @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
             @h2(searchParamMsg)
         }
-        @p("group.client.list.p1")
+        @p("common.group.max.clients")
     </div>
 
     @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData)

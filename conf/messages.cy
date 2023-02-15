@@ -20,10 +20,11 @@ common.skip-to-clients=Ewch yn syth iír rhestr o gleientiaid
 common.skip-to-team-members=Ewch yn syth iír rhestr o aelodauír tÓm
 common.results-for1=Hidlo’r canlyniadau ar gyfer ‘{0}’
 common.results-for2=Hidlo’r canlyniadau ar gyfer ‘{0}’ a ‘{1}’
-common.custom-group=Custom group
-common.tax-group=Tax service group
-common.add=Add
-common.remove=Remove
+common.custom-group=Grŵp wedi’i deilwra
+common.tax-group=Grŵp gwasanaeth treth
+common.add=Ychwanegu
+common.remove=Tynnu
+common.group.max.clients=Gallwch fod â chyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad wedi’i deilwra.
 
 save.and.continue.button=Cadw ac yn eich blaen
 submit.button=Cyflwyno
@@ -117,7 +118,7 @@ you-have-opted-out.p2=Bydd eich cyfrif yn dangos eich bod wedi dewis analluogi g
 group.type.h1=Creu grŵp mynediad
 group.type.label=Sut hoffech chi greu'r grŵp hwn?
 group.type.custom.label=Grŵp mynediad personol
-group.type.custom.hint=Dewiswch gleientiaid yn seiliedig ar unrhyw feini prawf. Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol. 
+group.type.custom.hint=Dewiswch gleientiaid ar sail unrhyw feini prawf. Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol. 
 group.type.tax.service.label=Grŵp mynediad yn seiliedig ar wasanaeth treth
 group.type.tax.service.hint=Dewiswch bob cleient ar gyfer un gwasanaeth treth. <br>Gellir gosod y grwpiau hyn i ddiweddaru'n awtomatig pan fyddwch yn cael cleientiaid newydd.
 
@@ -133,10 +134,9 @@ group.confirm.name.label=Ydy enw’r grŵp mynediad ‘{0}’ yn gywir?
 
 group.name.confirm.required.error=Dewiswch ‘Iawn’ os yw enw’r grŵp mynediad yn gywir
 
-group.client.search.h1=Search for clients
+group.client.search.h1=Chwilio am gleientiaid
 
 group.client.list.h1=Dewiswch gleientiaid
-group.client.list.p1=Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol.
 group.client.list.1.h2=Yn dangos {0} chanlyniad ar ‘{1}’
 group.client.list.2.h2=Yn dangos {0} chanlyniad ar ‘{1}’ a ‘{2}’
 client-filter.text.label=Hidlo yn ôl y cyfeirnod treth neu’r cyfeirnod cleient

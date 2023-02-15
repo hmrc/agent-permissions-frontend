@@ -24,6 +24,7 @@ common.custom-group=Custom group
 common.tax-group=Tax service group
 common.add=Add
 common.remove=Remove
+common.group.max.clients=Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol.
 
 save.and.continue.button=Cadw ac yn eich blaen
 submit.button=Cyflwyno
@@ -136,7 +137,6 @@ group.name.confirm.required.error=Dewiswch ‘Iawn’ os yw enw’r grŵp mynedi
 group.client.search.h1=Search for clients
 
 group.client.list.h1=Dewiswch gleientiaid
-group.client.list.p1=Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol.
 group.client.list.1.h2=Yn dangos {0} chanlyniad ar ‘{1}’
 group.client.list.2.h2=Yn dangos {0} chanlyniad ar ‘{1}’ a ‘{2}’
 client-filter.text.label=Hidlo yn ôl y cyfeirnod treth neu’r cyfeirnod cleient

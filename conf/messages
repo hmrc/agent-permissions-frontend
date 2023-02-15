@@ -239,7 +239,6 @@ group.manage.confirm.updated.team-members.p=The team members you selected can vi
 unassigned.client.list.p=These clients are visible to all team members.
 unassigned.client.assign.hint=Select all that apply
 unassigned.client.assign.h1=Which access groups would you like to add the selected clients to?
-unassigned.client.assign.p1=You can have a total of 1,200 clients and team members in a custom access group.
 unassigned.client.assign.existing.or.new.error=You cannot add to existing groups at the same time as creating a new group
 unassigned.client.assign.nothing.selected.error=You must select an access group or add a new group
 unassigned.client.no.groups.h1=You do not have any access groups. Add these clients to a new access group

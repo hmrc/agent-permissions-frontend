@@ -60,7 +60,7 @@
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", groupName))
         @h1(msgs(s"group.${msgKey}.members.list.h1",groupName))
-        @p(s"group.${msgKey}.members.list.p1")
+        @p(s"common.group.max.clients")
     </div>
 
     @paginated_selectable_team_members_table_form(teamMembers, form, formAction, paginationMetaData)

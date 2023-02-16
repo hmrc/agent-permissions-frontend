@@ -30,7 +30,7 @@
 
 @(
     form: Form[TaxServiceGroupType],
-    data: Map[String, Int]
+    clientCountByTaxService: Map[String, Int]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
@@ -46,7 +46,7 @@
             field = form("taxType"),
             label = msgs("group.tax-service.select.label"),
             emptyOptionText = msgs("Select tax service"),
-            options = getFiltersTaxServiceListWithClientCount(data)
+            options = getFiltersTaxServiceListWithClientCount(clientCountByTaxService)
         )
 
         @submit_button()

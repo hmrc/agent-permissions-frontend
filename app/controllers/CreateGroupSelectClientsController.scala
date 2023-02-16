@@ -60,16 +60,19 @@ class CreateGroupSelectClientsController @Inject()
 
 
   def showSearchClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, _) =>
+    withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          Ok(
-            search_clients(
-              form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
-              groupName = groupName,
-              backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url)
+          clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
+            Ok(
+              search_clients(
+                form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+                groupName = groupName,
+                backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url),
+                clientCountByTaxService = clientCounts
+              )
             )
-          ).toFuture
+          )
         }
       }
     }
@@ -82,7 +85,16 @@ class CreateGroupSelectClientsController @Inject()
         .bindFromRequest
         .fold(
           formWithErrors => {
-            Ok(search_clients(formWithErrors, groupName, Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url))).toFuture
+            clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
+              Ok(
+                search_clients(
+                  formWithErrors,
+                  groupName,
+                  Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url),
+                  clientCountByTaxService = clientCounts
+                ),
+              )
+            )
           }, formData => {
             sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture
@@ -207,7 +219,7 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def submitReviewSelectedClients(): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName,_,_) =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
           maybeClients.fold(Redirect(controller.showSearchClients).toFuture)(

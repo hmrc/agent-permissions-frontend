@@ -27,14 +27,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait SessionCacheOperationsMocks extends MockFactory {
 
-  def expectSaveSelectedOrFilteredClients(arn: Arn)(implicit sessionCacheOps: SessionCacheOperationsService): Unit =
-    (sessionCacheOps
-      .saveSelectedOrFilteredClients(_: Arn)(_: AddClientsToGroup)
-      (_: Arn => Future[Seq[DisplayClient]])(_: ExecutionContext, _: Request[_]))
-      .expects(arn, *, *, *, *)
-      .returning(Future.successful(()))
-      .once()
-
   def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
                                  (implicit sessionCacheOps: SessionCacheOperationsService): Unit =
     (sessionCacheOps

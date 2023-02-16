@@ -344,7 +344,7 @@ class OptInControllerSpec extends BaseSpec {
         .text() shouldBe "Create access group"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe routes.CreateGroupController.start.url
+        .attr("href") shouldBe routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url
     }
   }
 

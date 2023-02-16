@@ -32,7 +32,7 @@
 @layout(
     title = msgs("group.type.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.CreateGroupController.showGroupName.url)
+    backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url)
 ) {
     @h1("group.type.h1")
 

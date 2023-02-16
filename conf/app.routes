@@ -44,27 +44,6 @@ GET     /create-group/team-members-selected    controllers.CreateGroupSelectTeam
 POST    /create-group/team-members-selected    controllers.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers
 GET     /create-group/confirm                  controllers.CreateGroupSelectTeamMembersController.showGroupCreated
 
-# Deprecated for 1000+ below (create group)
-GET     /group/create-access-group            controllers.CreateGroupController.start
-GET     /create-access-group-name             controllers.CreateGroupController.showGroupName
-POST    /create-access-group-name             controllers.CreateGroupController.submitGroupName
-GET     /confirm-access-group-name            controllers.CreateGroupController.showConfirmGroupName
-POST    /confirm-access-group-name            controllers.CreateGroupController.submitConfirmGroupName
-GET     /access-group-name-exists             controllers.CreateGroupController.showAccessGroupNameExists
-GET     /select-clients                       controllers.CreateGroupController.showSelectClients
-POST    /select-clients                       controllers.CreateGroupController.submitSelectedClients
-GET     /clients-selected                     controllers.CreateGroupController.showReviewSelectedClients
-POST    /clients-selected                     controllers.CreateGroupController.submitReviewSelectedClients
-GET     /select-team-members                  controllers.CreateGroupController.showSelectTeamMembers
-POST    /select-team-members                  controllers.CreateGroupController.submitSelectedTeamMembers
-GET     /team-members-selected                controllers.CreateGroupController.showReviewSelectedTeamMembers
-POST    /team-members-selected                controllers.CreateGroupController.submitReviewSelectedTeamMembers
-GET     /confirm-clients-team-members         controllers.CreateGroupController.showCheckYourAnswers
-POST    /confirm-clients-team-members         controllers.CreateGroupController.submitCheckYourAnswers
-GET     /reselect-clients                     controllers.CreateGroupController.redirectToEditClients
-GET     /group-created                        controllers.CreateGroupController.showGroupCreated
-# Deprecated for 1000+ above (create group)
-
 # Manage groups
 GET     /manage-access-groups             controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])
 POST    /manage-access-groups             controllers.ManageGroupController.submitManageGroups

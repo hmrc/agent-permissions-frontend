@@ -36,8 +36,8 @@
     teamMembers: Seq[TeamMember],
     groupName: String,
     form: Form[Boolean],
-    backUrl: Option[String] = Some(routes.CreateGroupController.showSelectTeamMembers.url),
-    formAction: Call =  routes.CreateGroupController.submitReviewSelectedTeamMembers
+    backUrl: Option[String] = Some(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url),
+    formAction: Call =  routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{

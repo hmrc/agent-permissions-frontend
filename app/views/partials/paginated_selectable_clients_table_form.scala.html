@@ -41,7 +41,7 @@
 @(
     clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     form: Form[AddClientsToGroup],
-    formAction: Call = routes.CreateGroupController.submitSelectedClients,
+    formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
     paginationMetaData: Option[PaginationMetaData] = None,
     showFilter: Boolean = false
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)

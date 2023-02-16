@@ -494,7 +494,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
 
     }
 

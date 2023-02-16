@@ -95,7 +95,7 @@ class ClientServiceImpl @Inject()(
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
     for {
       searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT) // TODO these search/filter terms should be passed from outside. This function description mentions nothing about filtering and finding this here is unexpected and confusing.
-      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT) // TODO these search/filter terms should be passed from outside. This function description mentions nothing about filtering and finding this here is unexpected and confusing.
+      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
       pageOfClients <-
         agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize, searchTerm, filterTerm)
       maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS) // TODO This logic to pre-mark clients should probably be done by the caller. Ideally this function should and not touch the session cache at all!

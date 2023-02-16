@@ -39,7 +39,7 @@
 @(
         clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
         form: Form[AddClientsToGroup],
-        formAction: Call = routes.CreateGroupController.submitSelectedClients,
+        formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{

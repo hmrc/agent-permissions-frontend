@@ -39,8 +39,8 @@
     clients: Seq[DisplayClient],
     groupName: String,
     form: Form[Boolean],
-    formAction: Call = routes.CreateGroupController.submitReviewSelectedClients,
-    backUrl: Option[String] = Some(routes.CreateGroupController.showSelectClients.url),
+    formAction: Call = routes.CreateGroupSelectClientsController.submitReviewSelectedClients,
+    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url),
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

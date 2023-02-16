@@ -206,7 +206,7 @@ class UnassignedClientController @Inject()(
             }
             )
           }, validForm => {
-            if (validForm.createNew.isDefined) Redirect(routes.CreateGroupController.showGroupName).toFuture
+            if (validForm.createNew.isDefined) Redirect(routes.CreateGroupSelectNameController.showGroupName).toFuture
             else {
               for {
                 allGroups <- groupService.getGroupSummaries(arn)

@@ -120,7 +120,7 @@ class GroupAction @Inject()
                                            request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(controllers.routes.CreateGroupController.showGroupName).toFuture) {
+        maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
           groupName => body(groupName, arn)
         }
       }

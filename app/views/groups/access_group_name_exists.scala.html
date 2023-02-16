@@ -31,12 +31,12 @@
 
   @layout(
   title = msgs("access-group-name-exists.title"),
-  backLinkHref = Some(routes.CreateGroupController.showConfirmGroupName.url)){
+  backLinkHref = Some(routes.CreateGroupSelectNameController.showConfirmGroupName.url)){
 
   @h1(msgs("access-group-name-exists.title"))
 
   @p(msgs("access-group-name-exists.p", accessGroupName))
 
-  @button(key = msgs("access-group-name-exists.button"), href = routes.CreateGroupController.showGroupName.url)
+  @button(key = msgs("access-group-name-exists.button"), href = routes.CreateGroupSelectNameController.showGroupName.url)
 
 }

@@ -36,8 +36,8 @@
     clients: Seq[DisplayClient],
     groupName: String,
     form: Form[Boolean],
-    continueCall: Call = routes.CreateGroupController.submitReviewSelectedClients,
-    backUrl: Option[String] = Some(routes.CreateGroupController.showSelectClients.url)
+    continueCall: Call = routes.CreateGroupSelectClientsController.submitReviewSelectedClients,
+    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{

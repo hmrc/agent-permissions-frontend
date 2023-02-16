@@ -35,7 +35,7 @@
 @(
         teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
         form: Form[AddTeamMembersToGroup],
-        formAction: Call = routes.CreateGroupController.submitSelectedTeamMembers,
+        formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{

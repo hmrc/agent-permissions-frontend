@@ -523,7 +523,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.CreateGroupController.submitReviewSelectedTeamMembers.url}" should {
+  s"POST ${routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers.url}" should {
 
     s"redirect to '${routes.CreateGroupSelectTeamMembersController.showGroupCreated.url}' page with answer 'false'" in {
 

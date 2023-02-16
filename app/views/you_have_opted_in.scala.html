@@ -28,7 +28,7 @@
 
 @optionalA = @{if(ready){a(key = "common.return.manage-account",href= appConfig.agentServicesAccountManageAccountUrl, classes = Some("govuk-!-margin-left-3 govuk-!-margin-top-5"))} else {}}
 
-@continueUrl = @{if(ready) {routes.CreateGroupController.start.url} else {appConfig.agentServicesAccountManageAccountUrl}}
+@continueUrl = @{if(ready) {routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url} else {appConfig.agentServicesAccountManageAccountUrl}}
 
 @layout(
     title = msgs(s"you-have-opted-in.h1.ready.$ready")) {

@@ -126,7 +126,7 @@ group.type.tax.service.hint=Select all clients for one tax service. <br>These gr
 
 group.tax-service.h1=Group based on tax service
 group.tax-service.select.label=Select clients by tax service
-group.tax-service.answer.label=Add new clients to this access group automatically?
+group.tax-service.answer.label=Add ne„w clients to this access group automatically?
 group.tax-service.answer.hint=If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service.
 group.tax-service.select.error=Select the tax type for this access group
 

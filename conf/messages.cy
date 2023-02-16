@@ -122,7 +122,7 @@ group.type.custom.hint=Dewiswch gleientiaid ar sail unrhyw feini prawf. Gallwch 
 group.type.tax.service.label=Grŵp mynediad yn seiliedig ar wasanaeth treth
 group.type.tax.service.hint=Dewiswch bob cleient ar gyfer un gwasanaeth treth. <br>Gellir gosod y grwpiau hyn i ddiweddaru'n awtomatig pan fyddwch yn cael cleientiaid newydd.
 
-group.create.h1=Creu grŵp mynediad
+group.create.name.h1=Grŵp mynediad wedi'i deilwra
 group.create.name.label=Beth hoffech alw’r grŵp mynediad hwn?
 group.name.max.length=Mae’n rhaid i enw’r grŵp mynediad fod yn 32 o gymeriadau neu lai
 group.name.required=Nodwch enw ar gyfer y grŵp mynediad

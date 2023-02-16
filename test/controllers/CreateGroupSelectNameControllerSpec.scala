@@ -75,10 +75,10 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Create an access group - Agent services account - GOV.UK"
+      html.title() shouldBe "Custom access group - Agent services account - GOV.UK"
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/create-group/select-group-type"
       html.select(Css.backLink).text() shouldBe "Back"
-      html.select(Css.H1).text() shouldBe "Create an access group"
+      html.select(Css.H1).text() shouldBe "Custom access group"
       html.select(Css.form).attr("action") shouldBe ctrlRoute.showGroupName.url
       html.select(Css.labelFor("name")).text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
@@ -138,7 +138,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Create an access group - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Custom access group - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
         .text() shouldBe "Enter an access group name"
@@ -162,7 +162,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Create an access group - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Custom access group - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
         .text() shouldBe "Access group name must be 50 characters or fewer"

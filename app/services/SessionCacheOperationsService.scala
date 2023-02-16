@@ -16,25 +16,16 @@
 
 package services
 
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, SELECTED_CLIENTS, clientFilteringKeys}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-// TODO! Once we rewrite all tests that mock any of the methods below, we can just turn this into a mixable trait (like [[GroupMemberOps]] - or even merged with [[GroupMembersOps]]) instead of a service...
-// (we must rewrite the tests so that they check the state of session values rather than check for specific calls)
-
-/**
- * Utility service to perform some complex operations on session cache values.
- */
+/**  Utility service to perform some complex operations on session cache values. */
 @Singleton
 class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCacheService) extends GroupMemberOps {
-
-  // TODO this whole class needs documenting, as it's not clear what it's doing.
 
   def saveSearch(searchTerm: Option[String], filterTerm: Option[String])
                 (implicit request: Request[_], ec: ExecutionContext): Future[Unit] = {
@@ -48,37 +39,6 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
     }
   }
 
-  // TODO Remove once 1000+ released & CreateGroupController deleted
-  def saveSelectedOrFilteredClients(arn: Arn)
-                                   (formData: AddClientsToGroup)
-                                   (getClients: Arn => Future[Seq[DisplayClient]]) // getClients should be getAllClients or getUnassignedClients NOT getClients (maybe filtered)
-                                   (implicit ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
-
-    val selectedClientIds = formData.clients.getOrElse(Seq.empty)
-
-    val allClients = for {
-      clients <- getClients(arn)
-      selectedClientsToAddToSession = clients
-        .filter(cl => selectedClientIds.contains(cl.id)).map(_.copy(selected = true)).toList
-      _ <- addSelectablesToSession(selectedClientsToAddToSession)(SELECTED_CLIENTS, FILTERED_CLIENTS)
-    } yield clients
-
-    allClients.flatMap { clients =>
-      formData.submit.trim match {
-        case FILTER_BUTTON =>
-          if (formData.search.isEmpty && formData.filter.isEmpty) {
-            sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
-          } else {
-            for {
-              _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, formData.search.getOrElse(""))
-              _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, formData.filter.getOrElse(""))
-              _ <- filterClients(formData)(clients)
-            } yield ()
-          }
-        case _ => sessionCacheService.deleteAll(clientFilteringKeys)
-      }
-    }
-  }
 
   def savePageOfClients(formData: AddClientsToGroup)
                        (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
@@ -107,39 +67,4 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
 
   }
 
-  // TODO Remove once 1000+ released & CreateGroupController deleted
-  def filterClients(formData: AddClientsToGroup)
-                   (displayClients: Seq[DisplayClient])
-                   (implicit request: Request[Any], ec: ExecutionContext)
-  : Future[Seq[DisplayClient]] = {
-
-    val filterTerm = formData.filter
-    val searchTerm = formData.search
-    val eventualSelectedClientIds = sessionCacheService.get(SELECTED_CLIENTS).map(_.map(_.map(_.id)))
-
-    eventualSelectedClientIds.flatMap(maybeSelectedClientIds => {
-
-      val selectedClientIds = maybeSelectedClientIds.getOrElse(Nil)
-
-      for {
-        clients <- Future.successful(displayClients)
-        resultByTaxService = filterTerm.fold(clients)(term =>
-          if (term == "TRUST") clients.filter(_.taxService.contains("HMRC-TERS"))
-          else clients.filter(_.taxService == term)
-        )
-        resultByName = searchTerm.fold(resultByTaxService) { term =>
-          resultByTaxService.filter(_.name.toLowerCase.contains(term.toLowerCase))
-        }
-        resultByTaxRef = searchTerm.fold(resultByTaxService) {
-          term => resultByTaxService.filter(_.hmrcRef.toLowerCase.contains(term.toLowerCase))
-        }
-        consolidatedResult = (resultByName ++ resultByTaxRef).distinct
-        result = consolidatedResult
-          .map(dc => if (selectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
-          .toVector
-        _ <- sessionCacheService.put(FILTERED_CLIENTS, result)
-      } yield result
-    }
-    )
-  }
 }

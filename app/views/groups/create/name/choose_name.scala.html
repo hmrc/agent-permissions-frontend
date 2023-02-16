@@ -33,12 +33,12 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
-    title = msgs("group.create.h1"),
+    title = msgs("group.create.name.h1"),
     formErrors = form.errors,
     backLinkHref = backLink
 ) {
 
-    @h1("group.create.h1")
+    @h1("group.create.name.h1")
 
     @formWithCSRF(action = routes.CreateGroupSelectNameController.submitGroupName) {
 

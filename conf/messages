@@ -137,7 +137,7 @@ group.tax-service.review.yes=Yes, continue to naming group
 group.tax-service.review.no=No, start again
 group.tax-service.review.error=Select yes if you would like to create a group of this type
 
-group.create.h1=Create an access group
+group.create.name.h1=Custom access group
 group.create.name.label=What do you want to call this access group?
 group.name.max.length=Access group name must be 50 characters or fewer
 group.name.required=Enter an access group name

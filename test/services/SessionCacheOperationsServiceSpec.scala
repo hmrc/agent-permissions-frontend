@@ -40,80 +40,6 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
     sessionCacheService.values.clear()
   }
 
-  "saveSelectedOrFilteredClients" should {
-
-    "work for CONTINUE_BUTTON" in {
-
-      val CLIENTS = displayClients.take(8)
-      //expect
-      await(sessionCacheService.put(SELECTED_CLIENTS, CLIENTS.take(2)))
-      await(sessionCacheService.put(FILTERED_CLIENTS, CLIENTS.takeRight(1)))
-
-      val expectedPutSelected = List(
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456783","friendly name 3","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456784","friendly name 4","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456785","friendly name 5","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456786","friendly name 6","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456787","friendly name 7","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456788","friendly name 8","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false)
-      )
-      val formData = AddClientsToGroup(None, None, Some(CLIENTS.map(_.id).toList), CONTINUE_BUTTON)
-
-      //when
-      await(sessionCacheOps.saveSelectedOrFilteredClients(arn)(formData)(_ => Future.successful(CLIENTS)))
-
-      await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedPutSelected)
-
-      await(sessionCacheService.get(FILTERED_CLIENTS)) shouldBe None
-      await(sessionCacheService.get(CLIENT_FILTER_INPUT)) shouldBe None
-      await(sessionCacheService.get(CLIENT_SEARCH_INPUT)) shouldBe None
-    }
-
-    "work for FILTER_BUTTON" in {
-      //given
-      val CLIENTS = displayClients.take(8)
-
-      val formData = AddClientsToGroup(
-        Some("searchTerm"),
-        Some("filterTerm"),
-        Some(CLIENTS.map(_.id).toList),
-        FILTER_BUTTON
-      )
-
-      val expectedPutSelected = List(
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456783","friendly name 3","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456784","friendly name 4","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456785","friendly name 5","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456786","friendly name 6","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456787","friendly name 7","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456788","friendly name 8","HMRC-MTD-VAT","VRN",true),
-        DisplayClient("123456781","friendly name 1","HMRC-MTD-VAT","VRN",false),
-        DisplayClient("123456782","friendly name 2","HMRC-MTD-VAT","VRN",false)
-      )
-
-      // set up
-      await(sessionCacheService.put(SELECTED_CLIENTS, CLIENTS.take(2)))
-      await(sessionCacheService.put(FILTERED_CLIENTS, CLIENTS.takeRight(1)))
-
-      // do request
-      await(sessionCacheOps.saveSelectedOrFilteredClients(arn)(formData)(_ => Future.successful(CLIENTS)))
-
-      // check session cache values
-      await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedPutSelected)
-      await(sessionCacheService.get(CLIENT_SEARCH_INPUT)) shouldBe Some("searchTerm")
-      await(sessionCacheService.get(CLIENT_FILTER_INPUT)) shouldBe Some("filterTerm")
-      await(sessionCacheService.get(FILTERED_CLIENTS)) shouldBe Some(Seq.empty)
-
-    }
-
-  }
-
   "addSelectablesToSession" should {
     
     "work as expected with none set as selected " in{
@@ -146,53 +72,6 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
 
       //we expect the sesion to be changed like this
       await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedPayload)
-    }
-  }
-
-  "filterClients save filtered clients to session and return filtered clients" should {
-    "WHEN the search term doesn't match any" in {
-      //given
-      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("zzzzzz"))
-      val selectedClients = displayClients.take(1)
-      await(sessionCacheService.put(SELECTED_CLIENTS, displayClients.takeRight(2)))
-
-      //when
-      val filteredClients = await(sessionCacheOps.filterClients(formData)(selectedClients))
-
-      await(sessionCacheService.get(FILTERED_CLIENTS)) shouldBe Some(Seq.empty)
-
-      filteredClients shouldBe Nil
-    }
-
-    "WHEN the search term DOES MATCH SOME but none are selected" in {
-      //given
-      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("friendly name"))
-      val clients = displayClients.take(1)
-      await(sessionCacheService.put(SELECTED_CLIENTS, displayClients.takeRight(2)))
-
-      //when
-      val filteredClients = await(sessionCacheOps.filterClients(formData)(clients))
-
-      filteredClients shouldBe displayClients.take(1)
-      await(sessionCacheService.get(FILTERED_CLIENTS)) shouldBe Some(displayClients.take(1))
-
-    }
-
-    "WHEN the search term DOES MATCH SOME and there are SELECTED clients that match those passed in" in {
-      //given
-      val formData = AddClientsToGroup(clients = Some(displayClients.map(_.id).toList), search = Some("friendly name"))
-      val clients = displayClients.take(5)
-      //the ones that match the SELECTED_CLIENTS session items will be marked as selected = true
-      val expectedClients = clients.zipWithIndex.map(zip => if(zip._2 < 3) zip._1.copy(selected = true) else zip._1)
-      await(sessionCacheService.put(SELECTED_CLIENTS, clients.take(3)))
-
-      //when
-      val filteredClients = await(sessionCacheOps.filterClients(formData)(clients))
-
-      //first 2 clients should be
-      filteredClients shouldBe expectedClients
-
-      await(sessionCacheService.get(FILTERED_CLIENTS)) shouldBe Some(expectedClients)
     }
   }
 

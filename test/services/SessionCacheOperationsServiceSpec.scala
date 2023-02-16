@@ -73,7 +73,7 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
       //we expect the sesion to be changed like this
       await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedPayload)
     }
-  }ManageGroupClientsController.scala:188:5
+  }
 
   "saveSearch" should {
 

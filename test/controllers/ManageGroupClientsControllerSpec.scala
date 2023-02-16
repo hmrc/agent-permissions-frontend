@@ -298,6 +298,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val summary = GroupSummary.fromAccessGroup(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
 
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
@@ -326,6 +327,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "Harry")
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
 
       val result = controller.showSearchClientsToAdd(grpId)(request)
       // then

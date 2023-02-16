@@ -70,12 +70,14 @@ class ManageGroupClientsController @Inject()
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold( // fresh page load or pagination reload
         groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20)).map({ paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
-          Ok(existing_clients(
-            group = summary,
-            groupClients = paginatedList._1,
-            form = SearchAndFilterForm.form(), // TODO fill form when reloading page via pagination
-            paginationMetaData = Some(paginatedList._2)
-          ))
+          Ok(
+            existing_clients(
+              group = summary,
+              groupClients = paginatedList._1,
+              form = SearchAndFilterForm.form(), // TODO fill form when reloading page via pagination
+              paginationMetaData = Some(paginatedList._2)
+            )
+          )
         })
       ) { // a button was clicked
         case FILTER_BUTTON =>
@@ -109,14 +111,17 @@ class ManageGroupClientsController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          Ok(
-            search_clients(
-              form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
-              groupName = summary.groupName,
-              backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
-              formAction = controller.submitSearchClientsToAdd(groupId)
+          clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
+            Ok(
+              search_clients(
+                form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+                groupName = summary.groupName,
+                backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
+                formAction = controller.submitSearchClientsToAdd(groupId),
+                clientCountByTaxService = clientCounts
+              )
             )
-          ).toFuture
+          )
         }
       }
     }
@@ -129,12 +134,17 @@ class ManageGroupClientsController @Inject()
         .bindFromRequest
         .fold(
           formWithErrors => {
-            Ok(search_clients(
-              formWithErrors,
-              summary.groupName,
-              backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
-              formAction = controller.submitSearchClientsToAdd(groupId)
-            )).toFuture
+            clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
+              Ok(
+                search_clients(
+                  formWithErrors,
+                  summary.groupName,
+                  backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
+                  formAction = controller.submitSearchClientsToAdd(groupId),
+                  clientCountByTaxService = clientCounts
+                )
+              )
+            )
           }, formData => {
             sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showManageGroupClients(groupId, None, None)).toFuture
@@ -179,29 +189,29 @@ class ManageGroupClientsController @Inject()
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
-      AddClientsToGroupForm
-        .form(hasPreSelected)
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
-            clientService.getPaginatedClients(group.arn)(1, 20).map { paginatedClients =>
-              Ok(update_clients(
-                paginatedClients.pageContent,
-                group.groupName,
-                groupId,
-                formWithErrors,
-                Some(paginatedClients.paginationMetaData)
-              ))
-            }
-          },
-          formData => {
-            // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
-            sessionCacheOps
-              .savePageOfClients(formData)
-              .flatMap(nowSelectedClients =>
-                if (formData.submit == CONTINUE_BUTTON) {
+        AddClientsToGroupForm
+          .form(hasPreSelected)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              clientService.getPaginatedClients(group.arn)(1, 20).map { paginatedClients =>
+                Ok(update_clients(
+                  paginatedClients.pageContent,
+                  group.groupName,
+                  groupId,
+                  formWithErrors,
+                  Some(paginatedClients.paginationMetaData)
+                ))
+              }
+            },
+            formData => {
+              // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
+              sessionCacheOps
+                .savePageOfClients(formData)
+                .flatMap(nowSelectedClients =>
+                  if (formData.submit == CONTINUE_BUTTON) {
                     // checks selected clients from session cache AFTER saving (removed de-selections)
-                    if(nowSelectedClients.nonEmpty) {
+                    if (nowSelectedClients.nonEmpty) {
                       sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
                         Redirect(controller.showReviewSelectedClients(groupId, None, None))
                       )
@@ -210,23 +220,23 @@ class ManageGroupClientsController @Inject()
                         paginatedClients <- clientService.getPaginatedClients(group.arn)(1, 20)
                       } yield {
                         Ok(update_clients(
-                            paginatedClients.pageContent,
-                            group.groupName,
-                            groupId,
-                            AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
-                            Some(paginatedClients.paginationMetaData)
+                          paginatedClients.pageContent,
+                          group.groupName,
+                          groupId,
+                          AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
+                          Some(paginatedClients.paginationMetaData)
                         ))
                       }
                     }
-                } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
-                  val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                  Redirect(controller.showManageGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
-                } else { //bad submit
-                  Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
-                }
-              )
-          }
-        )
+                  } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
+                    val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
+                    Redirect(controller.showManageGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
+                  } else { //bad submit
+                    Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
+                  }
+                )
+            }
+          )
       }
     }
   }
@@ -291,10 +301,10 @@ class ManageGroupClientsController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         if (selectedClients.isDefined) {
-            sessionCacheService.delete(SELECTED_CLIENTS)
-              .map(_ => Ok(clients_update_complete(summary)))
-          }
-          else Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
+          sessionCacheService.delete(SELECTED_CLIENTS)
+            .map(_ => Ok(clients_update_complete(summary)))
+        }
+        else Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
       }
     }
   }

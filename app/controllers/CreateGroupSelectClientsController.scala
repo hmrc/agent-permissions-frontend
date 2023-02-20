@@ -63,16 +63,13 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
             Ok(
               search_clients(
                 form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
                 groupName = groupName,
-                backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url),
-                clientCountByTaxService = clientCounts
+                backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url)
               )
-            )
-          )
+          ).toFuture
         }
       }
     }
@@ -85,16 +82,13 @@ class CreateGroupSelectClientsController @Inject()
         .bindFromRequest
         .fold(
           formWithErrors => {
-            clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
               Ok(
                 search_clients(
                   formWithErrors,
                   groupName,
-                  Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url),
-                  clientCountByTaxService = clientCounts
+                  Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url)
                 ),
-              )
-            )
+              ).toFuture
           }, formData => {
             sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture

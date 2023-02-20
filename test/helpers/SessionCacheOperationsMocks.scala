@@ -20,8 +20,6 @@ import models.{AddClientsToGroup, DisplayClient}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.SessionCacheOperationsService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 

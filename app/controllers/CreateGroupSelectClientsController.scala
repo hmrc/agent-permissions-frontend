@@ -23,10 +23,9 @@ import models.{AddClientsToGroup, DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.{SessionCacheOperationsService, ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups._
 import views.html.groups.create.clients._
 
 import javax.inject.{Inject, Singleton}
@@ -41,7 +40,6 @@ class CreateGroupSelectClientsController @Inject()
   search_clients: search_clients,
   select_paginated_clients: select_paginated_clients,
   review_clients_paginated: review_clients_paginated,
-  review_clients_to_add: review_clients_to_add,
   val sessionCacheService: SessionCacheService,
   val sessionCacheOps: SessionCacheOperationsService,
   val groupService: GroupService,
@@ -57,7 +55,8 @@ class CreateGroupSelectClientsController @Inject()
   import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
-
+  private val CLIENT_PAGE_SIZE = 20
+  private val REVIEW_SELECTED_PAGE_SIZE = 10
 
   def showSearchClients: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, _, arn) =>
@@ -97,7 +96,7 @@ class CreateGroupSelectClientsController @Inject()
             )
           }, formData => {
             sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
-              Redirect(controller.showSelectClients(Some(1), Some(20))).toFuture
+              Redirect(controller.showSelectClients(Some(1), Some(CLIENT_PAGE_SIZE))).toFuture
             })
           })
     }
@@ -107,7 +106,7 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(20)).map { paginatedClients =>
+          clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(CLIENT_PAGE_SIZE)).map { paginatedClients =>
             Ok(
               select_paginated_clients(
                 paginatedClients.pageContent,
@@ -134,7 +133,7 @@ class CreateGroupSelectClientsController @Inject()
           .fold(
             formWithErrors => {
               for {
-                paginatedClients <- clientService.getPaginatedClients(arn)(1, 20)
+                paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
               } yield
                 Ok(
                   select_paginated_clients(
@@ -156,7 +155,7 @@ class CreateGroupSelectClientsController @Inject()
                       Redirect(controller.showReviewSelectedClients(None, None)).toFuture
                     } else { // render page with empty client error
                       for {
-                        paginatedClients <- clientService.getPaginatedClients(arn)(1, 20)
+                        paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
                       } yield
                         Ok(
                           select_paginated_clients(
@@ -169,7 +168,7 @@ class CreateGroupSelectClientsController @Inject()
                     }
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                    Redirect(controller.showSelectClients(Some(pageToShow), Some(20))).toFuture
+                    Redirect(controller.showSelectClients(Some(pageToShow), Some(CLIENT_PAGE_SIZE))).toFuture
                   } else { //bad submit
                     Redirect(controller.showSearchClients).toFuture
                   }
@@ -187,29 +186,19 @@ class CreateGroupSelectClientsController @Inject()
         maybeClients.fold(
           Redirect(controller.showSearchClients).toFuture
         )(clients => {
-          val pageSize = maybePageSize.getOrElse(10)
-          val page = maybePage.getOrElse(1)
-          val firstMemberInPage = (page - 1) * pageSize
-          val lastMemberInPage = page * pageSize
-          val currentPageOfClients = clients.slice(firstMemberInPage, lastMemberInPage)
-          val numPages = Math.ceil(clients.length.toDouble / maybePageSize.getOrElse(10).toDouble).toInt
-          val meta = PaginationMetaData(
-            page == numPages,
-            page == 1,
-            clients.length,
-            numPages,
-            pageSize,
-            page,
-            currentPageOfClients.length
+          val paginatedList = PaginatedListBuilder.build[DisplayClient](
+            maybePage.getOrElse(1),
+            maybePageSize.getOrElse(REVIEW_SELECTED_PAGE_SIZE),
+            clients
           )
           Ok(
             review_clients_paginated(
-              currentPageOfClients,
+              paginatedList.pageContent,
               groupName,
               YesNoForm.form(),
               backUrl = Some(controller.showSelectClients(None, None).url),
               formAction = controller.submitReviewSelectedClients,
-              paginationMetaData = Some(meta)
+              paginationMetaData = Some(paginatedList.paginationMetaData)
             )
           ).toFuture
         }
@@ -229,8 +218,17 @@ class CreateGroupSelectClientsController @Inject()
                 .bindFromRequest
                 .fold(
                   formWithErrors => {
-                    // TODO replace with review_clients_paginated
-                    Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
+                    val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
+                    Ok(
+                      review_clients_paginated(
+                        paginatedList.pageContent,
+                        groupName,
+                        formWithErrors,
+                        backUrl = Some(controller.showSelectClients(None, None).url),
+                        formAction = controller.submitReviewSelectedClients,
+                        paginationMetaData = Some(paginatedList.paginationMetaData)
+                      )
+                    ).toFuture
                   }, (yes: Boolean) => {
                     if (yes) {
                       sessionCacheService

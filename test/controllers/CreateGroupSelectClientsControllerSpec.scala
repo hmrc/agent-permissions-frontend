@@ -136,18 +136,18 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   s"POST ${ctrlRoute.submitSearchClients.url}" should {
     // TODO - using fully optional form atm, clarify expected error behaviour
-//    "render errors on client search page" in {
-//      expectAuthOkArnAllowedOptedInReadyWithGroupName()
-//      expectSaveSearch()
-//      implicit val request =
-//        FakeRequest(
-//          "POST",
-//          s"${controller.submitSearchClients()}")
-//          .withSession(SessionKeys.sessionId -> "session-x")
-//
-//      val result = controller.submitSearchClients()(request)
-//      status(result) shouldBe OK
-//    }
+    //    "render errors on client search page" in {
+    //      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+    //      expectSaveSearch()
+    //      implicit val request =
+    //        FakeRequest(
+    //          "POST",
+    //          s"${controller.submitSearchClients()}")
+    //          .withSession(SessionKeys.sessionId -> "session-x")
+    //
+    //      val result = controller.submitSearchClients()(request)
+    //      status(result) shouldBe OK
+    //    }
 
     "save search terms and redirect" in {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
@@ -164,7 +164,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.submitSearchClients()(request)
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showSelectClients(Some(1),Some(20)).url
+      redirectLocation(result).get shouldBe ctrlRoute.showSelectClients(Some(1), Some(20)).url
     }
 
   }
@@ -296,13 +296,13 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedClients(None, None).url}" in {
 
         implicit val request = FakeRequest("POST",
-            ctrlRoute.submitSelectedClients.url)
-            .withSession(SessionKeys.sessionId -> "session-x")
-            .withFormUrlEncodedBody(
-              "clients[]" -> displayClientsIds.head,
-              "clients[]" -> displayClientsIds.last,
-              "submit" -> CONTINUE_BUTTON
-            )
+          ctrlRoute.submitSelectedClients.url)
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "clients[]" -> displayClientsIds.head,
+            "clients[]" -> displayClientsIds.last,
+            "submit" -> CONTINUE_BUTTON
+          )
         expectAuthOkArnAllowedOptedInReadyWithGroupName()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
         val formData = AddClientsToGroup(
@@ -459,7 +459,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${ctrlRoute.showReviewSelectedClients(None, None).url}" should {
+  s"GET ReviewSelectedClients on ${ctrlRoute.showReviewSelectedClients(None, None).url}" should {
 
     "render with selected clients" in {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
@@ -477,21 +477,28 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val table = html.select(Css.tableWithId("selected-clients"))
       val th = table.select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
+      th.get(3).text() shouldBe "Actions"
       val trs = table.select("tbody tr")
       trs.size() shouldBe 5
       // first row
       trs.get(0).select("td").get(0).text() shouldBe "friendly0"
       trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
+      val removeClient1 = trs.get(0).select("td").get(3).select("a")
+      removeClient1.text() shouldBe "Remove"
+      removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(displayClientsIds(0)).url
 
       // last row
       trs.get(4).select("td").get(0).text() shouldBe "friendly4"
       trs.get(4).select("td").get(1).text() shouldBe "ending in 6784"
       trs.get(4).select("td").get(2).text() shouldBe "VAT"
+      val removeClient4 = trs.get(4).select("td").get(3).select("a")
+      removeClient4.text() shouldBe "Remove"
+      removeClient4.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(displayClientsIds(4)).url
 
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios.select("label[for=answer]").text() shouldBe "Yes, add or remove clients"
@@ -605,4 +612,112 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET Confirm Remove a selected client on ${ctrlRoute.showConfirmRemoveClient("id").url}" should {
+
+    "render with selected clients" in {
+      val clientToRemove = displayClients.head
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(5))
+      expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+      //when
+      val result = controller.showConfirmRemoveClient(clientToRemove.id)(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"Remove friendly0 from selected clients?"
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showReviewSelectedClients(None, None).url
+
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
+      answerRadios.select("label[for=answer]").text() shouldBe "Yes"
+      answerRadios.select("label[for=answer-no]").text() shouldBe "No"
+    }
+  }
+
+  s"POST Remove a selected client ${routes.CreateGroupSelectClientsController.submitConfirmRemoveClient.url}" should {
+
+    s"redirect to '${ctrlRoute.showReviewSelectedClients(None, None).url}' page with answer 'true'" in {
+
+      val clientToRemove = displayClients.head
+
+      implicit val request = FakeRequest("POST", s"${controller.submitConfirmRemoveClient}")
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+      val remainingClients = displayClients.diff(Seq(clientToRemove))
+      expectPutSessionItem(SELECTED_CLIENTS, remainingClients)
+
+      val result = controller.submitConfirmRemoveClient()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(None, None).url
+    }
+
+    s"redirect to '${ctrlRoute.showReviewSelectedClients(None, None).url}' page with answer 'false'" in {
+
+      val clientToRemove = displayClients.head
+
+      implicit val request =
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+
+      val result = controller.submitConfirmRemoveClient()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(None, None).url
+    }
+
+    s"redirect to '${ctrlRoute.showSearchClients.url}' with no CLIENT_TO_REMOVE in session" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedClients()}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItemNone(SELECTED_CLIENTS)
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+    }
+
+    s"render errors when no radio button selected" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitConfirmRemoveClient()}")
+          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(10))
+      expectGetSessionItem(CLIENT_TO_REMOVE, displayClients.head)
+
+      val result = controller.submitConfirmRemoveClient()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Remove friendly0 from selected clients?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
+
+    }
+  }
 }

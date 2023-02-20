@@ -40,6 +40,7 @@ class CreateGroupSelectClientsController @Inject()
   search_clients: search_clients,
   select_paginated_clients: select_paginated_clients,
   review_clients_paginated: review_clients_paginated,
+  confirm_remove_client: confirm_remove_client,
   val sessionCacheService: SessionCacheService,
   val sessionCacheOps: SessionCacheOperationsService,
   val groupService: GroupService,
@@ -203,6 +204,53 @@ class CreateGroupSelectClientsController @Inject()
           ).toFuture
         }
         )
+      }
+    }
+  }
+
+  def showConfirmRemoveClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameAndAuthorised { (groupName, _, arn) =>
+      withSessionItem(SELECTED_CLIENTS) { selectedClients =>
+        selectedClients.getOrElse(Seq.empty).find(_.id == clientId)
+          .fold {
+            Redirect(controller.showSelectClients(None, None)).toFuture
+          } { client =>
+            sessionCacheService
+              .put(CLIENT_TO_REMOVE, client)
+              .flatMap(_ =>
+                Ok(confirm_remove_client(YesNoForm.form(), groupName, client)).toFuture
+              )
+          }
+      }
+    }
+  }
+
+  def submitConfirmRemoveClient: Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
+      withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
+          if (maybeClient.isEmpty || maybeSelectedClients.isEmpty) {
+            Redirect(controller.showSelectClients(None, None)).toFuture
+          }
+          else {
+            YesNoForm
+              .form("group.client.remove.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors => {
+                  Ok(confirm_remove_client(formWithErrors, groupName, maybeClient.get)).toFuture
+                }, (yes: Boolean) => {
+                  if (yes) {
+                    val clientsMinusRemoved = maybeSelectedClients.get.filterNot(_ == maybeClient.get)
+                    sessionCacheService
+                      .put(SELECTED_CLIENTS, clientsMinusRemoved)
+                      .map(_ => Redirect(controller.showReviewSelectedClients(None, None)))
+                  }
+                  else Redirect(controller.showReviewSelectedClients(None, None)).toFuture
+                }
+              )
+          }
+        }
       }
     }
   }

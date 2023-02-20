@@ -229,6 +229,7 @@ class CreateGroupSelectClientsController @Inject()
                 .bindFromRequest
                 .fold(
                   formWithErrors => {
+                    // TODO replace with review_clients_paginated
                     Ok(review_clients_to_add(clients, groupName, formWithErrors)).toFuture
                   }, (yes: Boolean) => {
                     if (yes) {

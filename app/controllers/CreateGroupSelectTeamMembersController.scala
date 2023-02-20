@@ -29,7 +29,7 @@ import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.members.{review_members_paginated, select_paginated_team_members}
-import views.html.groups.group_created
+import views.html.groups.create.group_created
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

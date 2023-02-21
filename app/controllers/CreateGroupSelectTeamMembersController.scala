@@ -28,8 +28,8 @@ import play.api.mvc._
 import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.members.{review_members_paginated, select_paginated_team_members}
 import views.html.groups.create.group_created
+import views.html.groups.create.members.{confirm_remove_member, review_members_paginated, select_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,6 +43,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   sessionAction: SessionAction,
   teamMemberService: TeamMemberService,
   taxGroupService: TaxGroupService,
+  confirm_remove_member: confirm_remove_member,
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
   group_created: group_created,
@@ -215,6 +216,53 @@ class CreateGroupSelectTeamMembersController @Inject()
                 }
               )
           }
+      }
+    }
+  }
+
+  def showConfirmRemoveTeamMember(memberId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameAndAuthorised { (groupName, _, arn) =>
+      withSessionItem(SELECTED_TEAM_MEMBERS) { selectedMembers =>
+        selectedMembers.getOrElse(Seq.empty).find(_.id == memberId)
+          .fold {
+            Redirect(controller.showSelectTeamMembers(None, None)).toFuture
+          } { teamMember =>
+            sessionCacheService
+              .put(MEMBER_TO_REMOVE, teamMember)
+              .flatMap(_ =>
+                Ok(confirm_remove_member(YesNoForm.form(), groupName, teamMember)).toFuture
+              )
+          }
+      }
+    }
+  }
+
+  def submitConfirmRemoveTeamMember: Action[AnyContent] = Action.async { implicit request =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
+      withSessionItem[TeamMember](MEMBER_TO_REMOVE) { maybeTeamMember =>
+        withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
+          if (maybeTeamMember.isEmpty || maybeSelectedTeamMembers.isEmpty) {
+            Redirect(controller.showSelectTeamMembers(None, None)).toFuture
+          }
+          else {
+            YesNoForm
+              .form("group.member.remove.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors => {
+                  Ok(confirm_remove_member(formWithErrors, groupName, maybeTeamMember.get)).toFuture
+                }, (yes: Boolean) => {
+                  if (yes) {
+                    val clientsMinusRemoved = maybeSelectedTeamMembers.get.filterNot(_ == maybeTeamMember.get)
+                    sessionCacheService
+                      .put(SELECTED_TEAM_MEMBERS, clientsMinusRemoved)
+                      .map(_ => Redirect(controller.showReviewSelectedTeamMembers(None, None)))
+                  }
+                  else Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
+                }
+              )
+          }
+        }
       }
     }
   }

@@ -70,14 +70,12 @@
 @totalResults = @{paginationMetaData.fold(teamMembers.length)(_.totalSize)}
 @totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
 
-@govukSkipLink(
-    SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-teamMembers")))
-)
+@govukSkipLink(SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-teamMembers"))))
 
 @formWithCSRF(action = formAction) {
 
     @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
-    <input type="hidden" name="pageSize" tm="@paginationMetaData.get.pageSize"/>
+    <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
     @if(teamMembers.nonEmpty) {
 
         @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {

@@ -28,9 +28,8 @@ import play.api.mvc._
 import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.clients.confirm_remove_client
-import views.html.groups.create.members.{confirm_remove_member, review_members_paginated, select_paginated_team_members}
 import views.html.groups.create.group_created
+import views.html.groups.create.members.{confirm_remove_member, review_members_paginated, select_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

@@ -25,7 +25,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, GroupSummary, TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage.delete._
 import views.html.groups.manage.manage_existing_groups

@@ -16,14 +16,12 @@
 
 package services
 
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, FILTER_BUTTON, SELECTED_CLIENTS}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS}
 import helpers.BaseSpec
 import models.{AddClientsToGroup, DisplayClient}
 import org.scalatest.BeforeAndAfterEach
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.Client
-
-import scala.concurrent.Future
 
 class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach {
 

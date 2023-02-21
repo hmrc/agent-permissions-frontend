@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddOneTeamMemberToGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddOneTeamMemberToGroupRequest, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import models.TeamMember

@@ -32,7 +32,7 @@ import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService, TaxGroupService}
+import services._
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys

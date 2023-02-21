@@ -477,16 +477,20 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val table = html.select(Css.tableWithId("selected-team-members"))
       val th = table.select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       th.get(0).text() shouldBe "Name"
       th.get(1).text() shouldBe "Email"
       th.get(2).text() shouldBe "Role"
+      th.get(3).text() shouldBe "Actions"
       val trs = table.select("tbody tr")
       trs.size() shouldBe 5
       // first row
       trs.get(0).select("td").get(0).text() shouldBe "team member 1"
       trs.get(0).select("td").get(1).text() shouldBe "x1@xyz.com"
       trs.get(0).select("td").get(2).text() shouldBe "Administrator"
+      val removeMember1 = trs.get(0).select("td").get(3).select("a")
+      removeMember1.text() shouldBe "Remove"
+      removeMember1.attr("href") shouldBe ctrlRoute.showConfirmRemoveTeamMember(selectedTeamMembers(0).id).url
 
       // last row
       trs.get(4).select("td").get(0).text() shouldBe "team member 5"
@@ -552,7 +556,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
 
     s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' page with answer 'true'" in {
+
       expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(GROUP_NAME, groupName)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
 
       implicit val request =
         FakeRequest(
@@ -561,8 +568,6 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(GROUP_NAME, groupName)
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
@@ -645,6 +650,134 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     }
 
+  }
+
+  s"GET Confirm Remove a selected team member on ${ctrlRoute.showConfirmRemoveTeamMember("id").url}" should {
+
+    "render with team member to confirm removal" in {
+      //given
+      val memberToRemove = teamMembers(0)
+      expectAuthOkOptedInReadyWithGroupType()
+      expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(5))
+      expectGetSessionItem(GROUP_NAME, groupName)
+
+      //when
+      val result = controller.showConfirmRemoveTeamMember(memberToRemove.id)(request)
+
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Remove John from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"Remove John from selected team members?"
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(None, None).url
+
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
+      answerRadios.select("label[for=answer]").text() shouldBe "Yes"
+      answerRadios.select("label[for=answer-no]").text() shouldBe "No"
+    }
+  }
+
+  s"POST Remove a selected team member ${ctrlRoute.submitConfirmRemoveTeamMember.url}" should {
+
+    s"redirect to '${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}' page with answer 'true'" in {
+
+      val teamMemberToRemove = teamMembers.head
+
+      implicit val request = FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember}")
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectGetSessionItem(MEMBER_TO_REMOVE, teamMemberToRemove)
+      expectGetSessionItem(GROUP_NAME, groupName)
+
+      val remainingTeamMembers = teamMembers.diff(Seq(teamMemberToRemove))
+      expectPutSessionItem(SELECTED_TEAM_MEMBERS, remainingTeamMembers)
+
+      val result = controller.submitConfirmRemoveTeamMember()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(None, None).url
+    }
+
+    s"redirect to '${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}' page with answer 'false'" in {
+
+      //given
+      val memberToRemove = teamMembers.head
+
+      implicit val request =
+        FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(GROUP_NAME, groupName)
+
+
+      //when
+      val result = controller.submitConfirmRemoveTeamMember()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(None, None).url
+    }
+
+    s"redirect with no MEMBER_TO_REMOVE in session" in {
+
+      //given
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers()}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectGetSessionItem(GROUP_NAME, groupName)
+
+      //when
+      val result = controller.submitReviewSelectedTeamMembers()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
+    }
+
+    s"render errors when no radio button selected" in {
+
+      //given
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitConfirmRemoveTeamMember()}")
+          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(10))
+      expectGetSessionItem(MEMBER_TO_REMOVE, teamMembers.head)
+      expectGetSessionItem(GROUP_NAME, groupName)
+
+      //when
+      val result = controller.submitConfirmRemoveTeamMember()(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Remove John from selected team members? - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Remove John from selected team members?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this team member from the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this team member from the access group"
+
+    }
   }
 
 }

@@ -25,8 +25,7 @@
 @this(
     layout: main_layout,
     p: p, h1: h1, h2: h2, span: span,
-    caption: caption,
-    table: table,
+    caption: caption, table: table,
     submit_button: submit_button,
     search_and_filter: search_and_filter,
     pagination: POST_pagination,
@@ -46,22 +45,24 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
-    teamMembers.zipWithIndex.map(member =>
+    teamMembers.zipWithIndex.map{ case(member, idx) =>
         Seq(
             Html(
                 checkbox(
                     name = Some("members[]"),
-                    id = Some(s"add-member-${member._2}"),
-                    value = Some(member._1.id),
-                    label = member._1.name,
-                    checked = member._1.selected
+                    id = Some(s"add-member-$idx"),
+                    value = Some(member.id),
+                    label = member.name,
+                    checked = member.selected
                 ).toString
             ),
-            Html(member._1.name),
-            Html(member._1.email),
-            Html(displayTeamMemberRole(member._1.credentialRole.getOrElse("")))
+            Html(member.name),
+            Html(member.email),
+            Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
         )
-    )
+
+    }
+
 
 }
 
@@ -76,7 +77,7 @@
 @formWithCSRF(action = formAction) {
 
     @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
-    <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
+    <input type="hidden" name="pageSize" tm="@paginationMetaData.get.pageSize"/>
     @if(teamMembers.nonEmpty) {
 
         @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {

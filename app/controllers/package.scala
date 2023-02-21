@@ -73,7 +73,8 @@ package object controllers {
   val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
   val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
   val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")
-  val CLIENT_TO_REMOVE: DataKey[DisplayClient] = DataKey("CLIENT_ID_TO_REMOVE")
+  val CLIENT_TO_REMOVE: DataKey[DisplayClient] = DataKey("CLIENT_TO_REMOVE")
+  val MEMBER_TO_REMOVE: DataKey[TeamMember] = DataKey("MEMBER_TO_REMOVE")
 
   val GROUP_SEARCH_INPUT: DataKey[String] = DataKey("GROUP_SEARCH_INPUT")
 

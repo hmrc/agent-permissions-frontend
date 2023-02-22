@@ -111,17 +111,14 @@ class ManageGroupClientsController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
             Ok(
               search_clients(
                 form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
                 groupName = summary.groupName,
                 backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
-                formAction = controller.submitSearchClientsToAdd(groupId),
-                clientCountByTaxService = clientCounts
+                formAction = controller.submitSearchClientsToAdd(groupId)
               )
-            )
-          )
+            ).toFuture
         }
       }
     }
@@ -134,17 +131,14 @@ class ManageGroupClientsController @Inject()
         .bindFromRequest
         .fold(
           formWithErrors => {
-            clientService.getAvailableTaxServiceClientCount(arn).map(clientCounts =>
               Ok(
                 search_clients(
                   formWithErrors,
                   summary.groupName,
                   backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
-                  formAction = controller.submitSearchClientsToAdd(groupId),
-                  clientCountByTaxService = clientCounts
+                  formAction = controller.submitSearchClientsToAdd(groupId)
                 )
-              )
-            )
+              ).toFuture
           }, formData => {
             sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
               Redirect(controller.showManageGroupClients(groupId, None, None)).toFuture

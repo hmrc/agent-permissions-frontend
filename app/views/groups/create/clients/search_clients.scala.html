@@ -35,8 +35,7 @@
     form: Form[SearchFilter],
     groupName: String,
     backUrl: Option[String] = Some(routes.CreateGroupSelectNameController.showConfirmGroupName.url),
-    formAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients,
-    clientCountByTaxService: Map[String, Int]
+    formAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @fieldsetHtml = {
@@ -51,7 +50,7 @@
         field = form("filter"),
         label = msgs("client-filter.select.label"),
         emptyOptionText = msgs("client-filter.select.label.empty-option"),
-        options = getFiltersTaxServiceListWithClientCount(clientCountByTaxService)
+        options = getFiltersByTaxService()
     )
 }
 

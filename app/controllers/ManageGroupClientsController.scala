@@ -25,11 +25,11 @@ import models.{AddClientsToGroup, DisplayClient, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import services.{SessionCacheOperationsService, ClientService, GroupService, SessionCacheService}
+import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, _}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.clients.search_clients
+import views.html.groups.create.clients.{confirm_remove_client, search_clients}
 import views.html.groups.manage.clients._
 
 import javax.inject.{Inject, Singleton}
@@ -47,6 +47,7 @@ class ManageGroupClientsController @Inject()
   val sessionCacheOps: SessionCacheOperationsService,
   review_update_clients: review_update_clients,
   update_clients: update_clients_paginated,
+  confirm_remove_client: confirm_remove_client,
   existing_clients: existing_clients,
   search_clients: search_clients,
   clients_update_complete: clients_update_complete
@@ -103,6 +104,66 @@ class ManageGroupClientsController @Inject()
             Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20))).toFuture
           }
       }
+    }
+  }
+
+  def showConfirmRemoveClient(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) => {
+      clientService
+        .lookupClient(arn)(clientId)
+        .flatMap(maybeClient =>
+          maybeClient.fold(Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture)(client =>
+            sessionCacheService
+              .put(CLIENT_TO_REMOVE, client)
+              .map(_ =>
+                Ok(
+                  confirm_remove_client(
+                    YesNoForm.form(),
+                    summary.groupName,
+                    client,
+                    backLink = controller.showExistingGroupClients(groupId, None, None),
+                    formAction = controller.submitConfirmRemoveClient(groupId, client.id)
+                  )
+                )
+              )
+          )
+        )
+    }
+    }
+  }
+
+  def submitConfirmRemoveClient(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
+      withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
+        maybeClient.fold(
+          Redirect(controller.showExistingGroupClients(group.groupId, None, None)).toFuture
+        )(clientToRemove =>
+          YesNoForm
+            .form("group.client.remove.error")
+            .bindFromRequest
+            .fold(
+              formWithErrors => {
+                Ok(
+                  confirm_remove_client(
+                    formWithErrors,
+                    group.groupName,
+                    clientToRemove,
+                    backLink = controller.showExistingGroupClients(groupId, None, None),
+                    formAction = controller.submitConfirmRemoveClient(groupId, clientToRemove.id)
+                  )
+                ).toFuture
+              }, (yes: Boolean) => {
+                if (yes) {
+                  groupService
+                    .removeClientFromGroup(groupId, clientToRemove.enrolmentKey)
+                    .map(_ => Redirect(controller.showExistingGroupClients(groupId, None, None)))
+                }
+                else Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
+              }
+            )
+        )
+      }
+    }
     }
   }
 

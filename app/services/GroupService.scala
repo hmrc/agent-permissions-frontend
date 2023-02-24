@@ -80,6 +80,9 @@ trait GroupService {
   def groupNameCheck(arn: Arn, groupName: String)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
 
+  def removeClientFromGroup(id: String, clientId: String)
+                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
 }
 
 
@@ -183,4 +186,9 @@ class GroupServiceImpl @Inject()(
 
   def groupNameCheck(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     agentPermissionsConnector.groupNameCheck(arn, groupName)
+
+  def removeClientFromGroup(groupId: String, clientId: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    agentPermissionsConnector.removeClientFromGroup(groupId, clientId)
+  }
 }

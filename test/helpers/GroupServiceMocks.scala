@@ -126,6 +126,13 @@ trait GroupServiceMocks extends MockFactory {
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 
+  def expectRemoveClientFromGroup(groupId: String, client: DisplayClient)
+                               (implicit groupService: GroupService): Unit =
+    (groupService
+      .removeClientFromGroup(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(groupId, client.enrolmentKey, *, *)
+      .returning(Future successful Done)
+
   def expectGroupNameCheckOK(arn: Arn, groupName: String)
                           (implicit groupService: GroupService): CallHandler4[Arn, String, HeaderCarrier, ExecutionContext, Future[Boolean]] =
     (groupService.groupNameCheck(_:Arn, _:String)(_: HeaderCarrier, _: ExecutionContext))

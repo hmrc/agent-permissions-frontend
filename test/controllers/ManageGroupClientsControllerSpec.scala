@@ -895,6 +895,31 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(grpId, None, None).url
     }
+
+    "render errors when no selections of yes/no made" in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient(grpId, clientToRemove.enrolmentKey)}")
+          .withFormUrlEncodedBody("ohai" -> "blah")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitConfirmRemoveClient(grpId, clientToRemove.enrolmentKey)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
+
+    }
   }
 
 }

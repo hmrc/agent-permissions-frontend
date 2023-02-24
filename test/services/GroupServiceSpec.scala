@@ -416,4 +416,26 @@ class GroupServiceSpec extends BaseSpec {
 
     }
 
+  "remove client from custom group" should {
+    "call DELETE on agentPermissionsConnector" in {
+
+      //given
+      val groupId = UUID.randomUUID().toString
+      val clientId = UUID.randomUUID().toString
+
+      (mockAgentPermissionsConnector
+        .removeClientFromGroup(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, clientId, *, *)
+        .returning(Future successful Done)
+        .once()
+
+      //when
+      val response = service.removeClientFromGroup(groupId, clientId).futureValue
+
+      //then
+      response shouldBe Done
+    }
+
+  }
+
 }

@@ -28,19 +28,25 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[Boolean], groupName: String, clientToRemove: DisplayClient)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    form: Form[Boolean],
+    groupName: String,
+    clientToRemove: DisplayClient,
+    backLink: Call = routes.CreateGroupSelectClientsController.showReviewSelectedClients(None,None),
+    formAction: Call = routes.CreateGroupSelectClientsController.submitConfirmRemoveClient,
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @title = @{msgs("common.remove.client", clientToRemove.name)}
 
 @layout(
     title = title,
     formErrors = form.errors,
-    backLinkHref = Some(routes.CreateGroupSelectClientsController.showReviewSelectedClients(None,None).url)
+    backLinkHref = Some(backLink.url)
 ) {
     @caption(msgs("common.caption.group.name", groupName))
     @h1(title)
 
-    @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitConfirmRemoveClient) {
+    @formWithCSRF(action = formAction) {
 
         @radioButtons(
             field = form("answer"),

@@ -68,13 +68,15 @@ POST    /delete-tax-group/:groupId           controllers.ManageGroupController.s
 GET     /access-group-deleted                controllers.ManageGroupController.showGroupDeleted
 
 # Manage custom groups - clients
-GET     /manage-custom-group/:groupId/view-clients              controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
-GET     /manage-custom-group/:groupId/update-clients/search     controllers.ManageGroupClientsController.showSearchClientsToAdd(groupId: String)
-POST    /manage-custom-group/:groupId/update-clients/search     controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: String)
-GET     /manage-custom-group/:groupId/update-clients/add        controllers.ManageGroupClientsController.showManageGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
-POST    /manage-custom-group/:groupId/update-clients/add        controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
-GET     /manage-custom-group/:groupId/update-clients/review     controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int])
-POST    /manage-custom-group/:groupId/update-clients/review     controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
+GET     /manage-custom-group/:groupId/view-clients                          controllers.ManageGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /manage-custom-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageGroupClientsController.showConfirmRemoveClient(groupId: String, clientId: String)
+POST    /manage-custom-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageGroupClientsController.submitConfirmRemoveClient(groupId: String, clientId: String)
+GET     /manage-custom-group/:groupId/update-clients/search                 controllers.ManageGroupClientsController.showSearchClientsToAdd(groupId: String)
+POST    /manage-custom-group/:groupId/update-clients/search                 controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: String)
+GET     /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.showManageGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+POST    /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
+GET     /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+POST    /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
 
 GET     /manage-custom-group/:groupId/update-clients/complete   controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
 

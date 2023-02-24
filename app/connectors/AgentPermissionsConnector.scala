@@ -23,7 +23,7 @@ import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import models.DisplayClient
 import play.api.Logging
-import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
+import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, NO_CONTENT, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, TaxGroup, _}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
@@ -115,6 +115,10 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
 
   def addOneTeamMemberToTaxGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
+  def removeClientFromGroup(groupId: String, clientId: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+
 
 }
 
@@ -539,6 +543,20 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
               throw UpstreamErrorResponse(s"Error adding member to tax group HTTP request to $url", anyOtherStatus)
           }
         }
+    }
+  }
+
+  def removeClientFromGroup(groupId: String, clientId: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/groups/$groupId/client/$clientId"
+    monitor("ConsumedAPI-removeClientFromGroup-DELETE") {
+      http.DELETE[HttpResponse](url).map { response =>
+        response.status match {
+          case OK | NO_CONTENT => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error DELETING client from group $url", anyOtherStatus)
+        }
+      }
     }
   }
 }

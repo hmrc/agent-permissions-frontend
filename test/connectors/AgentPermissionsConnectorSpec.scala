@@ -20,6 +20,8 @@ import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.DisplayClient
+import org.apache.commons.lang3.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
 import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -798,6 +800,40 @@ class AgentPermissionsConnectorSpec
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.addOneTeamMemberToTaxGroup(groupId, groupRequest))
       }
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+  }
+
+  "DELETE remove client from a custom group" should {
+
+    s"return Done when response code is $NO_CONTENT" in {
+
+      //given
+      val clientId = randomAlphabetic(10)
+      val groupId = randomAlphabetic(10)
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/client/$clientId"
+      val mockResponse = HttpResponse.apply(NO_CONTENT)
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
+
+      //when
+      connector.removeClientFromGroup(groupId, clientId).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      //given
+      val clientId = randomAlphabetic(10)
+      val groupId = randomAlphabetic(10)
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/client/$clientId"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR)
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
+
+      //when
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.removeClientFromGroup(groupId, clientId))
+      }
+      //then
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
 

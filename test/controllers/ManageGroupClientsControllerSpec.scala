@@ -135,10 +135,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       th.get(0).text() shouldBe "Client reference"
       th.get(1).text() shouldBe "Tax reference"
       th.get(2).text() shouldBe "Tax service"
+      th.get(3).text() shouldBe "Actions"
 
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
 
@@ -147,13 +148,18 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(0).text() shouldBe "friendly0"
       trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
+      val removeClient1 = trs.get(0).select("td").get(3).select("a")
+      removeClient1.text() shouldBe "Remove"
+      removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(grpId,displayClients(0).id).url
 
       //last row
       trs.get(2).select("td").get(0).text() shouldBe "friendly2"
       trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(2).text() shouldBe "VAT"
+      val removeClient2 = trs.get(2).select("td").get(3).select("a")
+      removeClient2.text() shouldBe "Remove"
+      removeClient2.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(grpId,displayClients(2).id).url
 
-      //html.select("p#clients-in-group").text() shouldBe "Showing total of 3 clients"
       html.select("a#update-clients").text() shouldBe "Update clients"
       html.select("a#update-clients").attr("href") shouldBe
         ctrlRoute.showSearchClientsToAdd(grpId).url
@@ -192,7 +198,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
       trs.size() shouldBe 1
     }
@@ -815,5 +821,80 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
+  private val clientToRemove: DisplayClient = displayClients.head
+
+  s"GET ${ctrlRoute.showConfirmRemoveClient(grpId, clientToRemove.id).url}" should {
+
+    "render the confirm remove client page" in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectLookupClient(arn)(clientToRemove)
+      expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+      val result = controller.showConfirmRemoveClient(grpId, clientToRemove.id)(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
+
+
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveClient(grpId, clientToRemove.id).url
+      html.select("label[for=answer]").text() shouldBe "Yes"
+      html.select("label[for=answer-no]").text() shouldBe "No"
+      html.select(Css.form + " input[name=answer]").size() shouldBe 2
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
+    }
+
+  }
+
+  s"POST ${ctrlRoute.submitConfirmRemoveClient(grpId, clientToRemove.enrolmentKey).url}" should {
+
+    "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+      expectRemoveClientFromGroup(grpId, clientToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient(grpId, clientToRemove.enrolmentKey)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveClient(grpId, clientToRemove.enrolmentKey)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(grpId, None, None).url
+    }
+
+    "confirm remove client 'no' redirects to group clients list" in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient(grpId, clientToRemove.enrolmentKey)}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveClient(grpId, clientToRemove.enrolmentKey)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(grpId, None, None).url
+    }
+  }
 
 }

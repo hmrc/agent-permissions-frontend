@@ -203,7 +203,7 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def showConfirmRemoveClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, arn) =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem(SELECTED_CLIENTS) { selectedClients =>
         selectedClients.getOrElse(Seq.empty).find(_.id == clientId)
           .fold {
@@ -277,7 +277,21 @@ class CreateGroupSelectClientsController @Inject()
                         .deleteAll(clientFilteringKeys)
                         .map(_ => Redirect(controller.showSearchClients))
                     } else {
-                      Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
+                      if (clients.nonEmpty) {
+                        Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
+                      } else { // throw empty client error (would prefer redirect to showSearchClients)
+                        val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
+                        Ok(
+                          review_clients_paginated(
+                            paginatedList.pageContent,
+                            groupName,
+                            YesNoForm.form("group.clients.review.error").withError("answer", "group.clients.review.error.no-clients"),
+                            backUrl = Some(controller.showSelectClients(None, None).url),
+                            formAction = controller.submitReviewSelectedClients,
+                            paginationMetaData = Some(paginatedList.paginationMetaData)
+                          )
+                        ).toFuture
+                      }
                     }
                   }
                 )

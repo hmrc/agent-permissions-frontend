@@ -60,12 +60,12 @@
         )
     }
 
-    @layout(
-        title = msgs("group.clients.review.title", groupName),
-        backLinkHref = backUrl,
-        formErrors = form.errors,
-        fullWidth = true
-    ) {
+@layout(
+    title = msgs("group.clients.review.title", groupName),
+    backLinkHref = backUrl,
+    formErrors = form.errors,
+    fullWidth = true
+) {
 
         <div class="govuk-!-width-two-thirds">
             @if(groupName != ""){
@@ -74,23 +74,25 @@
             @h1(msgs("group.clients.review.h1", paginationMetaData.get.totalSize))
         </div>
 
-        @table(
-            caption = Some("common.clients"),
-            captionClasses = "govuk-visually-hidden",
-            id = Some("selected-clients"),
-            headings = Seq(
-                (Html(msgs("group.client.list.table.th1")), Map.empty),
-                (Html(msgs("group.client.list.table.th2")), Map.empty),
-                (Html(msgs("group.client.list.table.th3")), Map.empty),
-                (Html(msgs("common.actions")), Map.empty),
-            ),
-            rows = tableRows,
-        )
+        @if(clients.nonEmpty) {
+            @table(
+                caption = Some("common.clients"),
+                captionClasses = "govuk-visually-hidden",
+                id = Some("selected-clients"),
+                headings = Seq(
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty),
+                    (Html(msgs("group.client.list.table.th3")), Map.empty),
+                    (Html(msgs("common.actions")), Map.empty),
+                ),
+                rows = tableRows,
+            )
 
-        @if(paginationMetaData.exists(_.totalPages > 1)) {
-            @GET_pagination(
-            pagination = paginationMetaData.get,
-            baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
+            @if(paginationMetaData.exists(_.totalPages > 1)) {
+                @GET_pagination(
+                pagination = paginationMetaData.get,
+                baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
+            }
         }
 
         @formWithCSRF(action = formAction) {
@@ -98,7 +100,7 @@
                 field = form("answer"),
                 items = Seq(
                     RadioData("true", "group.clients.review.yes.label"),
-                    RadioData("false", "group.clients.review.no.label", id = Some("answer-no"))
+                    RadioData("false", if(groupName != "") "group.clients.review.no.label" else "common.no.label", id = Some("answer-no"))
                 ),
                 legend = Some(LegendData(msg = "group.clients.review.radio.legend"))
             )

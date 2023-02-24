@@ -250,14 +250,14 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //and the back link should go to the unassigned clients tab
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/unassigned-clients"
 
-      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected clients?"
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
         .select("label[for=answer]")
-        .text() shouldBe "Yes, add or remove clients"
+        .text() shouldBe "Yes, select more clients"
       answerRadios
         .select("label[for=answer-no]")
-        .text() shouldBe "No, continue to next section"
+        .text() shouldBe "No"
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 
     }
@@ -344,10 +344,10 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("answer"))
-        .text() shouldBe "Select yes if you need to add or remove selected clients"
+        .text() shouldBe "Select yes if you need to select more clients"
       html
         .select(Css.errorForField("answer"))
-        .text() shouldBe "Error: Select yes if you need to add or remove selected clients"
+        .text() shouldBe "Error: Select yes if you need to select more clients"
 
     }
 

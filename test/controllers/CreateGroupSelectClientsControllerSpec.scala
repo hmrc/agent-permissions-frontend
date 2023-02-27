@@ -498,9 +498,33 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       removeClient4.text() shouldBe "Remove"
       removeClient4.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(displayClientsIds(4)).url
 
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
-      answerRadios.select("label[for=answer]").text() shouldBe "Yes, add or remove clients"
-      answerRadios.select("label[for=answer-no]").text() shouldBe "No, continue to next section"
+      answerRadios.select("label[for=answer]").text() shouldBe "Yes, select more clients"
+      answerRadios.select("label[for=answer-no]").text() shouldBe "No, continue to adding team members"
+    }
+
+    "render with 0 selected clients in session" in {
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
+
+      val result = controller.showReviewSelectedClients(None, None)(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Review selected clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"You have selected 0 clients"
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectClients(None, None).url
+
+      val table = html.select("table")
+      table.size() shouldBe 0
+
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
+      answerRadios.select("label[for=answer]").text() shouldBe "Yes, select more clients"
+      answerRadios.select("label[for=answer-no]").text() shouldBe "No, continue to adding team members"
     }
 
     "redirect when no selected clients in session" in {
@@ -604,9 +628,30 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 10 clients"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected clients"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected clients"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to select more clients"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to select more clients"
+    }
 
+    s"render errors when continuing with 0 selected clients in session" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedClients()}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
+
+      val result = controller.submitReviewSelectedClients()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 0 clients"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "You have removed all clients, select at least one to continue"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: You have removed all clients, select at least one to continue"
     }
   }
 

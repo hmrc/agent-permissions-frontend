@@ -166,10 +166,11 @@ error.client.list.empty=You must select at least one client
 
 group.clients.review.h1=You have selected {0} clients
 group.clients.review.title=Review selected clients
-group.clients.review.radio.legend=Do you need to add or remove selected clients?
-group.clients.review.yes.label=Yes, add or remove clients
-group.clients.review.no.label=No, continue to next section
-group.clients.review.error=Select yes if you need to add or remove selected clients
+group.clients.review.radio.legend=Do you need to select more clients?
+group.clients.review.yes.label=Yes, select more clients
+group.clients.review.no.label=No, continue to adding team members
+group.clients.review.error=Select yes if you need to select more clients
+group.clients.review.error.no-clients=You have removed all clients, select at least one to continue
 
 group.client.remove.error=Select yes if you need to remove this client from the access group
 group.member.remove.error=Select yes if you need to remove this team member from the access group

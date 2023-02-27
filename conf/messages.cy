@@ -152,11 +152,11 @@ error.client.list.empty=Mae’n rhaid i chi ddewis o leiaf un cleient
 
 group.clients.review.h1=Rydych wedi dewis {0} o gleientiaid
 group.clients.review.title=Adolygu’r cleientiaid sydd wedi’u dewis
-group.clients.review.radio.legend=A oes angen i chi ychwanegu neu dynnu’r cleientiaid sydd wedi’u dewis?
-group.clients.review.yes.label=Iawn, ychwanegu neu dynnu cleientiaid
-group.clients.review.no.label=Na, ymlaen i’r adran nesaf
-
-group.clients.review.error=Dewiswch iawn os oes angen i chi ychwanegu neu ddileu cleientiaid sydd wedi’u dewis
+group.clients.review.radio.legend=Do you need to select more clients?
+group.clients.review.yes.label=Yes, select more clients
+group.clients.review.no.label=No, continue to adding team members
+group.clients.review.error=Select yes if you need to select more clients
+group.clients.review.error.no-clients=You have removed all team members. Select at least one to continue.
 
 group.select.members.list.h1=Dewiswch aelodau tîm
 group.update.members.list.h1=Diweddaru aelodau tîm yn y grŵp hwn

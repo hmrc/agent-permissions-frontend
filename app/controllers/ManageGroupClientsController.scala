@@ -156,7 +156,10 @@ class ManageGroupClientsController @Inject()
                 if (yes) {
                   groupService
                     .removeClientFromGroup(groupId, clientToRemove.enrolmentKey)
-                    .map(_ => Redirect(controller.showExistingGroupClients(groupId, None, None)))
+                    .map(_ =>
+                      Redirect(controller.showExistingGroupClients(groupId, None, None))
+                        .flashing("success" -> request.messages("client.remove.confirm", clientToRemove.name))
+                    )
                 }
                 else Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
               }

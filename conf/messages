@@ -213,7 +213,7 @@ group.manage.delete=Delete group
 group.manage.clients=Manage clients
 group.view.clients=View clients
 group.manage.members=Manage team members
-
+client.remove.confirm={0} removed from this Access group
 group.existing.clients.h1=Manage clients in this group
 group.existing.clients.title=Manage clients - {0}
 group.existing.clients.tax.info=This is a tax service group which updates automatically. New clients will be added as soon as they authorise you to manage their {0}. Clients will also be removed if you cancel your authorisation to manage their {0}.

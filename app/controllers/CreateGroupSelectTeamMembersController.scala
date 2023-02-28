@@ -27,6 +27,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.group_created
 import views.html.groups.create.members.{confirm_remove_member, review_members_paginated, select_paginated_team_members}
@@ -61,6 +62,8 @@ class CreateGroupSelectTeamMembersController @Inject()
   private val selectClientsController: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
   private val selectNameController: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
+  private val PAGE_SIZE = 10
+
   def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, groupType, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
@@ -68,7 +71,7 @@ class CreateGroupSelectTeamMembersController @Inject()
           Some(selectClientsController.showReviewSelectedClients(None, None).url)
         } else Some(selectNameController.showConfirmGroupName.url)
         teamMemberService
-          .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(10))
+          .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(PAGE_SIZE))
           .map { paginatedList =>
             Ok(
               select_paginated_team_members(
@@ -98,7 +101,7 @@ class CreateGroupSelectTeamMembersController @Inject()
           .fold(
             formWithErrors => {
               teamMemberService
-                .getPageOfTeamMembers(arn)(1, 10)
+                .getPageOfTeamMembers(arn)(1, PAGE_SIZE)
                 .map(paginatedList =>
                   Ok(
                     select_paginated_team_members(
@@ -140,7 +143,7 @@ class CreateGroupSelectTeamMembersController @Inject()
                     }
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                    Redirect(controller.showSelectTeamMembers(Some(pageToShow), Some(10))).toFuture
+                    Redirect(controller.showSelectTeamMembers(Some(pageToShow), Some(PAGE_SIZE))).toFuture
                   } else {
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                   }
@@ -158,17 +161,17 @@ class CreateGroupSelectTeamMembersController @Inject()
         maybeTeamMembers.fold(
           Redirect(controller.showSelectTeamMembers(None, None)).toFuture
         )(members => {
-          val pageSize = maybePageSize.getOrElse(10)
+          val pageSize = maybePageSize.getOrElse(PAGE_SIZE)
           val page = maybePage.getOrElse(1)
-          val (currentPageOfMembers: Seq[TeamMember], meta: PaginationMetaData) = paginationForSelectedMembers(members, pageSize, page)
+          val list = PaginatedListBuilder.build[TeamMember](page, pageSize, members)
           Ok(
             review_members_paginated(
-              teamMembers = currentPageOfMembers,
+              teamMembers = list.pageContent,
               groupName = groupName,
               form = YesNoForm.form(),
               backUrl = Some(controller.showSelectTeamMembers(None, None).url),
               formAction = controller.submitReviewSelectedTeamMembers,
-              paginationMetaData = Some(meta)
+              paginationMetaData = Some(list.paginationMetaData)
             )
           ).toFuture
         }
@@ -184,34 +187,47 @@ class CreateGroupSelectTeamMembersController @Inject()
           .fold(
             Redirect(controller.showSelectTeamMembers(None, None)).toFuture
           ) { members =>
+            val list = PaginatedListBuilder.build[TeamMember](1, PAGE_SIZE, members)
             YesNoForm
               .form("group.teamMembers.review.error")
               .bindFromRequest
               .fold(
                 formWithErrors => {
-                  val (currentPageOfMembers, meta) = paginationForSelectedMembers(members, 10, 1)
                   Ok(
                     review_members_paginated(
-                      teamMembers = currentPageOfMembers,
+                      teamMembers = list.pageContent,
                       groupName = groupName,
                       form = formWithErrors,
                       backUrl = Some(controller.showSelectTeamMembers(None, None).url),
                       formAction = controller.submitReviewSelectedTeamMembers,
-                      paginationMetaData = Some(meta)
+                      paginationMetaData = Some(list.paginationMetaData)
                     )
                   ).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                   else {
-                  groupType match {
-                          case TAX_SERVICE_GROUP =>
-                            submitTaxServiceGroup(arn, members, groupName)
-                          case CUSTOM_GROUP =>
-                            groupService
-                              .createGroup(arn, groupName)
-                              .map(_ => Redirect(controller.showGroupCreated))
-                        }
+                    if(members.isEmpty) { // throw empty error (would prefer redirect to showSelectTeamMembers)
+                      Ok(
+                        review_members_paginated(
+                          teamMembers = list.pageContent,
+                          groupName = groupName,
+                          form =  YesNoForm.form("group.teamMembers.review.error").withError("answer", "group.teamMembers.review.error.no-members"),
+                          backUrl = Some(controller.showSelectTeamMembers(None, None).url),
+                          formAction = controller.submitReviewSelectedTeamMembers,
+                          paginationMetaData = Some(list.paginationMetaData)
+                        )
+                      ).toFuture
+                    } else {
+                      groupType match {
+                        case TAX_SERVICE_GROUP =>
+                          submitTaxServiceGroup(arn, members, groupName)
+                        case CUSTOM_GROUP =>
+                          groupService
+                            .createGroup(arn, groupName)
+                            .map(_ => Redirect(controller.showGroupCreated))
+                      }
+                    }
                   }
                 }
               )
@@ -299,21 +315,5 @@ class CreateGroupSelectTeamMembersController @Inject()
     }
   }
 
-  private def paginationForSelectedMembers(members: Seq[TeamMember], pageSize: Int, page: Int) = {
-    val firstMemberInPage = (page - 1) * pageSize
-    val lastMemberInPage = page * pageSize
-    val currentPageOfMembers = members.slice(firstMemberInPage, lastMemberInPage)
-    val numPages = Math.ceil(members.length.toDouble / pageSize.toDouble).toInt
-    val meta = PaginationMetaData(
-      lastPage = page == numPages,
-      firstPage = page == 1,
-      totalSize = members.length,
-      totalPages = numPages,
-      pageSize = pageSize,
-      currentPageNumber = page,
-      currentPageSize = currentPageOfMembers.length
-    )
-    (currentPageOfMembers, meta)
-  }
 
 }

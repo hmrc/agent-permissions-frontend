@@ -200,7 +200,7 @@ group.manage.delete=Dileu grŵp
 group.manage.clients=Rheoli cleientiaid
 group.view.clients=View clients
 group.manage.members=Rheoli aelodau o’r tîm
-
+client.remove.confirm={0} removed from this Access group
 group.existing.clients.h1=Rheoli cleientiaid yn y grŵp hwn
 group.existing.clients.title=Rheoli cleientiaid - {0}
 group.existing.clients.button=Diweddaru cleientiaid

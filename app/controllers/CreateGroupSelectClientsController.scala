@@ -254,13 +254,13 @@ class CreateGroupSelectClientsController @Inject()
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
           maybeClients.fold(Redirect(controller.showSearchClients).toFuture)(
-            clients =>
+            clients => {
+              val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
               YesNoForm
                 .form("group.clients.review.error")
                 .bindFromRequest
                 .fold(
                   formWithErrors => {
-                    val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
                     Ok(
                       review_clients_paginated(
                         paginatedList.pageContent,
@@ -280,7 +280,6 @@ class CreateGroupSelectClientsController @Inject()
                       if (clients.nonEmpty) {
                         Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
                       } else { // throw empty client error (would prefer redirect to showSearchClients)
-                        val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
                         Ok(
                           review_clients_paginated(
                             paginatedList.pageContent,
@@ -295,6 +294,7 @@ class CreateGroupSelectClientsController @Inject()
                     }
                   }
                 )
+            }
           )
       }
     }

@@ -498,8 +498,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(2).text() shouldBe "Administrator"
 
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
-      answerRadios.select("label[for=answer]").text() shouldBe "Yes, add or remove team members"
-      answerRadios.select("label[for=answer-no]").text() shouldBe "No, continue to next section"
+      answerRadios.select("label[for=answer]").text() shouldBe "Yes, select more team members"
+      answerRadios.select("label[for=answer-no]").text() shouldBe "No, continue"
     }
 
     "redirect when no selected team members in session" in {
@@ -615,8 +615,43 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 11 team members"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected team members"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected team members"
+
+      val table = html.select(Css.tableWithId("selected-team-members"))
+      table.select("thead th").size() shouldBe 4
+
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more team members?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to select more team members"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to select more team members"
+
+    }
+
+    s"render errors when answer 'false' and 0 selected team members in session" in {
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(
+          "POST",
+          s"${controller.submitReviewSelectedTeamMembers()}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkOptedInReadyWithGroupType()
+
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty[TeamMember])
+      expectGetSessionItem(GROUP_NAME, groupName)
+
+      val result = controller.submitReviewSelectedTeamMembers()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 0 team members"
+
+      val table = html.select(Css.tableWithId("selected-team-members"))
+      table.select("thead th").size() shouldBe 0  // no table rendered
+
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more team members?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "You have removed all team members, select at least one to continue"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: You have removed all team members, select at least one to continue"
 
     }
   }

@@ -172,11 +172,11 @@ group.teamMembers.review.h1=Rydych wedi dewis {0} aelod tîm
 group.selected.teamMembers.change=Diweddaru aelodau tîm
 
 group.teamMembers.review.title=Adolygu aelodau’r tîm sydd wedi’u dewis
-group.teamMembers.review.radio.legend=A oes angen i chi ychwanegu neu dynnu’r aelodau tîm sydd wedi’u dewis?
-group.teamMembers.review.yes.label=Iawn, ychwanegu neu ddileu aelodau tîm
-group.teamMembers.review.no.label=Na, ymlaen i’r adran nesaf
-
-group.teamMembers.review.error=Dewiswch iawn os oes angen i chi ychwanegu neu ddileu aelodau’r tîm sydd wedi’u dewis
+group.teamMembers.review.radio.legend=Do you need to select more team members?
+group.teamMembers.review.yes.label=Yes, select more team members
+group.teamMembers.review.no.label=No, continue
+group.teamMembers.review.error=Select yes if you need to select more team members
+group.teamMembers.review.error.no-members=You have removed all team members, select at least one to continue
 
 cya.h1=Gwiriwch eich dewis
 cya.p=Cadarnhau cleientiaid ac aelodau tîm a ddewiswyd ar gyfer y grŵp mynediad hwn

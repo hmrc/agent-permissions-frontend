@@ -566,14 +566,14 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       paginationListItems.get(1).select("a")
         .attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup._id.toString, TAX_SERVICE, Option(2)).url + "&pageSize=10"
 
-      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to add or remove selected team members?"
+      html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more team members?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
         .select("label[for=answer]")
-        .text() shouldBe "Yes, add or remove team members"
+        .text() shouldBe "Yes, select more team members"
       answerRadios
         .select("label[for=answer-no]")
-        .text() shouldBe "No, continue to next section"
+        .text() shouldBe "No, continue"
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 
     }
@@ -643,8 +643,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 5 team members"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to add or remove selected team members"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to add or remove selected team members"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to select more team members"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to select more team members"
 
     }
 

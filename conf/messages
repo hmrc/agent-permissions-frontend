@@ -186,10 +186,11 @@ error.members.list.empty=You must select at least one team member
 group.teamMembers.review.h1=You have selected {0} team members
 group.selected.teamMembers.change=Update team members
 group.teamMembers.review.title=Review selected team members
-group.teamMembers.review.radio.legend=Do you need to add or remove selected team members?
-group.teamMembers.review.yes.label=Yes, add or remove team members
-group.teamMembers.review.no.label=No, continue to next section
-group.teamMembers.review.error=Select yes if you need to add or remove selected team members
+group.teamMembers.review.radio.legend=Do you need to select more team members?
+group.teamMembers.review.yes.label=Yes, select more team members
+group.teamMembers.review.no.label=No, continue
+group.teamMembers.review.error=Select yes if you need to select more team members
+group.teamMembers.review.error.no-members=You have removed all team members, select at least one to continue
 
 cya.h1=Check your selection
 cya.p=Confirm clients and team members selected for this access group

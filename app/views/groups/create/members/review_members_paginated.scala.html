@@ -77,23 +77,25 @@
         }
     </div>
 
-    @table(
-        caption = Some("common.teamMembers"),
-        captionClasses = "govuk-visually-hidden",
-        id = Some("selected-team-members"),
-        headings = Seq(
-            (Html(msgs("group.members.list.table.th1")), Map.empty),
-            (Html(msgs("group.members.list.table.th2")), Map.empty),
-            (Html(msgs("group.members.list.table.th3")),Map.empty),
-            (Html(msgs("common.actions")), Map.empty),
-        ),
-        rows = tableRows,
-    )
+    @if(teamMembers.nonEmpty) {
+        @table(
+            caption = Some("common.teamMembers"),
+            captionClasses = "govuk-visually-hidden",
+            id = Some("selected-team-members"),
+            headings = Seq(
+                (Html(msgs("group.members.list.table.th1")), Map.empty),
+                (Html(msgs("group.members.list.table.th2")), Map.empty),
+                (Html(msgs("group.members.list.table.th3")),Map.empty),
+                (Html(msgs("common.actions")), Map.empty),
+            ),
+            rows = tableRows,
+        )
 
-    @if(paginationMetaData.get.totalPages > 1) {
-        @GET_pagination(
-            pagination = paginationMetaData.get,
-            baseUrl = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None, None))
+        @if(paginationMetaData.get.totalPages > 1) {
+            @GET_pagination(
+                pagination = paginationMetaData.get,
+                baseUrl = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None, None))
+        }
     }
 
     @formWithCSRF(action = formAction) {

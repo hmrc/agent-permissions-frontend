@@ -256,7 +256,13 @@ class CreateGroupSelectTeamMembersController @Inject()
                     val clientsMinusRemoved = maybeSelectedTeamMembers.get.filterNot(_ == maybeTeamMember.get)
                     sessionCacheService
                       .put(SELECTED_TEAM_MEMBERS, clientsMinusRemoved)
-                      .map(_ => Redirect(controller.showReviewSelectedTeamMembers(None, None)))
+                      .map(_ =>
+                        if(clientsMinusRemoved.isEmpty){
+                          Redirect(controller.showSelectTeamMembers(None, None))
+                        }else{
+                          Redirect(controller.showReviewSelectedTeamMembers(None, None))
+                        }
+                      )
                   }
                   else Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
                 }

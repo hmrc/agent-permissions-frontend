@@ -64,7 +64,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, groupType, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
-        val backUrl = if(groupType == CUSTOM_GROUP) {
+        val backUrl = if (groupType == CUSTOM_GROUP) {
           Some(selectClientsController.showReviewSelectedClients(None, None).url)
         } else Some(selectNameController.showConfirmGroupName.url)
         teamMemberService
@@ -204,14 +204,14 @@ class CreateGroupSelectTeamMembersController @Inject()
                   if (yes)
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                   else {
-                  groupType match {
-                          case TAX_SERVICE_GROUP =>
-                            submitTaxServiceGroup(arn, members, groupName)
-                          case CUSTOM_GROUP =>
-                            groupService
-                              .createGroup(arn, groupName)
-                              .map(_ => Redirect(controller.showGroupCreated))
-                        }
+                    groupType match {
+                      case TAX_SERVICE_GROUP =>
+                        submitTaxServiceGroup(arn, members, groupName)
+                      case CUSTOM_GROUP =>
+                        groupService
+                          .createGroup(arn, groupName)
+                          .map(_ => Redirect(controller.showGroupCreated))
+                    }
                   }
                 }
               )
@@ -257,9 +257,9 @@ class CreateGroupSelectTeamMembersController @Inject()
                     sessionCacheService
                       .put(SELECTED_TEAM_MEMBERS, clientsMinusRemoved)
                       .map(_ =>
-                        if(clientsMinusRemoved.isEmpty){
+                        if (clientsMinusRemoved.isEmpty) {
                           Redirect(controller.showSelectTeamMembers(None, None))
-                        }else{
+                        } else {
                           Redirect(controller.showReviewSelectedTeamMembers(None, None))
                         }
                       )

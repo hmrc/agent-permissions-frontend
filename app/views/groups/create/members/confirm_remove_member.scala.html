@@ -18,7 +18,6 @@
 @import controllers.routes
 @import views.components.models.{LegendData, RadioData}
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 
 @this(
     layout: main_layout,
@@ -38,7 +37,6 @@
     backLinkHref = Some(routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None).url)
 ) {
     @caption(msgs("common.caption.group.name", groupName))
-    @h1(title)
 
     @formWithCSRF(action = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember) {
 
@@ -48,6 +46,7 @@
                 RadioData("true", "common.yes.label"),
                 RadioData("false", "common.no.label", id = Some("answer-no"))
             ),
+            legend = Some(LegendData(title, isH1 = true)),
             classes = "govuk-radios--inline"
         )
 

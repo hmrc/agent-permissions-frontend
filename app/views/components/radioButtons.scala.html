@@ -40,21 +40,20 @@
             Hint(content = HtmlContent(msgs(h)))
         }),
         classes = classes,
-        fieldset = legend.map(l => {
-            val cssClasses = l match {
-                case LegendData(_, _, true) => "govuk-fieldset__legend--xl"
-                case LegendData(_, Some(_), false) => l.classes.get
-                case _ => ""
-            }
-            Fieldset(
-                legend = Some(
+        fieldset = Some(Fieldset(
+                legend = legend.map(legendData => {
+                    val cssClasses = legendData match {
+                        case LegendData(_, _, true) => "govuk-fieldset__legend--xl"
+                        case LegendData(_, Some(_), false) => legendData.classes.get
+                        case _ => ""
+                    }
                     Legend(
-                        content = Text(msgs(l.msg)),
+                        content = Text(msgs(legendData.msg)),
                         classes = cssClasses,
-                        isPageHeading = l.isH1)
-                )
-            )
-        }),
+                        isPageHeading = legendData.isH1
+                     )
+                })
+            )),
         items = items.map { (radioData: RadioData) =>
             RadioItem(
                 content = Text(msgs(radioData.label)),

@@ -43,76 +43,78 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @tableRows = @{
-        groupClients.map(client =>
-            Seq(Html(client.name),
-                Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-                Html(displayTaxServiceFromServiceKey(client.taxService)),
-                Html(
-                    a(
-                        key = msgs("common.remove"),
-                        href = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
-                    ).toString
-                )
+@tableRows = @{
+    groupClients.map(client =>
+        Seq(Html(client.name),
+            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
+            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            Html(
+                a(
+                    key = msgs("common.remove"),
+                    href = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
+                ).toString
             )
         )
-    }
+    )
+}
 
-    @layout(
-        title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title", group.groupName), form("filter").value, form("search").value),
-        backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url),
-        fullWidth = true
-    ) {
+@layout(
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title", group.groupName), form("filter").value, form("search").value),
+    backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url),
+    fullWidth = true
+) {
 
-        <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", group.groupName))
-            @h1("group.existing.clients.h1")
-        </div>
-        @* TODO use a partial *@
-        @govukSkipLink(SkipLink(
-            href = "#clients",
-            content = Text(msgs("common.skip-to-clients"))
-        ))
+    <div class="govuk-!-width-two-thirds">
+        @caption(msgs("common.caption.group.name", group.groupName))
+        @h1("group.existing.clients.h1")
+    </div>
 
-        @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {
+    @govukSkipLink(SkipLink(
+        href = "#clients",
+        content = Text(msgs("common.skip-to-clients"))
+    ))
 
-            @search_and_filter(form, true)
+    @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {
 
-            @if(groupClients.nonEmpty) {
+        @search_and_filter(form, true)
 
-                @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
-                    @h2(withSearchPrefix("", form("filter").value, form("search").value))
-                }
+        @if(groupClients.nonEmpty) {
 
-                @table(
-                    caption = Some("common.clients"),
-                    captionClasses = "govuk-visually-hidden",
-                    id = Some("clients"),
-                    headings = Seq(
-                        (Html(msgs("group.client.list.table.th1")), Map.empty),
-                        (Html(msgs("group.client.list.table.th2")), Map.empty),
-                        (Html(msgs("group.client.list.table.th3")), Map.empty),
-                        (Html(msgs("common.actions")), Map.empty),
-                    ),
-                    rows = tableRows,
-                )
-
-                @if(paginationMetaData.get.totalPages > 1) {
-                    @pagination(pagination = paginationMetaData.get)
-                }
-
-                @p(msgs("common.total.clients", groupClients.length),
-                    id = Some("clients-in-group"))
-
-                @link_as_button(
-                    href = routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url,
-                    key = "group.existing.clients.button",
-                    id = "update-clients")
-            } else {
-                <div id="clients">
-                    @h2("clients.not-found.heading")
-                    @p("clients.not-found.p")
-                </div>
+            @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
+                @h2(withSearchPrefix("", form("filter").value, form("search").value))
             }
+
+            @table(
+                caption = Some("common.clients"),
+                captionClasses = "govuk-visually-hidden",
+                id = Some("clients"),
+                headings = Seq(
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty),
+                    (Html(msgs("group.client.list.table.th3")), Map.empty),
+                    (Html(msgs("common.actions")), Map.empty),
+                ),
+                rows = tableRows,
+            )
+
+            @if(paginationMetaData.get.totalPages > 1) {
+                @pagination(pagination = paginationMetaData.get)
+            }
+
+            @p(msgs("common.total.clients", groupClients.length),
+                id = Some("clients-in-group"))
+
+        } else {
+            <div id="clients">
+                @h2("clients.not-found.heading")
+                @p("clients.not-found.p")
+            </div>
         }
+
+        @link_as_button(
+            href = routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url,
+            key = "group.existing.clients.button",
+            id = "update-clients"
+        )
     }
+}

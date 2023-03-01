@@ -67,7 +67,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, groupType, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
-        val backUrl = if(groupType == CUSTOM_GROUP) {
+        val backUrl = if (groupType == CUSTOM_GROUP) {
           Some(selectClientsController.showReviewSelectedClients(None, None).url)
         } else Some(selectNameController.showConfirmGroupName.url)
         teamMemberService
@@ -272,7 +272,13 @@ class CreateGroupSelectTeamMembersController @Inject()
                     val clientsMinusRemoved = maybeSelectedTeamMembers.get.filterNot(_ == maybeTeamMember.get)
                     sessionCacheService
                       .put(SELECTED_TEAM_MEMBERS, clientsMinusRemoved)
-                      .map(_ => Redirect(controller.showReviewSelectedTeamMembers(None, None)))
+                      .map(_ =>
+                        if (clientsMinusRemoved.isEmpty) {
+                          Redirect(controller.showSelectTeamMembers(None, None))
+                        } else {
+                          Redirect(controller.showReviewSelectedTeamMembers(None, None))
+                        }
+                      )
                   }
                   else Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
                 }

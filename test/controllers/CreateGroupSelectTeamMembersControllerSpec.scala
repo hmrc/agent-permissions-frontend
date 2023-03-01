@@ -786,6 +786,31 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
     }
 
+    s"redirect when last one has been removed to ${ctrlRoute.showSelectTeamMembers(None, None)}" in {
+
+      //given
+      val teamMemberToRemove = teamMembers.head
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitConfirmRemoveTeamMember()}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkOptedInReadyWithGroupType()
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq(teamMemberToRemove))
+      expectGetSessionItem(MEMBER_TO_REMOVE, teamMemberToRemove)
+      expectGetSessionItem(GROUP_NAME, groupName)
+      expectPutSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
+
+      //when
+      val result = controller.submitConfirmRemoveTeamMember()(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
+    }
+
     s"render errors when no radio button selected" in {
 
       //given

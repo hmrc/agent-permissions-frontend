@@ -30,37 +30,37 @@
     legend: Option[LegendData] = None
 )(implicit msgs: Messages)
 
-@govukCheckboxes(
-    Checkboxes(
-        name = name,
-        attributes = Map("id" -> id.getOrElse(name)),
-        hint = hint.map(h => {
-            Hint(content = HtmlContent(msgs(h)))
-        }),
-        fieldset = legend.map(l => {
-            val cssClasses = l match {
-                case LegendData(_, None, true) => "govuk-heading-xl"
-                case LegendData(_, Some(_), _) => l.classes.get
-                case _ => ""
-            }
-            Fieldset(
-                legend = Some(
-                    Legend(
-                        content = Text(msgs(l.msg)),
-                        classes = cssClasses,
-                        isPageHeading = l.isH1)
+    @govukCheckboxes(
+        Checkboxes(
+            name = name,
+            attributes = Map("id" -> id.getOrElse(name)),
+            hint = hint.map(h => {
+                Hint(content = HtmlContent(msgs(h)))
+            }),
+            fieldset = Some(
+                Fieldset(
+                    legend = legend.map(legendData => {
+                        val cssClasses = legendData match {
+                            case LegendData(_, _, true) => "govuk-fieldset__legend--xl"
+                            case LegendData(_, Some(_), false) => legendData.classes.get
+                            case _ => ""
+                        }
+                        Legend(
+                            content = Text(msgs(legendData.msg)),
+                            classes = cssClasses,
+                            isPageHeading = legendData.isH1
+                        )
+                    })
+                )),
+            items = items.map { (cbd: CheckboxData) =>
+                CheckboxItem(
+                    content = HtmlContent(msgs(cbd.label)),
+                    value = cbd.value,
+                    id = Some(cbd.id),
+                    checked = cbd.checked,
+                    hint = cbd.hint.map(h => {
+                        Hint(content = HtmlContent(msgs(h)))
+                    })
                 )
-            )
-        }),
-        items = items.map { (cbd: CheckboxData) =>
-            CheckboxItem(
-                content = HtmlContent(msgs(cbd.label)),
-                value = cbd.value,
-                id = Some(cbd.id),
-                checked = cbd.checked,
-                hint = cbd.hint.map( h =>{
-                    Hint(content = HtmlContent(msgs(h)))
-                })
-            )
-        }).withFormField(field)
-)
+            }).withFormField(field)
+    )

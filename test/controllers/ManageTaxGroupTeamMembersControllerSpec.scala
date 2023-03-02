@@ -394,9 +394,9 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
-      val expectedFormData = AddTeamMembersToGroup(None, Some(List(teamMembers.head.id, teamMembers.last.id)), CONTINUE_BUTTON)
-      expectSavePageOfTeamMembers(expectedFormData, teamMembers)
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      val expectedFormData = AddTeamMembersToGroup(None, Some(List(teamMembers.head.id, teamMembers.last.id)), CONTINUE_BUTTON) // checks formData =>
+
+      expectSavePageOfTeamMembers(expectedFormData, teamMembers) // checks .savePageOfTeamMembers(formData)
 
       val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString, TAX_SERVICE)(request)
 
@@ -422,7 +422,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
-      expectGetFilteredTeamMembersElseAll(arn)(teamMembers)
+      expectGetPageOfTeamMembers(arn)(teamMembers)
 
       // when
       val result = controller.submitManageGroupTeamMembers(taxGroup._id.toString, TAX_SERVICE)(request)
@@ -430,9 +430,9 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      // then
-      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Select team members"
+      // then - check page content
+      html.title() shouldBe "Error: Update team members in this group - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Update team members in this group"
       html
         .select(Css.errorSummaryForField("members"))
     }

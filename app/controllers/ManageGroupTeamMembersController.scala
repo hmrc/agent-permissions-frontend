@@ -45,7 +45,6 @@ class ManageGroupTeamMembersController @Inject()
   groupService: GroupService,
   teamMemberService: TeamMemberService,
   existing_group_team_members: existing_group_team_members,
-  team_members_list: team_members_list,
   update_paginated_team_members: update_paginated_team_members,
   review_update_team_members: review_update_team_members,
   team_members_update_complete: team_members_update_complete,
@@ -137,54 +136,57 @@ class ManageGroupTeamMembersController @Inject()
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              // TODO replace with paginated views...
+              // render page with empty selection error
               teamMemberService
-                .getFilteredTeamMembersElseAll(arn).map {
-                maybeTeamMembers =>
+                .getPageOfTeamMembers(arn)(1,10)
+                .map(paginatedList =>
                   Ok(
-                    team_members_list(
-                      maybeTeamMembers,
-                      group.groupName,
+                    update_paginated_team_members(
+                      paginatedList.pageContent,
+                      group,
                       formWithErrors,
-                      formAction = controller.submitManageGroupTeamMembers(groupId, groupType),
-                      backUrl = Some(controller.showExistingGroupTeamMembers(groupId, groupType, None).url)
+                      msgKey = "update",
+                      paginationMetaData = Some(paginatedList.paginationMetaData)
+
                     )
                   )
-              }
+                )
             },
             formData => {
               teamMemberService
-                .savePageOfTeamMembers(formData).flatMap(_ =>
-                if (formData.submit == CONTINUE_BUTTON) {
-                  // checks selected from session AFTER saving (removed de-selections)
-                  val hasSelected = for {
-                    selected <- sessionCacheService.get(SELECTED_TEAM_MEMBERS)
-                    // if "empty" returns Some(Vector()) so .nonEmpty on it's own returns true
-                  } yield selected.isDefined
-
-                  hasSelected.flatMap(selectedNotEmpty => {
-                    if (selectedNotEmpty) {
+                .savePageOfTeamMembers(formData)
+                .flatMap(nowSelectedMembers => {
+                  if (formData.submit == CONTINUE_BUTTON) {
+                    // check selected there are still selections after saving
+                    if (nowSelectedMembers.nonEmpty) {
                       Redirect(controller.showReviewSelectedTeamMembers(groupId, groupType, None)).toFuture
-                    } else { // render page with empty error
-                      for {
-                        teamMembers <- teamMemberService.getAllTeamMembers(arn)
-                      } yield
-                        Ok(
-                          team_members_list(
-                            teamMembers,
-                            group.groupName,
-                            AddTeamMembersToGroupForm.form().withError("members", "error.select-members.empty"),
-                            formAction = controller.submitManageGroupTeamMembers(groupId, groupType),
-                            backUrl = Some(controller.showExistingGroupTeamMembers(groupId, groupType, None).url),
+                    } else {
+                      // render page with empty selection error
+                      teamMemberService
+                        .getPageOfTeamMembers(arn)(1, 10)
+                        .map(paginatedList =>
+                          Ok(
+                            update_paginated_team_members(
+                              paginatedList.pageContent,
+                              group,
+                              form = AddTeamMembersToGroupForm
+                                .form()
+                                .fill(AddTeamMembersToGroup(search = formData.search))
+                                .withError("members", "error.select-members.empty"),
+                              msgKey = "update",
+                              paginationMetaData = Some(paginatedList.paginationMetaData)
+
+                            )
                           )
                         )
                     }
-                  })
-                } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
-                  val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                  Redirect(controller.showManageGroupTeamMembers(groupId, groupType, Option(pageToShow))).toFuture
+                  } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
+                    val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
+                    Redirect(controller.showManageGroupTeamMembers(groupId, groupType, Option(pageToShow))).toFuture
+                  }
+                  else Redirect(controller.showManageGroupTeamMembers(groupId, groupType, None)).toFuture
                 }
-                else Redirect(controller.showManageGroupTeamMembers(groupId, groupType, None)).toFuture
+
               )
             }
           )

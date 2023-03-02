@@ -72,12 +72,4 @@ trait TeamMemberServiceMocks extends MockFactory {
       .expects(arn, *, *, *)
       .returning(Future successful teamMembers).once()
 
-  def expectSaveSelectedOrFilteredTeamMembers(arn: Arn)
-                                             (buttonSelect: String, formData: AddTeamMembersToGroup)
-                                             (implicit teamMemberService: TeamMemberService): Unit =
-    (teamMemberService
-      .saveSelectedOrFilteredTeamMembers(_: String)(_: Arn)(_: AddTeamMembersToGroup)
-      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
-      .expects(buttonSelect, arn, formData, *, *, *)
-      .returning(Future successful (())).once()
 }

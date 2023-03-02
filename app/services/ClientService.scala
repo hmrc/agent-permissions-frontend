@@ -66,6 +66,7 @@ class ClientServiceImpl @Inject()(
                                    val sessionCacheService: SessionCacheService
                                  ) extends ClientService with GroupMemberOps {
 
+  // TODO remove, no longer required now we have pagination
   // returns the es3 list sorted by name, selecting previously selected clients
   def getAllClients(arn: Arn)
                    (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
@@ -81,6 +82,7 @@ class ClientServiceImpl @Inject()(
 
   }
 
+  // TODO remove, no longer required now we have pagination
   // returns clients from es3 OR a filtered list, selecting previously selected clients
   def getFilteredClientsElseAll(arn: Arn)
                                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {

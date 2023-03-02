@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
-import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
+import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.libs.json.JsNumber
 import play.api.mvc.Request
@@ -35,12 +35,6 @@ trait TeamMemberService {
 
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)
                           (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[PaginatedList[TeamMember]]
-
-  def getAllTeamMembers(arn: Arn)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]]
-
-  def getFilteredTeamMembersElseAll(arn: Arn)(implicit hc: HeaderCarrier,
-                                              ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]]
 
   def lookupTeamMember(arn: Arn)(id: String
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]]
@@ -138,30 +132,6 @@ class TeamMemberServiceImpl @Inject()(
         extra = Some(Map("totalSelected" -> JsNumber(totalMembersSelected))) // This extra data is needed to display correct 'selected' count in front-end
       )
     )
-  }
-
-  // TODO - remove?
-  def getAllTeamMembers(arn: Arn)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]] = {
-    for {
-      members <- getTeamMembersFromConnector(arn)
-      maybeSelectedTeamMembers <- sessionCacheService.get[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
-      membersWithoutPreSelected = members
-        .filterNot(teamMember => maybeSelectedTeamMembers
-          .fold(false)(_.map(_.userId).contains(teamMember.userId)))
-      mergedWithPreselected = (membersWithoutPreSelected.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
-        .sortBy(_.name)
-    } yield mergedWithPreselected
-  }
-
-  //TODO - remove?
-  def getFilteredTeamMembersElseAll(arn: Arn)
-                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]] = {
-    val eventualMaybeTeamMembers = sessionCacheService.get(FILTERED_TEAM_MEMBERS)
-    eventualMaybeTeamMembers.flatMap { maybeMembers =>
-      if (maybeMembers.isDefined) Future.successful(maybeMembers.get)
-      else getAllTeamMembers(arn)
-    }
   }
 
   def lookupTeamMember(arn: Arn)(id: String)

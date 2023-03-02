@@ -17,7 +17,7 @@
 package services
 
 import connectors.AgentUserClientDetailsConnector
-import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, teamMemberFilteringKeys}
+import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, teamMemberFilteringKeys}
 import helpers.BaseSpec
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.libs.json.JsNumber
@@ -41,74 +41,24 @@ class TeamMemberServiceSpec extends BaseSpec {
 
   val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
-  "getAllTeamMembers" should {
+  "Lookup 1 team member" should {
 
-    "Get TeamMembers from agentUserClientDetailsConnector and merge with selected team members" in {
-
-      expectGetTeamMembers(arn)(users.takeRight(2))
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, members.take(2))
-
-      val teamMembers: Seq[TeamMember] = await(service.getAllTeamMembers(arn))
-
-      teamMembers shouldBe
-        List(TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None),
-          TeamMember("Name 2", "bob2@accounting.com", Some("user2"), None),
-          TeamMember("Name 4", "bob4@accounting.com", Some("user4"), None),
-          TeamMember("Name 5", "bob5@accounting.com", Some("user5"), None)
-        )
-
-    }
-
-    "Get TeamMembers from agentUserClientDetailsConnector when there are NO selected team members" in {
-
-      expectGetTeamMembers(arn)(users.takeRight(2))
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
-
-      val teamMembers: Seq[TeamMember] = await(service.getAllTeamMembers(arn))
-
-      teamMembers shouldBe
-        List(
-          TeamMember("Name 4", "bob4@accounting.com", Some("user4"), None),
-          TeamMember("Name 5", "bob5@accounting.com", Some("user5"), None)
-        )
-    }
-  }
-
-  "getFilteredTeamMembersElseAll" should {
-    "Get TeamMembers from agentUserClientDetailsConnector and merge selected ones when no FILTERED_TEAM_MEMBERS" in {
-
-      //given NO FILTERED_TEAM_MEMBERS in session
-      expectGetSessionItemNone(FILTERED_TEAM_MEMBERS)
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, members)
-
-      expectGetTeamMembers(arn)(users)
-
-      //when
-      val teamMembers: Seq[TeamMember] = await(service.getFilteredTeamMembersElseAll(arn))
-
-      //then
-      teamMembers.size shouldBe 5
-      teamMembers.head.name shouldBe "Name 1"
-      teamMembers.head.userId shouldBe Some("user1")
-      teamMembers.head.email shouldBe "bob1@accounting.com"
-      teamMembers.head.selected shouldBe false
-
-    }
-    "Get TeamMembers from session when FILTERED_TEAM_MEMBERS exists" in {
-
+    "Return nothing when not found" in {
       //given
-      expectGetSessionItem(FILTERED_TEAM_MEMBERS, members)
-
+      expectGetTeamMembers(arn)(users)
       //when
-      val teamMembers: Seq[TeamMember] = await(service.getFilteredTeamMembersElseAll(arn))
-
+      val teamMember: Option[TeamMember] = await(service.lookupTeamMember(arn)("matchesNothing"))
       //then
-      teamMembers.size shouldBe 5
-      teamMembers.head.name shouldBe "Name 1"
-      teamMembers.head.userId shouldBe Some("user1")
-      teamMembers.head.email shouldBe "bob1@accounting.com"
-      teamMembers.head.selected shouldBe false
+      teamMember shouldBe None
+    }
 
+    "Return a team members with matched id" in {
+      //given
+      expectGetTeamMembers(arn)(users)
+      //when
+      val teamMember: Option[TeamMember] = await(service.lookupTeamMember(arn)(members.head.id))
+      //then
+      teamMember shouldBe Some(members.head)
     }
   }
 
@@ -186,7 +136,7 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectPutSessionItem(CURRENT_PAGE_TEAM_MEMBERS, expectedPage)
       val page: PaginatedList[TeamMember] = await(service.getPageOfTeamMembers(arn)(1, pageSize))
 
-      page.paginationMetaData shouldBe PaginationMetaData(false, true, 9, 2, 5, 1, 5, Some(Map("totalSelected" -> JsNumber(0))))
+      page.paginationMetaData shouldBe PaginationMetaData(lastPage = false, firstPage = true, 9, 2, 5, 1, 5, Some(Map("totalSelected" -> JsNumber(0))))
       page.pageContent shouldBe
         Seq(
           TeamMember("Name 1", "bob1@accounting.com",   Some("user1"), None ),

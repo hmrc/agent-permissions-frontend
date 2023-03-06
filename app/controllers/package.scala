@@ -123,6 +123,15 @@ package object controllers {
       RETURN_URL,
     )
 
+  val managingGroupKeys = (
+      clientFilteringKeys ++
+      teamMemberFilteringKeys ++
+      List(
+        SELECTED_CLIENTS,
+        SELECTED_TEAM_MEMBERS
+      )
+    ).distinct
+
   val sessionKeys = (
     clientFilteringKeys ++
       teamMemberFilteringKeys ++

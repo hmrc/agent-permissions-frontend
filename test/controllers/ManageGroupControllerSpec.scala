@@ -114,9 +114,12 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthOkOptedInReady()
+      expectDeleteSessionItems(managingGroupKeys)
+
       val searchTerm = "ab"
       val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(groupSummaries)
+
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
 
       //when
@@ -169,8 +172,11 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthOkOptedInReady()
+      expectDeleteSessionItems(managingGroupKeys)
+
       val searchTerm = "ab"
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(Nil)
+
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
 
       //when
@@ -202,6 +208,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render content when filtered access groups" in {
       //given
       expectAuthOkOptedInReady()
+      expectDeleteSessionItems(managingGroupKeys)
 
       val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4))
       val searchTerm = expectedGroupSummaries(0).groupName

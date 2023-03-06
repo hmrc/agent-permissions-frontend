@@ -68,6 +68,7 @@ class ManageGroupController @Inject()
   def showManageGroups(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
+        sessionCacheService.deleteAll(managingGroupKeys).flatMap(_ =>
         sessionCacheService.get(GROUP_SEARCH_INPUT)
           .flatMap(maybeSearchTerm => {
             groupService
@@ -81,6 +82,7 @@ class ManageGroupController @Inject()
               }
           }
           )
+        )
       }
     }
   }

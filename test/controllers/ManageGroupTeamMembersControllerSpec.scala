@@ -49,7 +49,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   val groupId = "xyz"
   private val agentUser: AgentUser = AgentUser(random(5), "Rob the Agent")
-  val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
+  val accessGroup: CustomGroup = CustomGroup(
+    new ObjectId(),
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
@@ -95,6 +96,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
   private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
+  def expectAuthOkOptedInReady(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+  }
+  
   s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup._id.toString, CUSTOM, None).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
@@ -711,4 +718,105 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   }
 
+  val memberToRemove = teamMembers.head
+
+  s"GET ${ctrlRoute.showConfirmRemoveTeamMember(groupId, memberToRemove.id).url}" should {
+
+    "render the confirm remove team member page" in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(summary))
+      expectLookupTeamMember(arn)(memberToRemove)
+      expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
+      val result = controller.showConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
+
+
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveTeamMember(groupId, memberToRemove.id).url
+      html.select("label[for=answer]").text() shouldBe "Yes"
+      html.select("label[for=answer-no]").text() shouldBe "No"
+      html.select(Css.form + " input[name=answer]").size() shouldBe 2
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
+    }
+
+  }
+
+  s"POST confirm remove team member at:${ctrlRoute.submitConfirmRemoveTeamMember(groupId, memberToRemove.id).url}" should {
+
+    " remove from group and redirect to group team members list when 'yes' selected" in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(summary))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectRemoveTeamMemberFromGroup(groupId, memberToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
+    }
+
+    "redirects to group members list when  'no' selected " in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(summary))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(
+          "POST", s"${controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
+    }
+
+    "render errors when no selections of yes/no made" in {
+      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(summary))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)}")
+          .withFormUrlEncodedBody("ohai" -> "blah")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Remove John 1 name from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this team member from the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this team member from the access group"
+
+    }
+  }
 }

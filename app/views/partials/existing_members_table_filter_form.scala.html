@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.components.pagination.GET_pagination
 @import views.html.partials.search_and_filter
+@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
@@ -32,6 +33,7 @@
 )
 
 @(
+    group: GroupSummary,
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
     formAction: Call,
@@ -44,6 +46,12 @@
             Html(member.name),
             Html(member.email),
             Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
+            Html(
+                a(
+                    key = msgs("common.remove"),
+                    href = routes.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(group.groupId, member.id).url
+                ).toString
+            )
         )
     )
 }
@@ -88,18 +96,10 @@
             id = Some("members"),
             attrs = Map.empty,
             headings = Seq(
-                (
-                    Html(msgs("group.members.list.table.th1")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th2")),
-                    Map("aria-sort" -> "none")
-                ),
-                (
-                    Html(msgs("group.members.list.table.th3")),
-                    Map("aria-sort" -> "none")
-                ),
+                (Html(msgs("group.members.list.table.th1")), Map.empty),
+                (Html(msgs("group.members.list.table.th2")), Map.empty),
+                (Html(msgs("group.members.list.table.th3")), Map.empty),
+                (Html(msgs("common.actions")), Map.empty),
             ),
             rows = tableRows,
         )

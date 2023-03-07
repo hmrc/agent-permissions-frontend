@@ -27,18 +27,24 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[Boolean], groupName: String, teamMember: TeamMember)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(
+    form: Form[Boolean],
+    groupName: String,
+    teamMember: TeamMember,
+    backLink: Call = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None),
+    formAction: Call = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @title = @{msgs("common.remove.member", teamMember.name)}
 
 @layout(
     title = title,
     formErrors = form.errors,
-    backLinkHref = Some(routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None).url)
+    backLinkHref = Some(backLink.url)
 ) {
     @caption(msgs("common.caption.group.name", groupName))
 
-    @formWithCSRF(action = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember) {
+    @formWithCSRF(action = formAction) {
 
         @radioButtons(
             field = form("answer"),

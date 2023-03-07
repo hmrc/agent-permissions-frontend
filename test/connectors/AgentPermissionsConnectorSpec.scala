@@ -812,7 +812,7 @@ class AgentPermissionsConnectorSpec
       //given
       val clientId = randomAlphabetic(10)
       val groupId = randomAlphabetic(10)
-      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/client/$clientId"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/clients/$clientId"
       val mockResponse = HttpResponse.apply(NO_CONTENT)
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
 
@@ -825,13 +825,47 @@ class AgentPermissionsConnectorSpec
       //given
       val clientId = randomAlphabetic(10)
       val groupId = randomAlphabetic(10)
-      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/client/$clientId"
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/clients/$clientId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR)
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
 
       //when
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.removeClientFromGroup(groupId, clientId))
+      }
+      //then
+      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+  }
+
+  "DELETE remove team member from a custom group" should {
+
+    s"return Done when response code is $NO_CONTENT" in {
+
+      //given
+      val memberId = randomAlphabetic(10)
+      val groupId = randomAlphabetic(10)
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/$memberId"
+      val mockResponse = HttpResponse.apply(NO_CONTENT)
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
+
+      //when
+      connector.removeTeamMemberFromGroup(groupId, memberId).futureValue shouldBe Done
+    }
+
+    "throw exception when it fails" in {
+
+      //given
+      val memberId = randomAlphabetic(10)
+      val groupId = randomAlphabetic(10)
+      val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/$memberId"
+      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR)
+      expectHttpClientDELETE[HttpResponse](url, mockResponse)
+
+      //when
+      val caught = intercept[UpstreamErrorResponse] {
+        await(connector.removeTeamMemberFromGroup(groupId, memberId))
       }
       //then
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR

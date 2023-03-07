@@ -119,7 +119,8 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def removeClientFromGroup(groupId: String, clientId: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-
+  def removeTeamMemberFromGroup(groupId: String, clientId: String)
+                               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
 
 @Singleton
@@ -548,13 +549,27 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
 
   def removeClientFromGroup(groupId: String, clientId: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/groups/$groupId/client/$clientId"
+    val url = s"$baseUrl/agent-permissions/groups/$groupId/clients/$clientId"
     monitor("ConsumedAPI-removeClientFromGroup-DELETE") {
       http.DELETE[HttpResponse](url).map { response =>
         response.status match {
           case OK | NO_CONTENT => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error DELETING client from group $url", anyOtherStatus)
+        }
+      }
+    }
+  }
+
+  def removeTeamMemberFromGroup(groupId: String, memberId: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val url = s"$baseUrl/agent-permissions/groups/$groupId/members/$memberId"
+    monitor("ConsumedAPI-removeMemberFromGroup-DELETE") {
+      http.DELETE[HttpResponse](url).map { response =>
+        response.status match {
+          case OK | NO_CONTENT => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error DELETING member from group $url", anyOtherStatus)
         }
       }
     }

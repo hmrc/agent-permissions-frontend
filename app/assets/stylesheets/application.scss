@@ -12,6 +12,10 @@ main.govuk-main-wrapper {
   padding-top: 30px !important;
 }
 
+#multi-select-table .govuk-table__cell div.govuk-checkboxes{
+  margin-top: -7px;
+}
+
 .govuk-heading-xl {
   margin-bottom: 35px !important;
 }

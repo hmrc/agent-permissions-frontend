@@ -27,9 +27,10 @@ common.remove=Remove
 common.remove.client=Remove {0} from selected clients?
 common.remove.member=Remove {0} from selected team members?
 common.group.max.clients=You can have a total of 1,200 clients and team members in a custom access group.
-
 save.and.continue.button=Save and continue
 submit.button=Submit
+common.button.search.again=Search again
+common.group.already.in=Already in this group
 
 filter.legend=Filters
 filter.apply=Apply filters

@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
@@ -395,15 +395,16 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "render correctly the manage group CLIENTS page" in {
       //given
-      val selected = displayClients.map(_.copy(selected = true))
+      val existingClients = displayClients.map(_.copy(selected = true))
+      val availableDisplayClients: Seq[DisplayClient]
+      = (5 to 8).map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i")).map(DisplayClient.fromClient(_))
 
       expectAuthOkOptedInReady()
       expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
-      expectGetSessionItemNone(SELECTED_CLIENTS)
-      expectPutSessionItem(SELECTED_CLIENTS, selected)
-      expectGetPageOfClients(arn)(displayClients)
+      expectPutSessionItem(EXISTING_CLIENTS, existingClients)
+      expectGetPaginatedClientsForArn(arn)(existingClients)(existingClients ++ availableDisplayClients)
 
       //when
       val result = controller.showManageGroupClients(grpId, None, None)(request)
@@ -422,16 +423,28 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       th.get(3).text() shouldBe "Tax service"
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
-      trs.size() shouldBe 3
+      trs.size() shouldBe 7
       //first row
+      trs.get(0).select("td").get(0).text() shouldBe "Already in this group"
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
       trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(3).text() shouldBe "VAT"
 
-      //last row
+      trs.get(2).select("td").get(0).text() shouldBe "Already in this group"
       trs.get(2).select("td").get(1).text() shouldBe "friendly2"
       trs.get(2).select("td").get(2).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(3).text() shouldBe "VAT"
+
+      trs.get(3).select("td").get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
+      trs.get(3).select("td").get(1).text() shouldBe "friendly5"
+      trs.get(3).select("td").get(2).text() shouldBe "ending in 6785"
+      trs.get(3).select("td").get(3).text() shouldBe "VAT"
+
+      trs.get(6).select("td").get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
+      trs.get(6).select("td").get(1).text() shouldBe "friendly8"
+      trs.get(6).select("td").get(2).text() shouldBe "ending in 6788"
+      trs.get(6).select("td").get(3).text() shouldBe "VAT"
+
 
       //TODO - this is wrong right?
       html.select("p#member-count-text").text() shouldBe "0 clients selected across all searches"
@@ -443,9 +456,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
-      expectGetSessionItemNone(SELECTED_CLIENTS)
-      expectPutSessionItem(SELECTED_CLIENTS, displayClients.map(_.copy(selected = true)) )
-      expectGetPageOfClients(arn)(Seq.empty)
+      val existingClients = displayClients.map(_.copy(selected = true))
+      expectPutSessionItem(EXISTING_CLIENTS, existingClients )
+      expectGetPaginatedClientsForArn(arn)(existingClients)(Seq.empty[DisplayClient])
+
+
       //when
       val result = controller.showManageGroupClients(grpId, None, None)(request)
 
@@ -463,15 +478,16 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     }
 
-    "render with clients held in session when a filter was applied" in {
+    "render correct title when a filter was applied" in {
 
+      val availableDisplayClients: Seq[DisplayClient] =  (5 to 8).map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i")).map(DisplayClient.fromClient(_))
       expectAuthOkOptedInReady()
       expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "blah")
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
-      expectGetSessionItemNone(SELECTED_CLIENTS)
-      expectPutSessionItem(SELECTED_CLIENTS, displayClients.map(_.copy(selected = true)) )
-      expectGetPageOfClients(arn)(displayClients.take(1))
+      val existingClients = displayClients.map(_.copy(selected = true))
+      expectPutSessionItem(EXISTING_CLIENTS, existingClients )
+      expectGetPaginatedClientsForArn(arn)(existingClients)(existingClients ++ availableDisplayClients)
 
       val result = controller.showManageGroupClients(grpId, None, None)(request)
 
@@ -482,12 +498,6 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for 'blah' and 'VAT' Update clients in this group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Update clients in this group"
 
-      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
-
-      trs.size() shouldBe 1
-      trs.get(0).select("td").get(1).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
-      trs.get(0).select("td").get(3).text() shouldBe "VAT"
     }
   }
 
@@ -709,8 +719,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST submitReviewSelectedClients on url${ctrlRoute.submitReviewSelectedClients(grpId).url}" should {
 
-    s"redirect to showGroupClientsUpdatedConfirmation on url '${ctrlRoute.showGroupClientsUpdatedConfirmation(grpId)}' " +
-      s"when page is submitted with answer 'NO'/'false'" in {
+    s"redirect to existing group clients on url when page is submitted with answer 'NO'/'false'" in {
 
       expectAuthOkOptedInReady()
 
@@ -721,15 +730,15 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       expectGetSessionItem(SELECTED_CLIENTS, Seq(displayClients.head, displayClients.last))
       expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
-      expectUpdateGroup(grpId,
-        UpdateAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name))))
+      expectAddMembersToGroup(grpId,
+        AddMembersToAccessGroupRequest(clients = Some(Set(displayClients.head, displayClients.last).map(dc => Client(dc.enrolmentKey, dc.name))))
       )
 
       val result = controller.submitReviewSelectedClients(grpId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute
-        .showGroupClientsUpdatedConfirmation(grpId).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(grpId, None, None).url
+
     }
 
     s"redirect to showSearchClientsToAdd on url '${ctrlRoute.showSearchClientsToAdd(grpId)}' " +

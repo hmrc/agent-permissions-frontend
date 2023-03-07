@@ -47,9 +47,9 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful clients).once()
 
   def expectGetAvailableTaxServiceClientCount(arn: Arn)
-                               (numberOfEachService: List[Int])
-                               (implicit clientService: ClientService): Unit = {
-    val data : Map[String, Int] = Map(
+                                             (numberOfEachService: List[Int])
+                                             (implicit clientService: ClientService): Unit = {
+    val data: Map[String, Int] = Map(
       "HMRC-MTD-IT" -> numberOfEachService.head,
       "HMRC-MTD-VAT" -> numberOfEachService(1),
       "HMRC-CGT-PD" -> numberOfEachService(2),
@@ -98,25 +98,38 @@ trait ClientServiceMocks extends MockFactory {
 
 
   def expectGetPageOfClients(arn: Arn, page: Int = 1, pageSize: Int = 20)
-                                (clients: Seq[DisplayClient])
-                                (implicit clientService: ClientService): Unit = {
+                            (clients: Seq[DisplayClient])
+                            (implicit clientService: ClientService): Unit = {
     val paginatedList = PaginatedList(pageContent = clients,
       paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length))
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)( _: Request[_], _: HeaderCarrier,
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier,
         _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }
 
+  def expectGetPaginatedClientsForArn(arn: Arn, page: Int = 1, pageSize: Int = 20)
+                                     (existingGroupClients: Seq[DisplayClient])
+                                     (pageOfClients: Seq[DisplayClient])
+                                     (implicit clientService: ClientService): Unit = {
+    val paginatedList = PaginatedList(pageContent = pageOfClients,
+      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, existingGroupClients.length))
+    (clientService
+      .getPaginatedClientsForArn(_: Arn, _: Seq[DisplayClient])(_: Int, _: Int)(_: Request[_], _: HeaderCarrier,
+        _: ExecutionContext))
+      .expects(arn, existingGroupClients, page, pageSize, *, *, *)
+      .returning(Future successful paginatedList)
+  }
+
   def expectGetPageOfClientsNone(arn: Arn, page: Int = 1, pageSize: Int = 10)
-                            (implicit clientService: ClientService): Unit = {
+                                (implicit clientService: ClientService): Unit = {
     val paginatedList = PaginatedList(
       pageContent = Seq.empty[DisplayClient],
       paginationMetaData = PaginationMetaData(lastPage = false, firstPage = false, 0, 0, 0, 0, 0)
     )
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)( _: Request[_], _: HeaderCarrier,
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier,
         _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)

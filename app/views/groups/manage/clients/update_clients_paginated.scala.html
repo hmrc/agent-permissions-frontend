@@ -63,7 +63,13 @@ withSearchAndErrorPrefix(!form.errors.isEmpty,
         @p("common.group.max.clients")
     </div>
 
-    @selectable_clients_table_form(clients, form, routes.ManageGroupClientsController.submitManageGroupClients(groupId), paginationMetaData)
+    @selectable_clients_table_form(
+        clients,
+        form,
+        routes.ManageGroupClientsController.submitManageGroupClients(groupId),
+        paginationMetaData,
+        backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(groupId).url)
+    )
 
 }
 

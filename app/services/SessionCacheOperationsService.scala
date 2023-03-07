@@ -39,7 +39,6 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
     }
   }
 
-
   def savePageOfClients(formData: AddClientsToGroup)
                        (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 

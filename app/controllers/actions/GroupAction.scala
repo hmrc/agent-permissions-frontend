@@ -18,6 +18,7 @@ package controllers.actions
 
 import config.AppConfig
 import controllers._
+import models.DisplayClient
 import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
@@ -55,7 +56,28 @@ class GroupAction @Inject()
                                        appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        groupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
+        groupService
+          .getGroup(groupId)
+          .flatMap(_.fold(groupNotFound)(body(_)))
+      }
+    }
+  }
+
+  def withGroupAndPageOfClientsForAuthorisedOptedAgent(groupId: String, page: Int = 1, pageSize: Int = 10)
+                                                      (body: (GroupSummary, PaginatedList[DisplayClient], Arn) => Future[Result])
+                                                      (implicit ec: ExecutionContext,
+                                                       hc: HeaderCarrier,
+                                                       request: MessagesRequest[AnyContent],
+                                                       appConfig: AppConfig): Future[Result] = {
+    authAction.isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        groupService
+          .getCustomSummary(groupId)
+          .flatMap(_.fold(groupNotFound)(summary => {
+            groupService.getPaginatedClientsForCustomGroup(groupId)(page, pageSize)
+              .flatMap(p => body(summary, PaginatedList(p._1, p._2), arn))
+          })
+          )
       }
     }
   }
@@ -156,11 +178,11 @@ class GroupAction @Inject()
   }
 
   def withGroupForAuthorisedAssistant(groupId: String, isCustom: Boolean = true)
-                                          (callback: (AccessGroup, Arn) => Future[Result])
-                                          (implicit ec: ExecutionContext,
-                                           hc: HeaderCarrier,
-                                           request: MessagesRequest[AnyContent],
-                                           appConfig: AppConfig)
+                                     (callback: (AccessGroup, Arn) => Future[Result])
+                                     (implicit ec: ExecutionContext,
+                                      hc: HeaderCarrier,
+                                      request: MessagesRequest[AnyContent],
+                                      appConfig: AppConfig)
   : Future[Result] = {
     authAction.isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>

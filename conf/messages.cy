@@ -25,9 +25,10 @@ common.tax-group=Grŵp gwasanaeth treth
 common.add=Ychwanegu
 common.remove=Tynnu
 common.group.max.clients=Gallwch fod â chyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad wedi’i deilwra.
-
 save.and.continue.button=Cadw ac yn eich blaen
 submit.button=Cyflwyno
+common.button.search.again=Search again
+common.group.already.in=Already in this group
 
 filter.legend=Hidlwyr
 filter.apply=Gweithredu hidlyddion
@@ -206,7 +207,7 @@ group.existing.clients.title=Rheoli cleientiaid - {0}
 group.existing.clients.button=Diweddaru cleientiaid
 group.client.list.update.h1=Diweddaru cleientiaid yn y grŵp hwn
 group.client.list.update.p=Mae cleientiaid presennol yn y grŵp hwn yn dangos fel rhai wedi’u dewis. Dewiswch unrhyw gleientiaid newydd a dewiswch ‘Yn eich blaen’.
-
+group.clients.added.confirm={0} clients added
 group.renamed.h1=Grŵp mynediad wedi’i ailenwi
 group.renamed.panelContent=Grŵp mynediad <strong>{0}</strong> wedi’i ailenwi’n <strong>{1}</strong>
 

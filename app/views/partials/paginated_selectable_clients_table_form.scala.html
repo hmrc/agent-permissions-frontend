@@ -28,6 +28,7 @@
     caption: caption,
     table: table,
     submit_button: submit_button,
+    link_as_button: link_as_button,
     search_and_filter: search_and_filter,
     pagination: POST_pagination,
     textbox: textbox,
@@ -36,6 +37,7 @@
     summaryErrors: SummaryErrors,
     govukSkipLink: GovukSkipLink,
     formWithCSRF: FormWithCSRF,
+    govukWarningText: GovukWarningText
 )
 
 @(
@@ -43,20 +45,25 @@
     form: Form[AddClientsToGroup],
     formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
     paginationMetaData: Option[PaginationMetaData] = None,
-    showFilter: Boolean = false
+    showFilter: Boolean = false,
+    backLinkHref:Option[String] = None,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     clients.zipWithIndex.map(client =>
         Seq(
             Html(
-                checkbox(
-                    name = Some("clients[]"),
-                    id = Some(s"add-client-${client._2}"),
-                    label = displayNameOrFullReference(client._1.name, client._1.hmrcRef),
-                    value = Some(client._1.id),
-                    checked = client._1.selected
-                ).toString
+                if(client._1.selected){
+                    msgs("common.group.already.in")
+                }else{
+                    checkbox(
+                        name = Some("clients[]"),
+                        id = Some(s"add-client-${client._2}"),
+                        label = displayNameOrFullReference(client._1.name, client._1.hmrcRef),
+                        value = Some(client._1.id)
+                    ).toString
+                }
+
             ),
             Html(client._1.name),
             Html(displayObfuscatedReference(client._1.name, client._1.hmrcRef)),
@@ -70,10 +77,12 @@
 @totalResults = @{paginationMetaData.fold(clients.length)(_.totalSize)}
 @totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
 
-@govukSkipLink(SkipLink(
-    href = "#clients",
-    content = Text(msgs("common.skip-to-clients"))
-))
+    @govukSkipLink(
+        SkipLink(
+            href = "#clients",
+            content = Text(msgs("common.skip-to-clients"))
+        )
+    )
 
 @formWithCSRF(action = formAction) {
 
@@ -103,21 +112,11 @@
                 id = Some("multi-select-table"),
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
-                    (
-                        span(""), Map("id" -> "select-all")
-                    ),
-                    (
-                        Html(msgs("group.client.list.table.th1")),
-                        Map("aria-sort" -> "none")
-                    ),
-                    (
-                        Html(msgs("group.client.list.table.th2")),
-                        Map("aria-sort" -> "none")
-                    ),
-                    (
-                        Html(msgs("group.client.list.table.th3")),
-                        Map("aria-sort" -> "none")
-                    )),
+                    (span(""),Map("id" -> "select-all")),
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty),
+                    (Html(msgs("group.client.list.table.th3")), Map.empty)
+                ),
                 rows = tableRows,
             )
             </div>
@@ -136,13 +135,19 @@
         @p(key = msgs("already.selected.clients.nonjs", totalSelected),
             id = Some("member-count-text-non-js"),
         )
+        @submit_button()
 
     } else {
         <div id="clients">
             @h2("clients.not-found.heading")
             @p("clients.not-found.p")
         </div>
-    }
+        @if(backLinkHref.isDefined){
+            @link_as_button(
+                key= "common.button.search.again",
+                href = backLinkHref.get
+            )
+        }
 
-    @submit_button()
+    }
 }

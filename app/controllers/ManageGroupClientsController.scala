@@ -341,10 +341,10 @@ class ManageGroupClientsController @Inject()
                     Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
                   else {
                     val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
-                    // TODO replace with AddMembersToAccessGroupRequest after APB-6886
                     val addClientsRequest = AddMembersToAccessGroupRequest(None, Some(toSave))
                     groupService.addMembersToGroup(groupId, addClientsRequest).map(_ =>
-                      Redirect(controller.showGroupClientsUpdatedConfirmation(groupId)) // update to controller.showExistingGroupClients(summary.groupId, None, None)
+                      Redirect(controller.showExistingGroupClients(groupId, None, None))
+                        .flashing("success" -> request.messages("group.clients.added.confirm", toSave.size))
                     )
                   }
                 }

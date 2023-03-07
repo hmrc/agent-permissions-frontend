@@ -222,6 +222,7 @@ group.existing.clients.tax.info=This is a tax service group which updates automa
 group.existing.clients.button=Update clients
 group.existing.custom.groups.button=Create custom access group
 group.client.list.update.h1=Update clients in this group
+group.clients.added.confirm={0} clients added
 group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
 

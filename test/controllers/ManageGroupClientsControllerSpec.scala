@@ -719,8 +719,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST submitReviewSelectedClients on url${ctrlRoute.submitReviewSelectedClients(grpId).url}" should {
 
-    s"redirect to showGroupClientsUpdatedConfirmation on url '${ctrlRoute.showGroupClientsUpdatedConfirmation(grpId)}' " +
-      s"when page is submitted with answer 'NO'/'false'" in {
+    s"redirect to existing group clients on url when page is submitted with answer 'NO'/'false'" in {
 
       expectAuthOkOptedInReady()
 
@@ -738,8 +737,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients(grpId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute
-        .showGroupClientsUpdatedConfirmation(grpId).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(grpId, None, None).url
+
     }
 
     s"redirect to showSearchClientsToAdd on url '${ctrlRoute.showSearchClientsToAdd(grpId)}' " +

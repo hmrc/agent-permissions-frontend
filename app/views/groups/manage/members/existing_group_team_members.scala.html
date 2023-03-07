@@ -56,6 +56,7 @@
 
     @if(paginatedMembers.pageContent.nonEmpty) {
         @existing_members_table_filter_form(
+            group,
             paginatedMembers.pageContent,
             form,
             routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, group.groupType, None),

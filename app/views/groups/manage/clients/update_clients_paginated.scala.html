@@ -66,7 +66,7 @@ withSearchAndErrorPrefix(!form.errors.isEmpty,
     @selectable_clients_table_form(
         clients,
         form,
-        routes.ManageGroupClientsController.submitManageGroupClients(groupId),
+        routes.ManageGroupClientsController.submitAddClients(groupId),
         paginationMetaData,
         backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(groupId).url)
     )

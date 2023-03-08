@@ -387,11 +387,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val result = controller.submitSearchClientsToAdd(grpId)(request)
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupClients(grpId, None, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showAddClients(grpId, None, None).url
     }
   }
 
-  s"GET ${ctrlRoute.showManageGroupClients(grpId, None, None).url}" should {
+  s"GET ${ctrlRoute.showAddClients(grpId, None, None).url}" should {
 
     "render correctly the manage group CLIENTS page" in {
       //given
@@ -407,7 +407,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetPaginatedClientsForArn(arn)(existingClients)(existingClients ++ availableDisplayClients)
 
       //when
-      val result = controller.showManageGroupClients(grpId, None, None)(request)
+      val result = controller.showAddClients(grpId, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -462,7 +462,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
 
       //when
-      val result = controller.showManageGroupClients(grpId, None, None)(request)
+      val result = controller.showAddClients(grpId, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -489,7 +489,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectPutSessionItem(EXISTING_CLIENTS, existingClients )
       expectGetPaginatedClientsForArn(arn)(existingClients)(existingClients ++ availableDisplayClients)
 
-      val result = controller.showManageGroupClients(grpId, None, None)(request)
+      val result = controller.showAddClients(grpId, None, None)(request)
 
       status(result) shouldBe OK
 
@@ -501,14 +501,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitManageGroupClients(grpId).url}" should {
+  s"POST ${ctrlRoute.submitAddClients(grpId).url}" should {
 
     "save selected clients to session" when {
 
       s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups(None,None).url}" in {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+          FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
             .withFormUrlEncodedBody(
                             "clients[0]" -> displayClients.head.id,
               "clients[1]" -> displayClients.last.id,
@@ -531,7 +531,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         expectDeleteSessionItems(clientFilteringKeys)
 
-        val result = controller.submitManageGroupClients(grpId)(request)
+        val result = controller.submitAddClients(grpId)(request)
 
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
@@ -541,7 +541,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       "display error when button is CONTINUE_BUTTON, selected in session and ALL deselected" in {
         // given
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+          FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
             "clients" -> "",
@@ -564,7 +564,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         // when
         await(sessionCacheRepo.putSession(SELECTED_CLIENTS, displayClients)) // hasPreSelected is true
-        val result = controller.submitManageGroupClients(grpId)(request)
+        val result = controller.submitAddClients(grpId)(request)
 
         status(result) shouldBe OK
         val html = Jsoup.parse(contentAsString(result))
@@ -576,12 +576,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           .select(Css.errorSummaryForField("clients"))
       }
 
-      s"PAGINATION_BUTTON clicked redirect to ${ctrlRoute.showManageGroupClients(grpId, Some(2), Some(20)).url}" in {
+      s"PAGINATION_BUTTON clicked redirect to ${ctrlRoute.showAddClients(grpId, Some(2), Some(20)).url}" in {
 
         val paginationButton = PAGINATION_BUTTON + "_2"
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+          FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "clients" -> "",
@@ -598,11 +598,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         expectSavePageOfClients(formData, Seq.empty)
 
         // when
-        val result = controller.submitManageGroupClients(grpId)(request)
+        val result = controller.submitAddClients(grpId)(request)
         status(result) shouldBe SEE_OTHER
 
         redirectLocation(result).get shouldBe
-          ctrlRoute.showManageGroupClients(grpId, Some(2),Some(20)).url
+          ctrlRoute.showAddClients(grpId, Some(2),Some(20)).url
       }
     }
 
@@ -610,7 +610,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       // given
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+        FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
           .withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
           "clients" -> "",
@@ -625,7 +625,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetPageOfClients(arn)(displayClients)
 
       // when
-      val result = controller.submitManageGroupClients(grpId)(request)
+      val result = controller.submitAddClients(grpId)(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -781,52 +781,6 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to select more clients"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to select more clients"
 
-    }
-  }
-
-  s"GET showGroupClientsUpdatedConfirmation on ${ctrlRoute.showGroupClientsUpdatedConfirmation(grpId).url}" should {
-
-    "render correctly" in {
-      //given
-      expectAuthOkOptedInReady()
-
-      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectDeleteSessionItem(SELECTED_CLIENTS)
-
-      //when
-      val result = controller.showGroupClientsUpdatedConfirmation(grpId)(request)
-
-      //then
-      status(result) shouldBe OK
-      // selected clients should be cleared from session
-
-      //and
-      val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Bananas access group clients updated - Agent services account - GOV.UK"
-      html.select(Css.confirmationPanelH1).text() shouldBe "Bananas access group clients updated"
-      html.select(Css.H2).text() shouldBe "What happens next"
-      html.select(Css.paragraphs).get(0).text() shouldBe "You have changed the clients that can be managed by the team members in this access group."
-      html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
-      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups(None,None).url
-      html.select(Css.backLink).size() shouldBe 0
-    }
-
-    s"redirect to ${ctrlRoute.showSearchClientsToAdd(grpId)} when there are no selected clients" in {
-
-      expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
-
-      expectGetSessionItemNone(SELECTED_CLIENTS)
-
-
-      //when
-      val result = controller.showGroupClientsUpdatedConfirmation(grpId)(request)
-
-      //then
-      status(result) shouldBe SEE_OTHER
-
-      redirectLocation(result).get shouldBe ctrlRoute.showSearchClientsToAdd(grpId).url
     }
   }
 

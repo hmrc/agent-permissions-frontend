@@ -784,52 +784,6 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET showGroupClientsUpdatedConfirmation on ${ctrlRoute.showGroupClientsUpdatedConfirmation(grpId).url}" should {
-
-    "render correctly" in {
-      //given
-      expectAuthOkOptedInReady()
-
-      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
-      expectDeleteSessionItem(SELECTED_CLIENTS)
-
-      //when
-      val result = controller.showGroupClientsUpdatedConfirmation(grpId)(request)
-
-      //then
-      status(result) shouldBe OK
-      // selected clients should be cleared from session
-
-      //and
-      val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Bananas access group clients updated - Agent services account - GOV.UK"
-      html.select(Css.confirmationPanelH1).text() shouldBe "Bananas access group clients updated"
-      html.select(Css.H2).text() shouldBe "What happens next"
-      html.select(Css.paragraphs).get(0).text() shouldBe "You have changed the clients that can be managed by the team members in this access group."
-      html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
-      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups(None,None).url
-      html.select(Css.backLink).size() shouldBe 0
-    }
-
-    s"redirect to ${ctrlRoute.showSearchClientsToAdd(grpId)} when there are no selected clients" in {
-
-      expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(grpId, Some(GroupSummary.fromAccessGroup(accessGroup)))
-
-      expectGetSessionItemNone(SELECTED_CLIENTS)
-
-
-      //when
-      val result = controller.showGroupClientsUpdatedConfirmation(grpId)(request)
-
-      //then
-      status(result) shouldBe SEE_OTHER
-
-      redirectLocation(result).get shouldBe ctrlRoute.showSearchClientsToAdd(grpId).url
-    }
-  }
-
   private val clientToRemove: DisplayClient = displayClients.head
 
   s"GET ${ctrlRoute.showConfirmRemoveClient(grpId, clientToRemove.id).url}" should {

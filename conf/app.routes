@@ -78,8 +78,6 @@ POST    /manage-custom-group/:groupId/update-clients/add                    cont
 GET     /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 POST    /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
 
-GET     /manage-custom-group/:groupId/update-clients/complete   controllers.ManageGroupClientsController.showGroupClientsUpdatedConfirmation(groupId: String)
-
 # Manage tax groups - clients
 GET     /manage-tax-group/:groupId/clients     controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 

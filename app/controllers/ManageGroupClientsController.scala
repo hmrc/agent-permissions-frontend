@@ -341,8 +341,9 @@ class ManageGroupClientsController @Inject()
                     Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
                   else {
                     val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
-                    val addClientsRequest = AddMembersToAccessGroupRequest(None, Some(toSave))
-                    groupService.addMembersToGroup(groupId, addClientsRequest).map(_ =>
+                    groupService
+                      .addMembersToGroup(groupId, AddMembersToAccessGroupRequest(None, Some(toSave)))
+                      .map(_ =>
                       Redirect(controller.showExistingGroupClients(groupId, None, None))
                         .flashing("success" -> request.messages("group.clients.added.confirm", toSave.size))
                     )
@@ -350,18 +351,6 @@ class ManageGroupClientsController @Inject()
                 }
               )
           }
-      }
-    }
-  }
-
-  def showGroupClientsUpdatedConfirmation(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
-        if (selectedClients.isDefined) {
-          sessionCacheService.delete(SELECTED_CLIENTS)
-            .map(_ => Ok(clients_update_complete(summary)))
-        }
-        else Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
       }
     }
   }

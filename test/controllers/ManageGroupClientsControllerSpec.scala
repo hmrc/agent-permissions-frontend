@@ -671,7 +671,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         status(result) shouldBe OK
         val html = Jsoup.parse(contentAsString(result))
         html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
-        html.select(H1).text() shouldBe "You have selected 3 clients"
+        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group"
         html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 3
         html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"
         val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
@@ -698,7 +698,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         status(result) shouldBe OK
         val html = Jsoup.parse(contentAsString(result))
         html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
-        html.select(H1).text() shouldBe "You have selected 3 clients"
+        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group"
         html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 1
 
         val paginationListItems = html.select(Css.pagination_li)
@@ -777,7 +777,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 3 clients"
+      html.select(H1).text() shouldBe "You have selected 3 clients to add to the group"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to select more clients"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to select more clients"
 

@@ -152,6 +152,7 @@ group.client.list.table.th3=Gwasanaeth treth
 error.client.list.empty=Mae’n rhaid i chi ddewis o leiaf un cleient
 
 group.clients.review.h1=Rydych wedi dewis {0} o gleientiaid
+group.clients.add.review.h1=You have selected {0} clients to add to the group
 group.clients.review.title=Adolygu’r cleientiaid sydd wedi’u dewis
 group.clients.review.radio.legend=Do you need to select more clients?
 group.clients.review.yes.label=Yes, select more clients

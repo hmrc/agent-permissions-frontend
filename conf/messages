@@ -166,6 +166,7 @@ group.client.list.table.th3=Tax service
 error.client.list.empty=You must select at least one client 
 
 group.clients.review.h1=You have selected {0} clients
+group.clients.add.review.h1=You have selected {0} clients to add to the group
 group.clients.review.title=Review selected clients
 group.clients.review.radio.legend=Do you need to select more clients?
 group.clients.review.yes.label=Yes, select more clients

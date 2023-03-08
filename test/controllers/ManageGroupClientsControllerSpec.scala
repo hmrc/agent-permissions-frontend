@@ -501,14 +501,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitManageGroupClients(grpId).url}" should {
+  s"POST ${ctrlRoute.submitAddClients(grpId).url}" should {
 
     "save selected clients to session" when {
 
       s"button is Continue and redirect to ${routes.ManageGroupController.showManageGroups(None,None).url}" in {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+          FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
             .withFormUrlEncodedBody(
                             "clients[0]" -> displayClients.head.id,
               "clients[1]" -> displayClients.last.id,
@@ -541,7 +541,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       "display error when button is CONTINUE_BUTTON, selected in session and ALL deselected" in {
         // given
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+          FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
             "clients" -> "",
@@ -581,7 +581,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val paginationButton = PAGINATION_BUTTON + "_2"
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+          FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "clients" -> "",
@@ -610,7 +610,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       // given
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupClients(grpId).url)
+        FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
           .withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
           "clients" -> "",

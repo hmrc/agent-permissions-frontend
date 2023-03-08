@@ -28,6 +28,7 @@
     caption: caption,
     table: table,
     submit_button: submit_button,
+    info_text: infoText,
     link_as_button: link_as_button,
     search_and_filter: search_and_filter,
     pagination: POST_pagination,
@@ -54,7 +55,7 @@
         Seq(
             Html(
                 if(client._1.selected){
-                    msgs("common.group.already.in")
+                    info_text("common.group.already.in").toString
                 }else{
                     checkbox(
                         name = Some("clients[]"),

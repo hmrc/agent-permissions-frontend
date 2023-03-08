@@ -12,6 +12,15 @@ main.govuk-main-wrapper {
   padding-top: 30px !important;
 }
 
+.govuk-warning-text__icon.info{
+  font-weight: 700;
+  min-width: 25px;
+  min-height: 25px;
+  line-height: 19px;
+  font-size: 20px;
+  margin-top: 0px;
+}
+
 #multi-select-table .govuk-table__cell div.govuk-checkboxes{
   margin-top: -7px;
 }

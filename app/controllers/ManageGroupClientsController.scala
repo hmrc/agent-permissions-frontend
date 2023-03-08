@@ -212,14 +212,14 @@ class ManageGroupClientsController @Inject()
   }
 
   def showAddClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    //TODO: get a group with a page of available clients and mark which ones are already in the group
     withGroupForAuthorisedOptedAgent(groupId) { group =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           val clientsInGroupAlready = group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true))
           for {
             _ <- sessionCacheService.put[Seq[DisplayClient]](EXISTING_CLIENTS, clientsInGroupAlready)
-            paginatedClients <- clientService
-              .getPaginatedClientsForArn(group.arn, clientsInGroupAlready)(page.getOrElse(1), pageSize.getOrElse(20))
+            paginatedClients <- clientService.getPaginatedClientsForArn(group.arn, clientsInGroupAlready)(page.getOrElse(1), pageSize.getOrElse(20))
           } yield {
             val form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm, None))
             Ok(

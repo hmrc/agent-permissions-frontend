@@ -73,8 +73,8 @@ GET     /manage-custom-group/:groupId/clients/confirm-remove/:clientId      cont
 POST    /manage-custom-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageGroupClientsController.submitConfirmRemoveClient(groupId: String, clientId: String)
 GET     /manage-custom-group/:groupId/update-clients/search                 controllers.ManageGroupClientsController.showSearchClientsToAdd(groupId: String)
 POST    /manage-custom-group/:groupId/update-clients/search                 controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: String)
-GET     /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.showManageGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
-POST    /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.submitManageGroupClients(groupId: String)
+GET     /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.showAddClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+POST    /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.submitAddClients(groupId: String)
 GET     /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 POST    /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
 

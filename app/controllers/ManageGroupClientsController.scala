@@ -205,13 +205,13 @@ class ManageGroupClientsController @Inject()
             ).toFuture
           }, formData => {
             sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
-              Redirect(controller.showManageGroupClients(groupId, None, None)).toFuture
+              Redirect(controller.showAddClients(groupId, None, None)).toFuture
             })
           })
     }
   }
 
-  def showManageGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showAddClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
@@ -237,7 +237,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def submitManageGroupClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitAddClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
@@ -287,7 +287,7 @@ class ManageGroupClientsController @Inject()
                     }
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                    Redirect(controller.showManageGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
+                    Redirect(controller.showAddClients(groupId, Some(pageToShow), Some(20))).toFuture
                   } else { //bad submit
                     Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
                   }
@@ -330,12 +330,14 @@ class ManageGroupClientsController @Inject()
               .bindFromRequest
               .fold(
                 formWithErrors => {
-                  Ok(review_update_clients(
-                    paginatedList.pageContent,
-                    summary,
-                    formWithErrors,
-                    paginatedList.paginationMetaData
-                  )).toFuture
+                  Ok(
+                    review_update_clients(
+                      paginatedList.pageContent,
+                      summary,
+                      formWithErrors,
+                      paginatedList.paginationMetaData
+                    )
+                  ).toFuture
                 }, (yes: Boolean) => {
                   if (yes)
                     Redirect(controller.showSearchClientsToAdd(groupId)).toFuture

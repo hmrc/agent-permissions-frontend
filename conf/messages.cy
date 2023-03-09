@@ -202,13 +202,13 @@ group.manage.delete=Dileu grŵp
 group.manage.clients=Rheoli cleientiaid
 group.view.clients=View clients
 group.manage.members=Rheoli aelodau o’r tîm
-person.removed.confirm={0} removed from this access group
+person.removed.confirm={0} removed from this access group.
 group.existing.clients.h1=Rheoli cleientiaid yn y grŵp hwn
 group.existing.clients.title=Rheoli cleientiaid - {0}
 group.existing.clients.button=Diweddaru cleientiaid
 group.client.list.update.h1=Diweddaru cleientiaid yn y grŵp hwn
 group.client.list.update.p=Mae cleientiaid presennol yn y grŵp hwn yn dangos fel rhai wedi’u dewis. Dewiswch unrhyw gleientiaid newydd a dewiswch ‘Yn eich blaen’.
-group.clients.added.confirm={0} clients added
+group.clients.added.confirm={0} clients added.
 group.renamed.h1=Grŵp mynediad wedi’i ailenwi
 group.renamed.panelContent=Grŵp mynediad <strong>{0}</strong> wedi’i ailenwi’n <strong>{1}</strong>
 

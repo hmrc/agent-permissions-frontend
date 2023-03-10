@@ -142,7 +142,7 @@ class CreateGroupSelectClientsController @Inject()
             formData => {
               // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
               sessionCacheOps
-                .savePageOfClients(formData)
+                .savePageOfClientsForCreateGroup(formData)
                 .flatMap(nowSelectedClients => {
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected clients from session cache AFTER saving (removed de-selections)

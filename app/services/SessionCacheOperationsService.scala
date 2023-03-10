@@ -39,8 +39,9 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
     }
   }
 
-  def savePageOfClients(formData: AddClientsToGroup)
-                       (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
+  /** This is only used for CREATING groups and adding clients as you can't unselect from an existing group */
+  def savePageOfClientsForCreateGroup(formData: AddClientsToGroup)
+                                     (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 
     val clientsInSession = for {
       _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
@@ -57,6 +58,34 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
         .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
     } yield (newSelectedClients)
+    clientsInSession.flatMap(_ =>
+      formData.submit.trim match {
+        case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_ => clientsInSession) // TODO Should this call be in this function? This function mentions nothing (and should know nothing) about filtering
+        case _ => clientsInSession
+      }
+    )
+
+  }
+
+  /** This is only used for CREATING groups and adding clients as you can't unselect from an existing group */
+  def saveClientsToAddToExistingGroup(formData: AddClientsToGroup)
+                                     (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
+
+    val clientsInSession = for {
+      _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
+      _ <- formData.filter.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
+      existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
+      currentPageClients <- sessionCacheService.get(CURRENT_PAGE_CLIENTS).map(_.getOrElse(Seq.empty))
+      clientsSelectedInCurrentPage = formData.clients.getOrElse(Seq.empty)
+      clientsToAdd = currentPageClients.filter(cl => clientsSelectedInCurrentPage.contains(cl.id))
+      idsToRemove = currentPageClients.map(_.id).diff(clientsSelectedInCurrentPage)
+      newSelectedClients = (existingSelectedClients ++ clientsToAdd)
+        .map(_.copy(selected = true))
+        .filterNot(cl => idsToRemove.contains(cl.id))
+        .distinct
+        .sortBy(_.name)
+      _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
+    } yield newSelectedClients
     clientsInSession.flatMap(_ =>
       formData.submit.trim match {
         case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_ => clientsInSession) // TODO Should this call be in this function? This function mentions nothing (and should know nothing) about filtering

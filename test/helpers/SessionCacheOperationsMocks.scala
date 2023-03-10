@@ -28,7 +28,15 @@ trait SessionCacheOperationsMocks extends MockFactory {
   def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
                                  (implicit sessionCacheOps: SessionCacheOperationsService): Unit =
     (sessionCacheOps
-      .savePageOfClients(_: AddClientsToGroup)
+      .savePageOfClientsForCreateGroup(_: AddClientsToGroup)
+      (_: ExecutionContext, _: Request[_]))
+      .expects(formData, *, *)
+      .returning(Future successful members)
+
+  def expectSaveClientsToAddToExistingGroup(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
+                                 (implicit sessionCacheOps: SessionCacheOperationsService): Unit =
+    (sessionCacheOps
+      .saveClientsToAddToExistingGroup(_: AddClientsToGroup)
       (_: ExecutionContext, _: Request[_]))
       .expects(formData, *, *)
       .returning(Future successful members)

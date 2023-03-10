@@ -63,6 +63,10 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                                        (page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
 
+  def getPaginatedClientsToAddToGroup(id: String)
+                                     (page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
+                                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(GroupSummary, PaginatedList[DisplayClient])]
+
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
   def getGroup(id: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]]
@@ -353,6 +357,25 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
       http.GET[HttpResponse](url).map { response =>
         response.status match {
           case OK => response.json.as[PaginatedList[Client]]
+          case e => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
+        }
+      }
+    }
+  }
+
+  def getPaginatedClientsToAddToGroup(id: String)
+                                     (page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
+                                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(GroupSummary, PaginatedList[DisplayClient])] = {
+
+    val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
+    val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
+    val url = s"$baseUrl/agent-permissions/group/$id/clients/add?page=$page&pageSize=$pageSize$searchParam$filterParam"
+    monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK =>
+            val tuple = response.json.as[(GroupSummary, PaginatedList[DisplayClient])]
+            tuple
           case e => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
         }
       }

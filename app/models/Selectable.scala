@@ -58,7 +58,8 @@ case class DisplayClient(
                           name: String,
                           taxService: String,
                           identifierKey: String,
-                          selected: Boolean = false
+                          selected: Boolean = false,
+                          alreadyInGroup: Boolean = false
                         ) extends Selectable {
   val enrolmentKey = s"$taxService~$identifierKey~$hmrcRef"
   val id: String = MurmurHash3.stringHash(enrolmentKey).toString

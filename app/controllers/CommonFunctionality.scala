@@ -109,7 +109,7 @@ abstract class POSTPaginatedSearchableClientSelectHandler(sessionCacheService: S
       val emptyForm: Form[AddClientsToGroup] = AddClientsToGroupForm.form()
       val renderPage: Form[AddClientsToGroup] => Future[Result] = self.renderPage
       val reloadCall: (Option[Int], Option[String], Option[String]) => Call = self.reloadCall
-      val onSubmit: AddClientsToGroup => Future[Unit] = formData => sessionCacheOps.savePageOfClients(formData).map(_ => ())
+      val onSubmit: AddClientsToGroup => Future[Unit] = formData => sessionCacheOps.savePageOfClientsForCreateGroup(formData).map(_ => ())
       val onContinue: AddClientsToGroup => Future[Result] = { formData =>
         // check selected clients from session cache AFTER saving (removed de-selections)
         sessionCacheService.get(SELECTED_CLIENTS).flatMap { nowSelectedClients =>

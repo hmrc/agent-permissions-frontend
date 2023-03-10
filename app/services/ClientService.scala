@@ -23,7 +23,7 @@ import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIEN
 import models.DisplayClient
 import play.api.libs.json.JsNumber
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, GroupSummary, PaginatedList}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -42,9 +42,9 @@ trait ClientService {
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[DisplayClient]]
 
-  def getPaginatedClientsForArn(arn: Arn, alreadyInGroup: Seq[DisplayClient])(page: Int, pageSize: Int)
-                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
-  : Future[PaginatedList[DisplayClient]]
+  def getPaginatedClientsToAddToGroup(id: String)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
+                                     (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[(GroupSummary, PaginatedList[DisplayClient])]
 
   def getUnassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]]
@@ -109,27 +109,24 @@ class ClientServiceImpl @Inject()(
         .map(cl => DisplayClient.fromClient(cl))
         .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
       totalClientsSelected = maybeSelectedClients.fold(0)(_.length)
-      metadataWithExtra = pageOfClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(totalClientsSelected))))  // This extra data is needed to display correct 'selected' count in front-end
-      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)  // TODO this side-effect does not belong in this 'get' type function! Move it to the caller site!
+      metadataWithExtra = pageOfClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(totalClientsSelected)))) // This extra data is needed to display correct 'selected' count in front-end
+      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected) // TODO this side-effect does not belong in this 'get' type function! Move it to the caller site!
     } yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
   }
-
-  def getPaginatedClientsForArn(arn: Arn, alreadyInGroup: Seq[DisplayClient] = Nil)(page: Int = 1, pageSize: Int = 20)
-                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
+  def getPaginatedClientsToAddToGroup(id: String)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
+                                     (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
+  : Future[(GroupSummary, PaginatedList[DisplayClient])] = {
     for {
-      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-      pageOfClients <-
-        agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize, searchTerm, filterTerm)
-      existingSelectedClientIds = alreadyInGroup.map(_.id)
-      pageOfClientsMarkedSelected = pageOfClients
+      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
+      existingSelectedClientIds = maybeSelectedClients.getOrElse(Nil).map(_.id)
+      tuple <- agentPermissionsConnector.getPaginatedClientsToAddToGroup(id)(page, pageSize, search, filter)
+      pageOfClientsMarkedSelected = tuple._2
         .pageContent
-        .map(cl => DisplayClient.fromClient(cl))
-        .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
-      numAlreadyInGroup = alreadyInGroup.length
-      metadataWithExtra = pageOfClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(numAlreadyInGroup)))) // This extra data is needed to display correct 'selected' count in front-end
+        .map(dc => if (maybeSelectedClients.contains(dc.id)) dc.copy(selected = true) else dc)
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
-    } yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
+      clientsMarkedAsSelected = tuple._2.pageContent.map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
+      x = (tuple._1, PaginatedList[DisplayClient] (pageContent = clientsMarkedAsSelected, paginationMetaData = tuple._2.paginationMetaData))
+    } yield x
   }
 
   def getUnassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)

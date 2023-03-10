@@ -46,11 +46,10 @@ class ManageGroupClientsController @Inject()
   val sessionCacheService: SessionCacheService,
   val sessionCacheOps: SessionCacheOperationsService,
   review_update_clients: review_update_clients,
-  update_clients: update_clients_paginated,
+  update_clients_paginated: update_clients_paginated,
   confirm_remove_client: confirm_remove_client,
   existing_clients: existing_clients,
-  search_clients: search_clients,
-  clients_update_complete: clients_update_complete
+  search_clients: search_clients
 )(
   implicit val appConfig: AppConfig,
   ec: ExecutionContext,
@@ -70,12 +69,13 @@ class ManageGroupClientsController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold( // fresh page load or pagination reload
-        groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20)).map({ paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
+        groupService
+          .getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20)).map({ paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
           Ok(
             existing_clients(
               group = summary,
               groupClients = paginatedList._1,
-              form = SearchAndFilterForm.form(), // TODO fill form when reloading page via pagination
+              form = SearchAndFilterForm.form(),
               paginationMetaData = Some(paginatedList._2)
             )
           )
@@ -212,26 +212,23 @@ class ManageGroupClientsController @Inject()
   }
 
   def showAddClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    //TODO: get a group with a page of available clients and mark which ones are already in the group
     withGroupForAuthorisedOptedAgent(groupId) { group =>
-      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
-        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          val clientsInGroupAlready = group.clients.toSeq.flatten.map(DisplayClient.fromClient(_)).map(_.copy(selected = true))
-          for {
-            _ <- sessionCacheService.put[Seq[DisplayClient]](EXISTING_CLIENTS, clientsInGroupAlready)
-            paginatedClients <- clientService.getPaginatedClientsForArn(group.arn, clientsInGroupAlready)(page.getOrElse(1), pageSize.getOrElse(20))
-          } yield {
-            val form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm, None))
-            Ok(
-              update_clients(
-                paginatedClients.pageContent,
-                groupName = group.groupName,
-                groupId = groupId,
-                form,
-                Some(paginatedClients.paginationMetaData)
+      withSessionItem[String](CLIENT_FILTER_INPUT) { filter =>
+        withSessionItem[String](CLIENT_SEARCH_INPUT) { search =>
+          clientService
+            .getPaginatedClientsToAddToGroup(group._id.toString)(page.getOrElse(1), pageSize.getOrElse(20), search, filter)
+            .map(tuple2 => {
+              val form = AddClientsToGroupForm.form().fill(AddClientsToGroup(search, filter, None))
+              Ok(
+                update_clients_paginated(
+                  tuple2._2.pageContent,
+                  groupName = tuple2._1.groupName,
+                  groupId = groupId,
+                  form,
+                  Option(tuple2._2.paginationMetaData)
+                )
               )
-            )
-          }
+            })
         }
       }
     }
@@ -240,60 +237,68 @@ class ManageGroupClientsController @Inject()
   def submitAddClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
-        // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
-        val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
-        AddClientsToGroupForm
-          .form(hasPreSelected)
-          .bindFromRequest()
-          .fold(
-            formWithErrors => {
-              clientService.getPaginatedClients(group.arn)(1, 20).map { paginatedClients =>
-                Ok(
-                  update_clients(
-                    paginatedClients.pageContent,
-                    group.groupName,
-                    groupId,
-                    formWithErrors,
-                    Some(paginatedClients.paginationMetaData)
-                  )
-                )
-              }
-            },
-            formData => {
-              // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
-              sessionCacheOps
-                .savePageOfClients(formData)
-                .flatMap(nowSelectedClients =>
-                  if (formData.submit == CONTINUE_BUTTON) {
-                    // checks selected clients from session cache AFTER saving (removed de-selections)
-                    if (nowSelectedClients.nonEmpty) {
-                      sessionCacheService.deleteAll(clientFilteringKeys).map(_ =>
-                        Redirect(controller.showReviewSelectedClients(groupId, None, None))
+        withSessionItem[String](CLIENT_FILTER_INPUT) { filter =>
+          withSessionItem[String](CLIENT_SEARCH_INPUT) { search =>
+            // allows form to bind if preselected clients so we can `.saveSelectedOrFilteredClients`
+            val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
+            AddClientsToGroupForm
+              .form(hasPreSelected)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  clientService
+                    .getPaginatedClientsToAddToGroup(group._id.toString)(1, 20, search, filter)
+                    .map { paginatedClients =>
+                    Ok(
+                      update_clients_paginated(
+                        paginatedClients._2.pageContent,
+                        group.groupName,
+                        groupId,
+                        formWithErrors,
+                        Some(paginatedClients._2.paginationMetaData)
                       )
-                    } else { // display empty error
-                      for {
-                        paginatedClients <- clientService.getPaginatedClients(group.arn)(1, 20)
-                      } yield {
-                        Ok(
-                          update_clients(
-                            paginatedClients.pageContent,
-                            group.groupName,
-                            groupId,
-                            AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
-                            Some(paginatedClients.paginationMetaData)
-                          )
-                        )
-                      }
-                    }
-                  } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
-                    val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
-                    Redirect(controller.showAddClients(groupId, Some(pageToShow), Some(20))).toFuture
-                  } else { //bad submit
-                    Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
+                    )
                   }
-                )
-            }
-          )
+                },
+                formData => {
+                  // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
+                  sessionCacheOps
+                    .saveClientsToAddToExistingGroup(formData)
+                    .flatMap(nowSelectedClients =>
+                      if (formData.submit == CONTINUE_BUTTON) {
+                        // checks selected clients from session cache AFTER saving (removed de-selections)
+                        if (nowSelectedClients.nonEmpty) {
+                          sessionCacheService
+                            .deleteAll(clientFilteringKeys)
+                            .map(_ => Redirect(controller.showReviewSelectedClients(groupId, None, None))
+                          )
+                        } else { // display empty error
+                          for {
+                            paginatedClients <- clientService
+                              .getPaginatedClientsToAddToGroup(group._id.toString)(1, 20, search, filter)
+                          } yield {
+                            Ok(
+                              update_clients_paginated(
+                                paginatedClients._2.pageContent,
+                                group.groupName,
+                                groupId,
+                                AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
+                                Some(paginatedClients._2.paginationMetaData)
+                              )
+                            )
+                          }
+                        }
+                      } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
+                        val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
+                        Redirect(controller.showAddClients(groupId, Some(pageToShow), Some(20))).toFuture
+                      } else { //bad submit
+                        Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
+                      }
+                    )
+                }
+              )
+          }
+        }
       }
     }
   }
@@ -343,11 +348,12 @@ class ManageGroupClientsController @Inject()
                     Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
                   else {
                     val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
-                    groupService
-                      .addMembersToGroup(groupId, AddMembersToAccessGroupRequest(None, Some(toSave)))
-                      .map(_ =>
-                      Redirect(controller.showExistingGroupClients(groupId, None, None))
-                        .flashing("success" -> request.messages("group.clients.added.confirm", toSave.size))
+                    val x = for{
+                      _ <- sessionCacheService.deleteAll(managingGroupKeys)
+                      _ <- groupService.addMembersToGroup(groupId, AddMembersToAccessGroupRequest(None, Some(toSave)))
+                    } yield (Unit)
+                    x.map(_=> Redirect(controller.showExistingGroupClients(groupId, None, None))
+                      .flashing("success" -> request.messages("group.clients.added.confirm", toSave.size))
                     )
                   }
                 }

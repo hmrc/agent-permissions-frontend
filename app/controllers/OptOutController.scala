@@ -37,7 +37,7 @@ class OptOutController @Inject()
   optInService: OptinService,
   opt_out_start: opt_out_start,
   want_to_opt_out: want_to_opt_out,
-  you_have_opted_out: you_have_opted_out,
+  you_have_opted_out: you_have_opted_out
 )(implicit val appConfig: AppConfig,
   ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi) extends FrontendController(mcc) with I18nSupport {

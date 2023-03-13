@@ -39,8 +39,10 @@ class AddClientToGroupsController @Inject()(
    val sessionCacheService: SessionCacheService,
    groupService: GroupService,
    select_groups: select_groups,
-   confirm_added: confirm_added)
-   (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+   confirm_added: confirm_added
+)(implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi)
   extends FrontendController(mcc)
     with I18nSupport
     with Logging {

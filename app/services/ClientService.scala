@@ -82,6 +82,7 @@ class ClientServiceImpl @Inject()(
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected) // TODO this side-effect does not belong in this 'get' type function! Move it to the caller site!
     } yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
   }
+
   def getPaginatedClientsToAddToGroup(id: String)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
                                      (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[(GroupSummary, PaginatedList[DisplayClient])] = {

@@ -395,14 +395,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     "render correctly the manage group CLIENTS page" in {
       //given
-      val groupSummary = GroupSummary("2", "Carrots", Some(1), 1)
+      val groupSummary = GroupSummary(grpId, "Carrots", Some(1), 1)
       val existingClients = displayClients.map(_.copy(alreadyInGroup = true))
       val availableClients: Seq[DisplayClient]
       = (5 to 8).map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i")).map(DisplayClient.fromClient(_))
       val PAGE = 2
       val PAGE_SIZE = 10
       expectAuthOkOptedInReady()
-      expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+      expectGetCustomSummaryById(grpId, Some(groupSummary))
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       expectGetPaginatedClientsToAddToGroup(grpId, PAGE, PAGE_SIZE, None, None)(groupSummary, existingClients ++ availableClients)
@@ -470,7 +470,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
             .withSession(SessionKeys.sessionId -> "session-x")
 
         expectAuthOkOptedInReady()
-        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+        val summary = GroupSummary.fromAccessGroup(accessGroup.copy(clients = Some(fakeClients.toSet)))
+        expectGetCustomSummaryById(grpId, Some(summary))
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
 
         val displayClientsIds: Seq[String] = displayClients.map(_.id)
@@ -495,7 +496,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       "display error when button is CONTINUE_BUTTON, selected in session and ALL deselected" in {
         // given
-        val groupSummary = GroupSummary("2", "Carrots", Some(1), 1)
+        val groupSummary = GroupSummary(grpId, "Carrots", Some(1), 1)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", ctrlRoute.submitAddClients(grpId).url)
@@ -508,7 +509,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
             )
 
         expectAuthOkOptedInReady()
-        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+        expectGetCustomSummaryById(grpId, Some(groupSummary))
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetSessionItem(CLIENT_SEARCH_INPUT, "Harry")
         expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
@@ -547,7 +548,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
             )
 
         expectAuthOkOptedInReady()
-        expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+        val summary = GroupSummary.fromAccessGroup(accessGroup.copy(clients = Some(fakeClients.toSet)))
+        expectGetCustomSummaryById(grpId, Some(summary))
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
         expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
         expectGetSessionItemNone(CLIENT_FILTER_INPUT)
@@ -578,7 +580,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           )
 
       expectAuthOkOptedInReady()
-      expectGetGroupById(grpId, Some(accessGroup.copy(clients = Some(fakeClients.toSet))))
+      expectGetCustomSummaryById(grpId, Some(groupSummary))
       expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) //does not matter
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)

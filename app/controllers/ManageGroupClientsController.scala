@@ -170,9 +170,8 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  // add or remove for now...?
   def showSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           Ok(
@@ -189,7 +188,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def submitSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       SearchAndFilterForm
         .form()
         .bindFromRequest
@@ -212,11 +211,11 @@ class ManageGroupClientsController @Inject()
   }
 
   def showAddClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (_: GroupSummary, _: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { filter =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { search =>
           clientService
-            .getPaginatedClientsToAddToGroup(group._id.toString)(page.getOrElse(1), pageSize.getOrElse(20), search, filter)
+            .getPaginatedClientsToAddToGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20), search, filter)
             .map(tuple2 => {
               val form = AddClientsToGroupForm.form().fill(AddClientsToGroup(search, filter, None))
               Ok(
@@ -235,7 +234,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def submitAddClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedOptedAgent(groupId) { group: CustomGroup =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[String](CLIENT_FILTER_INPUT) { filter =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { search =>
@@ -247,13 +246,13 @@ class ManageGroupClientsController @Inject()
               .fold(
                 formWithErrors => {
                   clientService
-                    .getPaginatedClientsToAddToGroup(group._id.toString)(1, 20, search, filter)
+                    .getPaginatedClientsToAddToGroup(groupId)(1, 20, search, filter)
                     .map { paginatedClients =>
                     Ok(
                       update_clients_paginated(
                         paginatedClients._2.pageContent,
-                        group.groupName,
-                        groupId,
+                        summary.groupName,
+                        summary.groupId,
                         formWithErrors,
                         Some(paginatedClients._2.paginationMetaData)
                       )
@@ -275,13 +274,13 @@ class ManageGroupClientsController @Inject()
                         } else { // display empty error
                           for {
                             paginatedClients <- clientService
-                              .getPaginatedClientsToAddToGroup(group._id.toString)(1, 20, search, filter)
+                              .getPaginatedClientsToAddToGroup(groupId)(1, 20, search, filter)
                           } yield {
                             Ok(
                               update_clients_paginated(
                                 paginatedClients._2.pageContent,
-                                group.groupName,
-                                groupId,
+                                summary.groupName,
+                                summary.groupId,
                                 AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
                                 Some(paginatedClients._2.paginationMetaData)
                               )
@@ -304,7 +303,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
@@ -323,7 +322,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def submitReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold(

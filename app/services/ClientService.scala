@@ -19,7 +19,7 @@ package services
 import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS, ToFuture}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, SELECTED_CLIENTS, ToFuture}
 import models.DisplayClient
 import play.api.libs.json.JsNumber
 import play.api.mvc.Request
@@ -31,12 +31,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[ClientServiceImpl])
 trait ClientService {
-
-  def getAllClients(arn: Arn)
-                   (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
-
-  def getFilteredClientsElseAll(arn: Arn)
-                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]]
 
   def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
@@ -69,31 +63,6 @@ class ClientServiceImpl @Inject()(
                                    agentPermissionsConnector: AgentPermissionsConnector,
                                    val sessionCacheService: SessionCacheService
                                  ) extends ClientService with GroupMemberOps {
-
-  // returns the es3 list sorted by name, selecting previously selected clients
-  def getAllClients(arn: Arn)
-                   (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
-    for {
-      allClientsFromEs3 <- getFromEs3AsDisplayClients(arn)
-      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
-      existingSelectedClients = maybeSelectedClients.getOrElse(Nil)
-      selectedClientIds = existingSelectedClients.map(_.id)
-      es3ClientsMinusSelectedOnes = allClientsFromEs3.filterNot(dc => selectedClientIds.contains(dc.id))
-      clientsWithSelectedOnesMarkedAsSelected = es3ClientsMinusSelectedOnes.toList ::: existingSelectedClients.toList
-      sortedClients = clientsWithSelectedOnesMarkedAsSelected.sortBy(_.name)
-    } yield sortedClients
-
-  }
-
-  // returns clients from es3 OR a filtered list, selecting previously selected clients
-  def getFilteredClientsElseAll(arn: Arn)
-                               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] = {
-    val maybeFilteredClients = sessionCacheService.get(FILTERED_CLIENTS)
-    maybeFilteredClients.flatMap { maybeClients =>
-      if (maybeClients.isDefined) Future.successful(maybeClients.get)
-      else getAllClients(arn)
-    }
-  }
 
   def getPaginatedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
@@ -133,6 +102,7 @@ class ClientServiceImpl @Inject()(
                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] =
     agentPermissionsConnector.unassignedClients(arn)(page, pageSize, search, filter)
 
+  //TODO this uses the old endpoint!
   def lookupClient(arn: Arn)
                   (clientId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]] = {
@@ -142,6 +112,7 @@ class ClientServiceImpl @Inject()(
     } yield maybeClient
   }
 
+  //TODO this uses the old endpoint!
   def lookupClients(arn: Arn)
                    (ids: Option[List[String]])
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[DisplayClient]] = {

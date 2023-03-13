@@ -55,63 +55,6 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-  "getFilteredClientsElseAll" should {
-
-    "Get filtered clients from session when available " in {
-      //given
-      expectGetSessionItem(FILTERED_CLIENTS, displayClients)
-
-      //when
-      val clients =  await(service.getFilteredClientsElseAll(arn))
-
-      //then
-      clients.size shouldBe 10
-      clients.head.name shouldBe "friendly name 1"
-      clients.head.identifierKey shouldBe "VRN"
-      clients.head.hmrcRef shouldBe "123456781"
-      clients.head.taxService shouldBe "HMRC-MTD-VAT"
-
-      clients(5).name shouldBe "friendly name 6"
-      clients(5).identifierKey shouldBe "VRN"
-      clients(5).hmrcRef shouldBe "123456786"
-      clients(5).taxService shouldBe "HMRC-MTD-VAT"
-
-      clients(9).name shouldBe "friendly name 10"
-      clients(9).hmrcRef shouldBe "1234567810"
-      clients(9).identifierKey shouldBe "VRN"
-      clients(9).taxService shouldBe "HMRC-MTD-VAT"
-
-    }
-
-    "Get clients from session else agentUserClientDetailsConnector" in {
-      //given
-      expectGetSessionItemNone(FILTERED_CLIENTS) // <-- no filtered clients in session
-      expectGetClients(arn)(fakeClients)
-      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(2))
-
-      //when
-      val clients =  await(service.getFilteredClientsElseAll(arn))
-
-      //then
-      clients.size shouldBe 10
-      clients.head.name shouldBe "friendly name 1"
-      clients.head.identifierKey shouldBe "VRN"
-      clients.head.hmrcRef shouldBe "123456781"
-      clients.head.taxService shouldBe "HMRC-MTD-VAT"
-
-      clients(5).name shouldBe "friendly name 5"
-      clients(5).identifierKey shouldBe "VRN"
-      clients(5).hmrcRef shouldBe "123456785"
-      clients(5).taxService shouldBe "HMRC-MTD-VAT"
-
-      clients(9).name shouldBe "friendly name 9"
-      clients(9).hmrcRef shouldBe "123456789"
-      clients(9).identifierKey shouldBe "VRN"
-      clients(9).taxService shouldBe "HMRC-MTD-VAT"
-
-    }
-  }
-
   "getUnassignedClients" should {
     "Gets them from mockAgentPermissionsConnector" in {
       //given
@@ -185,6 +128,7 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
+  //TODO remove? test seems to be duplicated in SessionCacheOperationsServiceSpec
   "addSelectablesToSession" should {
     
     "work as expected with none set as selected " in{

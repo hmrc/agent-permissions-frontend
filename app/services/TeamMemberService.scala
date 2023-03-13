@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
-import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS, FILTER_BUTTON, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
+import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.libs.json.JsNumber
 import play.api.mvc.Request
@@ -36,22 +36,10 @@ trait TeamMemberService {
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)
                           (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[PaginatedList[TeamMember]]
 
-  def getAllTeamMembers(arn: Arn)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]]
-
-  def getFilteredTeamMembersElseAll(arn: Arn)(implicit hc: HeaderCarrier,
-                                              ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]]
-
   def lookupTeamMember(arn: Arn)(id: String
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]]
 
   def lookupTeamMembers(arn: Arn)(ids: Option[List[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[TeamMember]]
-
-  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
-                                       (arn: Arn)
-                                       (formData: AddTeamMembersToGroup
-                                       )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit]
-
 
 }
 
@@ -63,6 +51,14 @@ class TeamMemberServiceImpl @Inject()(
                                      ) extends TeamMemberService with GroupMemberOps {
 
 
+  /*  Regardless of submit (CONTINUE, CLEAR, FILTER, PAGINATION) saves:
+  *    - the filter term from the form in session TODO - forgot why we bother to persist this way
+  *    - process the selections OR de-selections on a given page and update the SELECTED_TEAM_MEMBERS in session
+  *    returns the SELECTED_TEAM_MEMBERS after processing, to enable an .isEmpty check AFTER the form submit
+  *
+  *   If CONTINUE, deletes the TEAM_MEMBER_SEARCH_INPUT & FILTERED_TEAM_MEMBERS TODO - remove FILTERED_TEAM_MEMBERS if no longer used
+  *   If CLEAR, deletes the TEAM_MEMBER_SEARCH_INPUT
+  * */
   def savePageOfTeamMembers(formData: AddTeamMembersToGroup)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[TeamMember]] = {
 
@@ -90,6 +86,14 @@ class TeamMemberServiceImpl @Inject()(
     )
   }
 
+
+  /*  Gets team members from AUCD and processes UserDetails -> TeamMember
+  *   If a search term is in session, searches for name or email match
+  *   then paginates the results
+  *
+  *   using the SELECTED_TEAM_MEMBERS, marks Team members on the page as selected and stores the page state
+  *   in CURRENT_PAGE_TEAM_MEMBERS so that a comparison can be made during savePageOfTeamMembers
+  * */
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)
                           (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[PaginatedList[TeamMember]] = {
     for {
@@ -130,29 +134,6 @@ class TeamMemberServiceImpl @Inject()(
     )
   }
 
-  // returns team members from agent-user-client-details, selecting previously selected team members
-  def getAllTeamMembers(arn: Arn)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]] = {
-    for {
-      members <- getTeamMembersFromConnector(arn)
-      maybeSelectedTeamMembers <- sessionCacheService.get[Seq[TeamMember]](SELECTED_TEAM_MEMBERS)
-      membersWithoutPreSelected = members
-        .filterNot(teamMember => maybeSelectedTeamMembers
-          .fold(false)(_.map(_.userId).contains(teamMember.userId)))
-      mergedWithPreselected = (membersWithoutPreSelected.toList ::: maybeSelectedTeamMembers.getOrElse(List.empty).toList)
-        .sortBy(_.name)
-    } yield mergedWithPreselected
-  }
-
-  def getFilteredTeamMembersElseAll(arn: Arn)
-                                   (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[TeamMember]] = {
-    val eventualMaybeTeamMembers = sessionCacheService.get(FILTERED_TEAM_MEMBERS)
-    eventualMaybeTeamMembers.flatMap { maybeMembers =>
-      if (maybeMembers.isDefined) Future.successful(maybeMembers.get)
-      else getAllTeamMembers(arn)
-    }
-  }
-
   def lookupTeamMember(arn: Arn)(id: String)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]] = {
     for {
@@ -167,55 +148,6 @@ class TeamMemberServiceImpl @Inject()(
       ids => getTeamMembersFromConnector(arn).map(tms => tms.filter(tm => ids.contains(tm.id)).toList)
     }
   }
-
-  def saveSelectedOrFilteredTeamMembers(buttonSelect: String)
-                                       (arn: Arn)
-                                       (formData: AddTeamMembersToGroup
-                                       )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Unit] = {
-
-    val commonTasks = for {
-      teamMembers <- lookupTeamMembers(arn)(formData.members)
-      _ <- addSelectablesToSession(teamMembers.map(_.copy(selected = true)))(SELECTED_TEAM_MEMBERS, FILTERED_TEAM_MEMBERS)
-    } yield ()
-
-    commonTasks.flatMap(_ => {
-      if (buttonSelect.matches("pagination_\\d+")) {
-        filterTeamMembers(arn)(formData).map(_=> ())
-      } else {
-        buttonSelect match {
-          case CLEAR_BUTTON | CONTINUE_BUTTON =>
-            sessionCacheService.deleteAll(teamMemberFilteringKeys)
-          case FILTER_BUTTON =>
-            if (formData.search.isEmpty) {
-              sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT)
-            } else {
-              for {
-                _ <- sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, formData.search.getOrElse(""))
-                _ <- filterTeamMembers(arn)(formData)
-              } yield ()
-            }
-        }
-      }
-    }
-    )
-  }
-
-  private def filterTeamMembers(arn: Arn)
-                               (formData: AddTeamMembersToGroup)
-                               (implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Seq[TeamMember]] =
-    for {
-      teamMembers <- getAllTeamMembers(arn).map(_.toVector)
-      maybeNameOrEmail = formData.search
-      resultByName = maybeNameOrEmail.fold(teamMembers)(
-        searchTerm => teamMembers.filter(_.name.toLowerCase.contains(searchTerm.toLowerCase)))
-      resultByEmail = maybeNameOrEmail.fold(teamMembers)(
-        searchTerm => teamMembers.filter(_.email.toLowerCase.contains(searchTerm.toLowerCase)))
-      consolidatedResult = (resultByName ++ resultByEmail).distinct
-      result = consolidatedResult
-      _ <- if (result.nonEmpty) sessionCacheService.put(FILTERED_TEAM_MEMBERS, result)
-      else Future.successful(())
-    } yield result
-
 
   private def getTeamMembersFromConnector(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] = {
     for {

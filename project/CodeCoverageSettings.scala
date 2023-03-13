@@ -30,7 +30,6 @@ object CodeCoverageSettings {
     ".*confirm_added.template",
     ".*group_not_found.template",
     ".*unassigned_clients_list.template",
-    ".*PaginationUtil.*",
     ".*ViewUtils.*",
     ".*FilterUtils.*",
     ".*GroupAction.*",

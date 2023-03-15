@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CreateGroupSelectClientsController @Inject()
@@ -202,19 +202,26 @@ class CreateGroupSelectClientsController @Inject()
     }
   }
 
-  def showConfirmRemoveClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showConfirmRemoveClient(clientId: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem(SELECTED_CLIENTS) { selectedClients =>
-        selectedClients.getOrElse(Seq.empty).find(_.id == clientId)
-          .fold {
-            Redirect(controller.showSelectClients(None, None)).toFuture
-          } { client =>
-            sessionCacheService
-              .put(CLIENT_TO_REMOVE, client)
-              .flatMap(_ =>
-                Ok(confirm_remove_client(YesNoForm.form(), groupName, client)).toFuture
-              )
+        for {
+          // if clientId is not provided as a query parameter, check the CLIENT_TO_REMOVE session value.
+          // This is to enable the welsh language switch to work correctly.
+          maybeClientId: Option[String] <- clientId match {
+            case None => sessionCacheService.get(CLIENT_TO_REMOVE).map(_.map(_.id))
+            case Some(cid) => Future.successful(Some(cid))
           }
+          result <- maybeClientId.flatMap(id => selectedClients.getOrElse(Seq.empty).find(_.id == id)) match {
+            case None => Future.successful(Redirect(controller.showSelectClients(None, None)))
+            case Some(client) =>
+              sessionCacheService
+                .put(CLIENT_TO_REMOVE, client)
+                .flatMap(_ =>
+                  Ok(confirm_remove_client(YesNoForm.form(), groupName, client)).toFuture
+                )
+          }
+        } yield result
       }
     }
   }

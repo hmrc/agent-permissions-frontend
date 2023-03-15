@@ -53,7 +53,7 @@
                 Html(
                     a(
                         key = msgs("common.remove"),
-                        href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(client.id).url
+                        href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
                     ).toString
                 )
             )

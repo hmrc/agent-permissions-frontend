@@ -21,8 +21,9 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS}
 import helpers.BaseSpec
 import models.DisplayClient
+import play.api.libs.json.JsNumber
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, PaginatedList}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, GroupSummary, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -40,6 +41,77 @@ class ClientServiceSpec extends BaseSpec {
 
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
+
+  "getPaginatedClients" should {
+    "Get them from mockAgentUserClientDetailsConnector" in {
+      //given
+      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+
+      expectGetSessionItemNone(SELECTED_CLIENTS)
+      expectPutSessionItem(CURRENT_PAGE_CLIENTS, displayClients)
+
+      (mockAgentUserClientDetailsConnector.getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+        .expects(arn, 1, 20, *, *, *, *)
+        .returning(Future.successful(PaginatedListBuilder.build(page = 1, pageSize = 20, fullList = fakeClients))).once()
+
+      val expectedPaginationMetaData = PaginationMetaData(
+        firstPage = true,
+        lastPage = true,
+        totalSize = 10,
+        pageSize = 20,
+        totalPages = 1,
+        currentPageNumber = 1,
+        currentPageSize = 10,
+        extra = Some(Map("totalSelected" -> JsNumber(0)))
+      )
+
+      //when
+      val clients: PaginatedList[DisplayClient] = await(service.getPaginatedClients(arn)(1, 20))
+
+      //then
+      clients.pageContent shouldBe displayClients // TODO test marked selected? should be separated
+      clients.paginationMetaData shouldBe expectedPaginationMetaData
+    }
+  }
+
+
+  "getPaginatedClientsToAddToGroup" should {
+    "Get group summary and PaginatedList[DisplayClient from mockAgentPermissionsConnector" in {
+      //given
+      val groupSummary = GroupSummary("groupId", "name", Some(10), 3)
+      expectGetSessionItemNone(SELECTED_CLIENTS)
+      expectPutSessionItem(CURRENT_PAGE_CLIENTS, displayClients)
+
+      (mockAgentPermissionsConnector.getPaginatedClientsToAddToGroup(_: String)(_: Int, _: Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+        .expects("groupId", 1, 20, *, *, *, *)
+        .returning(Future.successful(
+          (
+            groupSummary,
+            PaginatedListBuilder.build(page = 1, pageSize = 20, fullList = displayClients)
+          )
+        )).once()
+
+      val expectedPaginationMetaData = PaginationMetaData(
+        firstPage = true,
+        lastPage = true,
+        totalSize = 10,
+        pageSize = 20,
+        totalPages = 1,
+        currentPageNumber = 1,
+        currentPageSize = 10
+      )
+
+      //when
+      val (summary, clients): (GroupSummary, PaginatedList[DisplayClient]) = await(service.getPaginatedClientsToAddToGroup("groupId")(1, 20))
+
+      //then
+      clients.pageContent shouldBe displayClients //TODO test selected marks? "already in a group" shouldn't have to be stored as selected
+      clients.paginationMetaData shouldBe expectedPaginationMetaData
+      summary shouldBe groupSummary // irrelevant
+    }
+  }
+
 
   "updateClientReference" should {
     "PUT client to agentUserClientDetailsConnector" in {

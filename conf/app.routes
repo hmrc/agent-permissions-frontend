@@ -37,7 +37,7 @@ GET     /create-group/select-clients                    controllers.CreateGroupS
 POST    /create-group/select-clients                    controllers.CreateGroupSelectClientsController.submitSelectedClients
 GET     /create-group/clients-selected                  controllers.CreateGroupSelectClientsController.showReviewSelectedClients(page: Option[Int], pageSize: Option[Int])
 POST    /create-group/clients-selected                  controllers.CreateGroupSelectClientsController.submitReviewSelectedClients
-GET     /create-group/clients/confirm-remove/:id        controllers.CreateGroupSelectClientsController.showConfirmRemoveClient(id: String)
+GET     /create-group/clients/confirm-remove            controllers.CreateGroupSelectClientsController.showConfirmRemoveClient(id: Option[String]?=None)
 POST    /create-group/clients/confirm-remove            controllers.CreateGroupSelectClientsController.submitConfirmRemoveClient
 
 GET     /create-group/select-team-members               controllers.CreateGroupSelectTeamMembersController.showSelectTeamMembers(page: Option[Int], pageSize: Option[Int])

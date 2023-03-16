@@ -488,7 +488,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
       val removeClient1 = trs.get(0).select("td").get(3).select("a")
       removeClient1.text() shouldBe "Remove"
-      removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(displayClientsIds(0)).url
+      removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(Some(displayClientsIds(0))).url
 
       // last row
       trs.get(4).select("td").get(0).text() shouldBe "friendly4"
@@ -496,7 +496,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(2).text() shouldBe "VAT"
       val removeClient4 = trs.get(4).select("td").get(3).select("a")
       removeClient4.text() shouldBe "Remove"
-      removeClient4.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(displayClientsIds(4)).url
+      removeClient4.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(Some(displayClientsIds(4))).url
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
@@ -655,7 +655,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET Confirm Remove a selected client on ${ctrlRoute.showConfirmRemoveClient("id").url}" should {
+  s"GET Confirm Remove a selected client on ${ctrlRoute.showConfirmRemoveClient(Some("id")).url}" should {
 
     "render with selected clients" in {
       val clientToRemove = displayClients.head
@@ -663,7 +663,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(5))
       expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
       //when
-      val result = controller.showConfirmRemoveClient(clientToRemove.id)(request)
+      val result = controller.showConfirmRemoveClient(Some(clientToRemove.id))(request)
 
       status(result) shouldBe OK
 

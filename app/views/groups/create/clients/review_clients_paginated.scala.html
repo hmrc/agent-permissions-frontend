@@ -54,7 +54,7 @@
                         key = msgs("common.remove"),
                         href =
                             if(isCreateGroupJourney) {
-                                routes.CreateGroupSelectClientsController.showConfirmRemoveClient(client.id).url
+                                routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
                             } else {
                                 routes.UnassignedClientController.showConfirmRemoveClient(client.id).url
                             }

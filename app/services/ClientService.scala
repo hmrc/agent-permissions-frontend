@@ -67,11 +67,11 @@ class ClientServiceImpl @Inject()(
   def getPaginatedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20)
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] = {
     for {
-      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT) // TODO these search/filter terms should be passed from outside. This function description mentions nothing about filtering and finding this here is unexpected and confusing.
+      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
       filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
       pageOfClients <-
         agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize, searchTerm, filterTerm)
-      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS) // TODO This logic to pre-mark clients should probably be done by the caller. Ideally this function should and not touch the session cache at all!
+      maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
       existingSelectedClientIds = maybeSelectedClients.getOrElse(Nil).map(_.id)
       pageOfClientsMarkedSelected = pageOfClients
         .pageContent
@@ -79,7 +79,7 @@ class ClientServiceImpl @Inject()(
         .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
       totalClientsSelected = maybeSelectedClients.fold(0)(_.length)
       metadataWithExtra = pageOfClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(totalClientsSelected)))) // This extra data is needed to display correct 'selected' count in front-end
-      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected) // TODO this side-effect does not belong in this 'get' type function! Move it to the caller site!
+      _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
     } yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
   }
   def getPaginatedClientsToAddToGroup(id: String)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)

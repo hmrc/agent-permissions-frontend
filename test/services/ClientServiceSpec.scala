@@ -18,7 +18,7 @@ package services
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
-import controllers.{FILTERED_CLIENTS, SELECTED_CLIENTS}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS}
 import helpers.BaseSpec
 import models.DisplayClient
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -69,6 +69,21 @@ class ClientServiceSpec extends BaseSpec {
       //then
       unassignedClients.pageContent shouldBe displayClients
     }
+  }
+
+  "getPaginatedClients" should {
+
+    "work as expected" in{
+        expectGetSessionItem(CLIENT_FILTER_INPUT, "f")
+        expectGetSessionItem(CLIENT_SEARCH_INPUT, "s")
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectPutSessionItem(CURRENT_PAGE_CLIENTS, displayClients)
+        expectGetPaginatedClients(arn)(fakeClients)(search = Some("s"), filter = Some("f"))
+
+        val paginatedList = await(service.getPaginatedClients(arn)())
+
+        paginatedList.pageContent shouldBe displayClients
+      }
   }
 
   "lookup clients" should {

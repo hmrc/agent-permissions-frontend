@@ -49,7 +49,8 @@ class UnassignedClientController @Inject()(
                                             unassigned_clients_list: unassigned_clients_list,
                                             review_clients_paginated: review_clients_paginated,
                                             select_groups_for_clients: select_groups_for_clients,
-                                            clients_added_to_groups_complete: clients_added_to_groups_complete
+                                            clients_added_to_groups_complete: clients_added_to_groups_complete,
+                                            confirm_remove_client: confirm_remove_client
     )
     (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
   extends FrontendController(mcc)
@@ -67,7 +68,6 @@ class UnassignedClientController @Inject()(
 
   private def renderUnassignedClients(arn: Arn, form: Form[AddClientsToGroup], page: Option[Int], pageSize: Option[Int] = None, search: Option[String] = None, filter: Option[String] = None)(implicit request: Request[_]): Future[Result] =
     for {
-      // TODO considerable duplication between this code and ClientService.getPaginatedClients. Unify please at next opportunity.
       maybeSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
       unmarkedPaginatedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE), search = search, filter = filter)
       markedPaginatedClients =
@@ -135,14 +135,80 @@ class UnassignedClientController @Inject()(
                   clients = paginatedClients.pageContent,
                   groupName = "",
                   form = YesNoForm.form(),
-                  backUrl = Some(controller.showUnassignedClients().url),
-                  formAction = controller.submitSelectedUnassignedClients,
+                  isCreateGroupJourney = false,
                   paginationMetaData = Some(paginatedClients.paginationMetaData)
                 )
               ).toFuture
             }
         }
       }
+    }
+  }
+
+  def showConfirmRemoveClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+        withSessionItem(SELECTED_CLIENTS) { selectedClients =>
+          selectedClients.getOrElse(Seq.empty).find(_.id == clientId)
+            .fold {
+              Redirect(controller.showUnassignedClients(None)).toFuture
+            } { client =>
+              sessionCacheService
+                .put(CLIENT_TO_REMOVE, client)
+                .flatMap(_ =>
+                  Ok(
+                    confirm_remove_client(
+                      YesNoForm.form(),
+                      "",
+                      client,
+                      backLink = controller.showSelectedUnassignedClients(None, None),
+                      formAction = controller.submitConfirmRemoveClient
+                  )
+                  ).toFuture
+                )
+            }
+        }
+      }
+    }
+  }
+
+  def submitConfirmRemoveClient: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedInComplete(arn) { _ =>
+      withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
+          if (maybeClient.isEmpty || maybeSelectedClients.isEmpty) {
+            Redirect(controller.showUnassignedClients(None)).toFuture
+          }
+          else {
+            YesNoForm
+              .form("group.client.remove.error")
+              .bindFromRequest
+              .fold(
+                formWithErrors => {
+                  Ok(
+                    confirm_remove_client(
+                      formWithErrors,
+                      "",
+                      maybeClient.get,
+                      backLink = controller.showSelectedUnassignedClients(None, None),
+                      formAction = controller.submitConfirmRemoveClient
+                    )
+                  ).toFuture
+                }, (yes: Boolean) => {
+                  if (yes) {
+                    val clientsMinusRemoved = maybeSelectedClients.get.filterNot(_ == maybeClient.get)
+                    sessionCacheService
+                      .put(SELECTED_CLIENTS, clientsMinusRemoved)
+                      .map(_ => Redirect(controller.showSelectedUnassignedClients(None, None)))
+                  }
+                  else Redirect(controller.showSelectedUnassignedClients(None, None)).toFuture
+                }
+              )
+          }
+        }
+      }
+    }
     }
   }
 
@@ -163,8 +229,7 @@ class UnassignedClientController @Inject()(
                       clients,
                       "",
                       formWithErrors,
-                      backUrl = Some(controller.showUnassignedClients().url),
-                      formAction = controller.submitSelectedUnassignedClients)
+                      isCreateGroupJourney = false)
                     ).toFuture
                   }, (yes: Boolean) => {
                     if (yes) {

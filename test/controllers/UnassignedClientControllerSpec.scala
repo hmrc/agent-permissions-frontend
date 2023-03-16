@@ -619,10 +619,11 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "redirect when no group names in session" in {
       //given
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-      await(mockSessionService.delete(GROUPS_FOR_UNASSIGNED_CLIENTS))
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.delete(GROUPS_FOR_UNASSIGNED_CLIENTS))
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
 
       //when
       val result = controller.showConfirmClientsAddedToGroups(request)
@@ -630,6 +631,107 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoutes.showSelectGroupsForSelectedUnassignedClients.url
+
+    }
+  }
+
+  s"GET Confirm Remove a selected client on ${ctrlRoutes.showConfirmRemoveClient("id").url}" should {
+
+    "render with selected clients" in {
+      val clientToRemove = displayClients.head
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(2)))
+      await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
+
+      //when
+      val result = controller.showConfirmRemoveClient(clientToRemove.id)(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe s"Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe s"Remove friendly0 from selected clients?"
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients(None, None).url
+
+      val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
+      answerRadios.select("label[for=answer]").text() shouldBe "Yes"
+      answerRadios.select("label[for=answer-no]").text() shouldBe "No"
+    }
+  }
+
+  s"POST Remove a selected client ${ctrlRoutes.submitConfirmRemoveClient.url}" should {
+
+    s"redirect to '${ctrlRoutes.showSelectedUnassignedClients(None, None).url}' page with answer 'true'" in {
+
+      val clientToRemove = displayClients.head
+
+      implicit val request = FakeRequest("POST", s"${controller.submitConfirmRemoveClient}")
+        .withFormUrlEncodedBody("answer" -> "true")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
+
+      val remainingClients = displayClients.diff(Seq(clientToRemove))
+      await(mockSessionService.put(SELECTED_CLIENTS, remainingClients))
+
+      val result = controller.submitConfirmRemoveClient()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoutes.showSelectedUnassignedClients(None, None).url
+    }
+
+    s"redirect to '${ctrlRoutes.showSelectedUnassignedClients(None, None).url}' page with answer 'false'" in {
+
+      val clientToRemove = displayClients.head
+
+      implicit val request =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient()}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(2)))
+      await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
+
+
+      val result = controller.submitConfirmRemoveClient()(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoutes.showSelectedUnassignedClients(None, None).url
+    }
+
+
+    s"render errors when no radio button selected" in {
+
+      implicit val request =
+        FakeRequest(
+          "POST",
+          s"${controller.submitConfirmRemoveClient()}")
+          .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      await(mockSessionService.put(CLIENT_TO_REMOVE, displayClients.head))
+      await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(10)))
+
+      val result = controller.submitConfirmRemoveClient()(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Remove friendly0 from selected clients?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
 
     }
   }

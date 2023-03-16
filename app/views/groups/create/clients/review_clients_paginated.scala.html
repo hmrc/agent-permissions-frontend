@@ -39,13 +39,12 @@
     clients: Seq[DisplayClient],
     groupName: String,
     form: Form[Boolean],
-    formAction: Call = routes.CreateGroupSelectClientsController.submitReviewSelectedClients,
-    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url),
+    isCreateGroupJourney: Boolean = true,
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableRows = @{
-        clients.map(client =>
+        clients.map(client => {
             Seq(
                 Html(client.name),
                 Html(displayObfuscatedReference(client.name, client.hmrcRef)),
@@ -53,16 +52,26 @@
                 Html(
                     a(
                         key = msgs("common.remove"),
-                        href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
+                        href =
+                            if(isCreateGroupJourney) {
+                                routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
+                            } else {
+                                routes.UnassignedClientController.showConfirmRemoveClient(Option(client.id)).url
+                            }
                     ).toString
                 )
             )
+        }
         )
     }
 
 @layout(
     title = msgs("group.clients.review.title", groupName),
-    backLinkHref = backUrl,
+    backLinkHref = if(isCreateGroupJourney) {
+        Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url)
+    } else {
+        Some(routes.UnassignedClientController.showUnassignedClients(None).url)
+    },
     formErrors = form.errors,
     fullWidth = true
 ) {
@@ -95,7 +104,11 @@
             }
         }
 
-        @formWithCSRF(action = formAction) {
+        @formWithCSRF(action = if(isCreateGroupJourney) {
+            routes.CreateGroupSelectClientsController.submitReviewSelectedClients
+        } else {
+            routes.UnassignedClientController.submitSelectedUnassignedClients
+        }) {
             @radioButtons(
                 field = form("answer"),
                 items = Seq(

@@ -191,8 +191,6 @@ class CreateGroupSelectClientsController @Inject()
               paginatedList.pageContent,
               groupName,
               YesNoForm.form(),
-              backUrl = Some(controller.showSelectClients(None, None).url),
-              formAction = controller.submitReviewSelectedClients,
               paginationMetaData = Some(paginatedList.paginationMetaData)
             )
           ).toFuture
@@ -273,8 +271,6 @@ class CreateGroupSelectClientsController @Inject()
                         paginatedList.pageContent,
                         groupName,
                         formWithErrors,
-                        backUrl = Some(controller.showSelectClients(None, None).url),
-                        formAction = controller.submitReviewSelectedClients,
                         paginationMetaData = Some(paginatedList.paginationMetaData)
                       )
                     ).toFuture
@@ -292,8 +288,6 @@ class CreateGroupSelectClientsController @Inject()
                             paginatedList.pageContent,
                             groupName,
                             YesNoForm.form("group.clients.review.error").withError("answer", "group.clients.review.error.no-clients"),
-                            backUrl = Some(controller.showSelectClients(None, None).url),
-                            formAction = controller.submitReviewSelectedClients,
                             paginationMetaData = Some(paginatedList.paginationMetaData)
                           )
                         ).toFuture

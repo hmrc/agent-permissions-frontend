@@ -67,9 +67,7 @@ package object controllers {
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
 
-  val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("groupClientsSelected")
-  val EXISTING_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("EXISTING_CLIENTS")
-  val SELECTED_CLIENTS_IDS: DataKey[Seq[String]] = DataKey("SELECTED_CLIENTS_IDS")
+  val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("SELECTED_CLIENTS")
   val CURRENT_PAGE_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("CURRENT_PAGE_CLIENTS")
   val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
   val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")

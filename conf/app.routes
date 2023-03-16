@@ -96,6 +96,8 @@ GET     /unassigned-clients                                     controllers.Unas
 POST    /unassigned-clients                                     controllers.UnassignedClientController.submitAddUnassignedClients
 GET     /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.showSelectedUnassignedClients(page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
 POST    /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.submitSelectedUnassignedClients
+GET     /unassigned-clients/confirm-remove                      controllers.UnassignedClientController.showConfirmRemoveClient(id: Option[String] ?= None)
+POST    /unassigned-clients/confirm-remove                      controllers.UnassignedClientController.submitConfirmRemoveClient
 GET     /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients
 POST    /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients
 GET     /manage-access-group/clients-assigned                   controllers.UnassignedClientController.showConfirmClientsAddedToGroups

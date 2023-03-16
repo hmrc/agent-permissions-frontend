@@ -635,7 +635,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
   }
 
-  s"GET Confirm Remove a selected client on ${ctrlRoutes.showConfirmRemoveClient("id").url}" should {
+  s"GET Confirm Remove a selected client on ${ctrlRoutes.showConfirmRemoveClient(None).url}" should {
 
     "render with selected clients" in {
       val clientToRemove = displayClients.head
@@ -646,7 +646,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
 
       //when
-      val result = controller.showConfirmRemoveClient(clientToRemove.id)(request)
+      val result = controller.showConfirmRemoveClient(Option(clientToRemove.id))(request)
 
       status(result) shouldBe OK
 

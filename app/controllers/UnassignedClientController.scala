@@ -145,11 +145,11 @@ class UnassignedClientController @Inject()(
     }
   }
 
-  def showConfirmRemoveClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showConfirmRemoveClient(clientId: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         withSessionItem(SELECTED_CLIENTS) { selectedClients =>
-          selectedClients.getOrElse(Seq.empty).find(_.id == clientId)
+          selectedClients.getOrElse(Seq.empty).find(_.id == clientId.getOrElse(""))
             .fold {
               Redirect(controller.showUnassignedClients(None)).toFuture
             } { client =>

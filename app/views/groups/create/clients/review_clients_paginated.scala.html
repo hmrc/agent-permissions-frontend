@@ -56,7 +56,7 @@
                             if(isCreateGroupJourney) {
                                 routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
                             } else {
-                                routes.UnassignedClientController.showConfirmRemoveClient(client.id).url
+                                routes.UnassignedClientController.showConfirmRemoveClient(Option(client.id)).url
                             }
                     ).toString
                 )

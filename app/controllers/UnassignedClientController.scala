@@ -51,11 +51,11 @@ class UnassignedClientController @Inject()(
                                             select_groups_for_clients: select_groups_for_clients,
                                             clients_added_to_groups_complete: clients_added_to_groups_complete,
                                             confirm_remove_client: confirm_remove_client
-    )
-    (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+                                          )
+                                          (implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
   extends FrontendController(mcc)
 
-  with I18nSupport
+    with I18nSupport
     with Logging {
 
   import authAction._
@@ -72,10 +72,10 @@ class UnassignedClientController @Inject()(
       unmarkedPaginatedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE), search = search, filter = filter)
       markedPaginatedClients =
         unmarkedPaginatedClients.copy(
-        pageContent = unmarkedPaginatedClients.pageContent.map( c => if(maybeSelectedClients.isEmpty) c else c.copy(selected = maybeSelectedClients.get.map(_.id).contains(c.id)))
-      )
+          pageContent = unmarkedPaginatedClients.pageContent.map(c => if (maybeSelectedClients.isEmpty) c else c.copy(selected = maybeSelectedClients.get.map(_.id).contains(c.id)))
+        )
       totalClientsSelected = maybeSelectedClients.fold(0)(_.length)
-      metadataWithExtra = unmarkedPaginatedClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(totalClientsSelected))))  // This extra data is needed to display correct 'selected' count in front-end
+      metadataWithExtra = unmarkedPaginatedClients.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(totalClientsSelected)))) // This extra data is needed to display correct 'selected' count in front-end
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, markedPaginatedClients.pageContent)
     } yield {
       val defaultFormData: AddClientsToGroup = AddClientsToGroup()
@@ -163,7 +163,7 @@ class UnassignedClientController @Inject()(
                       client,
                       backLink = controller.showSelectedUnassignedClients(None, None),
                       formAction = controller.submitConfirmRemoveClient
-                  )
+                    )
                   ).toFuture
                 )
             }
@@ -175,40 +175,40 @@ class UnassignedClientController @Inject()(
   def submitConfirmRemoveClient: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
-      withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
-        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
-          if (maybeClient.isEmpty || maybeSelectedClients.isEmpty) {
-            Redirect(controller.showUnassignedClients(None)).toFuture
-          }
-          else {
-            YesNoForm
-              .form("group.client.remove.error")
-              .bindFromRequest
-              .fold(
-                formWithErrors => {
-                  Ok(
-                    confirm_remove_client(
-                      formWithErrors,
-                      "",
-                      maybeClient.get,
-                      backLink = controller.showSelectedUnassignedClients(None, None),
-                      formAction = controller.submitConfirmRemoveClient
-                    )
-                  ).toFuture
-                }, (yes: Boolean) => {
-                  if (yes) {
-                    val clientsMinusRemoved = maybeSelectedClients.get.filterNot(_ == maybeClient.get)
-                    sessionCacheService
-                      .put(SELECTED_CLIENTS, clientsMinusRemoved)
-                      .map(_ => Redirect(controller.showSelectedUnassignedClients(None, None)))
+        withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
+          withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
+            if (maybeClient.isEmpty || maybeSelectedClients.isEmpty) {
+              Redirect(controller.showUnassignedClients(None)).toFuture
+            }
+            else {
+              YesNoForm
+                .form("group.client.remove.error")
+                .bindFromRequest
+                .fold(
+                  formWithErrors => {
+                    Ok(
+                      confirm_remove_client(
+                        formWithErrors,
+                        "",
+                        maybeClient.get,
+                        backLink = controller.showSelectedUnassignedClients(None, None),
+                        formAction = controller.submitConfirmRemoveClient
+                      )
+                    ).toFuture
+                  }, (yes: Boolean) => {
+                    if (yes) {
+                      val clientsMinusRemoved = maybeSelectedClients.get.filterNot(_ == maybeClient.get)
+                      sessionCacheService
+                        .put(SELECTED_CLIENTS, clientsMinusRemoved)
+                        .map(_ => Redirect(controller.showSelectedUnassignedClients(None, None)))
+                    }
+                    else Redirect(controller.showSelectedUnassignedClients(None, None)).toFuture
                   }
-                  else Redirect(controller.showSelectedUnassignedClients(None, None)).toFuture
-                }
-              )
+                )
+            }
           }
         }
       }
-    }
     }
   }
 
@@ -225,11 +225,13 @@ class UnassignedClientController @Inject()(
                 .bindFromRequest
                 .fold(
                   formWithErrors => {
-                    Ok(review_clients_paginated(
-                      clients,
-                      "",
-                      formWithErrors,
-                      isCreateGroupJourney = false)
+                    Ok(
+                      review_clients_paginated(
+                        clients,
+                        "",
+                        formWithErrors,
+                        isCreateGroupJourney = false
+                      )
                     ).toFuture
                   }, (yes: Boolean) => {
                     if (yes) {
@@ -278,7 +280,7 @@ class UnassignedClientController @Inject()(
                 _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
                 result <- selectedClients.fold(
-                  Redirect(routes.ManageGroupController.showManageGroups(None,None)).toFuture
+                  Redirect(routes.ManageGroupController.showManageGroups(None, None)).toFuture
                 ) { displayClients =>
                   val clients: Set[Client] = displayClients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
                   Future.sequence(groupsToAddTo.map { grp =>
@@ -306,8 +308,8 @@ class UnassignedClientController @Inject()(
             Future.successful(Redirect(controller.showSelectGroupsForSelectedUnassignedClients.url))
           case Some(groups) =>
             sessionCacheService
-            .delete(SELECTED_CLIENTS)
-            .map(_ => Ok(clients_added_to_groups_complete(groups)))
+              .delete(SELECTED_CLIENTS)
+              .map(_ => Ok(clients_added_to_groups_complete(groups)))
         }
       }
     }

@@ -80,6 +80,9 @@ POST    /manage-custom-group/:groupId/update-clients/review                 cont
 
 # Manage tax groups - clients
 GET     /manage-tax-group/:groupId/clients     controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /manage-tax-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageTaxGroupClientsController.showConfirmRemoveClient(groupId: String, clientId: String)
+POST    /manage-tax-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageTaxGroupClientsController.submitConfirmRemoveClient(groupId: String, clientId: String)
+
 
 # Manage groups - team members
 GET     /manage-group/:groupType/:groupId/team-members             controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, groupType: String, page: Option[Int])

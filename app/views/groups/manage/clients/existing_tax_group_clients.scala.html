@@ -40,15 +40,28 @@
         group: GroupSummary,
         groupClients: Seq[DisplayClient],
         form: Form[SearchFilter],
-        paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
+        paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10)),
+        excludedClients: Seq[DisplayClient] = Seq.empty
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     groupClients.map(client =>
-        Seq(a(key = client.name,
-            href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url),
+        Seq(
+            a(  key = client.name,
+                href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
+            ),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService))
+            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            Html(
+                if(excludedClients.contains(client)){
+                    msgs("tax-group.client.excluded")
+                }else{
+                    a(
+                    key = msgs("common.remove"),
+                    href = routes.ManageTaxGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
+                ).toString
+                }
+            )
         )
     )
 }
@@ -69,7 +82,7 @@
         content = Text(msgs("common.skip-to-clients"))
     ))
 
-    @inset_text(msgs("group.existing.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))
+    @inset_text(msgs("tax-group.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))
 
     @views.html.helper.form(action = routes.ManageTaxGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {
 
@@ -88,7 +101,9 @@
                 headings = Seq(
                     (Html(msgs("group.client.list.table.th1")), Map.empty),
                     (Html(msgs("group.client.list.table.th2")), Map.empty),
-                    (Html(msgs("group.client.list.table.th3")), Map.empty)
+                    (Html(msgs("group.client.list.table.th3")), Map.empty),
+                    (Html(msgs("common.actions")), Map.empty),
+
                 ),
                 rows = tableRows,
             )

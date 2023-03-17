@@ -83,4 +83,7 @@ case object DisplayClient {
       selected)
   }
 
+  def toClient(dc: DisplayClient): Client =
+    Client( s"${dc.taxService}~${dc.identifierKey}~${dc.hmrcRef}", dc.name)
+
 }

@@ -47,11 +47,11 @@ common.return.manage-team-members=Return to manage team members
 
 common.total.clients=Showing total of <strong>{0}</strong> clients
 paginated.clients.showing=Showing {0} to {1} of {2} clients
-client.search.results.label=with reference: â{0}â
-client.filter.results.label=in tax service: â{0}â
+client.search.results.label=with reference: ‘{0}’
+client.filter.results.label=in tax service: ‘{0}’
 common.total.team-members=Showing total of <strong>{0}</strong> team members
 paginated.team-members.showing=Showing {0} to {1} of {2} team members
-paginated.team-members.for.search=for the search term â{0}â
+paginated.team-members.for.search=for the search term ‘{0}’
 common.total.team-members.selected=<strong>{0}</strong> team members selected across all searches
 common.total.clients.selected=<strong>{0}</strong> clients selected across all searches
 already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients in your group
@@ -86,7 +86,7 @@ group.not.found.error.a=Back to manage groups page
 
 opt-in-info.h1=Turn on access groups
 opt-in-info.inset=By default, agent services accounts allow all team members to view and manage the tax affairs of all clients using shared sign in details.
-opt-in-info.p1=This feature is designed for agent services accounts with multiple clients who would like to assign team members to view and manage their clientâs tax affairs.
+opt-in-info.p1=This feature is designed for agent services accounts with multiple clients who would like to assign team members to view and manage their client‘s tax affairs.
 opt-in-info.p2=If you turn on this feature you can create access groups of clients based on client type, tax services, regions or your internal working groups. 
 opt-in-info.p3=You can then manage access permissions by assigning your team members to each access group.
 opt-in-info.p4=Your organisation may have already created access groups and then turned this feature off. Turning access groups on will restore these groups.
@@ -117,7 +117,7 @@ do-you-want-to-opt-out.yes.error=Select yes to turn off access groups
 
 you-have-opted-out.h1=You have turned off access groups
 you-have-opted-out.p1=You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients.
-you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services âManage accountâ page.
+you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account’ page.
 
 group.type.h1=Create an access group
 group.type.label=How would you like to create this group?
@@ -129,12 +129,12 @@ group.type.tax.service.hint=Select all clients for one tax service. <br>These gr
 
 group.tax-service.h1=Group based on tax service
 group.tax-service.select.label=Select clients by tax service
-group.tax-service.answer.label=Add neâw clients to this access group automatically?
-group.tax-service.answer.hint=If you select âYesâ we will add new clients as soon as they authorise you for this tax service.
+group.tax-service.answer.label=Add ne„w clients to this access group automatically?
+group.tax-service.answer.hint=If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service.
 group.tax-service.select.error=Select the tax type for this access group
 
 
-group.tax-service.review.h1=You have selected all â{0}â clients
+group.tax-service.review.h1=You have selected all “{0}” clients
 group.tax-service.review.legend=Continue with selected clients?
 group.tax-service.review.yes=Yes, continue to naming group
 group.tax-service.review.no=No, start again
@@ -146,15 +146,15 @@ group.name.max.length=Access group name must be 50 characters or fewer
 group.name.required=Enter an access group name
 group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 group.confirm.h1=Confirm access group name
-group.confirm.name.label=Is the access group name â{0}â correct?
+group.confirm.name.label=Is the access group name ‘{0}’ correct?
 group.name.confirm.required.error=Select yes if the access group name is correct
 
 group.client.search.h1=Search for clients
 
 group.client.list.h1=Select clients
 select.members.list.h1=Select team members
-group.client.list.1.h2=Showing {0} results for â{1}â
-group.client.list.2.h2=Showing {0} results for â{1}â and â{2}â
+group.client.list.1.h2=Showing {0} results for ‘{1}’
+group.client.list.2.h2=Showing {0} results for ‘{1}’ and ‘{2}’
 client-filter.text.label=Filter by tax reference or client reference
 client-filter.select.label=Filter by tax service
 client-filter.select.label.empty-option=Choose tax service
@@ -229,13 +229,13 @@ group.renamed.h1=Access group renamed
 group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
 
 group.delete.name.label=Are you sure you want to delete {0} access group?
-group.delete.select.error=Select âyesâ if you would like to delete the group
+group.delete.select.error=Select ‘yes’ if you would like to delete the group
 
 group.deleted.h1={0} access group deleted
 group.deleted.p=Clients from this group will now be visible to all team members, unless they are in other groups.
 
 access-group-name-exists.title=Access group name already exists
-access-group-name-exists.p=You already have an access group called â{0}â. Please enter a new access group name.
+access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.
 access-group-name-exists.button=Enter a new access group name
 
 access-group-name-exceed-groups.title=You have already created all the tax service access groups
@@ -274,13 +274,13 @@ common.details.groups.header=Member of these groups
 
 update-client-reference=Update client reference
 update-client-reference.caption=Tax reference: {0}
-update-client-reference.text=Please note that adding a client reference here does not update the clientâs details in the Government Gateway account. It only affects the client reference in your access groups.
+update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
 error.client-reference.required=Enter client reference
 error.client-reference.max-length=Client reference must be 80 characters or fewer
 error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 
 client-reference.updated.h1=Client reference will update shortly
-client-reference.updated.p=You have asked us to update this client reference in your agent services account. Weâll update it to {0} in the next two hours. We will not change the client reference in other HMRC online services.
+client-reference.updated.p=You have asked us to update this client reference in your agent services account. We’ll update it to {0} in the next two hours. We will not change the client reference in other HMRC online services.
 error.group.filter.max.length=You can only enter 32 characters or fewer
 error.group.filter.required=You must enter a group name or part of it
 error.group.filter.invalid=Group name must not include the characters < or >

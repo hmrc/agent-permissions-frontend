@@ -242,11 +242,11 @@ class CreateGroupSelectTeamMembersController @Inject()
         for {
           // if clientId is not provided as a query parameter, check the CLIENT_TO_REMOVE session value.
           // This is to enable the welsh language switch to work correctly.
-          maybeClientId: Option[String] <- memberId match {
+          maybeMemberId: Option[String] <- memberId match {
             case None => sessionCacheService.get(MEMBER_TO_REMOVE).map(_.map(_.id))
             case Some(cid) => Future.successful(Some(cid))
           }
-          result <- maybeClientId.flatMap(id => selectedMembers.getOrElse(Seq.empty).find(_.id == id)) match {
+          result <- maybeMemberId.flatMap(id => selectedMembers.getOrElse(Seq.empty).find(_.id == id)) match {
             case None => Future.successful(Redirect(controller.showSelectTeamMembers(None, None)))
             case Some(member) =>
               sessionCacheService

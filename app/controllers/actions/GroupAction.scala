@@ -123,15 +123,19 @@ class GroupAction @Inject()
   }
 
   // TODO use withGroupSummaryForAuthorisedOptedAgent or withAccessGroupForAuthorisedOptedAgent
-  def withTaxGroupForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
-                                         (body: TaxGroup => Future[Result])
+  def withTaxGroupForAuthorisedOptedAgent(groupId: String)
+                                         (body: (TaxGroup, Arn) => Future[Result])
                                          (implicit ec: ExecutionContext,
                                           hc: HeaderCarrier,
                                           request: MessagesRequest[AnyContent],
                                           appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        taxGroupService.getGroup(groupId).flatMap(_.fold(groupNotFound)(body(_)))
+        taxGroupService
+          .getGroup(groupId)
+          .flatMap(
+            _.fold(groupNotFound)(body(_, arn))
+          )
       }
     }
   }

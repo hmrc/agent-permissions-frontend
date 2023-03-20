@@ -17,17 +17,18 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
 import controllers.actions.AuthAction
 import helpers.Css.H2
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
-import org.mongodb.scala.bson.ObjectId
 import play.api.Application
-import play.api.http.Status.OK
+import play.api.Play.materializer
+import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -36,7 +37,6 @@ import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
-import java.time.LocalDate
 import java.time.LocalDateTime.MIN
 import java.util.Base64
 
@@ -57,15 +57,6 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
-  val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
-    arn,
-    "Bananas",
-    LocalDate.of(2020, 3, 10).atStartOfDay(),
-    null,
-    agentUser,
-    agentUser,
-    None,
-    None)
 
   val taxGroup: TaxGroup
     = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "HMRC-MTD-VAT", automaticUpdates = true, None)
@@ -104,10 +95,10 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
   val controller: ManageTaxGroupClientsController = fakeApplication.injector.instanceOf[ManageTaxGroupClientsController]
-  private val grpId: String = accessGroup._id.toString
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
   private val ctrlRoute: ReverseManageTaxGroupClientsController = routes.ManageTaxGroupClientsController
+  val taxGroupId = taxGroup._id.toString
 
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -115,18 +106,18 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 
-  s"GET ${ctrlRoute.showExistingGroupClients(grpId, None, None).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url}" should {
 
     "render correctly the first page of CLIENTS in tax group, with no query params" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Some(Set(fakeClients(0))))
+      expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
-
       expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients)
 
       //when
-      val result = controller.showExistingGroupClients(taxGroup._id.toString, None, None)(request)
+      val result = controller.showExistingGroupClients(taxGroupWithExcluded._id.toString, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -135,37 +126,44 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
-      val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 3
-      th.get(0).text() shouldBe "Client reference"
-      th.get(1).text() shouldBe "Tax reference"
-      th.get(2).text() shouldBe "Tax service"
+      val ths = html.select(Css.tableWithId("clients")).select("thead th")
+      ths.size() shouldBe 4
+      ths.get(0).text() shouldBe "Client reference"
+      ths.get(1).text() shouldBe "Tax reference"
+      ths.get(2).text() shouldBe "Tax service"
+      ths.get(3).text() shouldBe "Actions"
 
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
 
       trs.size() shouldBe 3
+
       //first row
-      trs.get(0).select("td").get(0).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
-      trs.get(0).select("td").get(2).text() shouldBe "VAT"
+      val row1Cells = trs.get(0).select("td")
+      row1Cells.get(0).text() shouldBe "friendly0"
+      row1Cells.get(1).text() shouldBe "ending in 6780"
+      row1Cells.get(2).text() shouldBe "VAT"
+      row1Cells.get(3).text() shouldBe "Client excluded"
 
       //last row
-      trs.get(2).select("td").get(0).text() shouldBe "friendly2"
-      trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
-      trs.get(2).select("td").get(2).text() shouldBe "VAT"
+      val row3Cells = trs.get(2).select("td")
+      row3Cells.get(0).text() shouldBe "friendly2"
+      row3Cells.get(1).text() shouldBe "ending in 6782"
+      row3Cells.get(2).text() shouldBe "VAT"
+      row3Cells.get(3).select("a").attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(taxGroupId, displayClients(2).id).url
+      row3Cells.get(3).text() shouldBe "Remove"
     }
 
     "render with searchTerm set" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroupId, Some(taxGroup))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
 
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
       expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients.take(1))
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(taxGroup._id.toString, None, None).url +
+        ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -173,7 +171,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       //when
       val result =
-        controller.showExistingGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+        controller.showExistingGroupClients(taxGroupId, None, None)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -184,7 +182,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(H2).text shouldBe "Filter results for 'friendly1'"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 3
+      th.size() shouldBe 4
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
       trs.size() shouldBe 1
     }
@@ -192,7 +190,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     "render with search that matches nothing" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroupId, Some(taxGroup))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "nothing") //not matching
       expectGetPageOfClients(taxGroup.arn, 1, 20)(Seq.empty[DisplayClient])
@@ -200,14 +198,14 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       val NON_MATCHING_SEARCH = "nothing"
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(taxGroup._id.toString, None, None).url +
+        ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           s"?submit=$FILTER_BUTTON&search=$NON_MATCHING_SEARCH&filter=HMRC-MTD-VAT"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showExistingGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+      val result = controller.showExistingGroupClients(taxGroupId, None, None)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -227,12 +225,12 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroupId, Some(taxGroup))
       expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
 
       //and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(taxGroup._id.toString, None, None).url +
+        ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           s"?submit=$CLEAR_BUTTON"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -240,23 +238,22 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       //when
       val result =
-        controller.showExistingGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+        controller.showExistingGroupClients(taxGroupId, None, None)(requestWithQueryParams)
 
       //then
       redirectLocation(result).get
-        .shouldBe(ctrlRoute.showExistingGroupClients(taxGroup._id.toString, Some(1), Some(20)).url)
+        .shouldBe(ctrlRoute.showExistingGroupClients(taxGroupId, Some(1), Some(20)).url)
     }
-
 
     "redirect to new page when a pagination button is clicked" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroupId, Some(taxGroup))
 
       val pageNumber = 2
       //and we have PAGINATION_BUTTON filter in query params
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupClients(taxGroup._id.toString, None, None).url +
+        ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           s"?submit=${PAGINATION_BUTTON}_$pageNumber"
       )
         .withHeaders("Authorization" -> "Bearer XYZ")
@@ -264,11 +261,113 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       //when
       val result =
-        controller.showExistingGroupClients(taxGroup._id.toString, None, None)(requestWithQueryParams)
+        controller.showExistingGroupClients(taxGroupId, None, None)(requestWithQueryParams)
 
       //then
       redirectLocation(result).get
-        .shouldBe(ctrlRoute.showExistingGroupClients(taxGroup._id.toString, Some(pageNumber), Some(20)).url)
+        .shouldBe(ctrlRoute.showExistingGroupClients(taxGroupId, Some(pageNumber), Some(20)).url)
+    }
+
+    val clientToRemove: DisplayClient = displayClients.head
+
+    s"GET ${ctrlRoute.showConfirmRemoveClient(taxGroupId, clientToRemove.id).url}" should {
+
+      "render the confirm remove client page" in {
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectLookupClient(taxGroup.arn)(clientToRemove)
+        expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+        val result = controller.showConfirmRemoveClient(taxGroupId, clientToRemove.id)(request)
+        // then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+
+        html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+        html.select(Css.backLink)
+          .attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+
+
+        html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveClient(taxGroupId, clientToRemove.id).url
+        html.select("label[for=answer]").text() shouldBe "Yes"
+        html.select("label[for=answer-no]").text() shouldBe "No"
+        html.select(Css.form + " input[name=answer]").size() shouldBe 2
+        html.select(Css.submitButton).text() shouldBe "Save and continue"
+
+      }
+
+    }
+
+    s"POST ${ctrlRoute.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey).url}" should {
+
+      "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
+
+        val updatePayload = UpdateTaxServiceGroupRequest(Some("Bananas"),None,Some(true),Some(Set(DisplayClient.toClient(clientToRemove))))
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+//        expectRemoveClientFromGroup(taxGroupId, clientToRemove)
+        expectUpdateTaxGroup(taxGroupId, updatePayload)
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+            .withFormUrlEncodedBody("answer" -> "true")
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+
+        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+      }
+
+      "confirm remove client 'no' redirects to group clients list" in {
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+            .withFormUrlEncodedBody("answer" -> "false")
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+
+        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+      }
+
+      "render errors when no selections of yes/no made" in {
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+            .withFormUrlEncodedBody("ohai" -> "blah")
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        //when
+        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Error: Remove friendly0 from selected clients? - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+        html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
+        html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
+
+      }
     }
 
   }

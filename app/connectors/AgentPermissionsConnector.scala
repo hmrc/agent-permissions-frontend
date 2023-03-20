@@ -21,6 +21,7 @@ import com.codahale.metrics.MetricRegistry
 import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
+import controllers.GroupType
 import models.DisplayClient
 import play.api.Logging
 import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, NO_CONTENT, OK}
@@ -123,7 +124,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def removeClientFromGroup(groupId: String, clientId: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def removeTeamMemberFromGroup(groupId: String, clientId: String)
+  def removeTeamMemberFromGroup(groupId: String, memberId: String, isCustom: Boolean)
                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
 
@@ -584,9 +585,10 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def removeTeamMemberFromGroup(groupId: String, memberId: String)
+  def removeTeamMemberFromGroup(groupId: String, memberId: String, isCustom: Boolean)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/groups/$groupId/members/$memberId"
+    val typeOfGroup = if(isCustom) "groups" else "tax-group"
+    val url = s"$baseUrl/agent-permissions/$typeOfGroup/$groupId/members/$memberId"
     monitor("ConsumedAPI-removeMemberFromGroup-DELETE") {
       http.DELETE[HttpResponse](url).map { response =>
         response.status match {

@@ -197,10 +197,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text shouldBe "Manage clients in this group"
       html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
 
-      val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 4
-      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
+      val clientsTable = html.select(Css.tableWithId("clients"))
+      val th = clientsTable.select("thead th")
+      val trs = clientsTable.select("tbody tr")
       trs.size() shouldBe 1
+      th.size() shouldBe 3 // only 1 on the page so can't remove it.
     }
 
     "render with filter that matches nothing" in {

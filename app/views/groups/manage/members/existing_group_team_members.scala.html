@@ -48,10 +48,12 @@
         </div>
 
         @* TODO use a partial *@
-        @govukSkipLink(SkipLink(
-            href = "#members",
-            content = Text(msgs("common.skip-to-team-members"))
-        ))
+        @govukSkipLink(
+            SkipLink(
+                href = "#members",
+                content = Text(msgs("common.skip-to-team-members"))
+            )
+        )
 
 
     @if(paginatedMembers.pageContent.nonEmpty) {

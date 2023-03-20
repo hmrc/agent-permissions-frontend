@@ -907,7 +907,7 @@ class AgentPermissionsConnectorSpec
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
 
       //when
-      connector.removeTeamMemberFromGroup(groupId, memberId).futureValue shouldBe Done
+      connector.removeTeamMemberFromGroup(groupId, memberId, true).futureValue shouldBe Done
     }
 
     "throw exception when it fails" in {
@@ -921,7 +921,7 @@ class AgentPermissionsConnectorSpec
 
       //when
       val caught = intercept[UpstreamErrorResponse] {
-        await(connector.removeTeamMemberFromGroup(groupId, memberId))
+        await(connector.removeTeamMemberFromGroup(groupId, memberId, true))
       }
       //then
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR

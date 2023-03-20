@@ -236,19 +236,26 @@ class CreateGroupSelectTeamMembersController @Inject()
     }
   }
 
-  def showConfirmRemoveTeamMember(memberId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showConfirmRemoveTeamMember(memberId: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem(SELECTED_TEAM_MEMBERS) { selectedMembers =>
-        selectedMembers.getOrElse(Seq.empty).find(_.id == memberId)
-          .fold {
-            Redirect(controller.showSelectTeamMembers(None, None)).toFuture
-          } { teamMember =>
-            sessionCacheService
-              .put(MEMBER_TO_REMOVE, teamMember)
-              .flatMap(_ =>
-                Ok(confirm_remove_member(YesNoForm.form(), groupName, teamMember)).toFuture
-              )
+        for {
+          // if clientId is not provided as a query parameter, check the CLIENT_TO_REMOVE session value.
+          // This is to enable the welsh language switch to work correctly.
+          maybeMemberId: Option[String] <- memberId match {
+            case None => sessionCacheService.get(MEMBER_TO_REMOVE).map(_.map(_.id))
+            case Some(cid) => Future.successful(Some(cid))
           }
+          result <- maybeMemberId.flatMap(id => selectedMembers.getOrElse(Seq.empty).find(_.id == id)) match {
+            case None => Future.successful(Redirect(controller.showSelectTeamMembers(None, None)))
+            case Some(member) =>
+              sessionCacheService
+                .put(MEMBER_TO_REMOVE, member)
+                .flatMap(_ =>
+                  Ok(confirm_remove_member(YesNoForm.form(), groupName, member)).toFuture
+                )
+          }
+        } yield result
       }
     }
   }

@@ -490,7 +490,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(2).text() shouldBe "Administrator"
       val removeMember1 = trs.get(0).select("td").get(3).select("a")
       removeMember1.text() shouldBe "Remove"
-      removeMember1.attr("href") shouldBe ctrlRoute.showConfirmRemoveTeamMember(selectedTeamMembers(0).id).url
+      removeMember1.attr("href") shouldBe ctrlRoute.showConfirmRemoveTeamMember(Some(selectedTeamMembers(0).id)).url
 
       // last row
       trs.get(4).select("td").get(0).text() shouldBe "team member 5"
@@ -687,7 +687,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   }
 
-  s"GET Confirm Remove a selected team member on ${ctrlRoute.showConfirmRemoveTeamMember("id").url}" should {
+  s"GET Confirm Remove a selected team member on ${ctrlRoute.showConfirmRemoveTeamMember(Some("id")).url}" should {
 
     "render with team member to confirm removal" in {
       //given
@@ -698,7 +698,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, groupName)
 
       //when
-      val result = controller.showConfirmRemoveTeamMember(memberToRemove.id)(request)
+      val result = controller.showConfirmRemoveTeamMember(Some(memberToRemove.id))(request)
 
 
       //then

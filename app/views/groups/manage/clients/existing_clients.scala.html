@@ -43,7 +43,7 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@showRemoveLink = @{!groupClients.isEmpty && groupClients.length > 1}
+@showRemoveLink = @{group.clientCount.getOrElse(0) > 1}
 @tableHeadings = @{
     var ths = Seq[(Html, Map[String, String])](
         (Html(msgs("group.client.list.table.th1")), Map.empty),

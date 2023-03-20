@@ -40,7 +40,7 @@
     paginationMetaData: Option[PaginationMetaData]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@showRemoveLink = @{!teamMembers.isEmpty && teamMembers.length > 1}
+@showRemoveLink = @{group.teamMemberCount > 1}
 
 @tableHeadings = @{
     var ths = Seq[(Html, Map[String, String])](

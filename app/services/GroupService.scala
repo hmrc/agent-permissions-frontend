@@ -83,7 +83,7 @@ trait GroupService {
   def removeClientFromGroup(id: String, clientId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def removeTeamMemberFromGroup(id: String, clientId: String)
+  def removeTeamMemberFromGroup(id: String, clientId: String, isCustom: Boolean)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
 }
@@ -195,8 +195,8 @@ class GroupServiceImpl @Inject()(
     agentPermissionsConnector.removeClientFromGroup(groupId, clientId)
   }
 
-  def removeTeamMemberFromGroup(groupId: String, memberId: String)
+  def removeTeamMemberFromGroup(groupId: String, memberId: String, isCustom: Boolean)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
-    agentPermissionsConnector.removeTeamMemberFromGroup(groupId, memberId)
+    agentPermissionsConnector.removeTeamMemberFromGroup(groupId, memberId, isCustom)
   }
 }

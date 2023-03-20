@@ -40,20 +40,37 @@
     paginationMetaData: Option[PaginationMetaData]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@showRemoveLink = @{group.teamMemberCount > 1}
+
+@tableHeadings = @{
+    var ths = Seq[(Html, Map[String, String])](
+        (Html(msgs("group.members.list.table.th1")), Map.empty),
+        (Html(msgs("group.members.list.table.th2")), Map.empty),
+        (Html(msgs("group.members.list.table.th3")), Map.empty),
+    )
+    if(showRemoveLink) {
+        ths = ths :+ (Html(msgs("common.actions")), Map.empty[String,String])
+    }
+    ths
+}
 @tableRows = @{
-    teamMembers.map(member =>
-        Seq(
+    teamMembers.map(member => {
+        var row =  Seq[Html](
             Html(member.name),
             Html(member.email),
             Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
-            Html(
+        )
+        if(showRemoveLink) {
+            row = row.:+(Html(
                 a(
                     key = msgs("common.remove"),
-                    href = routes.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(group.groupId, member.id).url
+                    href = routes.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(group.groupId, group.groupType, member.id).url
                 ).toString
-            )
-        )
-    )
+            ))
+
+        }
+        row
+    })
 }
 
 @govukSkipLink(SkipLink(
@@ -90,17 +107,13 @@
             }
         }
 
+
         @table(
             caption = Some("common.teamMembers"),
             captionClasses = "govuk-visually-hidden",
             id = Some("members"),
             attrs = Map.empty,
-            headings = Seq(
-                (Html(msgs("group.members.list.table.th1")), Map.empty),
-                (Html(msgs("group.members.list.table.th2")), Map.empty),
-                (Html(msgs("group.members.list.table.th3")), Map.empty),
-                (Html(msgs("common.actions")), Map.empty),
-            ),
+            headings = tableHeadings,
             rows = tableRows,
         )
 

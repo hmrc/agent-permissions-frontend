@@ -98,12 +98,12 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def showConfirmRemoveTeamMember(groupId: String, memberId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) => {
+  def showConfirmRemoveTeamMember(groupId: String, groupType: String, memberId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (summary: GroupSummary, arn: Arn) => {
       teamMemberService
         .lookupTeamMember(arn)(memberId)
         .flatMap(maybeClient =>
-          maybeClient.fold(Redirect(controller.showExistingGroupTeamMembers(groupId, CUSTOM, None)).toFuture)(teamMember =>
+          maybeClient.fold(Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)).toFuture)(teamMember =>
             sessionCacheService
               .put(MEMBER_TO_REMOVE, teamMember)
               .map(_ =>
@@ -112,8 +112,8 @@ class ManageGroupTeamMembersController @Inject()
                     YesNoForm.form(),
                     summary.groupName,
                     teamMember,
-                    backLink = controller.showExistingGroupTeamMembers(groupId, CUSTOM, None),
-                    formAction = controller.submitConfirmRemoveTeamMember(groupId, teamMember.id)
+                    backLink = controller.showExistingGroupTeamMembers(groupId, groupType, None),
+                    formAction = controller.submitConfirmRemoveTeamMember(groupId, groupType)
                   )
                 )
               )
@@ -123,8 +123,8 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def submitConfirmRemoveTeamMember(groupId: String, teamMemberId: String): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
+  def submitConfirmRemoveTeamMember(groupId: String, groupType: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group: GroupSummary, _: Arn) => {
       withSessionItem[TeamMember](MEMBER_TO_REMOVE) { maybeMember =>
         maybeMember.fold(
           Redirect(controller.showExistingGroupTeamMembers(group.groupId, CUSTOM, None)).toFuture
@@ -139,17 +139,17 @@ class ManageGroupTeamMembersController @Inject()
                     formWithErrors,
                     group.groupName,
                     teamMemberToRemove,
-                    backLink = controller.showExistingGroupTeamMembers(groupId, CUSTOM, None),
-                    formAction = controller.submitConfirmRemoveTeamMember(groupId, teamMemberToRemove.id)
+                    backLink = controller.showExistingGroupTeamMembers(groupId, groupType, None),
+                    formAction = controller.submitConfirmRemoveTeamMember(groupId, groupType)
                   )
                 ).toFuture
               }, (yes: Boolean) => {
                 if (yes) {
                   groupService
-                    .removeTeamMemberFromGroup(groupId, teamMemberToRemove.userId.get)
-                    .map(_ => Redirect(controller.showExistingGroupTeamMembers(groupId, CUSTOM, None)))
+                    .removeTeamMemberFromGroup(groupId, teamMemberToRemove.userId.get, isCustom(groupType))
+                    .map(_ => Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)))
                 }
-                else Redirect(controller.showExistingGroupTeamMembers(groupId, CUSTOM, None)).toFuture
+                else Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)).toFuture
               }
             )
         )

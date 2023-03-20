@@ -86,8 +86,8 @@ POST    /manage-tax-group/:groupId/clients/confirm-remove/:clientId      control
 
 # Manage groups - team members
 GET     /manage-group/:groupType/:groupId/team-members             controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: String, groupType: String, page: Option[Int])
-GET     /manage-custom-group/:groupId/team-members/confirm-remove/:memberId      controllers.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(groupId: String, memberId: String)
-POST    /manage-custom-group/:groupId/team-members/confirm-remove/:memberId      controllers.ManageGroupTeamMembersController.submitConfirmRemoveTeamMember(groupId: String, memberId: String)
+GET     /manage-custom-group/:groupId/team-members/confirm-remove/:memberId      controllers.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(groupId: String, groupType: String, memberId: String)
+POST    /manage-custom-group/:groupId/team-members/confirm-remove      controllers.ManageGroupTeamMembersController.submitConfirmRemoveTeamMember(groupId: String, groupType: String)
 GET     /manage-group/:groupType/:groupId/team-members/update      controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: String, groupType: String, page: Option[Int])
 POST    /manage-group/:groupType/:groupId/team-members/update      controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: String, groupType: String )
 GET     /manage-group/:groupType/:groupId/team-members/review      controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: String, groupType: String, page: Option[Int])

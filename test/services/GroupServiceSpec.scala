@@ -18,7 +18,7 @@ package services
 
 import akka.Done
 import connectors._
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, NAME_OF_GROUP_CREATED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CUSTOM_GROUP, GroupType, NAME_OF_GROUP_CREATED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys}
 import helpers.BaseSpec
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, TeamMember}
@@ -447,13 +447,13 @@ class GroupServiceSpec extends BaseSpec {
       val memberId = UUID.randomUUID().toString
 
       (mockAgentPermissionsConnector
-        .removeTeamMemberFromGroup(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(groupId, memberId, *, *)
+        .removeTeamMemberFromGroup(_: String, _: String, _: Boolean)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, memberId, true, *, *)
         .returning(Future successful Done)
         .once()
 
       //when
-      val response = service.removeTeamMemberFromGroup(groupId, memberId).futureValue
+      val response = service.removeTeamMemberFromGroup(groupId, memberId, true).futureValue
 
       //then
       response shouldBe Done

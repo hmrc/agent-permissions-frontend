@@ -197,10 +197,11 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text shouldBe "Manage clients in this group"
       html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
 
-      val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 4
-      val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
+      val clientsTable = html.select(Css.tableWithId("clients"))
+      val th = clientsTable.select("thead th")
+      val trs = clientsTable.select("tbody tr")
       trs.size() shouldBe 1
+      th.size() shouldBe 4
     }
 
     "render with filter that matches nothing" in {
@@ -295,6 +296,39 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       redirectLocation(result).get
         .shouldBe(ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, Some(pageNumber), Some(20)).url)
+    }
+
+    "Not render remove link when only 1 client in group" in {
+      //given
+      val groupWithClients = accessGroup.copy(clients =
+        Some(displayClients.take(1).map(dc => Client(dc.enrolmentKey, dc.name)).toSet))
+      val summary = GroupSummary.fromAccessGroup(groupWithClients)
+
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)(displayClients.take(1), PaginationMetaData(lastPage = true, firstPage = true, 0, 1, 10, 1, 10))
+
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET,
+        ctrlRoute.showExistingGroupClients(groupWithClients._id.toString, None, None).url)
+        .withHeaders("Authorization" -> "Bearer XYZ")
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result =
+        controller.showExistingGroupClients(groupWithClients._id.toString, None, None)(requestWithQueryParams)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group"
+
+      val clientsTable = html.select(Css.tableWithId("clients"))
+      val th = clientsTable.select("thead th")
+      val trs = clientsTable.select("tbody tr")
+      trs.size() shouldBe 1
+      th.size() shouldBe 3 //<-- only 1 client in group so can't remove
     }
 
   }

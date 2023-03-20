@@ -43,18 +43,37 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@showRemoveLink = @{group.clientCount.getOrElse(0) > 1}
+@tableHeadings = @{
+    var ths = Seq[(Html, Map[String, String])](
+        (Html(msgs("group.client.list.table.th1")), Map.empty),
+        (Html(msgs("group.client.list.table.th2")), Map.empty),
+        (Html(msgs("group.client.list.table.th3")), Map.empty),
+    )
+    if(showRemoveLink) {
+        ths = ths :+ (Html(msgs("common.actions")), Map.empty[String,String])
+    }
+    ths
+}
 @tableRows = @{
-    groupClients.map(client =>
-        Seq(Html(client.name),
+    groupClients.map(client => {
+        var row = Seq[Html](
+            Html(client.name),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client.taxService)),
-            Html(
-                a(
-                    key = msgs("common.remove"),
-                    href = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
-                ).toString
-            )
         )
+        if(showRemoveLink) {
+            row = row.:+(
+                Html(
+                    a(
+                        key = msgs("common.remove"),
+                        href = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
+                    ).toString
+                )
+            )
+        }
+        row
+    }
     )
 }
 
@@ -88,12 +107,7 @@
                 caption = Some("common.clients"),
                 captionClasses = "govuk-visually-hidden",
                 id = Some("clients"),
-                headings = Seq(
-                    (Html(msgs("group.client.list.table.th1")), Map.empty),
-                    (Html(msgs("group.client.list.table.th2")), Map.empty),
-                    (Html(msgs("group.client.list.table.th3")), Map.empty),
-                    (Html(msgs("common.actions")), Map.empty),
-                ),
+                headings = tableHeadings,
                 rows = tableRows,
             )
 

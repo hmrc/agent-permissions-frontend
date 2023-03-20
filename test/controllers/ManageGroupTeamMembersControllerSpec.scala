@@ -720,7 +720,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   val memberToRemove = teamMembers.head
 
-  s"GET ${ctrlRoute.showConfirmRemoveTeamMember(groupId, memberToRemove.id).url}" should {
+  s"GET ${ctrlRoute.showConfirmRemoveTeamMember(groupId, GroupType.CUSTOM, memberToRemove.id).url}" should {
 
     "render the confirm remove team member page" in {
       val summary = GroupSummary.fromAccessGroup(accessGroup)
@@ -729,7 +729,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectLookupTeamMember(arn)(memberToRemove)
       expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
 
-      val result = controller.showConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+      val result = controller.showConfirmRemoveTeamMember(groupId, GroupType.CUSTOM, memberToRemove.id)(request)
       // then
       status(result) shouldBe OK
 
@@ -742,7 +742,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         .attr("href") shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
 
 
-      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveTeamMember(groupId, memberToRemove.id).url
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveTeamMember(groupId, CUSTOM).url
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -752,22 +752,22 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   }
 
-  s"POST confirm remove team member at:${ctrlRoute.submitConfirmRemoveTeamMember(groupId, memberToRemove.id).url}" should {
+  s"POST confirm remove team member at:${ctrlRoute.submitConfirmRemoveTeamMember(groupId, CUSTOM).url}" should {
 
     " remove from group and redirect to group team members list when 'yes' selected" in {
       val summary = GroupSummary.fromAccessGroup(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
-      expectRemoveTeamMemberFromGroup(groupId, memberToRemove)
+      expectRemoveTeamMemberFromGroup(groupId, memberToRemove, true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
 
-      val result = controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+      val result = controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)(request)
 
       status(result) shouldBe SEE_OTHER
 
@@ -782,12 +782,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest(
-          "POST", s"${controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)}")
+          "POST", s"${controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
 
-      val result = controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+      val result = controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)(request)
 
       status(result) shouldBe SEE_OTHER
 
@@ -801,12 +801,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)}")
           .withFormUrlEncodedBody("ohai" -> "blah")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.submitConfirmRemoveTeamMember(groupId, memberToRemove.id)(request)
+      val result = controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)(request)
 
       //then
       status(result) shouldBe OK

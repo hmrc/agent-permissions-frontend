@@ -79,9 +79,11 @@ GET     /manage-custom-group/:groupId/update-clients/review                 cont
 POST    /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: String)
 
 # Manage tax groups - clients
-GET     /manage-tax-group/:groupId/clients     controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+GET     /manage-tax-group/:groupId/clients                               controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: String, page: Option[Int], pageSize: Option[Int])
 GET     /manage-tax-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageTaxGroupClientsController.showConfirmRemoveClient(groupId: String, clientId: String)
 POST    /manage-tax-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageTaxGroupClientsController.submitConfirmRemoveClient(groupId: String, clientId: String)
+GET     /manage-tax-group/:groupId/clients/excluded                      controllers.ManageTaxGroupClientsController.showExcludedClients(groupId: String, page: Option[Int], pageSize: Option[Int])
+POST    /manage-tax-group/:groupId/clients/excluded                      controllers.ManageTaxGroupClientsController.submitUnexcludeClients(groupId: String)
 
 
 # Manage groups - team members

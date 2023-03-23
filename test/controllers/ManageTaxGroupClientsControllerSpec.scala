@@ -19,8 +19,9 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
 import controllers.actions.AuthAction
-import helpers.Css.H2
+import helpers.Css._
 import helpers.{BaseSpec, Css}
+import models.DisplayClient.{fromClient, toClient}
 import models.{DisplayClient, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
@@ -59,7 +60,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
 
   val taxGroup: TaxGroup
-    = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "HMRC-MTD-VAT", automaticUpdates = true, None)
+  = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "HMRC-MTD-VAT", automaticUpdates = true, None)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -79,8 +80,11 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
   val fakeClients: Seq[Client] =
     List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
+  val displayClients: Seq[DisplayClient] = fakeClients.map(fromClient(_))
 
-  val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
+  private val chars: List[Char] = List.range('a', 'z')
+  val excludedClients = chars.map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"John $i")).toSet
+  val excludedDisplayClients = excludedClients.map(fromClient(_))
 
   val encodedDisplayClients: Seq[String] = displayClients.map(client =>
     Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
@@ -151,6 +155,11 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       row3Cells.get(2).text() shouldBe "VAT"
       row3Cells.get(3).select("a").attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(taxGroupId, displayClients(2).id).url
       row3Cells.get(3).text() shouldBe "Remove"
+
+      //and view removed clients button should be present
+      val viewRemovedClientsButton = html.select(linkStyledAsButtonWithId("view-excluded-clients"))
+      viewRemovedClientsButton.text shouldBe "View removed clients"
+      viewRemovedClientsButton.attr("href") shouldBe ctrlRoute.showExcludedClients(taxGroupId, None, None).url
     }
 
     "render with searchTerm set" in {
@@ -287,7 +296,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
-        html.select(Css.backLink)
+        html.select(backLink)
           .attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
 
 
@@ -299,17 +308,29 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       }
 
+      "when client not found render existing group clients" in {
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectLookupClientNone(taxGroup.arn)
+
+        val result = controller.showConfirmRemoveClient(taxGroupId, clientToRemove.id)(request)
+        // then
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+      }
+
     }
 
     s"POST ${ctrlRoute.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey).url}" should {
 
       "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
 
-        val updatePayload = UpdateTaxServiceGroupRequest(Some("Bananas"),None,Some(true),Some(Set(DisplayClient.toClient(clientToRemove))))
+        val updatePayload = UpdateTaxServiceGroupRequest(Some("Bananas"), None, Some(true), Some(Set(DisplayClient.toClient(clientToRemove))))
         expectAuthOkOptedInReady()
         expectGetTaxGroupById(taxGroupId, Some(taxGroup))
         expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
-//        expectRemoveClientFromGroup(taxGroupId, clientToRemove)
+        //        expectRemoveClientFromGroup(taxGroupId, clientToRemove)
         expectUpdateTaxGroup(taxGroupId, updatePayload)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -370,6 +391,360 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       }
     }
 
+    val taxGroupWithExcluded: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser,
+      None, "HMRC-MTD-VAT", automaticUpdates = true, Some(excludedClients))
+    val taxGroupWithExcludedId = taxGroupWithExcluded._id.toString
+
+    s"GET excluded clients" should {
+
+      "render message when no excluded clients in group" in {
+        // given
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+
+        //when
+        val result = controller.showExcludedClients(taxGroupId, None, None)(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients"
+        html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
+        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+      }
+
+      "render excluded clients list for the group" in {
+        // given
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        expectPutSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+
+        //when
+        val result = controller.showExcludedClients(taxGroupWithExcludedId, None, None)(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients"
+        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
+
+        val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
+        ths.size() shouldBe 4
+        ths.get(0).text shouldBe ""
+        ths.get(1).text shouldBe "Client reference"
+        ths.get(2).text shouldBe "Tax reference"
+        ths.get(3).text shouldBe "Tax service"
+        val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+        trs.size() shouldBe 10
+
+        val row1Cells = trs.get(0).select("td")
+        val row1Checkbox = row1Cells.get(0).select("input")
+        row1Checkbox.attr("name") shouldBe "clients[]"
+        row1Checkbox.attr("value") shouldBe currentPageOfClients(0).id
+        row1Cells.get(1).text shouldBe "John a"
+        row1Cells.get(1).text shouldBe currentPageOfClients(0).name
+        row1Cells.get(2).text shouldBe "ending in 678a"
+        row1Cells.get(3).text shouldBe "VAT"
+
+        val row10Cells = trs.get(9).select("td")
+        val row10Checkbox = row10Cells.get(0).select("input")
+        row10Checkbox.attr("name") shouldBe "clients[]"
+        row10Checkbox.attr("value") shouldBe currentPageOfClients(9).id
+        row10Cells.get(1).text shouldBe "John j"
+        row10Cells.get(1).text shouldBe currentPageOfClients(9).name
+        row10Cells.get(2).text shouldBe "ending in 678j"
+        row10Cells.get(3).text shouldBe "VAT"
+
+      }
+
+      "render excluded clients with search term filtering" in {
+        // given
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItem(CLIENT_SEARCH_INPUT, "john a")
+        val currentPageOfClients = excludedClients.map(fromClient(_)).filter(dc => dc.name.equalsIgnoreCase("john a")).toSeq.sortBy(_.name).take(10)
+        expectPutSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+
+        //when
+        val result = controller.showExcludedClients(taxGroupWithExcludedId, None, None)(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Filter results for 'john a' Removed clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients"
+        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
+
+        val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
+        ths.size() shouldBe 4
+        ths.get(0).text shouldBe ""
+        ths.get(1).text shouldBe "Client reference"
+        ths.get(2).text shouldBe "Tax reference"
+        ths.get(3).text shouldBe "Tax service"
+        val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+        trs.size() shouldBe 1
+
+        val row1Cells = trs.get(0).select("td")
+        val row1Checkbox = row1Cells.get(0).select("input")
+        row1Checkbox.attr("name") shouldBe "clients[]"
+        row1Checkbox.attr("value") shouldBe currentPageOfClients(0).id
+        row1Cells.get(1).text shouldBe "John a"
+        row1Cells.get(1).text shouldBe currentPageOfClients(0).name
+        row1Cells.get(2).text shouldBe "ending in 678a"
+        row1Cells.get(3).text shouldBe "VAT"
+
+      }
+
+    }
+
+    s"POST to submitUnexcludeClients" should {
+
+      "Remove clients from the excluded list and therefore put them back in the group" in {
+
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitUnexcludeClients(taxGroupWithExcludedId).url)
+            .withFormUrlEncodedBody(
+              "clients[0]" -> currentPageOfClients.head.id,
+              "clients[1]" -> currentPageOfClients.last.id,
+              "search" -> "",
+              "filter" -> "",
+              "submit" -> CONTINUE_BUTTON
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        val updatePayload = UpdateTaxServiceGroupRequest(
+          excludedClients = Some(excludedClients -- Set(currentPageOfClients.head, currentPageOfClients.last).map(toClient(_)))
+        )
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+        expectUpdateTaxGroup(taxGroupWithExcludedId, updatePayload)
+        expectDeleteSessionItem(SELECTED_CLIENTS)
+
+        val result = controller.submitUnexcludeClients(taxGroupWithExcludedId)()(request)
+
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe ctrlRoute.showExcludedClients(taxGroupWithExcludedId, None, None).url
+      }
+
+      "Remove clients from the excluded list EVEN if current page has no selected but there are saved selected" in {
+
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitUnexcludeClients(taxGroupWithExcludedId).url)
+            .withFormUrlEncodedBody(
+              "search" -> "",
+              "filter" -> "",
+              "submit" -> CONTINUE_BUTTON
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        val alreadySelectedToUnexclude = excludedDisplayClients.takeRight(1)
+        val updatePayload = UpdateTaxServiceGroupRequest(
+          excludedClients = Some(excludedClients -- alreadySelectedToUnexclude.map(x => toClient(x)))
+        )
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItem(SELECTED_CLIENTS, alreadySelectedToUnexclude.toSeq)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+        expectUpdateTaxGroup(taxGroupWithExcludedId, updatePayload)
+        expectDeleteSessionItem(SELECTED_CLIENTS)
+
+        val result = controller.submitUnexcludeClients(taxGroupWithExcludedId)()(request)
+
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe ctrlRoute.showExcludedClients(taxGroupWithExcludedId, None, None).url
+      }
+
+      "save clients to unexclude, and redirect to when button is FILTER (i.e. not CONTINUE)" in {
+
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST",
+            ctrlRoute.submitUnexcludeClients(taxGroupWithExcludedId).url
+          ).withFormUrlEncodedBody(
+            "clients[0]" -> excludedDisplayClients.head.id,
+            "clients[1]" -> excludedDisplayClients.last.id,
+            "search" -> "john",
+            "submit" -> FILTER_BUTTON
+          ).withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+        expectPutSessionItem(CLIENT_SEARCH_INPUT, "john")
+
+        val result = controller.submitUnexcludeClients(taxGroupWithExcludedId)()(request)
+
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, None, None).url}"
+
+
+      }
+
+      "save clients to unexclude, and redirect to when button is CLEAR" in {
+
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST",
+            ctrlRoute.submitUnexcludeClients(taxGroupWithExcludedId).url
+          ).withFormUrlEncodedBody(
+            "clients[0]" -> excludedDisplayClients.head.id,
+            "clients[1]" -> excludedDisplayClients.last.id,
+            "submit" -> CLEAR_BUTTON
+          ).withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+        expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
+
+        val result = controller.submitUnexcludeClients(taxGroupWithExcludedId)()(request)
+
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, Some(1), Some(10)).url}"
+
+
+      }
+
+      "save clients to unexclude, and redirect to when button is PAGINATION" in {
+
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        val page = 2
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST",
+            ctrlRoute.submitUnexcludeClients(taxGroupWithExcludedId).url
+          ).withFormUrlEncodedBody(
+            "clients[0]" -> currentPageOfClients.head.id,
+            "clients[1]" -> currentPageOfClients.last.id,
+            "submit" -> s"${PAGINATION_BUTTON}_$page"
+          ).withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+        expectPutSessionItem(SELECTED_CLIENTS, Seq(currentPageOfClients.head, currentPageOfClients.last))
+
+        val result = controller.submitUnexcludeClients(taxGroupWithExcludedId)()(request)
+
+        status(result) shouldBe SEE_OTHER
+
+        redirectLocation(result).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, Some(page), Some(10)).url}"
+
+
+      }
+
+      "present page with errors when form validation fails" in {
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitUnexcludeClients(taxGroupWithExcludedId).url)
+            .withFormUrlEncodedBody(
+              "search" -> "",
+              "filter" -> "",
+              "submit" -> CONTINUE_BUTTON
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+
+        val result = controller.submitUnexcludeClients(taxGroupWithExcludedId)()(request)
+
+        status(result) shouldBe OK
+
+      }
+
+      "redirect when this group has NO EXCLUDED clients" in {
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitUnexcludeClients(taxGroupId).url)
+            .withFormUrlEncodedBody(
+              "search" -> "",
+              "filter" -> "",
+              "submit" -> CONTINUE_BUTTON
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
+
+        val result = controller.submitUnexcludeClients(taxGroupId)()(request)
+
+        status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients"
+        html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
+        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+
+      }
+
+      "redirect when this group has NO EXCLUDED clients even if form data seems valid" in {
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitUnexcludeClients(taxGroupId).url)
+            .withFormUrlEncodedBody(
+              "search" -> "",
+              "clients[0]" -> displayClients.head.id,
+              "clients[1]" -> displayClients.last.id,
+              "filter" -> "",
+              "submit" -> CONTINUE_BUTTON
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+        expectGetSessionItemNone(CURRENT_PAGE_CLIENTS)
+
+        val result = controller.submitUnexcludeClients(taxGroupId)()(request)
+
+        status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients"
+        html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
+        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+
+      }
+    }
   }
 
 }

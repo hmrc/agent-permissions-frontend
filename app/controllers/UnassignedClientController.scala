@@ -82,7 +82,7 @@ class UnassignedClientController @Inject()(
       Ok(
         unassigned_clients_list(
           markedPaginatedClients.pageContent,
-          form = form.fill(form.value.getOrElse(defaultFormData).copy(search = search, filter = filter)),
+          form.fill(form.value.getOrElse(defaultFormData).copy(search = search, filter = filter)),
           paginationMetaData = Some(metadataWithExtra)
         )
       )

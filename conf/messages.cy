@@ -214,6 +214,11 @@ group.clients.added.confirm={0} clients added.
 group.renamed.h1=Grŵp mynediad wedi’i ailenwi
 group.renamed.panelContent=Grŵp mynediad <strong>{0}</strong> wedi’i ailenwi’n <strong>{1}</strong>
 
+tax-group.manage.removed.clients.h1=Removed clients
+tax-group.manage.removed.clients.h2=Showing {0} Removed {1} clients
+tax-group.manage.removed.clients.submit=Add selected clients back into group
+tax-group.manage.removed.clients.view=View removed clients
+
 group.delete.name.label=A ydych yn siŵr eich bod am ddileu grŵp mynediad {0}?
 group.delete.select.error=Dewiswch ‘Iawn’ os ydych am ddileu’r grŵp
 

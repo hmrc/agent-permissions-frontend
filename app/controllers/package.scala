@@ -15,6 +15,7 @@
  */
 
 import models.{DisplayClient, TeamMember}
+import play.api.data.Form
 import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
@@ -69,6 +70,7 @@ package object controllers {
 
   val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("SELECTED_CLIENTS")
   val CURRENT_PAGE_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("CURRENT_PAGE_CLIENTS")
+  val FORM_ERRORS: DataKey[Form[Any]] = DataKey("FORM_ERRORS")
   val CLIENT_FILTER_INPUT: DataKey[String] = DataKey("ClientFilterInputValue")
   val CLIENT_SEARCH_INPUT: DataKey[String] = DataKey("ClientSearchInputValue")
   val CLIENT_TO_REMOVE: DataKey[DisplayClient] = DataKey("CLIENT_TO_REMOVE")

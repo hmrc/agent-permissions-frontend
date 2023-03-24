@@ -334,11 +334,10 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
 
-        val updatePayload = UpdateTaxServiceGroupRequest(Some("Bananas"), None, Some(true), Some(Set(DisplayClient.toClient(clientToRemove))))
+        val updatePayload = UpdateTaxServiceGroupRequest(excludedClients = Some(Set(DisplayClient.toClient(clientToRemove))))
         expectAuthOkOptedInReady()
         expectGetTaxGroupById(taxGroupId, Some(taxGroup))
         expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
-        //        expectRemoveClientFromGroup(taxGroupId, clientToRemove)
         expectUpdateTaxGroup(taxGroupId, updatePayload)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =

@@ -121,10 +121,10 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       html.title() shouldBe "Filter results for 'friendly1' Unassigned clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Unassigned clients"
 
-      val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
-      th.size() shouldBe 4
-      val tr = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
-      tr.size() shouldBe 1
+      val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
+      ths.size() shouldBe 4
+      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+      trs.size() shouldBe 1
 
       html.select("input#search").attr("value") shouldBe "friendly1"
     }

@@ -40,6 +40,7 @@ object Css {
   def radioButtonsField(id: String): String = s"form .govuk-radios#$id"
   def tableWithId(id: String) = s"table.govuk-table#$id"
   def tabPanelWithIdOf(id: String) = s".govuk-tabs__panel#$id"
+  def linkStyledAsButtonWithId(id: String) = s"a.govuk-button#${id}"
   val submitButton = "main form button#continue[type=submit]"
   val linkStyledAsButton = "a.govuk-button"
   val link = "main a"

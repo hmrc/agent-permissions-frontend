@@ -46,8 +46,10 @@
     form: Form[AddClientsToGroup],
     formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
     paginationMetaData: Option[PaginationMetaData] = None,
+    showSearch: Boolean = false,
     showFilter: Boolean = false,
     backLinkHref:Option[String] = None,
+    submitButtonKey: String = "common.continue"
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -88,8 +90,8 @@
 
 @formWithCSRF(action = formAction) {
 
-    @if(showFilter) {
-       @search_and_filter(form, true)
+    @if(showSearch) {
+       @search_and_filter(form, showFilter)
     }
 
     @if(clients.nonEmpty) {
@@ -137,7 +139,7 @@
         @p(key = msgs("already.selected.clients.nonjs", totalSelected),
             id = Some("member-count-text-non-js"),
         )
-        @submit_button()
+        @submit_button(submitButtonKey)
 
     } else {
         <div id="clients">

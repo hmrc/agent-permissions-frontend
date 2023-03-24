@@ -22,44 +22,44 @@
 @import views.html.partials.search_and_filter
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1, h2: h2, a: a,
-        caption: caption, table: table,
-        govukSkipLink: GovukSkipLink,
-        link_as_button: link_as_button,
-        submit_button: submit_button,
-        textbox: textbox,
-        search_and_filter: search_and_filter,
-        input_select: input_select,
-        inset_text: inset_text,
-        checkbox: checkbox,
-        pagination: POST_pagination,
+    layout: main_layout,
+    p: p, h1: h1, h2: h2, a: a,
+    caption: caption, table: table,
+    govukSkipLink: GovukSkipLink,
+    link_as_button: link_as_button,
+    submit_button: submit_button,
+    textbox: textbox,
+    search_and_filter: search_and_filter,
+    input_select: input_select,
+    inset_text: inset_text,
+    checkbox: checkbox,
+    pagination: POST_pagination,
 )
 
 @(
-        group: GroupSummary,
-        groupClients: Seq[DisplayClient],
-        form: Form[SearchFilter],
-        paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10)),
-        excludedClients: Seq[DisplayClient] = Seq.empty
+    group: GroupSummary,
+    groupClients: Seq[DisplayClient],
+    form: Form[SearchFilter],
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10)),
+    excludedClients: Seq[DisplayClient] = Seq.empty
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     groupClients.map(client =>
         Seq(
-            a(  key = client.name,
+            a(key = client.name,
                 href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
             ),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client.taxService)),
             Html(
-                if(excludedClients.contains(client)){
+                if(excludedClients.contains(client)) {
                     msgs("tax-group.client.excluded")
-                }else{
+                } else {
                     a(
-                    key = msgs("common.remove"),
-                    href = routes.ManageTaxGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
-                ).toString
+                        key = msgs("common.remove"),
+                        href = routes.ManageTaxGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
+                    ).toString
                 }
             )
         )
@@ -120,6 +120,15 @@
                 @h2("clients.not-found.heading")
                 @p("clients.not-found.p")
             </div>
+        }
+
+        @if(!excludedClients.isEmpty) {
+            @link_as_button(
+                href = controllers.routes.ManageTaxGroupClientsController.showExcludedClients(group.groupId, None, None).url,
+                key = "tax-group.manage.removed.clients.view",
+                id = "view-excluded-clients",
+                classes = Some("govuk-button--secondary")
+            )
         }
 
     }

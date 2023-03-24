@@ -64,6 +64,14 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful Some(client))
       .once()
 
+  def expectLookupClientNone(arn: Arn)
+                            (implicit clientService: ClientService): Unit =
+    (clientService
+      .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
+      .returning(Future successful None)
+      .once()
+
   def expectUpdateClientReference(arn: Arn, client: DisplayClient, newName: String)
                                  (implicit clientService: ClientService): Unit =
     (clientService

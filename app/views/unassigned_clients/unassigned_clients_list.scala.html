@@ -65,7 +65,14 @@ withSearchAndErrorPrefix(
     @summaryErrors(form.errors, Some(errorHref))
 
     @if(unassignedClients.nonEmpty) {
-        @paginated_selectable_clients_table_form(unassignedClients, form, routes.UnassignedClientController.submitAddUnassignedClients, paginationMetaData, showFilter = true)
+        @paginated_selectable_clients_table_form(
+            unassignedClients,
+            form,
+            routes.UnassignedClientController.submitAddUnassignedClients,
+            paginationMetaData,
+            showSearch = true,
+            showFilter = true,
+        )
     } else {
 
         @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
@@ -78,39 +85,3 @@ withSearchAndErrorPrefix(
     }
 
 }
-
-    @*
-@(
-        clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
-groupName: String,
-form: Form[AddClientsToGroup],
-formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
-backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSearchClients.url),
-paginationMetaData: Option[PaginationMetaData] = None
-    )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
-
-
-@errorHref = @{
-    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
-}
-
-@layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
-    backLinkHref = backUrl,
-    formErrors = Seq.empty,
-    fullWidth = true) {
-
-    @summaryErrors(form.errors, Some(errorHref))
-
-    <div class="govuk-!-width-two-thirds">
-        @caption(msgs("common.caption.group.name", groupName))
-        @h1(msgs("group.client.list.h1", groupName))
-        @p("common.group.max.clients")
-    </div>
-
-    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData)
-
-}
-
-
-*@

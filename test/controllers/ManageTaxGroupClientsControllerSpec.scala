@@ -397,6 +397,26 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
 
       }
+
+      "redirect when client not found" in {
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItemNone(CLIENT_TO_REMOVE)
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+            .withFormUrlEncodedBody("ohai" -> "blah")
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        //when
+        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+
+        //then
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+
+      }
     }
 
     val taxGroupWithExcluded: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser,

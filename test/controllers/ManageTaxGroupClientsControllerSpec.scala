@@ -162,14 +162,14 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       viewRemovedClientsButton.attr("href") shouldBe ctrlRoute.showExcludedClients(taxGroupId, None, None).url
     }
 
-    "render with searchTerm set" in {
+    "render excluded/non excluded correctly with searchTerm set" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Some(excludedClients.take(2)))
+      expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
-
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-      expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients.take(1))
+      expectGetPageOfClients(taxGroup.arn, 1, 20)(excludedDisplayClients.take(4).toSeq)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
@@ -193,7 +193,15 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 4
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
-      trs.size() shouldBe 1
+      trs.size() shouldBe 4
+
+      val row1Cells = trs.get(0).select("td")
+      row1Cells.get(0).text() shouldBe "John u"
+      row1Cells.get(3).text() shouldBe "Remove"
+
+      val row3Cells = trs.get(3).select("td")
+      row3Cells.get(0).text() shouldBe "John x"
+      row3Cells.get(3).text() shouldBe "Client excluded"
     }
 
     "render with search that matches nothing" in {
@@ -389,6 +397,26 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
 
       }
+
+      "redirect when client not found" in {
+
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItemNone(CLIENT_TO_REMOVE)
+
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+            .withFormUrlEncodedBody("ohai" -> "blah")
+            .withSession(SessionKeys.sessionId -> "session-x")
+
+        //when
+        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+
+        //then
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+
+      }
     }
 
     val taxGroupWithExcluded: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser,
@@ -402,6 +430,27 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         expectAuthOkOptedInReady()
         expectGetTaxGroupById(taxGroupId, Some(taxGroup))
         expectGetSessionItemNone(SELECTED_CLIENTS)
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+
+        //when
+        val result = controller.showExcludedClients(taxGroupId, None, None)(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients"
+        html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
+        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+      }
+
+      "render message when no excluded clients is present but empty" in {
+        // given
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
         expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
 
         //when

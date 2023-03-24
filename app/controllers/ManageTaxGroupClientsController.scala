@@ -143,9 +143,6 @@ class ManageTaxGroupClientsController @Inject()
               }, (yes: Boolean) => {
                 if (yes) {
                   val updateRequest = UpdateTaxServiceGroupRequest(
-                    groupName = Some(group.groupName),
-                    teamMembers = group.teamMembers,
-                    autoUpdate = Option(group.automaticUpdates),
                     excludedClients = Option(group.excludedClients.getOrElse(Set.empty[Client]) + toClient(clientToRemove))
                   )
                   taxGroupService

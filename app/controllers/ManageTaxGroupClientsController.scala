@@ -24,6 +24,7 @@ import forms._
 import models.DisplayClient.{fromClient, toClient}
 import models.{AddClientsToGroup, DisplayClient, SearchFilter}
 import play.api.Logging
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, SessionCacheService}
@@ -63,7 +64,7 @@ class ManageTaxGroupClientsController @Inject()
   private val controller: ReverseManageTaxGroupClientsController = routes.ManageTaxGroupClientsController
 
   def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, arn: Arn) =>
+    withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       val taxServiceName = if (group.service == "HMRC-TERS") "TRUST" else group.service
       searchFilter.submit.fold( // fresh page load or pagination reload
@@ -71,16 +72,8 @@ class ManageTaxGroupClientsController @Inject()
           _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, taxServiceName)
           paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
         } yield {
-          val excludedClients = group.excludedClients.getOrElse(Set.empty).map(fromClient(_)).toSeq
-          Ok(
-            existing_tax_group_clients(
-              group = GroupSummary.fromAccessGroup(group),
-              groupClients = paginatedClients.pageContent,
-              form = SearchAndFilterForm.form(), // TODO fill form when reloading page via pagination
-              paginationMetaData = Some(paginatedClients.paginationMetaData),
-              excludedClients = excludedClients
-            )
-          )
+          val form = SearchAndFilterForm.form()
+          renderGroupClientsWithExcluded(group, paginatedClients, form)
         }
       ) { // a button was clicked
         case FILTER_BUTTON =>
@@ -88,14 +81,10 @@ class ManageTaxGroupClientsController @Inject()
             _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
             _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, taxServiceName)
             paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
-          } yield Ok(
-            existing_tax_group_clients(
-              group = GroupSummary.fromAccessGroup(group),
-              groupClients = paginatedClients.pageContent,
-              form = SearchAndFilterForm.form().fill(searchFilter),
-              paginationMetaData = Some(paginatedClients.paginationMetaData)
-            )
-          )
+          } yield {
+            val form = SearchAndFilterForm.form().fill(searchFilter)
+            renderGroupClientsWithExcluded(group, paginatedClients, form)
+          }
         case CLEAR_BUTTON =>
           sessionCacheService.delete(CLIENT_SEARCH_INPUT).map(_ =>
             Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20)))
@@ -109,6 +98,20 @@ class ManageTaxGroupClientsController @Inject()
           }
       }
     }
+  }
+
+  private def renderGroupClientsWithExcluded(group: TaxGroup, paginatedClients: PaginatedList[DisplayClient], form: Form[SearchFilter])
+                                           (implicit request: Request[_]) : Result = {
+    val excludedClients = group.excludedClients.getOrElse(Set.empty).map(fromClient(_)).toSeq
+    Ok(
+      existing_tax_group_clients(
+        group = GroupSummary.fromAccessGroup(group),
+        groupClients = paginatedClients.pageContent,
+        form = form,
+        paginationMetaData = Some(paginatedClients.paginationMetaData),
+        excludedClients = excludedClients
+      )
+    )
   }
 
   def showConfirmRemoveClient(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>

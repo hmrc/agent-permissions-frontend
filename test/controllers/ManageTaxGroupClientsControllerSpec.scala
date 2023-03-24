@@ -162,14 +162,14 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       viewRemovedClientsButton.attr("href") shouldBe ctrlRoute.showExcludedClients(taxGroupId, None, None).url
     }
 
-    "render with searchTerm set" in {
+    "render excluded/non excluded correctly with searchTerm set" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Some(excludedClients.take(2)))
+      expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
-
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-      expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients.take(1))
+      expectGetPageOfClients(taxGroup.arn, 1, 20)(excludedDisplayClients.take(4).toSeq)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
@@ -193,7 +193,15 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 4
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
-      trs.size() shouldBe 1
+      trs.size() shouldBe 4
+
+      val row1Cells = trs.get(0).select("td")
+      row1Cells.get(0).text() shouldBe "John u"
+      row1Cells.get(3).text() shouldBe "Remove"
+
+      val row3Cells = trs.get(3).select("td")
+      row3Cells.get(0).text() shouldBe "John x"
+      row3Cells.get(3).text() shouldBe "Client excluded"
     }
 
     "render with search that matches nothing" in {

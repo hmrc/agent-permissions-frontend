@@ -303,7 +303,7 @@ class ManageTaxGroupClientsController @Inject()
         sortedExcludedClients
           .filter(dc => dc.name.toLowerCase.contains(lowerCaseSearch) || dc.hmrcRef.toLowerCase.contains(lowerCaseSearch))
     }
-    if (maybeSelected.isDefined && !maybeSelected.get.isEmpty) {
+    if (!maybeSelected.getOrElse(Seq.empty[DisplayClient]).isEmpty) {
       sortedExcludedClients = sortedExcludedClients.map(dc => dc.copy(selected = maybeSelected.get.map(_.id).contains(dc.id)))
     }
     val pagination = PaginatedListBuilder.build(pge, pgSize, sortedExcludedClients)

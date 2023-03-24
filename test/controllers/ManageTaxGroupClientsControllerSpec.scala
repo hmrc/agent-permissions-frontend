@@ -426,6 +426,27 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
       }
 
+      "render message when no excluded clients is present but empty" in {
+        // given
+        expectAuthOkOptedInReady()
+        expectGetTaxGroupById(taxGroupId, Some(taxGroup))
+        expectGetSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
+        expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+
+        //when
+        val result = controller.showExcludedClients(taxGroupId, None, None)(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients"
+        html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
+        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+      }
+
       "render excluded clients list for the group" in {
         // given
         expectAuthOkOptedInReady()

@@ -21,12 +21,13 @@ import com.codahale.metrics.MetricRegistry
 import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
-import controllers.GroupType
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import play.api.Logging
 import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, NO_CONTENT, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, TaxGroup, _}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup}
+import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
@@ -60,19 +61,19 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
   def unassignedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]]
 
-  def getPaginatedClientsForCustomGroup(id: String)
+  def getPaginatedClientsForCustomGroup(id: GroupId)
                                        (page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
 
-  def getPaginatedClientsToAddToGroup(id: String)
+  def getPaginatedClientsToAddToGroup(id: GroupId)
                                      (page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(GroupSummary, PaginatedList[DisplayClient])]
 
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
-  def getGroup(id: String)
+  def getGroup(id: GroupId)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]]
 
-  def getCustomSummary(id: String)
+  def getCustomSummary(id: GroupId)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)
@@ -82,13 +83,13 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                             (implicit hc: HeaderCarrier, ec: ExecutionContext)
   : Future[Option[Seq[GroupSummary]]]
 
-  def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
+  def updateGroup(id: GroupId, groupRequest: UpdateAccessGroupRequest)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
+  def addMembersToGroup(id: GroupId, groupRequest: AddMembersToAccessGroupRequest)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def deleteGroup(id: String)
+  def deleteGroup(id: GroupId)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
   def groupNameCheck(arn: Arn, name: String)
@@ -106,25 +107,25 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                            (createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
 
-  def getTaxServiceGroup(groupId: String)
+  def getTaxServiceGroup(groupId: GroupId)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]]
 
-  def deleteTaxGroup(id: String)
+  def deleteTaxGroup(id: GroupId)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def updateTaxGroup(groupId: String, group: UpdateTaxServiceGroupRequest)
+  def updateTaxGroup(groupId: GroupId, group: UpdateTaxServiceGroupRequest)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def addOneTeamMemberToGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+  def addOneTeamMemberToGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)
                              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def addOneTeamMemberToTaxGroup(id: String, groupRequest: AddOneTeamMemberToGroupRequest)
+  def addOneTeamMemberToTaxGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)
                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def removeClientFromGroup(groupId: String, clientId: String)
+  def removeClientFromGroup(groupId: GroupId, clientId: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
-  def removeTeamMemberFromGroup(groupId: String, memberId: String, isCustom: Boolean)
+  def removeTeamMemberFromGroup(groupId: GroupId, memberId: String, isCustom: Boolean)
                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
 
@@ -307,7 +308,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
   @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
-  def getGroup(id: String)
+  def getGroup(id: GroupId)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-group-GET") {
@@ -326,7 +327,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def getCustomSummary(id: String)
+  def getCustomSummary(id: GroupId)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] = {
     val url = s"$baseUrl/agent-permissions/custom-group/$id"
     monitor("ConsumedAPI-customGroupSummary-GET") {
@@ -346,7 +347,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
   }
 
 
-  def getPaginatedClientsForCustomGroup(id: String)
+  def getPaginatedClientsForCustomGroup(id: GroupId)
                                        (page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
                                        (implicit hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[Client]] = {
@@ -364,7 +365,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def getPaginatedClientsToAddToGroup(id: String)
+  def getPaginatedClientsToAddToGroup(id: GroupId)
                                      (page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(GroupSummary, PaginatedList[DisplayClient])] = {
 
@@ -383,7 +384,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  override def updateGroup(id: String, groupRequest: UpdateAccessGroupRequest)
+  override def updateGroup(id: GroupId, groupRequest: UpdateAccessGroupRequest)
                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-update group-PATCH") {
@@ -401,7 +402,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  override def addMembersToGroup(id: String, groupRequest: AddMembersToAccessGroupRequest)
+  override def addMembersToGroup(id: GroupId, groupRequest: AddMembersToAccessGroupRequest)
                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/$id/add-unassigned"
     monitor("ConsumedAPI- add members to group -PUT") {
@@ -417,7 +418,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  override def addOneTeamMemberToGroup(id: String, body: AddOneTeamMemberToGroupRequest)
+  override def addOneTeamMemberToGroup(id: GroupId, body: AddOneTeamMemberToGroupRequest)
                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/$id/members/add"
     monitor("ConsumedAPI- add one team member to group - PATCH") {
@@ -433,14 +434,14 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  override def deleteGroup(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  override def deleteGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"
     monitor("ConsumedAPI-custom-group-DELETE") {
       deleteAccessGroup(url)
     }
   }
 
-  def deleteTaxGroup(id: String)
+  def deleteTaxGroup(id: GroupId)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/tax-group/$id"
     monitor("ConsumedAPI-tax-group-DELETE") {
@@ -507,7 +508,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  override def getTaxServiceGroup(groupId: String)
+  override def getTaxServiceGroup(groupId: GroupId)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]] = {
     val url = s"$baseUrl/agent-permissions/tax-group/$groupId"
     monitor("ConsumedAPI-getTaxServiceGroup-GET") {
@@ -538,7 +539,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def updateTaxGroup(groupId: String, patchRequest: UpdateTaxServiceGroupRequest)
+  def updateTaxGroup(groupId: GroupId, patchRequest: UpdateTaxServiceGroupRequest)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
 
     val url = s"$baseUrl/agent-permissions/tax-group/$groupId"
@@ -555,9 +556,9 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  override def addOneTeamMemberToTaxGroup(id: String, body: AddOneTeamMemberToGroupRequest)
+  override def addOneTeamMemberToTaxGroup(id: GroupId, body: AddOneTeamMemberToGroupRequest)
                                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
-    val url = s"$baseUrl/agent-permissions/tax-group/$id/members/add"
+    val url = s"$baseUrl/agent-permissions/tax-group/${id.toString}/members/add"
     monitor("ConsumedAPI- add one team member to tax group - PATCH") {
       http
         .PATCH[AddOneTeamMemberToGroupRequest, HttpResponse](url, body)
@@ -571,7 +572,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def removeClientFromGroup(groupId: String, clientId: String)
+  def removeClientFromGroup(groupId: GroupId, clientId: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url = s"$baseUrl/agent-permissions/groups/$groupId/clients/$clientId"
     monitor("ConsumedAPI-removeClientFromGroup-DELETE") {
@@ -585,7 +586,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  def removeTeamMemberFromGroup(groupId: String, memberId: String, isCustom: Boolean)
+  def removeTeamMemberFromGroup(groupId: GroupId, memberId: String, isCustom: Boolean)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val typeOfGroup = if(isCustom) "groups" else "tax-group"
     val url = s"$baseUrl/agent-permissions/$typeOfGroup/$groupId/members/$memberId"

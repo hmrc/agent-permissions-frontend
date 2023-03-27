@@ -20,7 +20,7 @@ import config.AppConfig
 import connectors.AddOneTeamMemberToGroupRequest
 import controllers.actions.TeamMemberAction
 import forms.AddGroupsToClientForm
-import models.TeamMember
+import models.{GroupId, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -87,18 +87,20 @@ class AddTeamMemberToGroupsController @Inject()(
         }
       }, { groupIds =>
         val agentUser = TeamMember.toAgentUser(tm)
-        val groupsAddedTo: mutable.MutableList[String] = new mutable.MutableList()
-        Future.sequence(groupIds.map { groupId => {
-          val typeAndGroupId = groupId.split("_")
-          groupsAddedTo += typeAndGroupId(1)
-          if (GroupType.CUSTOM == typeAndGroupId(0)) {
-            groupService.addOneMemberToGroup(typeAndGroupId(1), AddOneTeamMemberToGroupRequest(agentUser))
+        val groupsAddedTo: mutable.MutableList[GroupId] = new mutable.MutableList()
+        Future.sequence(groupIds.map { encoded => {
+          val typeAndGroupId = encoded.split("_")
+          val groupType = typeAndGroupId(0)
+          val groupId: GroupId = GroupId.fromString(typeAndGroupId(1))
+          groupsAddedTo += groupId
+          if (GroupType.CUSTOM == groupType) {
+            groupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
           } else {
-            taxGroupService.addOneMemberToGroup(typeAndGroupId(1), AddOneTeamMemberToGroupRequest(agentUser))
+            taxGroupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
           }
         }
         }).map {_ =>
-          sessionCacheService.put[Seq[String]](GROUP_IDS_ADDED_TO, groupsAddedTo)
+          sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupsAddedTo)
           Redirect(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id))
         }
       }
@@ -109,7 +111,7 @@ class AddTeamMemberToGroupsController @Inject()(
 
   def showConfirmTeamMemberAddedToGroups(id: String): Action[AnyContent] = Action.async { implicit request =>
     withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) => {
-      sessionCacheService.get[Seq[String]](GROUP_IDS_ADDED_TO).flatMap { maybeGroupIds =>
+      sessionCacheService.get[Seq[GroupId]](GROUP_IDS_ADDED_TO).flatMap { maybeGroupIds =>
         groupService.getGroupSummaries(arn).map { groups =>
           val groupsAddedTo = groups
             .filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))

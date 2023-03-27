@@ -22,14 +22,15 @@ import controllers.GroupType.{CUSTOM, TAX_SERVICE}
 import controllers.actions.AuthAction
 import helpers.Css.H1
 import helpers.{BaseSpec, Css}
-import models.TeamMember
+import models.{GroupId, TeamMember}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, GroupSummary, OptedInReady, UserDetails}
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, GroupSummary, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -78,9 +79,9 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   val memberId: String = teamMembers.head.id
 
   val groupSummaries = Seq(
-    GroupSummary("groupId", "groupName", Some(33), 9),
-    GroupSummary("groupId1", "groupName1", Some(3), 1),
-    GroupSummary("groupId2", "groupName2", Some(3), 1, taxService = Some("VAT")),
+    GroupSummary(GroupId.random(), "groupName", Some(33), 9),
+    GroupSummary(GroupId.random(), "groupName1", Some(3), 1),
+    GroupSummary(GroupId.random(), "groupName2", Some(3), 1, taxService = Some("VAT")),
   )
   private val ctrlRoute: ReverseManageTeamMemberController = routes.ManageTeamMemberController
 

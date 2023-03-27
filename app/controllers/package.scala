@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import models.{DisplayClient, TeamMember}
+import models.{DisplayClient, GroupId, TeamMember}
 import play.api.data.Form
 import play.api.{Configuration, Environment, Mode}
-import uk.gov.hmrc.agentmtdidentifiers.model._
-import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
+import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future
@@ -101,7 +101,7 @@ package object controllers {
   val FILTERED_GROUPS_INPUT: DataKey[String] = DataKey("filteredGroupsInputValue")
 
   val CLIENT_REFERENCE: DataKey[String] = DataKey("clientRef")
-  val GROUP_IDS_ADDED_TO: DataKey[Seq[String]] = DataKey("groupIdsAddedTo")
+  val GROUP_IDS_ADDED_TO: DataKey[Seq[GroupId]] = DataKey("groupIdsAddedTo")
 
   val clientFilteringKeys =
     List(

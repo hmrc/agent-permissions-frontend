@@ -16,10 +16,10 @@
 
 @import config.AppConfig
 @import controllers.routes
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.main_layout
 @import views.html.partials.clients_table_filter_form
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
     layout: main_layout,
@@ -37,7 +37,7 @@
 @layout(
     title = withSearchAndErrorPrefix(filterForm.errors.nonEmpty,
                                      msgs("assistant.clients.group.h1", summary.groupName),
-                                     if(summary.isCustomGroup()) {filterForm("filter").value} else {None},
+                                     if(summary.isCustomGroup) {filterForm("filter").value} else {None},
                                      filterForm("search").value
     ),
     backLinkHref = Some(appConfig.agentServicesAccountYourAssistantAccountUrl),
@@ -51,7 +51,7 @@
 
     @if(clients.nonEmpty) {
         @clients_table_filter_form(
-            summary.isCustomGroup(),
+            summary.isCustomGroup,
             Some(clients),
             filterForm,
             routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
@@ -59,7 +59,7 @@
         )
     } else {
         @clients_table_filter_form(
-            summary.isCustomGroup(),
+            summary.isCustomGroup,
             None,
             filterForm,
             routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),

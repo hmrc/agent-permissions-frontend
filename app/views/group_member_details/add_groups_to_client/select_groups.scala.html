@@ -15,10 +15,9 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
-@import views.components.models.LegendData
 @import controllers.routes
-@import views.components.models.CheckboxData
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
+@import views.components.models.{CheckboxData, LegendData}
 @import views.html.main_layout
 
 @this(
@@ -83,9 +82,9 @@
                     name = "groups[]",
                     items = availableGroups.map { g =>
                         CheckboxData(
-                            id = g.groupId,
+                            id = g.groupId.toString,
                             label = g.groupName,
-                            value = g.groupId
+                            value = g.groupId.toString
                         )
                     },
                     legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden")))

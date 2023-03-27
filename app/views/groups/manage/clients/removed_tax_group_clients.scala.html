@@ -20,7 +20,7 @@
 @import views.html.partials.paginated_selectable_clients_table_form
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
-@import uk.gov.hmrc.agentmtdidentifiers.model.TaxGroup
+@import uk.gov.hmrc.agents.accessgroups.TaxGroup
 
 @this(
     layout: main_layout,
@@ -46,8 +46,8 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("tax-group.manage.removed.clients.h1"), form("filter").value, form("search").value),
-    backLinkHref = Some(routes.ManageTaxGroupClientsController.showExistingGroupClients(group._id.toString, None, None).url),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.removed.clients.h1"), form("filter").value, form("search").value),
+    backLinkHref = Some(routes.ManageTaxGroupClientsController.showExistingGroupClients(group.id, None, None).url),
     formErrors = Seq.empty,
     fullWidth = true) {
 
@@ -62,7 +62,7 @@
     @paginated_selectable_clients_table_form(
         clients,
         form,
-        routes.ManageTaxGroupClientsController.submitUnexcludeClients(group._id.toString),
+        routes.ManageTaxGroupClientsController.submitUnexcludeClients(group.id),
         paginationMetaData,
         showSearch = true,
         showFilter = false,

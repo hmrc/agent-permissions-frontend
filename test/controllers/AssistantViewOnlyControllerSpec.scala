@@ -21,17 +21,18 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
-import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -79,34 +80,35 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     fakeClients.map(DisplayClient.fromClient(_))
 
   val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
-    GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
+    GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
   private val agentUser: AgentUser =
     AgentUser(RandomStringUtils.random(5), "Rob the Agent")
 
  val accessGroup: CustomGroup =
-    CustomGroup(new ObjectId(),
+    CustomGroup(GroupId.random(),
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
     null,
     agentUser,
     agentUser,
-    None,
-    Some(fakeClients.toSet)
+    Set.empty,
+    fakeClients.toSet
     )
 
   val taxGroup: TaxGroup = TaxGroup(
+    GroupId.random(),
     arn,
     "VAT is Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
     LocalDate.of(2020, 3, 10).atStartOfDay(),
     agentUser,
     agentUser,
-    None,
+    Set.empty,
     "HMRC-MTD-VAT",
     automaticUpdates = true,
-    None)
+    Set.empty)
 
 
   val controller: AssistantViewOnlyController = fakeApplication.injector.instanceOf[AssistantViewOnlyController]
@@ -250,17 +252,17 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupClientsViewOnly(accessGroup.id).url}" should {
 
     s"render group ${accessGroup.groupName} clients list with no query params" in {
       // given
       AssistantAuthOk()
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup.id, Some(accessGroup))
 
-      expectGetPaginatedClientsForCustomGroup(accessGroup._id.toString)(1, 20)(displayClients,PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10))
+      expectGetPaginatedClientsForCustomGroup(accessGroup.id)(1, 20)((displayClients, PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
 
       //when
-      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(request)
+      val result = controller.showExistingGroupClientsViewOnly(accessGroup.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -281,12 +283,12 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     "render with filled form when search/filter terms are in session" in {
       //given
       AssistantAuthOk()
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup.id, Some(accessGroup))
       sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
-      expectGetPaginatedClientsForCustomGroup(accessGroup._id.toString)(1, 20)(displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10))
+      expectGetPaginatedClientsForCustomGroup(accessGroup.id)(1, 20)((displayClients.take(1),PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
 
       //when
-      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(request)
+      val result = controller.showExistingGroupClientsViewOnly(accessGroup.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -309,7 +311,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     "render with filter that matches nothing" in {
       //given
       AssistantAuthOk()
-      expectGetGroupById(accessGroup._id.toString, Some(accessGroup))
+      expectGetGroupById(accessGroup.id, Some(accessGroup))
 
       //there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
@@ -317,10 +319,10 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
       sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, NON_MATCHING_FILTER).futureValue
 
-      expectGetPaginatedClientsForCustomGroup(accessGroup._id.toString)(1, 20)(Seq.empty,PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10))
+      expectGetPaginatedClientsForCustomGroup(accessGroup.id)(1, 20)((Seq.empty,PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
 
       //when
-      val result = controller.showExistingGroupClientsViewOnly(accessGroup._id.toString)(request)
+      val result = controller.showExistingGroupClientsViewOnly(accessGroup.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -337,25 +339,25 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitExistingGroupClientsViewOnly(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitExistingGroupClientsViewOnly(accessGroup.id).url}" should {
 
     "save search/filter terms and redirect to 1st page when 'filter' is clicked" in {
       //given
       AssistantAuthOk()
 
       val requestWithFormBody = FakeRequest(POST,
-        ctrlRoute.submitExistingGroupClientsViewOnly(accessGroup._id.toString).url)
+        ctrlRoute.submitExistingGroupClientsViewOnly(accessGroup.id).url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "filter", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
 
       //when
-      val result = controller.submitExistingGroupClientsViewOnly(accessGroup._id.toString)(requestWithFormBody)
+      val result = controller.submitExistingGroupClientsViewOnly(accessGroup.id)(requestWithFormBody)
 
       //then
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString,None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup.id,None).url)
 
       sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
       sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT")
@@ -366,7 +368,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       AssistantAuthOk()
 
       val requestWithFormBody = FakeRequest(POST,
-        ctrlRoute.submitExistingGroupClientsViewOnly(accessGroup._id.toString).url)
+        ctrlRoute.submitExistingGroupClientsViewOnly(accessGroup.id).url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "clear", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
@@ -375,12 +377,12 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
 
       //when
-      val result = controller.submitExistingGroupClientsViewOnly(accessGroup._id.toString)(requestWithFormBody)
+      val result = controller.submitExistingGroupClientsViewOnly(accessGroup.id)(requestWithFormBody)
 
       //then
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup._id.toString,None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup.id,None).url)
 
       // check that filter values have been removed
       sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe None
@@ -390,18 +392,18 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
   }
 
 
-  s"GET ${ctrlRoute.showExistingTaxClientsViewOnly(taxGroup._id.toString).url}" should {
+  s"GET ${ctrlRoute.showExistingTaxClientsViewOnly(taxGroup.id).url}" should {
 
     s"render group ${taxGroup.groupName} clients list with no query params" in {
       // given
       AssistantAuthOk()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
       // TODO check these expectations, ideally get rid of need for sessionCacheRepo.putSession
       // ? expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectGetPageOfClients(taxGroup.arn)(displayClients)
 
       //when
-      val result = controller.showExistingTaxClientsViewOnly(taxGroup._id.toString)(request)
+      val result = controller.showExistingTaxClientsViewOnly(taxGroup.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -430,7 +432,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     s"render group ${taxGroup.groupName} clients list with search params" in {
       //given
       AssistantAuthOk()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
 
       // ? expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       //expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
@@ -439,7 +441,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectGetPageOfClients(taxGroup.arn)(displayClients.take(1))
 
       //when
-      val result = controller.showExistingTaxClientsViewOnly(taxGroup._id.toString)(request)
+      val result = controller.showExistingTaxClientsViewOnly(taxGroup.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -467,7 +469,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     "render with search that matches nothing" in {
       //given
       AssistantAuthOk()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
 
       //expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "nothing").futureValue //not matching any setup clients
@@ -476,7 +478,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectGetPageOfClients(taxGroup.arn)(Seq.empty[DisplayClient])
 
       //when
-      val result = controller.showExistingTaxClientsViewOnly(taxGroup._id.toString)(request)
+      val result = controller.showExistingTaxClientsViewOnly(taxGroup.id)(request)
 
       //then
       status(result) shouldBe OK
@@ -499,7 +501,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitExistingTaxClientsViewOnly(taxGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitExistingTaxClientsViewOnly(taxGroup.id).url}" should {
 
     "save search ONLY and redirect to 1st page when 'filter' is clicked" in {
       //given
@@ -509,18 +511,18 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
 
       val requestWithFormBody = FakeRequest(POST,
-        ctrlRoute.submitExistingTaxClientsViewOnly(taxGroup._id.toString).url)
+        ctrlRoute.submitExistingTaxClientsViewOnly(taxGroup.id).url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "filter", "search" -> "friendly1")
 
       //when
-      val result = controller.submitExistingTaxClientsViewOnly(taxGroup._id.toString)(requestWithFormBody)
+      val result = controller.submitExistingTaxClientsViewOnly(taxGroup.id)(requestWithFormBody)
 
       //then
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingTaxClientsViewOnly(taxGroup._id.toString,None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingTaxClientsViewOnly(taxGroup.id,None).url)
 
       sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
       sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT") // unchanged
@@ -535,18 +537,18 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       //expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
 
       val requestWithFormBody = FakeRequest(POST,
-        ctrlRoute.submitExistingTaxClientsViewOnly(taxGroup._id.toString).url)
+        ctrlRoute.submitExistingTaxClientsViewOnly(taxGroup.id).url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "clear", "search" -> "friendly1")
 
       //when
-      val result = controller.submitExistingTaxClientsViewOnly(taxGroup._id.toString)(requestWithFormBody)
+      val result = controller.submitExistingTaxClientsViewOnly(taxGroup.id)(requestWithFormBody)
 
       //then
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingTaxClientsViewOnly(taxGroup._id.toString,None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingTaxClientsViewOnly(taxGroup.id,None).url)
 
       // check that filter values have been removed
       sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe None

@@ -19,12 +19,13 @@ package controllers
 import config.AppConfig
 import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
 import forms._
-import models.SearchFilter
+import models.{GroupId, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, SessionCacheOperationsService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agents.accessgroups.{AccessGroup, GroupSummary, TaxGroup}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.assistant_read_only._
 
@@ -81,9 +82,9 @@ class AssistantViewOnlyController @Inject()(
     }
   }
 
-  def showExistingGroupClientsViewOnly(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showExistingGroupClientsViewOnly(groupId: GroupId, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedAssistant(groupId) { (group: AccessGroup, _: Arn) =>
-      val summary = GroupSummary.fromAccessGroup(group)
+      val summary = GroupSummary.of(group)
         for {
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
@@ -100,7 +101,7 @@ class AssistantViewOnlyController @Inject()(
   }
 
   // This endpoint exists in order to POST search/filter terms (GET form submit is disallowed by organisation policy)
-  def submitExistingGroupClientsViewOnly(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitExistingGroupClientsViewOnly(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
         updateSearchFilter(redirectTo = routes.AssistantViewOnlyController.showExistingGroupClientsViewOnly(groupId))
@@ -108,9 +109,9 @@ class AssistantViewOnlyController @Inject()(
     }
   }
 
-  def showExistingTaxClientsViewOnly(groupId: String, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showExistingTaxClientsViewOnly(groupId: GroupId, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupForAuthorisedAssistant(groupId, isCustom = false) { (group: AccessGroup, arn: Arn) =>
-      val summary = GroupSummary.fromAccessGroup(group)
+      val summary = GroupSummary.of(group)
         for {
           // needs Tax service saved to session on page load
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
@@ -132,7 +133,7 @@ class AssistantViewOnlyController @Inject()(
   }
 
   // This endpoint exists in order to POST search/filter terms (GET form submit is disallowed by organisation policy)
-  def submitExistingTaxClientsViewOnly(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitExistingTaxClientsViewOnly(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
         updateSearchFilter(

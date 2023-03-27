@@ -21,17 +21,17 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css.H1
 import helpers.{BaseSpec, Css}
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Client, GroupSummary, OptedInReady}
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
-
 
 class ManageClientControllerSpec extends BaseSpec {
 
@@ -81,9 +81,9 @@ class ManageClientControllerSpec extends BaseSpec {
   val clientId: String = displayClientsIds.head
 
   val groupSummaries = Seq(
-    GroupSummary("groupId", "groupName", Some(33), 9),
-    GroupSummary("groupId1", "groupName1", Some(3), 1),
-    GroupSummary("groupId2", "groupName2", Some(3), 1, taxService = Some("VAT")),
+    GroupSummary(GroupId.random(), "groupName", Some(33), 9),
+    GroupSummary(GroupId.random(), "groupName1", Some(3), 1),
+    GroupSummary(GroupId.random(), "groupName2", Some(3), 1, taxService = Some("VAT")),
   )
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"

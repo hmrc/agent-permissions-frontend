@@ -15,11 +15,11 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 @import controllers.routes
 @import views.components.models.CheckboxData
 @import views.html.main_layout
 @import views.components.models.LegendData
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 
 @this(
     layout: main_layout,
@@ -82,7 +82,7 @@
                         name = "groups[]",
                         items = availableGroups.map { g =>
                             CheckboxData(
-                                id = g.groupId,
+                                id = g.groupId.toString,
                                 label = g.groupName,
                                 value = s"${g.groupType}_${g.groupId}"
                             )

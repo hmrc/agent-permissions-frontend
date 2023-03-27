@@ -21,17 +21,17 @@ import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, U
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.{DisplayClient, TeamMember}
+import models.{DisplayClient, GroupId, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
-import org.mongodb.scala.bson.ObjectId
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agents.accessgroups.optin._
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -47,20 +47,20 @@ class ManageGroupControllerSpec extends BaseSpec {
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
-  val groupId = "xyz"
+  val groupId = GroupId.random()
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
 
-  val accessGroup: CustomGroup = CustomGroup(new ObjectId(),
+  val accessGroup: CustomGroup = CustomGroup(GroupId.random(),
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
     null,
     agentUser,
     agentUser,
-    None,
-    None)
+    Set.empty,
+    Set.empty)
 
-  val taxGroup: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "", automaticUpdates = true, None)
+  val taxGroup: TaxGroup = TaxGroup(GroupId.random(), arn, "Bananas", MIN, MIN, agentUser, agentUser, Set.empty, "", automaticUpdates = true, Set.empty)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -117,9 +117,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectDeleteSessionItems(managingGroupKeys)
 
       val searchTerm = "ab"
-      val groupSummaries = (1 to 3).map(i => {
-        GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, taxService = if(i%2==0) Some("VAT") else None)
-      })
+      val groupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4, taxService = if(i%2==0) Some("VAT") else None))
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(groupSummaries)
 
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
@@ -150,14 +148,14 @@ class ManageGroupControllerSpec extends BaseSpec {
       firstCustomGroupClients.select(".govuk-summary-list__value").text() shouldBe "3"
       firstCustomGroupClients.select(".govuk-summary-list__actions").text() shouldBe "Manage clients for name 1"
       firstCustomGroupClients.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-custom-group/groupId1/view-clients"
+        .attr("href") shouldBe s"/agent-permissions/manage-custom-group/${groupSummaries(0).groupId}/view-clients"
 
       //verify a tax group
       val taxGroup = groups.get(1)
       val clientsRow2 = taxGroup.select(".govuk-summary-list__row").get(0)
       clientsRow2.select(".govuk-summary-list__actions").text() shouldBe "Manage clients for name 2"
       clientsRow2.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-tax-group/groupId2/clients"
+        .attr("href") shouldBe s"/agent-permissions/manage-tax-group/${groupSummaries(1).groupId}/clients"
 
       val membersRow = firstCustomGroup.select(".govuk-summary-list__row").get(1)
       membersRow.select("dt").text() shouldBe "Team members"
@@ -166,7 +164,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-group/custom/groupId1/team-members"
+        .attr("href") shouldBe s"/agent-permissions/manage-group/custom/${groupSummaries(0).groupId}/team-members"
 
       val backlink = html.select(backLink)
       backlink.size() shouldBe 1
@@ -217,7 +215,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectDeleteSessionItems(managingGroupKeys)
 
-      val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"GroupName$i", Some(i * 3), i * 4))
+      val expectedGroupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"GroupName$i", Some(i * 3), i * 4))
       val searchTerm = expectedGroupSummaries(0).groupName
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(Seq(expectedGroupSummaries.head))
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
@@ -257,7 +255,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       clientsRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage clients for GroupName1"
       clientsRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-custom-group/groupId1/view-clients"
+        .attr("href") shouldBe s"/agent-permissions/manage-custom-group/${expectedGroupSummaries(0).groupId}/view-clients"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
       membersRow.select("dt").text() shouldBe "Team members"
@@ -265,7 +263,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       membersRow.select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for GroupName1"
       membersRow.select(".govuk-summary-list__actions a")
-        .attr("href") shouldBe "/agent-permissions/manage-group/custom/groupId1/team-members"
+        .attr("href") shouldBe s"/agent-permissions/manage-group/custom/${expectedGroupSummaries(0).groupId}/team-members"
 
       val backlink = html.select(backLink)
       backlink.size() shouldBe 1
@@ -382,7 +380,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the rename groups page" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
       //when
       val result = controller.showRenameGroup(groupId)(request)
@@ -483,7 +481,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
       expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"), None, None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -545,7 +543,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -617,7 +615,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
       //when
       val result = controller.submitRenameGroup(groupId)(request)
@@ -632,7 +630,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       //given
       expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_RENAMED_FROM, "Previous Name")
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
       //when
       val result = controller.showGroupRenamed(groupId)(request)
@@ -699,7 +697,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the DELETE group page" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
       //when
       val result = controller.showDeleteGroup(groupId)(request)
@@ -710,7 +708,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Delete group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Delete group"
       html.select(Css.form)
-        .attr("action") shouldBe ctrlRoute.showDeleteGroup(accessGroup._id.toString).url
+        .attr("action") shouldBe ctrlRoute.showDeleteGroup(accessGroup.id).url
 
       html.select(Css.legend)
         .text() shouldBe s"Are you sure you want to delete ${accessGroup.groupName} access group?"
@@ -721,25 +719,25 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitDeleteGroup(accessGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitDeleteGroup(accessGroup.id).url}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
       expectAuthOkOptedInReady()
       expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
-      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.fromAccessGroup(accessGroup)))
-      expectDeleteGroup(accessGroup._id.toString)
+      expectGetCustomSummaryById(accessGroup.id, Some(GroupSummary.of(accessGroup)))
+      expectDeleteGroup(accessGroup.id)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup._id.toString)
+            .submitDeleteGroup(accessGroup.id)
             .url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.submitDeleteGroup(accessGroup._id.toString)(request)
+      val result = controller.submitDeleteGroup(accessGroup.id)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
@@ -752,19 +750,19 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the DASHBOARD group page when 'no' selected" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(accessGroup._id.toString, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(accessGroup.id, Some(GroupSummary.of(accessGroup)))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup._id.toString)
+            .submitDeleteGroup(accessGroup.id)
             .url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
       val result =
-        controller.submitDeleteGroup(accessGroup._id.toString)(request)
+        controller.submitDeleteGroup(accessGroup.id)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
@@ -784,7 +782,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupId, Some(GroupSummary.fromAccessGroup(accessGroup)))
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
       //when
       val result = controller.submitDeleteGroup(groupId)(request)
@@ -842,7 +840,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.title() shouldBe "Delete group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Delete group"
       html.select(Css.form)
-        .attr("action") shouldBe ctrlRoute.showDeleteTaxGroup(taxGroup._id.toString).url
+        .attr("action") shouldBe ctrlRoute.showDeleteTaxGroup(taxGroup.id).url
 
       html.select(Css.legend)
         .text() shouldBe s"Are you sure you want to delete ${taxGroup.groupName} access group?"
@@ -853,25 +851,25 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitDeleteTaxGroup(taxGroup._id.toString).url}" should {
+  s"POST ${ctrlRoute.submitDeleteTaxGroup(taxGroup.id).url}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
       //given
       expectAuthOkOptedInReady()
       expectPutSessionItem(GROUP_DELETED_NAME, taxGroup.groupName)
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
-      expectDeleteTaxGroup(taxGroup._id.toString)
+      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectDeleteTaxGroup(taxGroup.id)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(taxGroup._id.toString)
+            .submitDeleteGroup(taxGroup.id)
             .url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.submitDeleteTaxGroup(taxGroup._id.toString)(request)
+      val result = controller.submitDeleteTaxGroup(taxGroup.id)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
@@ -884,19 +882,19 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the DASHBOARD group page when 'no' selected" in {
       //given
       expectAuthOkOptedInReady()
-      expectGetTaxGroupById(taxGroup._id.toString, Some(taxGroup))
+      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(taxGroup._id.toString)
+            .submitDeleteGroup(taxGroup.id)
             .url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
       val result =
-        controller.submitDeleteTaxGroup(taxGroup._id.toString)(request)
+        controller.submitDeleteTaxGroup(taxGroup.id)(request)
 
       //then
       status(result) shouldBe SEE_OTHER

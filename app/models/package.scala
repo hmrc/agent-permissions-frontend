@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package forms
+import java.util.UUID
 
-import play.api.data.Form
-import play.api.data.Forms._
+package object models {
+  type GroupId = UUID
 
-object AddGroupsToClientForm {
-
-  def form(): Form[List[String]] = {
-    Form(
-      single(
-        "groups" -> list(text).verifying("error.client.select.groups.empty", groups => groups.nonEmpty)
-      )
-    )
+  object GroupId {
+    def random(): GroupId = UUID.randomUUID()
+    def fromString(s: String): GroupId = UUID.fromString(s)
   }
 }

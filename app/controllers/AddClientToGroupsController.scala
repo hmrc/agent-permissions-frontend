@@ -20,12 +20,13 @@ import config.AppConfig
 import connectors.AddMembersToAccessGroupRequest
 import controllers.actions.ClientAction
 import forms.AddGroupsToClientForm
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agents.accessgroups.Client
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details.add_groups_to_client.{confirm_added, select_groups}
 
@@ -57,7 +58,7 @@ class AddClientToGroupsController @Inject()(
           Ok(
             select_groups(
               clientGroups,
-              allGroups.diff(clientGroups).filter(s => !s.isTaxGroup()), // only custom groups they're not already in
+              allGroups.diff(clientGroups).filter(s => !s.isTaxGroup), // only custom groups they're not already in
               displayClient,
               AddGroupsToClientForm.form()
             )
@@ -76,21 +77,22 @@ class AddClientToGroupsController @Inject()(
             Ok(
               select_groups(
                 clientGroups,
-                allGroups.diff(clientGroups).filter(s => !s.isTaxGroup()), // only custom groups they're not already in
+                allGroups.diff(clientGroups).filter(s => !s.isTaxGroup), // only custom groups they're not already in
                 displayClient,
                 formErrors
               )
             )
           }
         }
-      }, { groupIds =>
+      }, { groupIdsStr =>
+        val groupIds: Seq[GroupId] = groupIdsStr.map(GroupId.fromString)
         val client = Client(displayClient.enrolmentKey, displayClient.name)
         Future.sequence(groupIds.map { grp =>
           groupService.addMembersToGroup(
             grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))
             ))
         }).map { _ =>
-          sessionCacheService.put[Seq[String]](GROUP_IDS_ADDED_TO, groupIds)
+          sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupIds)
           Redirect(routes.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId))
         }
       }
@@ -101,7 +103,7 @@ class AddClientToGroupsController @Inject()(
 
   def showConfirmClientAddedToGroups(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
-      sessionCacheService.get[Seq[String]](GROUP_IDS_ADDED_TO)
+      sessionCacheService.get[Seq[GroupId]](GROUP_IDS_ADDED_TO)
         .flatMap { maybeGroupIds =>
         groupService.getGroupSummaries(arn).map { groups =>
           val groupsAddedTo = groups.filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))

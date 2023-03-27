@@ -17,12 +17,13 @@
 package helpers
 
 import akka.Done
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.ClientService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, GroupSummary, PaginatedList, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.agents.accessgroups.GroupSummary
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FilterUtils
 
@@ -101,7 +102,7 @@ trait ClientServiceMocks extends MockFactory {
       .returning(Future successful paginatedList)
   }
 
-  def expectGetPaginatedClientsToAddToGroup(groupId: String,
+  def expectGetPaginatedClientsToAddToGroup(groupId: GroupId,
                                             page: Int = 1,
                                             pageSize: Int = 20,
                                             search: Option[String] = None,
@@ -111,10 +112,10 @@ trait ClientServiceMocks extends MockFactory {
     val paginatedList = PaginatedList(pageContent = clients,
       paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length))
     (clientService
-      .getPaginatedClientsToAddToGroup(_: String)(_: Int, _: Int, _: Option[String], _: Option[String])(_: Request[_], _: HeaderCarrier,
+      .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(_: Request[_], _: HeaderCarrier,
         _: ExecutionContext))
       .expects(groupId, page, pageSize, search, filter, *, *, *)
-      .returning(Future successful (groupSummary, paginatedList))
+      .returning(Future.successful((groupSummary, paginatedList)))
   }
 
   def expectGetPageOfClientsNone(arn: Arn, page: Int = 1, pageSize: Int = 10)

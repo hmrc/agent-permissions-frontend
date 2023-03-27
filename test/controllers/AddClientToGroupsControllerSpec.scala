@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
@@ -28,7 +28,8 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
+import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -77,7 +78,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
     "render correctly the html" in {
       //given
-      val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4)) ++ Seq(GroupSummary("groupIdTax", "VAT", None, 8, Some("HMRC-MTD-VAT")))
+      val groupSummaries = (1 to 5).map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4)) ++ Seq(GroupSummary(GroupId.random(), "VAT", None, 8, Some("HMRC-MTD-VAT")))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       AuthOkWithClient()
@@ -116,7 +117,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "render correctly when client not in any groups yet" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = Seq.empty
 
       AuthOkWithClient()
@@ -149,7 +150,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "render correctly when no available groups" in {
       //given
       val groupSummaries = (1 to 2)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries
 
       AuthOkWithClient()
@@ -182,7 +183,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       s"At least 1 checkbox is checked for the group to add to" in {
         //given
         val groupSummaries = (1 to 5)
-          .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+          .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
 
         val expectedAddRequest1 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         expectAddMembersToGroup(groupSummaries(3).groupId, expectedAddRequest1)
@@ -193,8 +194,8 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", submitUrl)
             .withFormUrlEncodedBody(
-              "groups[0]" -> groupSummaries(3).groupId,
-              "groups[1]" -> groupSummaries(4).groupId,
+              "groups[0]" -> groupSummaries(3).groupId.toString,
+              "groups[1]" -> groupSummaries(4).groupId.toString,
               "submit" -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
@@ -214,7 +215,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "display error when no groups are selected" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       AuthOkWithClient()
@@ -236,7 +237,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
       //a11y: error should link to first group in the checkboxes
-      html.select(Css.errorSummaryForField("groupId3")).text() shouldBe "You must select at least one group"
+      html.select(Css.errorSummaryForField(groupSummaries(2).groupId.toString)).text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"
     }
   }
@@ -246,7 +247,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "render correctly the html" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
 
       AuthOkWithClient()
       expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))

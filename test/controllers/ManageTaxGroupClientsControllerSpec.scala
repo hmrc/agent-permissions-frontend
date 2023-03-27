@@ -22,7 +22,7 @@ import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.DisplayClient.{fromClient, toClient}
-import models.{DisplayClient, TeamMember}
+import models.{DisplayClient, GroupId, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
@@ -34,7 +34,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, TaxGroup, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -60,7 +61,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
 
   val taxGroup: TaxGroup
-  = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser, None, "HMRC-MTD-VAT", automaticUpdates = true, None)
+  = TaxGroup(GroupId.random(), arn, "Bananas", MIN, MIN, agentUser, agentUser, Set.empty, "HMRC-MTD-VAT", automaticUpdates = true, Set.empty)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -102,7 +103,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
   private val ctrlRoute: ReverseManageTaxGroupClientsController = routes.ManageTaxGroupClientsController
-  val taxGroupId = taxGroup._id.toString
+  val taxGroupId = taxGroup.id
 
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -115,13 +116,13 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     "render correctly the first page of CLIENTS in tax group, with no query params" in {
       //given
       expectAuthOkOptedInReady()
-      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Some(Set(fakeClients(0))))
+      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Set(fakeClients(0)))
       expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients)
 
       //when
-      val result = controller.showExistingGroupClients(taxGroupWithExcluded._id.toString, None, None)(request)
+      val result = controller.showExistingGroupClients(taxGroupWithExcluded.id, None, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -165,7 +166,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     "render excluded/non excluded correctly with searchTerm set" in {
       //given
       expectAuthOkOptedInReady()
-      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Some(excludedClients.take(2)))
+      val taxGroupWithExcluded = taxGroup.copy(excludedClients = excludedClients.take(2))
       expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
@@ -419,9 +420,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       }
     }
 
-    val taxGroupWithExcluded: TaxGroup = TaxGroup(arn, "Bananas", MIN, MIN, agentUser, agentUser,
-      None, "HMRC-MTD-VAT", automaticUpdates = true, Some(excludedClients))
-    val taxGroupWithExcludedId = taxGroupWithExcluded._id.toString
+    val taxGroupWithExcluded: TaxGroup = TaxGroup(GroupId.random(), arn, "Bananas", MIN, MIN, agentUser, agentUser,
+      Set.empty, "HMRC-MTD-VAT", automaticUpdates = true, excludedClients)
+    val taxGroupWithExcludedId = taxGroupWithExcluded.id
 
     s"GET excluded clients" should {
 

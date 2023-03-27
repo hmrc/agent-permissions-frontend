@@ -18,12 +18,14 @@ package helpers
 
 import akka.Done
 import connectors.{AgentPermissionsConnector, GroupRequest, UpdateAccessGroupRequest}
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import play.api.http.Status.BAD_REQUEST
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, CustomGroup, GroupSummary}
+import uk.gov.hmrc.agents.accessgroups.optin.OptinStatus
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import utils.FilterUtils
 
@@ -116,10 +118,10 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .expects(arn, agentUser, *, *)
       .returning(Future successful groups)
 
-  def expectGetGroupSuccess(id: String, group: Option[CustomGroup])(
+  def expectGetGroupSuccess(id: GroupId, group: Option[CustomGroup])(
       implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful group)
 
@@ -137,15 +139,15 @@ trait AgentPermissionsConnectorMocks extends MockFactory {
       .expects(arn, name, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def expectUpdateGroupSuccess(id: String, updateGroupRequest: UpdateAccessGroupRequest)(
-    implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler4[String, UpdateAccessGroupRequest, HeaderCarrier, ExecutionContext, Future[Done]] =
-    (agentPermissionsConnector.updateGroup(_: String, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+  def expectUpdateGroupSuccess(id: GroupId, updateGroupRequest: UpdateAccessGroupRequest)(
+    implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler4[GroupId, UpdateAccessGroupRequest, HeaderCarrier, ExecutionContext, Future[Done]] =
+    (agentPermissionsConnector.updateGroup(_: GroupId, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, updateGroupRequest, *, *)
       .returning(Future successful Done).once()
 
-  def expectDeleteGroupSuccess(id: String)(
-    implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler3[String, HeaderCarrier, ExecutionContext, Future[Done]] =
-    (agentPermissionsConnector.deleteGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+  def expectDeleteGroupSuccess(id: GroupId)(
+    implicit agentPermissionsConnector: AgentPermissionsConnector): CallHandler3[GroupId, HeaderCarrier, ExecutionContext, Future[Done]] =
+    (agentPermissionsConnector.deleteGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful Done)
 

@@ -31,7 +31,7 @@
 @(
     clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     groupName: String,
-    groupId: String,
+    groupId: GroupId,
     form: Form[AddClientsToGroup],
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -42,7 +42,7 @@
 }
 
 @pageTitle = @{
-withSearchAndErrorPrefix(!form.errors.isEmpty,
+withSearchAndErrorPrefix(form.errors.nonEmpty,
                         msgs("group.client.list.update.h1"),
                         form("filter").value,
                         form("search").value)

@@ -16,7 +16,8 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, PaginationMetaData}
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.components.pagination.POST_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
@@ -67,7 +68,7 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.existing.clients.title", group.groupName), None, form("search").value),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("group.existing.clients.title", group.groupName), None, form("search").value),
     backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url),
     fullWidth = true
 ) {
@@ -122,7 +123,7 @@
             </div>
         }
 
-        @if(!excludedClients.isEmpty) {
+        @if(excludedClients.nonEmpty) {
             @link_as_button(
                 href = controllers.routes.ManageTaxGroupClientsController.showExcludedClients(group.groupId, None, None).url,
                 key = "tax-group.manage.removed.clients.view",

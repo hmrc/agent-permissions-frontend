@@ -18,9 +18,11 @@ package helpers
 
 import akka.Done
 import connectors.{AddOneTeamMemberToGroupRequest, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
+import models.GroupId
 import org.scalamock.scalatest.MockFactory
 import services.TaxGroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agents.accessgroups.TaxGroup
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -51,32 +53,32 @@ trait TaxGroupServiceMocks extends MockFactory {
       .returning(Future.successful("PPT or whatever"))
       .once()
 
-  def expectDeleteTaxGroup(id: String)
+  def expectDeleteTaxGroup(id: GroupId)
                        (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
-      .deleteGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .deleteGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future.successful(Done)).once()
 
-  def expectGetTaxGroupById(id: String, maybeGroup: Option[TaxGroup])(
+  def expectGetTaxGroupById(id: GroupId, maybeGroup: Option[TaxGroup])(
     implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
-      .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful maybeGroup)
 
-  def expectUpdateTaxGroup(id: String, payload: UpdateTaxServiceGroupRequest)
+  def expectUpdateTaxGroup(id: GroupId, payload: UpdateTaxServiceGroupRequest)
                        (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
-      .updateGroup(_: String, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .updateGroup(_: GroupId, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future.successful(Done))
       .once()
 
-  def expectAddOneMemberToTaxGroup(id: String, payload: AddOneTeamMemberToGroupRequest)
+  def expectAddOneMemberToTaxGroup(id: GroupId, payload: AddOneTeamMemberToGroupRequest)
                                (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
-      .addOneMemberToGroup(_: String, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .addOneMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 }

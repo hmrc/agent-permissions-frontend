@@ -21,14 +21,15 @@ import connectors.UpdateTaxServiceGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.DisplayClient.{fromClient, toClient}
-import models.{AddClientsToGroup, DisplayClient, SearchFilter}
+import models.{AddClientsToGroup, DisplayClient, GroupId, SearchFilter}
 import play.api.Logging
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary, TaxGroup}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients.confirm_remove_client
@@ -62,7 +63,7 @@ class ManageTaxGroupClientsController @Inject()
 
   private val controller: ReverseManageTaxGroupClientsController = routes.ManageTaxGroupClientsController
 
-  def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showExistingGroupClients(groupId: GroupId, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       val taxServiceName = if (group.service == "HMRC-TERS") "TRUST" else group.service
@@ -101,10 +102,10 @@ class ManageTaxGroupClientsController @Inject()
 
   private def renderGroupClientsWithExcluded(group: TaxGroup, paginatedClients: PaginatedList[DisplayClient], form: Form[SearchFilter])
                                            (implicit request: Request[_]) : Result = {
-    val excludedClients = group.excludedClients.getOrElse(Set.empty).map(fromClient(_)).toSeq
+    val excludedClients = group.excludedClients.map(fromClient(_)).toSeq
     Ok(
       existing_tax_group_clients(
-        group = GroupSummary.fromAccessGroup(group),
+        group = GroupSummary.of(group),
         groupClients = paginatedClients.pageContent,
         form = form,
         paginationMetaData = Some(paginatedClients.paginationMetaData),
@@ -113,7 +114,7 @@ class ManageTaxGroupClientsController @Inject()
     )
   }
 
-  def showConfirmRemoveClient(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, arn: Arn) =>
       clientService.lookupClient(arn)(clientId)
         .flatMap(maybeClient =>
@@ -126,10 +127,10 @@ class ManageTaxGroupClientsController @Inject()
     }
   }
 
-  def submitConfirmRemoveClient(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
-        val groupId = group._id.toString
+        val groupId = group.id
         maybeClient.fold(
           Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
         )(clientToRemove =>
@@ -142,7 +143,7 @@ class ManageTaxGroupClientsController @Inject()
               }, (yes: Boolean) => {
                 if (yes) {
                   val updateRequest = UpdateTaxServiceGroupRequest(
-                    excludedClients = Option(group.excludedClients.getOrElse(Set.empty[Client]) + toClient(clientToRemove))
+                    excludedClients = Option(group.excludedClients + toClient(clientToRemove))
                   )
                   taxGroupService
                     .updateGroup(groupId, updateRequest)
@@ -162,7 +163,7 @@ class ManageTaxGroupClientsController @Inject()
     }
   }
 
-  private def renderConfirmRemoveClient(group: TaxGroup, groupId: String, clientToRemove: DisplayClient, formWithErrors: Form[Boolean])
+  private def renderConfirmRemoveClient(group: TaxGroup, groupId: GroupId, clientToRemove: DisplayClient, formWithErrors: Form[Boolean])
                                        (implicit request: Request[_]) : Result= {
     Ok(
       confirm_remove_client(
@@ -176,14 +177,14 @@ class ManageTaxGroupClientsController @Inject()
     )
   }
 
-  def showExcludedClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showExcludedClients(groupId: GroupId, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { maybeSearch =>
-          group.excludedClients.fold(
+          if (group.excludedClients.isEmpty)
             Ok(excluded_clients_not_found(group)).toFuture
-          ) { excludedClients =>
-            val paginatedList = paginationOfExcludedClients(excludedClients, page, pageSize, maybeSearch, maybeSelected)
+          else {
+            val paginatedList = paginationOfExcludedClients(group.excludedClients, page, pageSize, maybeSearch, maybeSelected)
             sessionCacheService
               .put(CURRENT_PAGE_CLIENTS, paginatedList.pageContent)
               .map(_ => {
@@ -209,37 +210,37 @@ class ManageTaxGroupClientsController @Inject()
     )
   }
 
-  def submitUnexcludeClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def submitUnexcludeClients(groupId: GroupId, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[Seq[DisplayClient]](CURRENT_PAGE_CLIENTS) { currentPageClients =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { maybeSearch =>
-            group.excludedClients.fold(
+            if (group.excludedClients.isEmpty)
               Ok(excluded_clients_not_found(group)).toFuture
-            ) { excludedClients =>
+            else {
               AddClientsToGroupForm.form()
                 .bindFromRequest()
                 .fold(formWithErrors => {
                   //if there are already selected clients you shouldn't have to select on current page.
-                  if (formWithErrors.data.get("submit") == Some(CONTINUE_BUTTON) && !maybeSelected.getOrElse(Nil).isEmpty) {
-                    updateExcludedClients(groupId, maybeSelected, currentPageClients, AddClientsToGroup(submit = CONTINUE_BUTTON), excludedClients)
+                  if (formWithErrors.data.get("submit").contains(CONTINUE_BUTTON) && maybeSelected.getOrElse(Nil).nonEmpty) {
+                    updateExcludedClients(groupId, maybeSelected, currentPageClients, AddClientsToGroup(submit = CONTINUE_BUTTON), group.excludedClients)
                       .map(numberRemoved =>
                         Redirect(controller.showExistingGroupClients(groupId, None, None))
                           .flashing("success" -> request.messages("tax-group.manage.removed.clients.updated", numberRemoved))
                       )
 
                   } else {
-                    val paginatedList = paginationOfExcludedClients(excludedClients, page, pageSize, maybeSearch, maybeSelected)
+                    val paginatedList = paginationOfExcludedClients(group.excludedClients, page, pageSize, maybeSearch, maybeSelected)
                     renderRemovedTaxGroupClients(group, paginatedList, formWithErrors).toFuture
                   }
                 }, (formData: AddClientsToGroup) =>
-                  group.excludedClients.fold(
+                  if (group.excludedClients.isEmpty)
                     Ok(excluded_clients_not_found(group)).toFuture
-                  ) { excludedClients =>
+                  else {
                     formData.submit match {
                       // a button was clicked
                       case CONTINUE_BUTTON =>
-                        updateExcludedClients(groupId, maybeSelected, currentPageClients, formData, excludedClients)
+                        updateExcludedClients(groupId, maybeSelected, currentPageClients, formData, group.excludedClients)
                           .map(numberRemoved =>
                             Redirect(controller.showExistingGroupClients(groupId, None, None))
                               .flashing("success" -> request.messages("tax-group.manage.removed.clients.updated", numberRemoved))
@@ -276,7 +277,7 @@ class ManageTaxGroupClientsController @Inject()
     }
   }
 
-  private def updateExcludedClients(groupId: String, maybeSelected: Option[Seq[DisplayClient]], currentPageClients: Option[Seq[DisplayClient]], formData: AddClientsToGroup, excludedClients: Set[Client])
+  private def updateExcludedClients(groupId: GroupId, maybeSelected: Option[Seq[DisplayClient]], currentPageClients: Option[Seq[DisplayClient]], formData: AddClientsToGroup, excludedClients: Set[Client])
                                    (implicit request: Request[_], hc: HeaderCarrier): Future[Int] = {
     val clientsToUnexclude = clientsSelectedIncludingCurrentPage(maybeSelected, currentPageClients, formData)
     val clients: Set[Client] = excludedClients -- clientsToUnexclude.map(toClient(_))

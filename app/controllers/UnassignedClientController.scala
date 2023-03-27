@@ -27,8 +27,9 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsNumber
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.agents.accessgroups.Client
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients._
 import views.html.unassigned_clients._
@@ -254,7 +255,7 @@ class UnassignedClientController @Inject()(
           Ok(
             select_groups_for_clients(
               SelectGroupsForm.form().fill(SelectGroups(None, None)),
-              groups.filter(_.isCustomGroup()))))
+              groups.filter(_.isCustomGroup))))
       }
     }
   }
@@ -276,7 +277,7 @@ class UnassignedClientController @Inject()(
             else {
               for {
                 allGroups <- groupService.getGroupSummaries(arn)
-                groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId))
+                groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId.toString))
                 _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
                 result <- selectedClients.fold(

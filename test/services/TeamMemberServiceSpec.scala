@@ -22,7 +22,8 @@ import helpers.BaseSpec
 import models.{AddTeamMembersToGroup, TeamMember}
 import play.api.libs.json.JsNumber
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData, UserDetails}
+import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData}
+import uk.gov.hmrc.agents.accessgroups.UserDetails
 
 class TeamMemberServiceSpec extends BaseSpec {
 

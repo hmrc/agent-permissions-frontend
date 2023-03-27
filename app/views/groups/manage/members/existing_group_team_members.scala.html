@@ -16,7 +16,8 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, PaginatedList}
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.main_layout
 @import views.html.partials.{existing_members_table_filter_form, search_and_filter}
 
@@ -38,7 +39,7 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @layout(
-        title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.manage.members", group.groupName), None, form("search").value),
+        title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("group.manage.members", group.groupName), None, form("search").value),
         backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url),
         fullWidth = true) {
 

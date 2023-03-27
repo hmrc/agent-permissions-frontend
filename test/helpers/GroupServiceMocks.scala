@@ -18,13 +18,14 @@ package helpers
 
 import akka.Done
 import connectors.{AddMembersToAccessGroupRequest, AddOneTeamMemberToGroupRequest, UpdateAccessGroupRequest}
-import models.{DisplayClient, TeamMember}
+import models.{DisplayClient, GroupId, TeamMember}
 import org.scalamock.handlers.{CallHandler4, CallHandler6}
 import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, CustomGroup, GroupSummary, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.agents.accessgroups.{CustomGroup, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,17 +40,17 @@ trait GroupServiceMocks extends MockFactory {
       .expects(arn, *, *, *)
       .returning(Future successful teamMembers).once()
 
-  def expectGetGroupById(id: String, maybeGroup: Option[CustomGroup])(
+  def expectGetGroupById(id: GroupId, maybeGroup: Option[CustomGroup])(
     implicit groupService: GroupService): Unit =
     (groupService
-      .getGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful maybeGroup)
 
-  def expectGetCustomSummaryById(id: String, maybeSummary: Option[GroupSummary])(
+  def expectGetCustomSummaryById(id: GroupId, maybeSummary: Option[GroupSummary])(
     implicit groupService: GroupService): Unit =
     (groupService
-      .getCustomSummary(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getCustomSummary(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful maybeSummary)
       .once()
@@ -66,11 +67,11 @@ trait GroupServiceMocks extends MockFactory {
       .expects(arn, filterTerm, page, pageSize, *, *, *)
       .returning(Future.successful(PaginatedListBuilder.build[GroupSummary](page, pageSize, groups))).once()
 
-  def expectGetPaginatedClientsForCustomGroup(groupId: String)
+  def expectGetPaginatedClientsForCustomGroup(groupId: GroupId)
                                              (page:Int, pageSize:Int)
-                                             (pageData: (Seq[DisplayClient], PaginationMetaData))(implicit groupService: GroupService): CallHandler6[String, Int, Int, Request[_], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
+                                             (pageData: (Seq[DisplayClient], PaginationMetaData))(implicit groupService: GroupService): CallHandler6[GroupId, Int, Int, Request[_], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
     (groupService
-      .getPaginatedClientsForCustomGroup(_: String)(_:Int,_:Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getPaginatedClientsForCustomGroup(_: GroupId)(_:Int,_:Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(groupId, page, pageSize, *, *, *)
       .returning(Future.successful(pageData)).once()
 
@@ -98,45 +99,45 @@ trait GroupServiceMocks extends MockFactory {
       .expects(arn, groupName, *, *, *)
       .returning(Future.successful(Done)).once()
 
-  def expectUpdateGroup(id: String, payload: UpdateAccessGroupRequest)
+  def expectUpdateGroup(id: GroupId, payload: UpdateAccessGroupRequest)
                        (implicit groupService: GroupService): Unit =
     (groupService
-      .updateGroup(_: String, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .updateGroup(_: GroupId, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future.successful(Done)).once()
 
-  def expectDeleteGroup(id: String)
+  def expectDeleteGroup(id: GroupId)
                        (implicit groupService: GroupService): Unit =
     (groupService
-      .deleteGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .deleteGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future.successful(Done)).once()
 
-  def expectAddMembersToGroup(id: String, payload: AddMembersToAccessGroupRequest)
+  def expectAddMembersToGroup(id: GroupId, payload: AddMembersToAccessGroupRequest)
                        (implicit groupService: GroupService): Unit =
     (groupService
-      .addMembersToGroup(_: String, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .addMembersToGroup(_: GroupId, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 
-  def expectAddOneMemberToGroup(id: String, payload: AddOneTeamMemberToGroupRequest)
+  def expectAddOneMemberToGroup(id: GroupId, payload: AddOneTeamMemberToGroupRequest)
                              (implicit groupService: GroupService): Unit =
     (groupService
-      .addOneMemberToGroup(_: String, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .addOneMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 
-  def expectRemoveClientFromGroup(groupId: String, client: DisplayClient)
+  def expectRemoveClientFromGroup(groupId: GroupId, client: DisplayClient)
                                (implicit groupService: GroupService): Unit =
     (groupService
-      .removeClientFromGroup(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .removeClientFromGroup(_: GroupId, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(groupId, client.enrolmentKey, *, *)
       .returning(Future successful Done)
 
-  def expectRemoveTeamMemberFromGroup(groupId: String, teamMember: TeamMember, isCustom: Boolean)
+  def expectRemoveTeamMemberFromGroup(groupId: GroupId, teamMember: TeamMember, isCustom: Boolean)
                                (implicit groupService: GroupService): Unit =
     (groupService
-      .removeTeamMemberFromGroup(_: String, _: String, _: Boolean)(_: HeaderCarrier, _: ExecutionContext))
+      .removeTeamMemberFromGroup(_: GroupId, _: String, _: Boolean)(_: HeaderCarrier, _: ExecutionContext))
       .expects(groupId, teamMember.userId.get, isCustom, *, *)
       .returning(Future successful Done)
 

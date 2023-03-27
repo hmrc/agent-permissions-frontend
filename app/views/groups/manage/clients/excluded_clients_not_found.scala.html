@@ -16,7 +16,7 @@
 
 @import config.AppConfig
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.TaxGroup
+@import uk.gov.hmrc.agents.accessgroups.TaxGroup
 
 @this(layout: main_layout, h1: h1, p: p, link_as_button: link_as_button)
 
@@ -24,13 +24,13 @@
 
 @layout(
  title = msgs("tax-group.manage.removed.clients.h1"),
- backLinkHref = Some(routes.ManageTaxGroupClientsController.showExistingGroupClients(group._id.toString, None, None).url)
+ backLinkHref = Some(routes.ManageTaxGroupClientsController.showExistingGroupClients(group.id, None, None).url)
 ) {
 
   @h1("tax-group.manage.removed.clients.h1")
   @p("tax-group.manage.removed.clients.not-found.p")
   @link_as_button(
    key = "tax-group.manage.removed.clients.not-found.back",
-   href = routes.ManageTaxGroupClientsController.showExistingGroupClients(group._id.toString, None, None).url)
+   href = routes.ManageTaxGroupClientsController.showExistingGroupClients(group.id, None, None).url)
 }
 

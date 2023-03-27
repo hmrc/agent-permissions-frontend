@@ -23,7 +23,8 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc.{Request, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.SessionCacheService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, OptedInReady, OptinStatus}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey

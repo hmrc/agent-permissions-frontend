@@ -16,7 +16,6 @@
 
 package controllers
 
-import akka.Done
 import config.AppConfig
 import connectors.UpdateTaxServiceGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
@@ -28,7 +27,7 @@ import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, GroupSummary, PaginatedList, TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model._
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -286,10 +285,10 @@ class ManageTaxGroupClientsController @Inject()
   }
 
   private def paginationOfExcludedClients(excludedClients: Set[Client],
-                                          page: Option[Int] = None,
-                                          pageSize: Option[Int] = None,
-                                          maybeSearch: Option[String] = None,
-                                          maybeSelected: Option[Seq[DisplayClient]] = None,
+                                          page: Option[Int],
+                                          pageSize: Option[Int],
+                                          maybeSearch: Option[String],
+                                          maybeSelected: Option[Seq[DisplayClient]],
                                          ): PaginatedList[DisplayClient] = {
     var sortedExcludedClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name)
     val pge = page.getOrElse(1)

@@ -117,7 +117,9 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectDeleteSessionItems(managingGroupKeys)
 
       val searchTerm = "ab"
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
+      val groupSummaries = (1 to 3).map(i => {
+        GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4, taxService = if(i%2==0) Some("VAT") else None)
+      })
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(groupSummaries)
 
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
@@ -140,19 +142,24 @@ class ManageGroupControllerSpec extends BaseSpec {
       val groups = html.select("dl.govuk-summary-list")
       groups.size() shouldBe 3
 
-      // check first group
+      // check first custom group
       html.select(H2).get(0).text() shouldBe "name 1 Custom group"
-      val firstGroup = groups.get(0)
-      val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
-      clientsRow.select("dt").text() shouldBe "Clients"
-      clientsRow.select(".govuk-summary-list__value")
-        .text() shouldBe "3"
-      clientsRow.select(".govuk-summary-list__actions")
-        .text() shouldBe "Manage clients for name 1"
-      clientsRow.select(".govuk-summary-list__actions a")
+      val firstCustomGroup = groups.get(0)
+      val firstCustomGroupClients = firstCustomGroup.select(".govuk-summary-list__row").get(0)
+      firstCustomGroupClients.select("dt").text() shouldBe "Clients"
+      firstCustomGroupClients.select(".govuk-summary-list__value").text() shouldBe "3"
+      firstCustomGroupClients.select(".govuk-summary-list__actions").text() shouldBe "Manage clients for name 1"
+      firstCustomGroupClients.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe "/agent-permissions/manage-custom-group/groupId1/view-clients"
 
-      val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
+      //verify a tax group
+      val taxGroup = groups.get(1)
+      val clientsRow2 = taxGroup.select(".govuk-summary-list__row").get(0)
+      clientsRow2.select(".govuk-summary-list__actions").text() shouldBe "Manage clients for name 2"
+      clientsRow2.select(".govuk-summary-list__actions a")
+        .attr("href") shouldBe "/agent-permissions/manage-tax-group/groupId2/clients"
+
+      val membersRow = firstCustomGroup.select(".govuk-summary-list__row").get(1)
       membersRow.select("dt").text() shouldBe "Team members"
       membersRow.select(".govuk-summary-list__value")
         .text() shouldBe "4"

@@ -34,6 +34,7 @@
     clientToRemove: DisplayClient,
     backLink: Call = routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None),
     formAction: Call = routes.CreateGroupSelectClientsController.submitConfirmRemoveClient,
+        paragraphKey: Option[String] = None,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @title = @{msgs("common.remove.client", clientToRemove.name)}
@@ -42,7 +43,10 @@
 
         @caption(msgs("common.caption.group.name", groupName))
         @h1(title)
-        @p("tax-group.clients.confirm.p1")
+
+        @if(paragraphKey.isDefined){
+            @p(paragraphKey.get)
+        }
 
         @formWithCSRF(action = formAction) {
             @radioButtons(

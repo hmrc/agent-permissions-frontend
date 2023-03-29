@@ -304,7 +304,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
-        html.select(Css.paragraphs).text() shouldBe "If you remove Even Adams from this group it will affect which team members can manage their tax. View their client details page to see if access to their tax will still be restricted to certain team members."
+        html.select(Css.paragraphs).text() shouldBe "If you remove Eve Adams from this tax group, only team members in their remaining groups can manage their tax."
         html.select(backLink)
           .attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
 

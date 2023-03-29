@@ -799,6 +799,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+      html.select(Css.paragraphs).isEmpty() shouldBe  true
       html
         .select(Css.backLink)
         .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url

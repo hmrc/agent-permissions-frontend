@@ -206,18 +206,23 @@ person.removed.confirm={0} removed from this access group.
 group.existing.clients.h1=Rheoli cleientiaid yn y grŵp hwn
 group.existing.clients.title=Rheoli cleientiaid - {0}
 tax-group.clients.tax.info=This is a tax service group which updates automatically. New clients will be added as soon as they authorise you to manage their {0}. Clients will also be removed if you cancel your authorisation to manage their {0}.
-tax-group.client.excluded=Client excluded
-group.existing.clients.button=Diweddaru cleientiaid
 group.client.list.update.h1=Diweddaru cleientiaid yn y grŵp hwn
 group.client.list.update.p=Mae cleientiaid presennol yn y grŵp hwn yn dangos fel rhai wedi’u dewis. Dewiswch unrhyw gleientiaid newydd a dewiswch ‘Yn eich blaen’.
 group.clients.added.confirm={0} clients added.
 group.renamed.h1=Grŵp mynediad wedi’i ailenwi
 group.renamed.panelContent=Grŵp mynediad <strong>{0}</strong> wedi’i ailenwi’n <strong>{1}</strong>
 
+tax-group.client.excluded=Client removed
+group.existing.clients.button=Diweddaru cleientiaid
+tax-group.clients.confirm.p1=If you remove Even Adams from this group it will affect which team members can manage their tax. View their client details page to see if access to their tax will still be restricted to certain team members.
+tax-group.client.removed.confirm={0} has been removed from this access group. <a href="{1}">View their client details</a> to see any other groups they are in.
 tax-group.manage.removed.clients.h1=Removed clients
 tax-group.manage.removed.clients.h2=Showing {0} Removed {1} clients
+tax-group.manage.removed.clients.updated={0} Removed clients have been put back in the group
 tax-group.manage.removed.clients.submit=Add selected clients back into group
 tax-group.manage.removed.clients.view=View removed clients
+tax-group.manage.removed.clients.not-found.p=There are no excluded clients for this group
+tax-group.manage.removed.clients.not-found.back=Back to tax group clients
 
 group.delete.name.label=A ydych yn siŵr eich bod am ddileu grŵp mynediad {0}?
 group.delete.select.error=Dewiswch ‘Iawn’ os ydych am ddileu’r grŵp

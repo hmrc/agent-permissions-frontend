@@ -146,9 +146,11 @@ class ManageTaxGroupClientsController @Inject()
                   )
                   taxGroupService
                     .updateGroup(groupId, updateRequest)
-                    .map(_ =>
+                    .map(_ =>{
+                      val clientLink = routes.ManageClientController.showClientDetails(clientToRemove.id)
                       Redirect(controller.showExistingGroupClients(groupId, None, None))
-                        .flashing("success" -> request.messages("person.removed.confirm", clientToRemove.name))
+                        .flashing("success" -> request.messages("tax-group.client.removed.confirm", clientToRemove.name, clientLink))
+                    }
                     )
                 }
                 else
@@ -168,7 +170,8 @@ class ManageTaxGroupClientsController @Inject()
         group.groupName,
         clientToRemove,
         backLink = controller.showExistingGroupClients(groupId, None, None),
-        formAction = controller.submitConfirmRemoveClient(groupId, clientToRemove.id)
+        formAction = controller.submitConfirmRemoveClient(groupId, clientToRemove.id),
+        hintKey = Some("tax-group.clients.confirm.p1")
       )
     )
   }
@@ -221,7 +224,7 @@ class ManageTaxGroupClientsController @Inject()
                   if (formWithErrors.data.get("submit") == Some(CONTINUE_BUTTON) && !maybeSelected.getOrElse(Nil).isEmpty) {
                     updateExcludedClients(groupId, maybeSelected, currentPageClients, AddClientsToGroup(submit = CONTINUE_BUTTON), excludedClients)
                       .map(numberRemoved =>
-                        Redirect(controller.showExcludedClients(groupId, None, None))
+                        Redirect(controller.showExistingGroupClients(groupId, None, None))
                           .flashing("success" -> request.messages("tax-group.manage.removed.clients.updated", numberRemoved))
                       )
 
@@ -238,7 +241,7 @@ class ManageTaxGroupClientsController @Inject()
                       case CONTINUE_BUTTON =>
                         updateExcludedClients(groupId, maybeSelected, currentPageClients, formData, excludedClients)
                           .map(numberRemoved =>
-                            Redirect(controller.showExcludedClients(groupId, None, None))
+                            Redirect(controller.showExistingGroupClients(groupId, None, None))
                               .flashing("success" -> request.messages("tax-group.manage.removed.clients.updated", numberRemoved))
                           )
                       case FILTER_BUTTON =>

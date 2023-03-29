@@ -34,6 +34,7 @@
     clientToRemove: DisplayClient,
     backLink: Call = routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None),
     formAction: Call = routes.CreateGroupSelectClientsController.submitConfirmRemoveClient,
+    hintKey: Option[String] = None,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @title = @{msgs("common.remove.client", clientToRemove.name)}
@@ -50,6 +51,7 @@
                     RadioData("false", "common.no.label", id = Some("answer-no"))
                 ),
                 legend = Some(LegendData(title, isH1 = true)),
+                hint = if(hintKey.isDefined) hintKey else None,
                 classes = "govuk-radios--inline"
             )
             @submit_button("save.and.continue.button")

@@ -158,7 +158,7 @@ class ManageGroupClientsController @Inject()
                     .removeClientFromGroup(groupId, clientToRemove.enrolmentKey) // can currently remove the last client in a group!
                     .map(_ =>
                       Redirect(controller.showExistingGroupClients(groupId, None, None))
-                        .flashing("success" -> request.messages("person.removed.confirm", clientToRemove.name))
+                        .flashing("success" -> request.messages("client.removed.confirm", clientToRemove.name))
                     )
                 }
                 else Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture

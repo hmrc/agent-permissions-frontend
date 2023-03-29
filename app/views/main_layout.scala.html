@@ -62,7 +62,7 @@
             @if(request.flash.get("success").isDefined) {
                 @govukNotificationBanner(
                     NotificationBanner(
-                        content = Text(request.flash.get("success").get),
+                        content = HtmlContent(request.flash.get("success").get),
                         bannerType = Some("success")
                     )
                 )

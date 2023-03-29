@@ -34,7 +34,7 @@
     clientToRemove: DisplayClient,
     backLink: Call = routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None),
     formAction: Call = routes.CreateGroupSelectClientsController.submitConfirmRemoveClient,
-        paragraphKey: Option[String] = None,
+    hintKey: Option[String] = None,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @title = @{msgs("common.remove.client", clientToRemove.name)}
@@ -42,11 +42,6 @@
     @layout(title = title, formErrors = form.errors, backLinkHref = Some(backLink.url)) {
 
         @caption(msgs("common.caption.group.name", groupName))
-        @h1(title)
-
-        @if(paragraphKey.isDefined){
-            @p(paragraphKey.get)
-        }
 
         @formWithCSRF(action = formAction) {
             @radioButtons(
@@ -55,6 +50,8 @@
                     RadioData("true", "common.yes.label"),
                     RadioData("false", "common.no.label", id = Some("answer-no"))
                 ),
+                legend = Some(LegendData(title, isH1 = true)),
+                hint = if(hintKey.isDefined) hintKey else None,
                 classes = "govuk-radios--inline"
             )
             @submit_button("save.and.continue.button")

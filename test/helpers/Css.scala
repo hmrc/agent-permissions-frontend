@@ -34,6 +34,7 @@ object Css {
   def errorSummaryForField(id: String): String = {
     s".govuk-error-summary__body li a[href=#${id}]"
   }
+  def hintTextField(id: String): String = s"#${id}-hint.govuk-hint"
   def errorForField(id: String): String = s"p#${id}-error.govuk-error-message"
   def inputTextWithId(id: String): String = s"input[type=text]#$id"
   def labelFor(id: String): String = s"label[for=${id}]"

@@ -146,7 +146,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       row1Cells.get(0).text() shouldBe "friendly0"
       row1Cells.get(1).text() shouldBe "ending in 6780"
       row1Cells.get(2).text() shouldBe "VAT"
-      row1Cells.get(3).text() shouldBe "Client excluded"
+      row1Cells.get(3).text() shouldBe "Client removed"
 
       //last row
       val row3Cells = trs.get(2).select("td")
@@ -201,7 +201,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       val row3Cells = trs.get(3).select("td")
       row3Cells.get(0).text() shouldBe "John x"
-      row3Cells.get(3).text() shouldBe "Client excluded"
+      row3Cells.get(3).text() shouldBe "Client removed"
     }
 
     "render with search that matches nothing" in {
@@ -304,6 +304,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+        html.select(Css.paragraphs).text() shouldBe "If you remove Even Adams from this group it will affect which team members can manage their tax. View their client details page to see if access to their tax will still be restricted to certain team members."
         html.select(backLink)
           .attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
 
@@ -588,7 +589,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe ctrlRoute.showExcludedClients(taxGroupWithExcludedId, None, None).url
+        redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
       }
 
       "Remove clients from the excluded list EVEN if current page has no selected but there are saved selected" in {
@@ -619,7 +620,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe ctrlRoute.showExcludedClients(taxGroupWithExcludedId, None, None).url
+        redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
       }
 
       "save clients to unexclude, and redirect to when button is FILTER (i.e. not CONTINUE)" in {

@@ -41,6 +41,8 @@
     @layout(title = title, formErrors = form.errors, backLinkHref = Some(backLink.url)) {
 
         @caption(msgs("common.caption.group.name", groupName))
+        @h1(title)
+        @p("tax-group.clients.confirm.p1")
 
         @formWithCSRF(action = formAction) {
             @radioButtons(
@@ -49,7 +51,6 @@
                     RadioData("true", "common.yes.label"),
                     RadioData("false", "common.no.label", id = Some("answer-no"))
                 ),
-                legend = Some(LegendData(title, isH1 = true)),
                 classes = "govuk-radios--inline"
             )
             @submit_button("save.and.continue.button")

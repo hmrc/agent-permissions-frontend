@@ -302,8 +302,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         val html = Jsoup.parse(contentAsString(result))
 
-        html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+        html.title() shouldBe "Remove friendly0 from this access group? - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
         html.select(Css.hintTextField("answer")).text() shouldBe "If you remove Eve Adams from this tax group, only team members in their remaining groups can manage their tax."
         html.select(backLink)
           .attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
@@ -391,8 +391,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Error: Remove friendly0 from selected clients? - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
+        html.title() shouldBe "Error: Remove friendly0 from this access group? - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
         html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
         html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
 

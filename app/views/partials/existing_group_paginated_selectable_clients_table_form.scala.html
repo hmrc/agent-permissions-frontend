@@ -1,0 +1,165 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import views.html.main_layout
+@import models.AddClientsToGroup
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import views.html.partials.search_and_filter
+@import views.html.components.pagination.POST_pagination
+@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
+
+@this(
+    layout: main_layout,
+    p: p, h1: h1, h2: h2, span: span, a: a,
+    caption: caption,
+    table: table,
+    submit_button: submit_button,
+    info_text: info_text,
+    link_as_button: link_as_button,
+    search_and_filter: search_and_filter,
+    pagination: POST_pagination,
+    textbox: textbox,
+    input_select: input_select,
+    checkbox: checkbox,
+    summaryErrors: SummaryErrors,
+    govukSkipLink: GovukSkipLink,
+    formWithCSRF: FormWithCSRF,
+    govukWarningText: GovukWarningText
+)
+
+@(
+    clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
+    form: Form[AddClientsToGroup],
+    paginationMetaData: Option[PaginationMetaData] = None,
+    showSearch: Boolean = false,
+    showFilter: Boolean = false,
+    backLinkHref:Option[String] = None,
+    submitButtonKey: String = "common.continue",
+    group: GroupSummary
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@tableRows = @{
+    clients.zipWithIndex.map(clientWithIndex =>{
+
+        val client = clientWithIndex._1
+        val idx = clientWithIndex._2
+        Seq(
+            Html(
+                if(client.alreadyInGroup){
+                    info_text("common.group.already.in").toString
+                }else{
+                    checkbox(
+                        name = Some("clients[]"),
+                        id = Some(s"add-client-${idx}"),
+                        label = displayNameOrFullReference(client.name, client.hmrcRef),
+                        value = Some(client.id),
+                        checked = client.selected
+                    ).toString
+                }
+
+            ),
+            Html(client.name),
+            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
+            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            Html(
+                a(
+                    key = msgs("common.remove"),
+                    href = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
+                ).toString
+            )
+        )
+    }
+
+    )
+}
+
+@* Values used by JS selected client counter to enable counting selections on other pages. *@
+@totalResults = @{paginationMetaData.fold(clients.length)(_.totalSize)}
+@totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
+
+    @govukSkipLink(
+        SkipLink(href = "#clients", content = Text(msgs("common.skip-to-clients")))
+    )
+
+@formWithCSRF(action = routes.ManageGroupClientsController.submitAddClients(group.groupId)) {
+
+    @if(showSearch) {
+       @search_and_filter(form, showFilter)
+    }
+
+    @if(clients.nonEmpty) {
+
+        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
+            <div class="govuk-form-group govuk-form-group--error">
+                <p id="clients-error" class="govuk-error-message">
+                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
+                </p>
+                }
+
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                @msgs("group.client.list.h1")
+            </legend>
+            @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
+            <div id="clients" tabindex="0">
+
+            @table(
+                caption = Some("common.clients"),
+                captionClasses = "govuk-visually-hidden",
+                id = Some("multi-select-table"),
+                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
+                headings = Seq(
+                    (span(""),Map("id" -> "select-all")),
+                    (Html(msgs("group.client.list.table.th1")), Map.empty),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty),
+                    (Html(msgs("group.client.list.table.th3")), Map.empty)
+                ),
+                rows = tableRows,
+            )
+            </div>
+        </fieldset>
+        @if(paginationMetaData.get.totalPages > 1) {
+            @pagination(pagination = paginationMetaData.get)
+        }
+        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
+
+        @* the following 2 paragraphs are dependent on whether js enabled or not*@
+        @p(key = msgs("common.total.clients.selected", totalSelected),
+            id = Some("member-count-text"),
+            attrs = Map("role" -> "status")
+        )
+
+        @p(key = msgs("already.selected.clients.nonjs", totalSelected),
+            id = Some("member-count-text-non-js"),
+        )
+        @submit_button(submitButtonKey)
+
+    } else {
+        <div id="clients">
+            @h2("clients.not-found.heading")
+            @p("clients.not-found.p")
+        </div>
+        @if(backLinkHref.isDefined){
+            @link_as_button(
+                key= "common.button.search.again",
+                href = backLinkHref.get
+            )
+        }
+
+    }
+}

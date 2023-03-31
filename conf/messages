@@ -25,6 +25,7 @@ common.tax-group=Tax service group
 common.add=Add
 common.remove=Remove
 common.remove.client=Remove {0} from selected clients?
+common.group.remove.client=Remove {0} from this access group?
 common.remove.member=Remove {0} from selected team members?
 common.group.max.clients=You can have a total of 1,200 clients and team members in a custom access group.
 save.and.continue.button=Save and continue
@@ -167,12 +168,14 @@ error.client.list.empty=You must select at least one client
 
 group.clients.review.h1=You have selected {0} clients
 group.clients.add.review.h1=You have selected {0} clients to add to the group
+group.clients.add.review.client.removed.confirm={0} removed from clients to add
 group.clients.review.title=Review selected clients
 group.clients.review.radio.legend=Do you need to select more clients?
 group.clients.review.yes.label=Yes, select more clients
 group.clients.review.no.label=No, continue to adding team members
 group.clients.review.error=Select yes if you need to select more clients
 group.clients.review.error.no-clients=You have removed all clients, select at least one to continue
+group.client.review.remove.error=Select yes if you no longer want to add this client to the access group
 
 group.client.remove.error=Select yes if you need to remove this client from the access group
 group.member.remove.error=Select yes if you need to remove this team member from the access group

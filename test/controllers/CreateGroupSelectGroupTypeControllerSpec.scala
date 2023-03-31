@@ -25,7 +25,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

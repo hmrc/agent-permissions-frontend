@@ -33,7 +33,7 @@ package connectors
  */
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Client}
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client}
 
 
 case class CreateTaxServiceGroupRequest(

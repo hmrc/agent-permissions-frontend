@@ -20,10 +20,11 @@ import akka.Done
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, SELECTED_CLIENTS, ToFuture}
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import play.api.libs.json.JsNumber
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, GroupSummary, PaginatedList}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -36,7 +37,7 @@ trait ClientService {
                          (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[PaginatedList[DisplayClient]]
 
-  def getPaginatedClientsToAddToGroup(id: String)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
+  def getPaginatedClientsToAddToGroup(id: GroupId)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
                                      (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[(GroupSummary, PaginatedList[DisplayClient])]
 
@@ -83,7 +84,7 @@ class ClientServiceImpl @Inject()(
     } yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
   }
 
-  def getPaginatedClientsToAddToGroup(id: String)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
+  def getPaginatedClientsToAddToGroup(id: GroupId)(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)
                                      (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext)
   : Future[(GroupSummary, PaginatedList[DisplayClient])] = {
     for {
@@ -92,7 +93,7 @@ class ClientServiceImpl @Inject()(
       tuple <- agentPermissionsConnector.getPaginatedClientsToAddToGroup(id)(page, pageSize, search, filter)
       pageOfClientsMarkedSelected = tuple._2
         .pageContent
-        .map(dc => if (maybeSelectedClients.contains(dc.id)) dc.copy(selected = true) else dc)
+        .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
       clientsMarkedAsSelected = tuple._2.pageContent.map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
       x = (tuple._1, PaginatedList[DisplayClient] (pageContent = clientsMarkedAsSelected, paginationMetaData = tuple._2.paginationMetaData))

@@ -26,7 +26,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.{OptinService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInSingleUser, OptedOutEligible}
+import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.SessionKeys
 

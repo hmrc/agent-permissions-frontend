@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import views.html.components.pagination.GET_pagination
 @import views.html.partials.search_and_filter
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
@@ -100,8 +100,8 @@
                             paginationMeta.totalSize
                         )
                     )
-                    @if(form.data.nonEmpty && form.data.get("search").isDefined) {
-                        @span(msgs("paginated.team-members.for.search", form.data.get("search").get))
+                    @if(form.data.nonEmpty && form.data.contains("search")) {
+                        @span(msgs("paginated.team-members.for.search", form.data("search")))
                     }
                 </p>
             }

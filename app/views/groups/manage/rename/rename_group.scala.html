@@ -16,8 +16,8 @@
 
 @import config.AppConfig
 @import controllers.routes
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 
 @this(
     layout: main_layout,
@@ -31,7 +31,7 @@
 @(
     form: Form[String],
     group: GroupSummary,
-    groupId: String,
+    groupId: GroupId,
     isCustom: Boolean
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

@@ -21,7 +21,7 @@ import helpers.BaseSpec
 import models.{AddClientsToGroup, DisplayClient}
 import org.scalatest.BeforeAndAfterEach
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.Client
+import uk.gov.hmrc.agents.accessgroups.Client
 
 class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach {
 

@@ -15,12 +15,13 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.agentmtdidentifiers.model.{PaginationMetaData, GroupSummary}
+@import controllers.GroupType._
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.components.models.SummaryListData
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
-@import controllers.GroupType._
 
 @this(
     layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,

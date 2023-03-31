@@ -15,9 +15,9 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary}
 @import controllers.routes
 @import forms.SelectGroups
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.components.models.CheckboxData
 @import views.html.main_layout
 
@@ -75,10 +75,10 @@
                         items = groups.zipWithIndex.map { case (groupSummary, idx) => {
                             val id = groupSummary.groupId
                             CheckboxData(
-                                id = id,
+                                id = id.toString,
                                 name = "groups[]",
                                 label = groupSummary.groupName,
-                                value = id,
+                                value = id.toString,
                                 checked = form.data.get(s"groups[${idx}]").isDefined
                             )
                         }

@@ -15,12 +15,10 @@
  *@
 
 @import config.AppConfig
+@import uk.gov.hmrc.agents.accessgroups.optin._
 @import views.html.main_layout
-@import uk.gov.hmrc.agentmtdidentifiers.model.OptinStatus
-@import uk.gov.hmrc.agentmtdidentifiers.model.OptedInReady
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, a: a, link_as_button: link_as_button)
-
 
 @(optinStatus: OptinStatus)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

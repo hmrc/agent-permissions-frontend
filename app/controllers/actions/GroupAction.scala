@@ -18,12 +18,13 @@ package controllers.actions
 
 import config.AppConfig
 import controllers._
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
+import uk.gov.hmrc.agents.accessgroups.{AccessGroup, CustomGroup, GroupSummary, TaxGroup}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import views.html.groups.manage.group_not_found
@@ -48,7 +49,7 @@ class GroupAction @Inject()
   import optInStatusAction._
 
   @deprecated("use withGroupSummaryForAuthorisedOptedAgent")
-  def withGroupForAuthorisedOptedAgent(groupId: String)
+  def withGroupForAuthorisedOptedAgent(groupId: GroupId)
                                       (body: CustomGroup => Future[Result])
                                       (implicit ec: ExecutionContext,
                                        hc: HeaderCarrier,
@@ -63,7 +64,7 @@ class GroupAction @Inject()
     }
   }
 
-  def withGroupAndPageOfClientsForAuthorisedOptedAgent(groupId: String, page: Int = 1, pageSize: Int = 10)
+  def withGroupAndPageOfClientsForAuthorisedOptedAgent(groupId: GroupId, page: Int = 1, pageSize: Int = 10)
                                                       (body: (GroupSummary, PaginatedList[DisplayClient], Arn) => Future[Result])
                                                       (implicit ec: ExecutionContext,
                                                        hc: HeaderCarrier,
@@ -82,7 +83,7 @@ class GroupAction @Inject()
     }
   }
 
-  def withAccessGroupForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
+  def withAccessGroupForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)
                                             (callback: (AccessGroup, Arn) => Future[Result])
                                             (implicit ec: ExecutionContext, hc: HeaderCarrier,
                                              request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
@@ -101,7 +102,7 @@ class GroupAction @Inject()
     }
   }
 
-  def withGroupSummaryForAuthorisedOptedAgent(groupId: String, isCustom: Boolean = true)
+  def withGroupSummaryForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)
                                              (callback: (GroupSummary, Arn) => Future[Result])
                                              (implicit ec: ExecutionContext,
                                               hc: HeaderCarrier,
@@ -116,14 +117,14 @@ class GroupAction @Inject()
         } else {
           taxGroupService
             .getGroup(groupId)
-            .flatMap(_.fold(groupNotFound)(taxGroup => callback(GroupSummary.fromAccessGroup(taxGroup), arn)))
+            .flatMap(_.fold(groupNotFound)(taxGroup => callback(GroupSummary.of(taxGroup), arn)))
         }
       }
     }
   }
 
   // TODO use withGroupSummaryForAuthorisedOptedAgent or withAccessGroupForAuthorisedOptedAgent
-  def withTaxGroupForAuthorisedOptedAgent(groupId: String)
+  def withTaxGroupForAuthorisedOptedAgent(groupId: GroupId)
                                          (body: (TaxGroup, Arn) => Future[Result])
                                          (implicit ec: ExecutionContext,
                                           hc: HeaderCarrier,
@@ -181,7 +182,7 @@ class GroupAction @Inject()
     }
   }
 
-  def withGroupForAuthorisedAssistant(groupId: String, isCustom: Boolean = true)
+  def withGroupForAuthorisedAssistant(groupId: GroupId, isCustom: Boolean = true)
                                      (callback: (AccessGroup, Arn) => Future[Result])
                                      (implicit ec: ExecutionContext,
                                       hc: HeaderCarrier,

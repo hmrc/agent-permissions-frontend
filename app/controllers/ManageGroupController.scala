@@ -20,12 +20,13 @@ import config.AppConfig
 import connectors.{UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
 import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
 import forms._
-import models.SearchFilter
+import models.{GroupId, SearchFilter}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, GroupSummary}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agents.accessgroups.GroupSummary
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.manage.delete._
 import views.html.groups.manage.manage_existing_groups
@@ -117,19 +118,19 @@ class ManageGroupController @Inject()
     }
   }
 
-  def showRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showRenameGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       Ok(rename_group(GroupNameForm.form().fill(summary.groupName), summary, groupId, isCustom = true)).toFuture
     }
   }
 
-  def showRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showRenameTaxGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, _: Arn) =>
       Ok(rename_group(GroupNameForm.form().fill(summary.groupName), summary, groupId, isCustom = false)).toFuture
     }
   }
 
-  def submitRenameGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitRenameGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       GroupNameForm
         .form()
@@ -147,7 +148,7 @@ class ManageGroupController @Inject()
     }
   }
 
-  def submitRenameTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitRenameTaxGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, _: Arn) =>
       GroupNameForm
         .form()
@@ -165,7 +166,7 @@ class ManageGroupController @Inject()
     }
   }
 
-  def showGroupRenamed(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showGroupRenamed(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       sessionCacheService
         .get(GROUP_RENAMED_FROM)
@@ -175,7 +176,7 @@ class ManageGroupController @Inject()
     }
   }
 
-  def showTaxGroupRenamed(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showTaxGroupRenamed(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, _: Arn) =>
         sessionCacheService
           .get(GROUP_RENAMED_FROM)
@@ -185,19 +186,19 @@ class ManageGroupController @Inject()
       }
   }
 
-  def showDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showDeleteGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), summary)).toFuture
     }
   }
 
-  def showDeleteTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showDeleteTaxGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, _: Arn) =>
       Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), summary, isCustom = false)).toFuture
     }
   }
 
-  def submitDeleteGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitDeleteGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       YesNoForm
         .form("group.delete.select.error")
@@ -218,7 +219,7 @@ class ManageGroupController @Inject()
     }
   }
 
-  def submitDeleteTaxGroup(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitDeleteTaxGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, _: Arn) =>
       YesNoForm
         .form("group.delete.select.error")

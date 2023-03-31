@@ -20,7 +20,7 @@
 @import views.html.partials.paginated_selectable_clients_table_form
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
-@import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
+@import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.partials.existing_group_paginated_selectable_clients_table_form
 
 @this(
@@ -43,7 +43,7 @@
 }
 
 @pageTitle = @{
-withSearchAndErrorPrefix(!form.errors.isEmpty,
+withSearchAndErrorPrefix(form.errors.nonEmpty,
                         msgs("group.client.list.update.h1"),
                         form("filter").value,
                         form("search").value)

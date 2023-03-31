@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import connectors.{AddOneTeamMemberToGroupRequest, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
-import models.TeamMember
+import models.{GroupId, TeamMember}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
@@ -28,7 +28,8 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TaxGroupService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agents.accessgroups.{GroupSummary, UserDetails}
+import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -88,7 +89,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       //given
       //TODO update to mix of custom and tax group summaries
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
       AuthOkWithTeamMember()
@@ -131,7 +132,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     "render correctly when member is not in any groups yet" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = Seq.empty
 
       AuthOkWithTeamMember()
@@ -166,7 +167,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     "render correctly when no available groups" in {
       //given
       val groupSummaries = (1 to 2)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries
 
       AuthOkWithTeamMember()
@@ -200,7 +201,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         //given
         AuthOkWithTeamMember()
 
-        val groupSummaries = (1 to 5).map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        val groupSummaries = (1 to 5).map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
         val expectedAddRequest1 = AddOneTeamMemberToGroupRequest(TeamMember.toAgentUser(teamMembers.head))
         val expectedAddRequest2 = AddOneTeamMemberToGroupRequest(TeamMember.toAgentUser(teamMembers.head))
 
@@ -229,7 +230,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     "display error when no groups are selected" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -250,7 +251,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       // then
       html.title() shouldBe "Error: Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
-      html.select(Css.errorSummaryForField("groupId3")).text() shouldBe "You must select at least one group"
+      html.select(Css.errorSummaryForField(groupSummaries(2).groupId.toString)).text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"
     }
   }
@@ -260,7 +261,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     "render correctly the html" in {
       //given
       val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(s"groupId$i", s"Group $i", Some(i * 3), i * 4))
+        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
 
       AuthOkWithTeamMember()
       expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))

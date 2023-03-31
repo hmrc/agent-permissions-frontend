@@ -20,11 +20,12 @@ import akka.Done
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS}
 import helpers.BaseSpec
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import play.api.libs.json.JsNumber
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Client, GroupSummary, PaginatedList, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -79,12 +80,13 @@ class ClientServiceSpec extends BaseSpec {
   "getPaginatedClientsToAddToGroup" should {
     "Get group summary and PaginatedList[DisplayClient from mockAgentPermissionsConnector" in {
       //given
-      val groupSummary = GroupSummary("groupId", "name", Some(10), 3)
+      val groupId = GroupId.random()
+      val groupSummary = GroupSummary(groupId, "name", Some(10), 3)
       expectGetSessionItemNone(SELECTED_CLIENTS)
       expectPutSessionItem(CURRENT_PAGE_CLIENTS, displayClients)
 
-      (mockAgentPermissionsConnector.getPaginatedClientsToAddToGroup(_: String)(_: Int, _: Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
-        .expects("groupId", 1, 20, *, *, *, *)
+      (mockAgentPermissionsConnector.getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, 1, 20, *, *, *, *)
         .returning(Future.successful(
           (
             groupSummary,
@@ -103,7 +105,7 @@ class ClientServiceSpec extends BaseSpec {
       )
 
       //when
-      val (summary, clients): (GroupSummary, PaginatedList[DisplayClient]) = await(service.getPaginatedClientsToAddToGroup("groupId")(1, 20))
+      val (summary, clients): (GroupSummary, PaginatedList[DisplayClient]) = await(service.getPaginatedClientsToAddToGroup(groupId)(1, 20))
 
       //then
       clients.pageContent shouldBe displayClients //TODO test selected marks? "already in a group" shouldn't have to be stored as selected

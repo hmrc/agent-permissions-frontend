@@ -19,13 +19,15 @@ package connectors
 import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
 import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData}
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup}
+import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 import java.net.URLEncoder
@@ -142,7 +144,7 @@ class AgentPermissionsConnectorSpec
     "return groups successfully" in {
       //given
       val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", Some(33), 9)
+        GroupSummary(GroupId.random(), "groupName", Some(33), 9)
       )
 
       val expectedUrl = s"http://localhost:9447/agent-permissions/arn/${arn.value}/client/${client.enrolmentKey}/groups"
@@ -184,7 +186,7 @@ class AgentPermissionsConnectorSpec
     "return groups successfully" in {
       //given
       val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", Some(33), 9)
+        GroupSummary(GroupId.random(), "groupName", Some(33), 9)
       )
 
       val agentUserId = agentUser.id
@@ -236,8 +238,8 @@ class AgentPermissionsConnectorSpec
     "return successfully" in {
       //given
       val groupSummaries = Seq(
-        GroupSummary("groupId", "groupName", Some(33), 9),
-        GroupSummary("groupId2", "VAT", None, 9, Some("VAT"))
+        GroupSummary(GroupId.random(), "groupName", Some(33), 9),
+        GroupSummary(GroupId.random(), "VAT", None, 9, Some("VAT"))
       )
 
       val expectedUrl =
@@ -320,7 +322,7 @@ class AgentPermissionsConnectorSpec
 
     "return successfully" in {
       //given
-      val groupId = 234234
+      val groupId = GroupId.random()
       val clients = Seq(
         Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Bob"),
         Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12347", friendlyName = "Builder"),
@@ -348,7 +350,7 @@ class AgentPermissionsConnectorSpec
       val expectedTransformedResponse = paginatedList
 
       //when
-      val response = connector.getPaginatedClientsForCustomGroup(groupId.toString)(1, 20).futureValue
+      val response = connector.getPaginatedClientsForCustomGroup(groupId)(1, 20).futureValue
 
       //then
       response shouldBe expectedTransformedResponse
@@ -357,7 +359,7 @@ class AgentPermissionsConnectorSpec
     "throw an exception for any other HTTP response code" in {
 
       //given
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       expectHttpClientGET[HttpResponse](mockResponse)
 
@@ -373,7 +375,7 @@ class AgentPermissionsConnectorSpec
 
     "return successfully" in {
       //given
-      val groupId = 234234
+      val groupId = GroupId.random()
       val clients = Seq(
         Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Bob"),
         Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12347", friendlyName = "Builder"),
@@ -390,7 +392,7 @@ class AgentPermissionsConnectorSpec
       )
 
       val paginatedList = PaginatedList[DisplayClient](pageContent = displayClients, paginationMetaData = meta)
-      val groupSummary = GroupSummary("2", "Carrots", Some(1), 1)
+      val groupSummary = GroupSummary(GroupId.random(), "Carrots", Some(1), 1)
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/group/$groupId/clients"
@@ -403,7 +405,7 @@ class AgentPermissionsConnectorSpec
       val expectedTransformedResponse = paginatedList
 
       //when
-      val response = connector.getPaginatedClientsToAddToGroup(groupId.toString)(1, 20).futureValue
+      val response = connector.getPaginatedClientsToAddToGroup(groupId)(1, 20).futureValue
 
       //then
       response._2 shouldBe expectedTransformedResponse
@@ -413,7 +415,7 @@ class AgentPermissionsConnectorSpec
     "throw an exception for any other HTTP response code" in {
 
       //given
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       expectHttpClientGET[HttpResponse](mockResponse)
 
@@ -431,17 +433,18 @@ class AgentPermissionsConnectorSpec
       //given
       val anyDate = LocalDate.of(1970, 1, 1).atStartOfDay()
 
-      val groupId = 234234
+      val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val accessGroup =
-        CustomGroup(arn,
+        CustomGroup(GroupId.random(),
+          arn,
           "groupName",
           anyDate,
           anyDate,
           agent,
           agent,
-          Some(Set(agent)),
-          Some(Set(Client("service~key~value", "friendly"))))
+          Set(agent),
+          Set(Client("service~key~value", "friendly")))
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/groups/$groupId"
@@ -455,14 +458,14 @@ class AgentPermissionsConnectorSpec
 
       //then
       connector
-        .getGroup(groupId.toString)
+        .getGroup(groupId)
         .futureValue shouldBe expectedTransformedResponse
     }
 
     "throw an exception for any other HTTP response code" in {
 
       //given
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
       expectHttpClientGET[HttpResponse](mockResponse)
 
@@ -478,7 +481,7 @@ class AgentPermissionsConnectorSpec
 
     "return Done when response code is OK" in {
 
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
@@ -490,7 +493,7 @@ class AgentPermissionsConnectorSpec
 
     "throw exception when it fails" in {
 
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
@@ -511,7 +514,7 @@ class AgentPermissionsConnectorSpec
 
     "return Done when response code is OK" in {
 
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
@@ -520,7 +523,7 @@ class AgentPermissionsConnectorSpec
 
     "throw exception when it fails" in {
 
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
@@ -660,11 +663,12 @@ class AgentPermissionsConnectorSpec
 
     "return Group Id when response code is OK/CREATED" in {
 
+      val groupId = GroupId.random()
       val payload = CreateTaxServiceGroupRequest("Vat group", None, "MTD-VAT")
       val url = s"http://localhost:9447/agent-permissions/arn/${arn.value}/tax-group"
-      val mockResponse = HttpResponse.apply(OK, s""" "234234" """)
+      val mockResponse = HttpResponse.apply(OK, s""" "$groupId" """)
       expectHttpClientPOST[CreateTaxServiceGroupRequest, HttpResponse](url, payload, mockResponse)
-      connector.createTaxServiceGroup(arn)(payload).futureValue shouldBe "234234"
+      connector.createTaxServiceGroup(arn)(payload).futureValue shouldBe groupId.toString
     }
 
     "throw an exception for any other HTTP response code" in {
@@ -686,19 +690,20 @@ class AgentPermissionsConnectorSpec
       //given
       val anyDate = LocalDate.of(1970, 1, 1).atStartOfDay()
 
-      val groupId = 234234
+      val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
 
-      val taxGroup = TaxGroup(arn,
+      val taxGroup = TaxGroup(GroupId.random(),
+        arn,
         "groupName",
         anyDate,
         anyDate,
         agent,
         agent,
-        Some(Set(agent)),
+        Set(agent),
         "HMRC-MTD-VAT",
         automaticUpdates = true,
-        None)
+        Set.empty)
 
       val expectedUrl =
         s"http://localhost:9447/agent-permissions/tax-group/$groupId"
@@ -712,7 +717,7 @@ class AgentPermissionsConnectorSpec
 
       //then
       connector
-        .getTaxServiceGroup(groupId.toString)
+        .getTaxServiceGroup(groupId)
         .futureValue shouldBe expectedTransformedResponse
     }
 
@@ -723,7 +728,7 @@ class AgentPermissionsConnectorSpec
 
       //then
       val caught = intercept[UpstreamErrorResponse] {
-        await(connector.getTaxServiceGroup("whatever"))
+        await(connector.getTaxServiceGroup(GroupId.random()))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
@@ -734,7 +739,7 @@ class AgentPermissionsConnectorSpec
     "return Done when response code is OK" in {
 
       //given
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
 
@@ -748,7 +753,7 @@ class AgentPermissionsConnectorSpec
     "throw exception when it fails" in {
 
       //given
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
@@ -766,7 +771,7 @@ class AgentPermissionsConnectorSpec
 
     "return Done when response code is OK" in {
 
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val groupRequest = UpdateTaxServiceGroupRequest(groupName = Some("name of group"))
       val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
       val mockResponse = HttpResponse.apply(OK, "response Body")
@@ -776,7 +781,7 @@ class AgentPermissionsConnectorSpec
 
     "throw exception when it fails" in {
 
-      val groupId = "234234"
+      val groupId = GroupId.random()
       val groupRequest = UpdateTaxServiceGroupRequest(Some("name of group"))
       val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
@@ -796,7 +801,7 @@ class AgentPermissionsConnectorSpec
     "return Done when response code is OK" in {
 
       //given
-      val groupId = 234234.toString
+      val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val groupRequest = AddOneTeamMemberToGroupRequest(agent)
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/add"
@@ -810,7 +815,7 @@ class AgentPermissionsConnectorSpec
     "throw exception when it fails" in {
 
       //given
-      val groupId = 234234.toString
+      val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val groupRequest = AddOneTeamMemberToGroupRequest(agent)
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/add"
@@ -831,7 +836,7 @@ class AgentPermissionsConnectorSpec
     "return Done when response code is OK" in {
 
       //given
-      val groupId = 234234.toString
+      val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val groupRequest = AddOneTeamMemberToGroupRequest(agent)
       val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId/members/add"
@@ -845,7 +850,7 @@ class AgentPermissionsConnectorSpec
     "throw exception when it fails" in {
 
       //given
-      val groupId = 234234.toString
+      val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val groupRequest = AddOneTeamMemberToGroupRequest(agent)
       val url = s"http://localhost:9447/agent-permissions/tax-group/$groupId/members/add"
@@ -867,7 +872,7 @@ class AgentPermissionsConnectorSpec
 
       //given
       val clientId = randomAlphabetic(10)
-      val groupId = randomAlphabetic(10)
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId/clients/$clientId"
       val mockResponse = HttpResponse.apply(NO_CONTENT)
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
@@ -880,7 +885,7 @@ class AgentPermissionsConnectorSpec
 
       //given
       val clientId = randomAlphabetic(10)
-      val groupId = randomAlphabetic(10)
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId/clients/$clientId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR)
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
@@ -901,7 +906,7 @@ class AgentPermissionsConnectorSpec
 
       //given
       val memberId = randomAlphabetic(10)
-      val groupId = randomAlphabetic(10)
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/$memberId"
       val mockResponse = HttpResponse.apply(NO_CONTENT)
       expectHttpClientDELETE[HttpResponse](url, mockResponse)
@@ -914,7 +919,7 @@ class AgentPermissionsConnectorSpec
 
       //given
       val memberId = randomAlphabetic(10)
-      val groupId = randomAlphabetic(10)
+      val groupId = GroupId.random()
       val url = s"http://localhost:9447/agent-permissions/groups/$groupId/members/$memberId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR)
       expectHttpClientDELETE[HttpResponse](url, mockResponse)

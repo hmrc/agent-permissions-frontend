@@ -29,7 +29,8 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services._
-import uk.gov.hmrc.agentmtdidentifiers.model.{OptedInReady, UserDetails}
+import uk.gov.hmrc.agents.accessgroups.UserDetails
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

@@ -19,12 +19,13 @@ package services
 import akka.Done
 import connectors._
 import helpers.BaseSpec
+import models.GroupId
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{AgentUser, Arn, TaxGroup}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, TaxGroup}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime.MIN
-import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class TaxGroupServiceSpec extends BaseSpec {
@@ -69,12 +70,12 @@ class TaxGroupServiceSpec extends BaseSpec {
     "call get on agentPermissionsConnector" in {
 
       //given
-      val groupId = UUID.randomUUID().toString
+      val groupId = GroupId.random()
       val agentUser = AgentUser("agent1", "Bob Smith")
-      val expectedGroup = TaxGroup(Arn("arn1"), "Bangers & Mash", MIN, MIN, agentUser, agentUser, None, "", automaticUpdates = true, None)
+      val expectedGroup = TaxGroup(GroupId.random(), Arn("arn1"), "Bangers & Mash", MIN, MIN, agentUser, agentUser, Set.empty, "", automaticUpdates = true, Set.empty)
 
       (mockAgentPermissionsConnector
-        .getTaxServiceGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+        .getTaxServiceGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, *, *)
         .returning(Future successful Some(expectedGroup))
         .once()
@@ -93,10 +94,10 @@ class TaxGroupServiceSpec extends BaseSpec {
     "call delete on agentPermissionsConnector" in {
 
       //given
-      val groupId = UUID.randomUUID().toString
+      val groupId = GroupId.random()
 
       (mockAgentPermissionsConnector
-        .deleteTaxGroup(_: String)(_: HeaderCarrier, _: ExecutionContext))
+        .deleteTaxGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, *, *)
         .returning(Future successful Done)
         .once()
@@ -114,11 +115,11 @@ class TaxGroupServiceSpec extends BaseSpec {
     "call patch/update on agentPermissionsConnector" in {
 
       //given
-      val groupId = UUID.randomUUID().toString
+      val groupId = GroupId.random()
       val payload = UpdateTaxServiceGroupRequest(groupName = Some("Bangers & Mash"))
 
       (mockAgentPermissionsConnector
-        .updateTaxGroup(_: String, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .updateTaxGroup(_: GroupId, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, payload, *, *)
         .returning(Future successful Done)
         .once()
@@ -137,12 +138,12 @@ class TaxGroupServiceSpec extends BaseSpec {
     "call patch/update on agentPermissionsConnector" in {
 
       //given
-      val groupId = UUID.randomUUID().toString
+      val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val payload = AddOneTeamMemberToGroupRequest(agent)
 
       (mockAgentPermissionsConnector
-        .addOneTeamMemberToTaxGroup(_: String, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .addOneTeamMemberToTaxGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, payload, *, *)
         .returning(Future successful Done)
         .once()

@@ -21,7 +21,7 @@ import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, Ag
 import controllers.actions.{AuthAction, SessionAction}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.DisplayClient
+import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
@@ -30,7 +30,8 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, InMemorySessionCacheService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model._
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -72,7 +73,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
   val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
-    GroupSummary(s"groupId$i", s"with none setname $i", Some(i * 3), i * 4))
+    GroupSummary(GroupId.random(), s"with none setname $i", Some(i * 3), i * 4))
 
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
 
@@ -358,7 +359,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     "render html with the available groups for these unassigned clients" in {
       //given
       val groupSummaries = (1 to 3).map(i =>
-        GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
+        GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
       await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
 
@@ -391,11 +392,11 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       checkboxLabels.get(2).text shouldBe "name 3"
 
       checkboxInputs.get(0).attr("name") shouldBe "groups[]"
-      checkboxInputs.get(0).attr("value") shouldBe "groupId1"
+      checkboxInputs.get(0).attr("value") shouldBe groupSummaries(0).groupId.toString
       checkboxInputs.get(1).attr("name") shouldBe "groups[]"
-      checkboxInputs.get(1).attr("value") shouldBe "groupId2"
+      checkboxInputs.get(1).attr("value") shouldBe groupSummaries(1).groupId.toString
       checkboxInputs.get(2).attr("name") shouldBe "groups[]"
-      checkboxInputs.get(2).attr("value") shouldBe "groupId3"
+      checkboxInputs.get(2).attr("value") shouldBe groupSummaries(2).groupId.toString
 
       form.select("#createNew-hint").text shouldBe "or"
       val createNewCheckboxes = form.select("div#createNew .govuk-checkboxes__item")
@@ -409,9 +410,11 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "remove any tax service groups from the available choices for these unassigned clients" in {
       //given
+      val id1 = GroupId.random()
+      val id2 = GroupId.random()
       val groupSummaries = List(
-        GroupSummary(s"id1", s"custom group", Some(3), 4),
-        GroupSummary(s"id2", s"tax service group", Some(3), 4, Some("VAT")))
+        GroupSummary(id1, s"custom group", Some(3), 4),
+        GroupSummary(id2, s"tax service group", Some(3), 4, Some("VAT")))
 
       await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
 
@@ -438,7 +441,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       checkboxLabels.get(0).text shouldBe "custom group"
 
       checkboxInputs.get(0).attr("name") shouldBe "groups[]"
-      checkboxInputs.get(0).attr("value") shouldBe "id1"
+      checkboxInputs.get(0).attr("value") shouldBe id1.toString
     }
 
 
@@ -500,12 +503,12 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
       //given
-      val groupSummaries = (1 to 2).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
+      val groupSummaries = (1 to 2).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
       val expectedGroupAddedTo = groupSummaries(0)
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url
-        ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId)
+        ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId.toString)
           .withSession(SessionKeys.sessionId -> "session-x")
 
       await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
@@ -528,7 +531,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "show errors when nothing selected" in {
       //given
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -550,7 +553,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       status(result) shouldBe OK
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
-      html.select(Css.errorSummaryForField("groupId1"))
+      html.select(Css.errorSummaryForField(groupSummaries(0).groupId.toString))
         .text() shouldBe "You must select an access group or add a new group"
       html.select(Css.errorForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
 
@@ -559,7 +562,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "show errors when both createNew and existing groups are selected" in {
       //given
-      val groupSummaries = (1 to 3).map(i => GroupSummary(s"groupId$i", s"name $i", Some(i * 3), i * 4))
+      val groupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
@@ -580,7 +583,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       status(result) shouldBe OK
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
-      html.select(Css.errorSummaryForField("groupId1"))
+      html.select(Css.errorSummaryForField(groupSummaries(0).groupId.toString))
         .text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
       html.select(Css.errorForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
 

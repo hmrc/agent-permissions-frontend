@@ -23,7 +23,7 @@ import helpers.BaseSpec
 import play.api.Application
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.OptedInSingleUser
+import uk.gov.hmrc.agents.accessgroups.optin.OptedInSingleUser
 
 class OptinServiceSpec extends BaseSpec {
 

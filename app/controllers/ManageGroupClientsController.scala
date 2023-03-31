@@ -17,18 +17,19 @@
 package controllers
 
 import config.AppConfig
-import connectors.{AddMembersToAccessGroupRequest, UpdateAccessGroupRequest}
+import connectors.AddMembersToAccessGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.DisplayClient.format
-import models.{AddClientsToGroup, DisplayClient, SearchFilter}
+import models.{AddClientsToGroup, DisplayClient, GroupId, SearchFilter}
 import play.api.Logging
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{GroupSummary, _}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients.{confirm_remove_client, search_clients}
 import views.html.groups.manage.clients._
@@ -66,8 +67,8 @@ class ManageGroupClientsController @Inject()
   private val controller: ReverseManageGroupClientsController = routes.ManageGroupClientsController
 
   // custom clients
-  def showExistingGroupClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
+  def showExistingGroupClients(groupId: GroupId, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold( // fresh page load or pagination reload
         groupService
@@ -108,7 +109,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def showConfirmRemoveClient(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
       clientService
         .lookupClient(arn)(clientId)
@@ -134,7 +135,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def submitConfirmRemoveClient(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
         maybeClient.fold(
@@ -172,7 +173,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def showSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showSearchClientsToAdd(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
@@ -189,7 +190,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def submitSearchClientsToAdd(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitSearchClientsToAdd(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       SearchAndFilterForm
         .form()
@@ -212,7 +213,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def showAddClients(groupId: String, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
+  def showAddClients(groupId: GroupId, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { filter =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { search =>
@@ -227,7 +228,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def submitAddClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitAddClients(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[String](CLIENT_FILTER_INPUT) { filter =>
@@ -284,7 +285,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def showConfirmRemoveClientFromClientsToAdd(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showConfirmRemoveClientFromClientsToAdd(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
       clientService
         .lookupClient(arn)(clientId)
@@ -309,7 +310,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def submitConfirmRemoveClientFromClientsToAdd(groupId: String, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitConfirmRemoveClientFromClientsToAdd(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
@@ -364,7 +365,7 @@ class ManageGroupClientsController @Inject()
     )
   }
 
-  def showReviewSelectedClients(groupId: String, page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
+  def showReviewSelectedClients(groupId: GroupId, page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
@@ -378,6 +379,7 @@ class ManageGroupClientsController @Inject()
       }
     }
   }
+
 
   private def renderReviewUpdateClients(groupSummary: GroupSummary,
                                         paginatedList: PaginatedList[DisplayClient],
@@ -393,7 +395,7 @@ class ManageGroupClientsController @Inject()
     )
   }
 
-  def submitReviewSelectedClients(groupId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitReviewSelectedClients(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients

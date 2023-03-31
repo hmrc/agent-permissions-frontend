@@ -20,13 +20,15 @@
 @import views.html.partials.paginated_selectable_clients_table_form
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import utils.ViewUtils.displayTaxServiceFromServiceKey
 @import uk.gov.hmrc.agentmtdidentifiers.model.GroupSummary
 @import views.html.partials.existing_group_paginated_selectable_clients_table_form
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, caption: caption,
+    p: p, h1: h1, h2: h2, span: span, caption: caption,
     summaryErrors: SummaryErrors,
+    table: table,
     existing_group_paginated_selectable_clients_table_form: existing_group_paginated_selectable_clients_table_form
 )
 
@@ -34,41 +36,54 @@
     clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     group: GroupSummary,
     form: Form[AddClientsToGroup],
-    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
+    formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
+    backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSearchClients.url),
+    paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
 @errorHref = @{
-    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
+    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
+        "search"
+    } else {
+        "clients"
+    }
 }
 
-@pageTitle = @{
-withSearchAndErrorPrefix(form.errors.nonEmpty,
-                        msgs("group.client.list.update.h1"),
-                        form("filter").value,
-                        form("search").value)
+@searchParamMsg = @{
+    if(form.get.search.getOrElse("").nonEmpty && form.get.filter.getOrElse("").nonEmpty) {
+        msgs("group.client.list.2.h2", paginationMetaData.get.totalSize, form.get.search.get, displayTaxServiceFromServiceKey(form.get.filter.get))
+    }
+    else {
+        val txt =
+            if(form.get.filter.getOrElse("").nonEmpty)
+                displayTaxServiceFromServiceKey(form.get.filter.get)
+            else
+                form.get.search.get
+        msgs("group.client.list.1.h2", paginationMetaData.get.totalSize, txt)
+    }
 }
-
 @layout(
-    title = pageTitle,
-    backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+    backLinkHref = backUrl,
     formErrors = Seq.empty,
-    fullWidth = true
-) {
+    fullWidth = true) {
 
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
         @caption(msgs("common.caption.group.name", group.groupName))
-        @h1("group.client.list.update.h1")
+        @h1(msgs("group.client.list.h1", group.groupName))
+        @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
+            @h2(searchParamMsg)
+        }
         @p("common.group.max.clients")
     </div>
 
     @existing_group_paginated_selectable_clients_table_form(
         clients,
         form,
-        paginationMetaData = paginationMetaData,
-        backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
+        paginationMetaData,
         group = group
     )
 

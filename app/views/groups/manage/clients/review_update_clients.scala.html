@@ -48,7 +48,13 @@
             Seq(
                 Html(client.name),
                 Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-                Html(displayTaxServiceFromServiceKey(client.taxService))
+                Html(displayTaxServiceFromServiceKey(client.taxService)),
+                Html(
+                    a(
+                        key = msgs("common.remove"),
+                        href = routes.ManageGroupClientsController.showConfirmRemoveClientFromClientsToAdd(group.groupId, client.id).url
+                    ).toString
+                )
             )
         )
     }
@@ -75,6 +81,8 @@
                 (Html(msgs("group.client.list.table.th1")), Map.empty),
                 (Html(msgs("group.client.list.table.th2")), Map.empty),
                 (Html(msgs("group.client.list.table.th3")), Map.empty),
+                (Html(msgs("common.actions")), Map.empty),
+
             ),
             rows = tableRows,
         )

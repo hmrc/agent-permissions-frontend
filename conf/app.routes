@@ -68,15 +68,18 @@ POST    /delete-tax-group/:groupId           controllers.ManageGroupController.s
 GET     /access-group-deleted                controllers.ManageGroupController.showGroupDeleted
 
 # Manage custom groups - clients
-GET     /manage-custom-group/:groupId/view-clients                          controllers.ManageGroupClientsController.showExistingGroupClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
-GET     /manage-custom-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageGroupClientsController.showConfirmRemoveClient(groupId: models.GroupId, clientId: String)
-POST    /manage-custom-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageGroupClientsController.submitConfirmRemoveClient(groupId: models.GroupId, clientId: String)
-GET     /manage-custom-group/:groupId/update-clients/search                 controllers.ManageGroupClientsController.showSearchClientsToAdd(groupId: models.GroupId)
-POST    /manage-custom-group/:groupId/update-clients/search                 controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: models.GroupId)
-GET     /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.showAddClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
-POST    /manage-custom-group/:groupId/update-clients/add                    controllers.ManageGroupClientsController.submitAddClients(groupId: models.GroupId)
-GET     /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
-POST    /manage-custom-group/:groupId/update-clients/review                 controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: models.GroupId)
+GET     /manage-custom-group/:groupId/view-clients                              controllers.ManageGroupClientsController.showExistingGroupClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
+GET     /manage-custom-group/:groupId/clients/confirm-remove/:clientId          controllers.ManageGroupClientsController.showConfirmRemoveClient(groupId: models.GroupId, clientId: String)
+POST    /manage-custom-group/:groupId/clients/confirm-remove/:clientId          controllers.ManageGroupClientsController.submitConfirmRemoveClient(groupId: models.GroupId, clientId: String)
+GET     /manage-custom-group/:groupId/update-clients/confirm-remove/:clientId   controllers.ManageGroupClientsController.showConfirmRemoveClientFromClientsToAdd(groupId: models.GroupId, clientId: String)
+POST    /manage-custom-group/:groupId/update-clients/confirm-remove/:clientId   controllers.ManageGroupClientsController.submitConfirmRemoveClientFromClientsToAdd(groupId: models.GroupId, clientId: String)
+GET     /manage-custom-group/:groupId/update-clients/search                     controllers.ManageGroupClientsController.showSearchClientsToAdd(groupId: models.GroupId)
+POST    /manage-custom-group/:groupId/update-clients/search                     controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: models.GroupId)
+GET     /manage-custom-group/:groupId/update-clients/add                        controllers.ManageGroupClientsController.showAddClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
+POST    /manage-custom-group/:groupId/update-clients/add                        controllers.ManageGroupClientsController.submitAddClients(groupId: models.GroupId)
+GET     /manage-custom-group/:groupId/update-clients/review                     controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
+POST    /manage-custom-group/:groupId/update-clients/review                     controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: models.GroupId)
+
 
 # Manage tax groups - clients
 GET     /manage-tax-group/:groupId/clients                               controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])

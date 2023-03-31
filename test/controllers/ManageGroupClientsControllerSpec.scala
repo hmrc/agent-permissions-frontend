@@ -883,7 +883,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET show confirm remove from clients to add ${ctrlRoute.showConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.id).url}" should {
+  s"GET show confirm remove from clients to add ${ctrlRoute.showConfirmRemoveFromSelectedClients(grpId, clientToRemove.id).url}" should {
 
     "render the confirm remove client page" in {
       val summary = GroupSummary.of(accessGroup)
@@ -892,7 +892,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectLookupClient(arn)(clientToRemove)
       expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
 
-      val result = controller.showConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.id)(request)
+      val result = controller.showConfirmRemoveFromSelectedClients(grpId, clientToRemove.id)(request)
       // then
       status(result) shouldBe OK
 
@@ -906,7 +906,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         .attr("href") shouldBe routes.ManageGroupClientsController.showAddClients(grpId, None, None).url
 
 
-      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.id).url
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.id).url
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -920,7 +920,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetCustomSummaryById(grpId, Some(summary))
       expectLookupClientNone(arn)
 
-      val result = controller.showConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.id)(request)
+      val result = controller.showConfirmRemoveFromSelectedClients(grpId, clientToRemove.id)(request)
       // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.ManageGroupClientsController.showAddClients(grpId, None, None).url
@@ -929,7 +929,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   }
 
-  s"POST submitConfirmRemoveClientFromClientsToAdd ${ctrlRoute.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey).url}" should {
+  s"POST submitConfirmRemoveFromSelectedClients ${ctrlRoute.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey).url}" should {
 
     "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
       val summary = GroupSummary.of(accessGroup)
@@ -940,12 +940,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectPutSessionItem(SELECTED_CLIENTS, displayClients.filterNot(_.id == clientToRemove.id))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
 
-      val result = controller.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey)(request)
+      val result = controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)(request)
 
       status(result) shouldBe SEE_OTHER
 
@@ -960,12 +960,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
 
-      val result = controller.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey)(request)
+      val result = controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)(request)
 
       status(result) shouldBe SEE_OTHER
 
@@ -980,12 +980,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)}")
           .withFormUrlEncodedBody("ohai" -> "blah")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey)(request)
+      val result = controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)(request)
 
       //then
       status(result) shouldBe OK

@@ -285,7 +285,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def showConfirmRemoveClientFromClientsToAdd(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def showConfirmRemoveFromSelectedClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
       clientService
         .lookupClient(arn)(clientId)
@@ -300,7 +300,7 @@ class ManageGroupClientsController @Inject()
                     groupSummary.groupName,
                     client,
                     backLink = controller.showAddClients(groupId, None, None),
-                    formAction = controller.submitConfirmRemoveClientFromClientsToAdd(groupId, client.id)
+                    formAction = controller.submitConfirmRemoveFromSelectedClients(groupId, client.id)
                   )
                 )
               )
@@ -310,7 +310,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def submitConfirmRemoveClientFromClientsToAdd(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitConfirmRemoveFromSelectedClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
@@ -329,7 +329,7 @@ class ManageGroupClientsController @Inject()
                       group.groupName,
                       clientToRemove,
                       backLink = showAddClientsCall,
-                      formAction = controller.submitConfirmRemoveClientFromClientsToAdd(groupId, clientToRemove.id)
+                      formAction = controller.submitConfirmRemoveFromSelectedClients(groupId, clientToRemove.id)
                     )
                   ).toFuture
                 }, (yes: Boolean) => {

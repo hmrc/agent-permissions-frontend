@@ -886,7 +886,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   s"GET show confirm remove from clients to add ${ctrlRoute.showConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.id).url}" should {
 
     "render the confirm remove client page" in {
-      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectLookupClient(arn)(clientToRemove)
@@ -915,7 +915,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
 
     "redirect when no client found" in {
-      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectLookupClientNone(arn)
@@ -932,7 +932,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   s"POST submitConfirmRemoveClientFromClientsToAdd ${ctrlRoute.submitConfirmRemoveClientFromClientsToAdd(grpId, clientToRemove.enrolmentKey).url}" should {
 
     "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
-      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
@@ -953,7 +953,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
 
     "confirm remove client 'no' redirects to group clients list" in {
-      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
@@ -973,7 +973,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
 
     "render errors when no selections of yes/no made" in {
-      val summary = GroupSummary.fromAccessGroup(accessGroup)
+      val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)

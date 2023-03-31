@@ -27,7 +27,7 @@ import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController

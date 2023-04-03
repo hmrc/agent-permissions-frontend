@@ -179,6 +179,7 @@ group.client.review.remove.error=Select yes if you no longer want to add this cl
 
 group.client.remove.error=Select yes if you need to remove this client from the access group
 group.member.remove.error=Select yes if you need to remove this team member from the access group
+group.member.selected.remove.error=Select yes if you no longer want to add this team member to the access group
 
 group.select.members.list.h1=Select team members
 group.update.members.list.h1=Update team members in this group

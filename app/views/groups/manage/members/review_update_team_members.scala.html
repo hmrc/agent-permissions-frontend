@@ -43,7 +43,13 @@
             Seq(
                 Html(teamMember.name),
                 Html(teamMember.email),
-                Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse("")))
+                Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse(""))),
+                Html(
+                    a(
+                        key = msgs("common.remove"),
+                        href = routes.ManageGroupTeamMembersController.showConfirmRemoveFromSelectedTeamMember(group.groupId, group.groupType, teamMember.id).url
+                    ).toString
+                )
             )
         )
     }
@@ -72,7 +78,9 @@
             headings = Seq(
                 (Html(msgs("group.members.list.table.th1")), Map.empty),
                 (Html(msgs("group.members.list.table.th2")), Map.empty),
-                (Html(msgs("group.members.list.table.th3")), Map.empty)
+                (Html(msgs("group.members.list.table.th3")), Map.empty),
+                (Html(msgs("common.actions")), Map.empty),
+
             ),
             rows = tableRows,
         )

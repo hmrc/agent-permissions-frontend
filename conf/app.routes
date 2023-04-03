@@ -90,11 +90,14 @@ POST    /manage-tax-group/:groupId/clients/excluded                      control
 
 
 # Manage groups - team members
-GET     /manage-group/:groupType/:groupId/team-members             controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: models.GroupId, groupType: String, page: Option[Int])
-GET     /manage-custom-group/:groupId/team-members/confirm-remove/:memberId      controllers.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(groupId: models.GroupId, groupType: String, memberId: String)
-POST    /manage-custom-group/:groupId/team-members/confirm-remove      controllers.ManageGroupTeamMembersController.submitConfirmRemoveTeamMember(groupId: models.GroupId, groupType: String)
-GET     /manage-group/:groupType/:groupId/team-members/update      controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: models.GroupId, groupType: String, page: Option[Int])
-POST    /manage-group/:groupType/:groupId/team-members/update      controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: models.GroupId, groupType: String )
+GET     /manage-group/:groupType/:groupId/team-members                          controllers.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupId: models.GroupId, groupType: String, page: Option[Int])
+GET     /manage-custom-group/:groupId/team-members/confirm-remove/:memberId     controllers.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(groupId: models.GroupId, groupType: String, memberId: String)
+POST    /manage-custom-group/:groupId/team-members/confirm-remove               controllers.ManageGroupTeamMembersController.submitConfirmRemoveTeamMember(groupId: models.GroupId, groupType: String)
+GET     /manage-group/:groupType/:groupId/team-members/update                   controllers.ManageGroupTeamMembersController.showManageGroupTeamMembers(groupId: models.GroupId, groupType: String, page: Option[Int])
+POST    /manage-group/:groupType/:groupId/team-members/update                   controllers.ManageGroupTeamMembersController.submitManageGroupTeamMembers(groupId: models.GroupId, groupType: String )
+GET     /manage-group/:groupId/team-members/confirm-remove/:memberId            controllers.ManageGroupTeamMembersController.showConfirmRemoveFromSelectedTeamMember(groupId: models.GroupId, groupType: String, memberId: String)
+POST    /manage-group/:groupId/team-members/confirm-remove/:memberId            controllers.ManageGroupTeamMembersController.submitConfirmRemoveFromSelectedTeamMember(groupId: models.GroupId, groupType: String, memberId: String)
+
 GET     /manage-group/:groupType/:groupId/team-members/review      controllers.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(groupId: models.GroupId, groupType: String, page: Option[Int])
 POST    /manage-group/:groupType/:groupId/team-members/review      controllers.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(groupId: models.GroupId, groupType: String)
 GET     /manage-group/:groupType/:groupId/team-members/confirm     controllers.ManageGroupTeamMembersController.showGroupTeamMembersUpdatedConfirmation(groupId: models.GroupId, groupType: String)

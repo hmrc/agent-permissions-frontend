@@ -55,4 +55,11 @@ trait TeamMemberServiceMocks extends MockFactory {
       .expects(arn, teamMember.id, *, *)
       .returning(Future successful Some(teamMember)).once()
 
+  def expectLookupTeamMemberNone(arn: Arn)
+                            (implicit teamMemberService: TeamMemberService): Unit =
+    (teamMemberService
+      .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *, *)
+      .returning(Future successful None).once()
+
 }

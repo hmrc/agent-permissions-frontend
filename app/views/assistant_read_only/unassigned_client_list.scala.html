@@ -20,10 +20,8 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
-    layout: main_layout,
-    h1: h1, p: p, a: a,
+    layout: main_layout, h1: h1, p: p, a: a,
     clients_table_filter_form: clients_table_filter_form,
-
 )
 
 @(
@@ -32,35 +30,27 @@
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title = @{
+    withSearchAndErrorPrefix(
+        filterForm.errors.nonEmpty, msgs("assistant.clients.unassigned.h1"),
+        filterForm("filter").value, filterForm("search").value
+    )
+}
 
-@layout(
-    title = withSearchAndErrorPrefix(filterForm.errors.nonEmpty,
-                                     msgs("assistant.clients.unassigned.h1"),
-                                     filterForm("filter").value, filterForm("search").value),
-    backLinkHref = Some(appConfig.agentServicesAccountYourAssistantAccountUrl),
-    fullWidth = true
-) {
+@backLink = @{Some(appConfig.agentServicesAccountYourAssistantAccountUrl)}
+
+@layout(title = title, backLinkHref = backLink, fullWidth = true) {
 
     <div class="govuk-!-width-two-thirds">
         @h1("assistant.clients.unassigned.h1")
         @p("assistant.clients.unassigned.p")
     </div>
 
-    @if(unassignedClients.nonEmpty) {
-        @clients_table_filter_form(
-            true,
-            Some(unassignedClients),
-            filterForm,
-            routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly,
-            paginationMetaData
-        )
-    } else {
-        @clients_table_filter_form(
-            true,
-            None,
-            filterForm,
-            routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly
-        )
-    }
-
+    @clients_table_filter_form(
+        true,
+        clients = if(unassignedClients.isEmpty) None else Some(unassignedClients),
+        filterForm,
+        routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly,
+        paginationMetaData = if(unassignedClients.isEmpty) None else paginationMetaData
+    )
 }

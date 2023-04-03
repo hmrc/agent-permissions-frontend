@@ -335,8 +335,8 @@ member.added.to.groups.p2={0} can now view and manage the tax affairs of the cli
 
 assistant.clients.group.h1={0} clients
 assistant.clients.group.p=You have access to these clients as you are also in this access group.
-assistant.clients.unassigned.h1=Other clients you can access
-assistant.clients.unassigned.p=You have access to these clients as they are not in any access groups.
+assistant.clients.unassigned.h1=Other clients you can manage
+assistant.clients.unassigned.p=You can manage these clients’ tax as they are not in any access groups. 
 
 signout.h1=You have signed out
 signout.signin.again.a=Sign in again

@@ -27,7 +27,7 @@
     layout: main_layout,
     p: p, h1: h1, h2: h2, h3: h3, a: a, span: span, inset_text: inset_text,
     table: table, textbox: textbox, input_select: input_select,
-    a_button: link_as_button,summary_list: summary_list,
+    a_button: link_as_button, summary_list: summary_list,
     formWithCSRF: FormWithCSRF,
     search_and_filter: search_and_filter,
     summaryErrors: SummaryErrors,
@@ -41,16 +41,20 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @errorHref = @{
-if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
+    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
+        "search"
+    } else {
+        "clients"
+    }
 }
 
 @pageTitle = @{
-withSearchAndErrorPrefix(
-                            !form.errors.isEmpty,
-                            msgs("group.manage.tabs.2.label"),
-                            form("filter").value,
-                            form("search").value
-                        )
+    withSearchAndErrorPrefix(
+        !form.errors.isEmpty,
+        msgs("group.manage.tabs.2.label"),
+        form("filter").value,
+        form("search").value
+    )
 }
 
 @layout(title = pageTitle,

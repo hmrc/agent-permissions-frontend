@@ -132,11 +132,12 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe OK
-
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Other clients you can access - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Other clients you can access"
+
+      html.title() shouldBe "Other clients you can manage - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Other clients you can manage"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(paragraphs).get(0).text() shouldBe "You can manage these clients’ tax as they are not in any access groups."
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 3
@@ -159,8 +160,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'friendly1' Other clients you can access - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Other clients you can access"
+      html.title() shouldBe "Filter results for 'friendly1' Other clients you can manage - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Other clients you can manage"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       html.select(H2).text shouldBe "Filter results for 'friendly1'"
@@ -187,8 +188,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Other clients you can access - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Other clients you can access"
+      html.title() shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Other clients you can manage - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Other clients you can manage"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       html.select(H2).text shouldBe "No clients found"

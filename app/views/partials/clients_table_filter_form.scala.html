@@ -69,7 +69,7 @@
 
     @if(clients.getOrElse(Seq.empty).nonEmpty) {
 
-        @if(isCustom && (withSearchPrefix("", form("filter").value, form("search").value) != "") ) {
+        @if(isCustom && (withSearchPrefix("", form("filter").value, form("search").value) != "")) {
             @h2(withSearchPrefix("", form("filter").value, form("search").value))
         }
 
@@ -83,17 +83,17 @@
             id = Some("clients"),
             attrs = Map.empty,
             headings = if(isCustom) {
-                    Seq(
+                Seq(
                     (Html(msgs("group.client.list.table.th1")), Map.empty),
                     (Html(msgs("group.client.list.table.th2")), Map.empty),
                     (Html(msgs("group.client.list.table.th3")), Map.empty)
-                    )
-                } else {
-                    Seq(
+                )
+            } else {
+                Seq(
                     (Html(msgs("group.client.list.table.th1")), Map.empty),
                     (Html(msgs("group.client.list.table.th2")), Map.empty)
-                    )
-                },
+                )
+            },
             rows = tableRows,
         )
 
@@ -102,11 +102,13 @@
                 pagination = paginationMetaData.get,
                 baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
             @p(
-                msgs("paginated.clients.showing",
-                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-                paginationMetaData.get.totalSize
-            )
+                msgs(
+                    "paginated.clients.showing",
+                    (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+                    (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+                    paginationMetaData.get.totalSize
+                ),
+                id = Some("pagination-showing")
             )
         } else {
             @p(msgs("common.total.clients", clients.fold(0)(_.length)))

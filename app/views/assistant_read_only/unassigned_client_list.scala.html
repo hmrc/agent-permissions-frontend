@@ -51,6 +51,6 @@
         clients = if(unassignedClients.isEmpty) None else Some(unassignedClients),
         filterForm,
         routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly,
-        paginationMetaData
+        paginationMetaData = if(unassignedClients.isEmpty) None else paginationMetaData
     )
 }

@@ -74,7 +74,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       .build()
 
   val fakeClients: Seq[Client] =
-    List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
+    List.tabulate(31)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
 
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
@@ -138,11 +138,11 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Other clients you can manage"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
       html.select(paragraphs).get(0).text() shouldBe "You can manage these clients’ tax as they are not in any access groups."
-
+      html.select("main p#pagination-showing").text() shouldBe "Showing 1 to 20 of 31 clients"
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 3
       val tr = html.select(Css.tableWithId("clients")).select("tbody tr")
-      tr.size() shouldBe 3
+      tr.size() shouldBe 20
 
     }
 
@@ -167,7 +167,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.select(H2).text shouldBe "Filter results for 'friendly1'"
 
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
-      trs.size() shouldBe 1
+      trs.size() shouldBe 11
     }
 
     "render with filter that matches nothing" in {
@@ -257,27 +257,27 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
     s"render group ${accessGroup.groupName} clients list with no query params" in {
       // given
+      val pageSize = 20
       AssistantAuthOk()
       expectGetGroupById(accessGroup.id, Some(accessGroup))
-
-      expectGetPaginatedClientsForCustomGroup(accessGroup.id)(1, 20)((displayClients, PaginationMetaData(lastPage = true,firstPage = true,0,1,10,1,10)))
+      val paginationData = PaginationMetaData(lastPage = false, firstPage = true, displayClients.size, 3, 20, 1, 20)
+      expectGetPaginatedClientsForCustomGroup(accessGroup.id)(1, pageSize)((displayClients.take(pageSize), paginationData))
 
       //when
       val result = controller.showExistingGroupClientsViewOnly(accessGroup.id)(request)
 
       //then
       status(result) shouldBe OK
-
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe s"${accessGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${accessGroup.groupName} clients"
-
+      html.select("main p#pagination-showing").text() shouldBe "Showing 1 to 20 of 31 clients"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 3
       val tr = html.select(Css.tableWithId("clients")).select("tbody tr")
-      tr.size() shouldBe 3
+      tr.size() shouldBe 20
 
     }
 
@@ -399,9 +399,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // given
       AssistantAuthOk()
       expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
-      // TODO check these expectations, ideally get rid of need for sessionCacheRepo.putSession
-      // ? expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
-      expectGetPageOfClients(taxGroup.arn)(displayClients)
+      expectGetPageOfClients(taxGroup.arn)(displayClients.take(10))
 
       //when
       val result = controller.showExistingTaxClientsViewOnly(taxGroup.id)(request)
@@ -425,7 +423,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 2
       val tr = html.select(Css.tableWithId("clients")).select("tbody tr")
-      tr.size() shouldBe 3
+      tr.size() shouldBe 10
 
 
     }

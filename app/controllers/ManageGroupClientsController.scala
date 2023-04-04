@@ -334,11 +334,15 @@ class ManageGroupClientsController @Inject()
                   ).toFuture
                 }, (yes: Boolean) => {
                   if (yes) {
+                    val remainingClients = maybeSelectedClients.getOrElse(Nil).filterNot(dc => clientToRemove.id == dc.id)
                     sessionCacheService
-                      .put(SELECTED_CLIENTS, maybeSelectedClients.getOrElse(Nil).filterNot(dc => clientToRemove.id == dc.id))
-                      .map(_ =>
-                        Redirect(showAddClientsCall)
-                        //                        .flashing("success" -> request.messages("group.clients.add.review.client.removed.confirm", clientToRemove.name))
+                      .put(SELECTED_CLIENTS, remainingClients)
+                      .map(_ => {
+                        remainingClients.size match {
+                          case 0 => Redirect(showAddClientsCall)
+                          case _ => Redirect(controller.showReviewSelectedClients(group.groupId, None, None))
+                        }
+                      }
                       )
                   }
                   else Redirect(showAddClientsCall).toFuture

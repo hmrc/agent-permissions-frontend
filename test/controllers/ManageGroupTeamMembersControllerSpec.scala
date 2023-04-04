@@ -521,7 +521,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, None).url}" should {
 
-
     "redirect if no team members selected in session" in {
       //given
       expectIsArnAllowed(allowed = true)
@@ -577,6 +576,41 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         .select("label[for=answer-no]")
         .text() shouldBe "No, continue"
       html.select(Css.submitButton).text() shouldBe "Save and continue"
+
+    }
+
+    "render correctly when only 1 team member selected (you can't remove the last member)" in {
+      //given
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
+
+      //when
+      val result = controller.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, Option(1))(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      //and
+      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 1 team members"
+
+      val tableOfSelectedMembers = html.select(Css.tableWithId("members"))
+      //only 3 table columns as REMOVE link (i.e. normally the last table column) should not be present
+      tableOfSelectedMembers.select("tbody tr").size() shouldBe 1
+      val headCells = tableOfSelectedMembers.select("thead tr th")
+      headCells.size() shouldBe 3
+      headCells.get(2).text shouldBe "Role"
+      val row1Cells = tableOfSelectedMembers.select("tbody tr td")
+      row1Cells.get(2).text shouldBe "Administrator"
+      row1Cells.size() shouldBe 3
+
+      //no pagination as only 1 member selected
+      val paginationListItems = html.select(Css.pagination_li)
+      paginationListItems.size() shouldBe 0
 
     }
   }
@@ -820,7 +854,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET show confirm remove from clients to add ${ctrlRoute.showConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id).url}" should {
+  s"GET show confirm remove from team members to add ${ctrlRoute.showConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id).url}" should {
 
     "render the confirm remove client page" in {
       val summary = GroupSummary.of(accessGroup)

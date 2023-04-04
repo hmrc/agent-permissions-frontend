@@ -931,13 +931,35 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST submitConfirmRemoveFromSelectedClients ${ctrlRoute.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey).url}" should {
 
-    "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
+    "confirm remove client 'yes' removes  from group and redirect to REVIEW SELECTED CLIENTS page" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectPutSessionItem(SELECTED_CLIENTS, displayClients.filterNot(_.id == clientToRemove.id))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(grpId, None, None).url
+    }
+
+    "confirm remove LAST selected client removes  from group and REDIRECTS TO SHOW EXISTING CLIENTS PAGE" in {
+      val summary = GroupSummary.of(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+      val only1SelectedClient = Seq(clientToRemove)
+      expectGetSessionItem(SELECTED_CLIENTS, only1SelectedClient)
+      expectPutSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)}")

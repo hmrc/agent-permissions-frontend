@@ -22,7 +22,7 @@
 
 @(pagination: PaginationMetaData)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-<nav class="govuk-pagination" role="navigation" aria-label="results">
+<nav class="govuk-pagination" role="navigation" aria-label="results" id="pagination-nav">
 
  @if(!pagination.firstPage) {
  <div class="govuk-pagination__prev">
@@ -39,7 +39,7 @@
 
  <ul class="govuk-pagination__list">
 
-  @if(pagination.totalPages < 20) {
+  @if(pagination.totalPages < MAX_PAGES_WITHOUT_ELLIPSIS) {
    @for(pageNum <- 1 to pagination.totalPages) {
     @POST_pagination_li(pagination, pageNum)
    }

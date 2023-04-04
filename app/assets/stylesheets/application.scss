@@ -12,7 +12,7 @@ main.govuk-main-wrapper {
   padding-top: 30px !important;
 }
 
-.govuk-warning-text__icon.info{
+.govuk-warning-text__icon.info {
   font-weight: 700;
   min-width: 25px;
   min-height: 25px;
@@ -21,7 +21,7 @@ main.govuk-main-wrapper {
   margin-top: 0px;
 }
 
-#multi-select-table .govuk-table__cell div.govuk-checkboxes{
+#multi-select-table .govuk-table__cell div.govuk-checkboxes {
   margin-top: -7px;
 }
 
@@ -29,7 +29,7 @@ main.govuk-main-wrapper {
   margin-bottom: 35px !important;
 }
 
-.govuk-panel__bodys{
+.govuk-panel__bodys {
 
   overflow-wrap: break-word;
 }
@@ -65,5 +65,19 @@ div.scrollable-table-container {
 
     width: 100%;
 
+  }
+}
+
+nav#pagination-nav {
+
+  .govuk-pagination__item, .govuk-pagination__next, .govuk-pagination__prev {
+    padding: 10px !important;
+  }
+
+  .govuk-pagination__next {
+    padding-right: 0 !important;
+  }
+  .govuk-pagination__prev {
+    padding-left: 0 !important;
   }
 }

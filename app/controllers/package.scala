@@ -52,6 +52,7 @@ package object controllers {
   final val  CLEAR_BUTTON: String = "clear"
   final val FILTER_BUTTON: String = "filter"
   final val PAGINATION_BUTTON: String = "pagination"
+  final val MAX_PAGES_WITHOUT_ELLIPSIS: Int = 16
   final val CUSTOM_GROUP: String = "custom group"
   final val TAX_SERVICE_GROUP: String = "tax service group"
   val PAGINATION_REGEX: Regex = "(pagination_)(\\d+)".r

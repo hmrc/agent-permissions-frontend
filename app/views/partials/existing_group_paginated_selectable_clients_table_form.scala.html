@@ -53,12 +53,25 @@
     group: GroupSummary
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@hasClientsAlreadyInGroup = @{clients.exists(_.alreadyInGroup)}
+    @tableHeadings = @{
+        var ths = Seq[(Html, Map[String, String])](
+            (span(""),Map("id" -> "select-all")),
+            (Html(msgs("group.client.list.table.th1")), Map.empty),
+            (Html(msgs("group.client.list.table.th2")), Map.empty),
+            (Html(msgs("group.client.list.table.th3")), Map.empty),
+
+        )
+        if(hasClientsAlreadyInGroup){
+            ths = ths :+ (Html(msgs("common.actions")), Map.empty[String, String])
+        }
+        ths
+    }
 @tableRows = @{
     clients.zipWithIndex.map(clientWithIndex =>{
-
         val client = clientWithIndex._1
         val idx = clientWithIndex._2
-        Seq(
+        var rows: Seq[Html] = Seq(
             Html(
                 if(client.alreadyInGroup){
                     info_text("common.group.already.in").toString
@@ -75,14 +88,17 @@
             ),
             Html(client.name),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService)),
-            Html(
-                a(
-                    key = msgs("common.remove"),
-                    href = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
-                ).toString
-            )
+            Html(displayTaxServiceFromServiceKey(client.taxService))
         )
+        if(hasClientsAlreadyInGroup) {
+            rows = rows :+ Html(
+                if(client.alreadyInGroup) {
+                    val removeLink = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
+                    a(key = msgs("common.remove"), href = removeLink).toString
+                } else ""
+                )
+        }
+        rows
     }
 
     )
@@ -123,12 +139,7 @@
                 captionClasses = "govuk-visually-hidden",
                 id = Some("multi-select-table"),
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
-                headings = Seq(
-                    (span(""),Map("id" -> "select-all")),
-                    (Html(msgs("group.client.list.table.th1")), Map.empty),
-                    (Html(msgs("group.client.list.table.th2")), Map.empty),
-                    (Html(msgs("group.client.list.table.th3")), Map.empty)
-                ),
+                headings = tableHeadings,
                 rows = tableRows,
             )
             </div>

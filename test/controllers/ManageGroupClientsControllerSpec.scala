@@ -452,34 +452,47 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "Carrots access group"
       html.select(Css.H1).text shouldBe "Update clients in this group"
 
-      val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
-      th.size() shouldBe 4
+      val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
+      val th = tableOfClients.select("thead th")
+      th.size() shouldBe 5
       th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
-      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+      th.get(4).text() shouldBe "Actions"
 
+      val trs = tableOfClients.select("tbody tr")
       trs.size() shouldBe 7
       //first row
-      trs.get(0).select("td").get(0).text() shouldBe "i Info Already in this group"
-      trs.get(0).select("td").get(1).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
-      trs.get(0).select("td").get(3).text() shouldBe "VAT"
+      val row1 = trs.get(0)
+      val row1Cells = row1.select("td")
+      row1Cells.get(0).text() shouldBe "i Info Already in this group"
+      row1Cells.get(1).text() shouldBe "friendly0"
+      row1Cells.get(2).text() shouldBe "ending in 6780"
+      row1Cells.get(3).text() shouldBe "VAT"
+      row1Cells.get(4).text() shouldBe "Remove"
 
-      trs.get(2).select("td").get(0).text() shouldBe "i Info Already in this group"
-      trs.get(2).select("td").get(1).text() shouldBe "friendly2"
-      trs.get(2).select("td").get(2).text() shouldBe "ending in 6782"
-      trs.get(2).select("td").get(3).text() shouldBe "VAT"
+      val row3Cells = trs.get(2).select("td")
+      row3Cells.get(0).text() shouldBe "i Info Already in this group"
+      row3Cells.get(1).text() shouldBe "friendly2"
+      row3Cells.get(2).text() shouldBe "ending in 6782"
+      row3Cells.get(3).text() shouldBe "VAT"
+      row3Cells.get(4).text() shouldBe "Remove"
 
-      trs.get(3).select("td").get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
-      trs.get(3).select("td").get(1).text() shouldBe "friendly5"
-      trs.get(3).select("td").get(2).text() shouldBe "ending in 6785"
-      trs.get(3).select("td").get(3).text() shouldBe "VAT"
+      val row4Cells = trs.get(3).select("td")
+      row4Cells.get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
+      row4Cells.get(1).text() shouldBe "friendly5"
+      row4Cells.get(2).text() shouldBe "ending in 6785"
+      row4Cells.get(3).text() shouldBe "VAT"
+      row4Cells.get(4).text() shouldBe ""
 
-      trs.get(6).select("td").get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
-      trs.get(6).select("td").get(1).text() shouldBe "friendly8"
-      trs.get(6).select("td").get(2).text() shouldBe "ending in 6788"
-      trs.get(6).select("td").get(3).text() shouldBe "VAT"
+      //this is not in group so should  have checkbox to add
+      val row7Cells = trs.get(6).select("td")
+      row7Cells.get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
+      row7Cells.get(1).text() shouldBe "friendly8"
+      row7Cells.get(2).text() shouldBe "ending in 6788"
+      //this is not in group so should not have "Remove" link
+      row7Cells.get(3).text() shouldBe "VAT"
+      row7Cells.get(4).text() shouldBe ""
 
 
       //TODO - this is wrong right?

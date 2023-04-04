@@ -23,35 +23,46 @@
 @import views.html.main_layout
 
 @this(
-    layout: main_layout, p: p, h1: h1, h2: h2,
-    a: a, span: span, caption: caption, table: table,
-    submit_button: submit_button,
-    checkbox: checkbox, radioButtons: radioButtons,
-    formWithCSRF: FormWithCSRF,
-    summaryErrors: SummaryErrors,
-    GET_pagination: GET_pagination,
+        layout: main_layout, p: p, h1: h1, h2: h2,
+        a: a, span: span, caption: caption, table: table,
+        submit_button: submit_button,
+        checkbox: checkbox, radioButtons: radioButtons,
+        formWithCSRF: FormWithCSRF,
+        summaryErrors: SummaryErrors,
+        GET_pagination: GET_pagination,
 )
 
 @(
-    paginatedList: PaginatedList[TeamMember],
-    group: GroupSummary,
-    form: Form[Boolean]
+        paginatedList: PaginatedList[TeamMember],
+        group: GroupSummary,
+        form: Form[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+    @tableHeadings = @{
+        var ths: Seq[(Html, Map[String, String])] = Seq(
+            (Html(msgs("group.members.list.table.th1")), Map.empty),
+            (Html(msgs("group.members.list.table.th2")), Map.empty),
+            (Html(msgs("group.members.list.table.th3")), Map.empty),
+        )
+        if(paginatedList.pageContent.size > 1) {
+            ths = ths :+ (Html(msgs("common.actions")), Map.empty[String, String])
+        }
+        ths
+    }
+
     @tableRows = @{
-        paginatedList.pageContent.map(teamMember =>
-            Seq(
+        paginatedList.pageContent.map(teamMember => {
+            var row: Seq[Html] = Seq(
                 Html(teamMember.name),
                 Html(teamMember.email),
-                Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse(""))),
-                Html(
-                    a(
-                        key = msgs("common.remove"),
-                        href = routes.ManageGroupTeamMembersController.showConfirmRemoveFromSelectedTeamMember(group.groupId, group.groupType, teamMember.id).url
-                    ).toString
-                )
+                Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse("")))
             )
-        )
+            if(paginatedList.pageContent.size > 1) {
+                var removeLink = routes.ManageGroupTeamMembersController.showConfirmRemoveFromSelectedTeamMember(group.groupId, group.groupType, teamMember.id).url
+                row = row :+ (Html(a(key = msgs("common.remove"), href = removeLink).toString))
+            }
+            row
+        })
     }
 
 
@@ -68,50 +79,44 @@
             @h1(msgs("group.teamMembers.review.h1", paginatedList.paginationMetaData.totalSize))
         </div>
 
-    @if(paginatedList.pageContent.nonEmpty) {
+        @if(paginatedList.pageContent.nonEmpty) {
 
-        @table(
-            caption = Some("common.teamMembers"),
-            captionClasses = "govuk-visually-hidden",
-            id = Some("members"),
-            attrs = Map.empty,
-            headings = Seq(
-                (Html(msgs("group.members.list.table.th1")), Map.empty),
-                (Html(msgs("group.members.list.table.th2")), Map.empty),
-                (Html(msgs("group.members.list.table.th3")), Map.empty),
-                (Html(msgs("common.actions")), Map.empty),
-
-            ),
-            rows = tableRows,
-        )
-
-        @if(paginatedList.paginationMetaData.totalPages > 1) {
-            @GET_pagination(
-                pagination = paginatedList.paginationMetaData,
-                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, group.groupType, None),
-                additionalParams = form.data
+            @table(
+                caption = Some("common.teamMembers"),
+                captionClasses = "govuk-visually-hidden",
+                id = Some("members"),
+                attrs = Map.empty,
+                headings = tableHeadings,
+                rows = tableRows,
             )
+
+            @if(paginatedList.paginationMetaData.totalPages > 1) {
+                @GET_pagination(
+                    pagination = paginatedList.paginationMetaData,
+                    baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, group.groupType, None),
+                    additionalParams = form.data
+                )
+            }
+
+        } else {
+            <div id="members">
+                @h2("team-members.not-found.heading")
+                @p("team-members.not-found.p")
+            </div>
         }
 
-    } else {
-        <div id="members">
-            @h2("team-members.not-found.heading")
-            @p("team-members.not-found.p")
-        </div>
-    }
+        @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId, group.groupType)) {
+            @radioButtons(
+                field = form("answer"),
+                items = Seq(
+                    RadioData("true", "group.teamMembers.review.yes.label"),
+                    RadioData("false", "group.teamMembers.review.no.label", id = Some("answer-no"))
+                ),
+                legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
+            )
 
-    @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId, group.groupType)) {
-        @radioButtons(
-            field = form("answer"),
-            items = Seq(
-                RadioData("true", "group.teamMembers.review.yes.label"),
-                RadioData("false", "group.teamMembers.review.no.label", id = Some("answer-no"))
-            ),
-            legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
-        )
+            @submit_button("save.and.continue.button")
+        }
 
-        @submit_button("save.and.continue.button")
-    }
 
-   
     }

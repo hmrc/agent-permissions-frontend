@@ -77,6 +77,8 @@ GET     /manage-custom-group/:groupId/update-clients/search                     
 POST    /manage-custom-group/:groupId/update-clients/search                     controllers.ManageGroupClientsController.submitSearchClientsToAdd(groupId: models.GroupId)
 GET     /manage-custom-group/:groupId/update-clients/add                        controllers.ManageGroupClientsController.showAddClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
 POST    /manage-custom-group/:groupId/update-clients/add                        controllers.ManageGroupClientsController.submitAddClients(groupId: models.GroupId)
+GET     /manage-custom-group/:groupId/update-clients/add/confirm-remove/:clientId   controllers.ManageGroupClientsController.showConfirmRemoveFromUpdateClients(groupId: models.GroupId, clientId: String)
+POST    /manage-custom-group/:groupId/update-clients/add/confirm-remove/:clientId   controllers.ManageGroupClientsController.submitConfirmRemoveFromUpdateClients(groupId: models.GroupId, clientId: String)
 GET     /manage-custom-group/:groupId/update-clients/review                     controllers.ManageGroupClientsController.showReviewSelectedClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
 POST    /manage-custom-group/:groupId/update-clients/review                     controllers.ManageGroupClientsController.submitReviewSelectedClients(groupId: models.GroupId)
 

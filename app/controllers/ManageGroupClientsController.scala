@@ -366,7 +366,7 @@ class ManageGroupClientsController @Inject()
                     YesNoForm.form(),
                     groupSummary.groupName,
                     client,
-                    backLink = controller.showAddClients(groupId, None, None),
+                    backLink = controller.showReviewSelectedClients(groupId, None, None),
                     formAction = controller.submitConfirmRemoveFromSelectedClients(groupId, client.id)
                   )
                 )

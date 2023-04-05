@@ -916,7 +916,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).isEmpty() shouldBe true
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.ManageGroupClientsController.showAddClients(grpId, None, None).url
+        .attr("href") shouldBe routes.ManageGroupClientsController.showReviewSelectedClients(grpId, None, None).url
 
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.id).url

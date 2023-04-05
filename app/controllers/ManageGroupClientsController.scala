@@ -352,7 +352,6 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-
   def showConfirmRemoveFromSelectedClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
       clientService
@@ -382,7 +381,7 @@ class ManageGroupClientsController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
-          val redirectLink: Call = controller.showAddClients(groupId, None, None)
+          val redirectLink: Call = controller.showReviewSelectedClients(groupId, None, None)
           maybeClient.fold(
             Redirect(controller.showAddClients(group.groupId, None, None)).toFuture
           )(clientToRemove =>
@@ -407,8 +406,8 @@ class ManageGroupClientsController @Inject()
                       .put(SELECTED_CLIENTS, remainingClients)
                       .map(_ => {
                         remainingClients.size match {
-                          case 0 => Redirect(redirectLink)
-                          case _ => Redirect(controller.showReviewSelectedClients(group.groupId, None, None))
+                          case 0 => Redirect(controller.showAddClients(group.groupId, None, None))
+                          case _ => Redirect(redirectLink)
                         }
                       }
                       )

@@ -199,12 +199,12 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.size() shouldBe 25
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
+      trs.get(0).select("td").get(2).text() shouldBe "*****6780"
       trs.get(0).select("td").get(3).text() shouldBe "VAT"
 
       // last row
       trs.get(19).select("td").get(1).text() shouldBe "friendly19"
-      trs.get(19).select("td").get(2).text() shouldBe "ending in 7819"
+      trs.get(19).select("td").get(2).text() shouldBe "*****7819"
       trs.get(19).select("td").get(3).text() shouldBe "VAT"
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
@@ -238,11 +238,11 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.size() shouldBe 25
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
+      trs.get(0).select("td").get(2).text() shouldBe "*****6780"
       trs.get(0).select("td").get(3).text() shouldBe "VAT"
       // last row
       trs.get(19).select("td").get(1).text() shouldBe "friendly19"
-      trs.get(19).select("td").get(2).text() shouldBe "ending in 7819"
+      trs.get(19).select("td").get(2).text() shouldBe "*****7819"
       trs.get(19).select("td").get(3).text() shouldBe "VAT"
     }
 
@@ -485,7 +485,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.size() shouldBe 5
       // first row
       trs.get(0).select("td").get(0).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
+      trs.get(0).select("td").get(1).text() shouldBe "*****6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
       val removeClient1 = trs.get(0).select("td").get(3).select("a")
       removeClient1.text() shouldBe "Remove"
@@ -493,7 +493,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       // last row
       trs.get(4).select("td").get(0).text() shouldBe "friendly4"
-      trs.get(4).select("td").get(1).text() shouldBe "ending in 6784"
+      trs.get(4).select("td").get(1).text() shouldBe "*****6784"
       trs.get(4).select("td").get(2).text() shouldBe "VAT"
       val removeClient4 = trs.get(4).select("td").get(3).select("a")
       removeClient4.text() shouldBe "Remove"

@@ -56,8 +56,7 @@ object ViewUtils {
     if(name.isEmpty) {
       taxId
     } else {
-      // TODO - change obfuscation depending on reference?
-      "ending in ".concat(taxId.substring(taxId.length - 4))
+      "*****".concat(taxId.substring(taxId.length - 4))
     }
   }
 

@@ -52,12 +52,8 @@ object ViewUtils {
   }
 
   // can only display full taxId if no name
-  def displayObfuscatedReference(name: String, taxId: String): String = {
-    if(name.isEmpty) {
-      taxId
-    } else {
-      "Ending in ".concat(taxId.substring(taxId.length - 4))
-    }
+  def displayObfuscatedReference(name: String, taxId: String)(implicit msgs: Messages): String = {
+    if(name.isEmpty) taxId else msgs("ending.in", taxId.substring(taxId.length - 4))
   }
 
   // for hidden labels, name is preferred

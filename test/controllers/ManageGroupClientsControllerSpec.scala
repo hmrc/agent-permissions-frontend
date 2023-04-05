@@ -147,7 +147,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.size() shouldBe 3
       //first row
       trs.get(0).select("td").get(0).text() shouldBe "friendly0"
-      trs.get(0).select("td").get(1).text() shouldBe "Ending in 6780"
+      trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
       val removeClient1 = trs.get(0).select("td").get(3).select("a")
       removeClient1.text() shouldBe "Remove"
@@ -155,7 +155,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       //last row
       trs.get(2).select("td").get(0).text() shouldBe "friendly2"
-      trs.get(2).select("td").get(1).text() shouldBe "Ending in 6782"
+      trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(2).text() shouldBe "VAT"
       val removeClient2 = trs.get(2).select("td").get(3).select("a")
       removeClient2.text() shouldBe "Remove"
@@ -467,21 +467,21 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val row1Cells = row1.select("td")
       row1Cells.get(0).text() shouldBe "i Info Already in this group"
       row1Cells.get(1).text() shouldBe "friendly0"
-      row1Cells.get(2).text() shouldBe "Ending in 6780"
+      row1Cells.get(2).text() shouldBe "ending in 6780"
       row1Cells.get(3).text() shouldBe "VAT"
       row1Cells.get(4).text() shouldBe "Remove"
 
       val row3Cells = trs.get(2).select("td")
       row3Cells.get(0).text() shouldBe "i Info Already in this group"
       row3Cells.get(1).text() shouldBe "friendly2"
-      row3Cells.get(2).text() shouldBe "Ending in 6782"
+      row3Cells.get(2).text() shouldBe "ending in 6782"
       row3Cells.get(3).text() shouldBe "VAT"
       row3Cells.get(4).text() shouldBe "Remove"
 
       val row4Cells = trs.get(3).select("td")
       row4Cells.get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
       row4Cells.get(1).text() shouldBe "friendly5"
-      row4Cells.get(2).text() shouldBe "Ending in 6785"
+      row4Cells.get(2).text() shouldBe "ending in 6785"
       row4Cells.get(3).text() shouldBe "VAT"
       row4Cells.get(4).text() shouldBe ""
 
@@ -489,7 +489,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val row7Cells = trs.get(6).select("td")
       row7Cells.get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
       row7Cells.get(1).text() shouldBe "friendly8"
-      row7Cells.get(2).text() shouldBe "Ending in 6788"
+      row7Cells.get(2).text() shouldBe "ending in 6788"
       //this is not in group so should not have "Remove" link
       row7Cells.get(3).text() shouldBe "VAT"
       row7Cells.get(4).text() shouldBe ""

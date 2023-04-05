@@ -332,7 +332,7 @@ member.added.to.groups.title=Team member {0} added to access groups {1}
 member.added.to.groups.h1=Team member added to access groups
 member.added.to.groups.p1=You have added {0} to the following groups:
 member.added.to.groups.p2={0} can now view and manage the tax affairs of the clients in these access groups.
-
+ending.in=ending in {0}
 assistant.clients.group.h1={0} clients
 assistant.clients.group.p=You can manage these clients’ tax as you are in this access group.
 assistant.clients.unassigned.h1=Other clients you can manage

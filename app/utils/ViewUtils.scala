@@ -56,7 +56,7 @@ object ViewUtils {
     if(name.isEmpty) {
       taxId
     } else {
-      "*****".concat(taxId.substring(taxId.length - 4))
+      "Ending in ".concat(taxId.substring(taxId.length - 4))
     }
   }
 

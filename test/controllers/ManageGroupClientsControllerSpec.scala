@@ -1004,7 +1004,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showAddClients(grpId, None, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(grpId, None, None).url
     }
 
     "render errors when no selections of yes/no made" in {

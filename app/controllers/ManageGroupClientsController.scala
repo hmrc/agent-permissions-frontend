@@ -138,6 +138,7 @@ class ManageGroupClientsController @Inject()
   def submitConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
+        val redirectLink = controller.showExistingGroupClients(groupId, None, None)
         maybeClient.fold(
           Redirect(controller.showExistingGroupClients(group.groupId, None, None)).toFuture
         )(clientToRemove =>
@@ -151,7 +152,7 @@ class ManageGroupClientsController @Inject()
                     formWithErrors,
                     group.groupName,
                     clientToRemove,
-                    backLink = controller.showExistingGroupClients(groupId, None, None),
+                    backLink = redirectLink,
                     formAction = controller.submitConfirmRemoveClient(groupId, clientToRemove.id)
                   )
                 ).toFuture
@@ -160,11 +161,11 @@ class ManageGroupClientsController @Inject()
                   groupService
                     .removeClientFromGroup(groupId, clientToRemove.enrolmentKey) // can currently remove the last client in a group!
                     .map(_ =>
-                      Redirect(controller.showExistingGroupClients(groupId, None, None))
+                      Redirect(redirectLink)
                         .flashing("success" -> request.messages("client.removed.confirm", clientToRemove.name))
                     )
                 }
-                else Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
+                else Redirect(redirectLink).toFuture
               }
             )
         )
@@ -285,6 +286,73 @@ class ManageGroupClientsController @Inject()
     }
   }
 
+  def showConfirmRemoveFromUpdateClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
+      clientService
+        .lookupClient(arn)(clientId)
+        .flatMap(maybeClient =>
+          maybeClient.fold(Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture)(client =>
+            sessionCacheService
+              .put(CLIENT_TO_REMOVE, client)
+              .map(_ =>
+                Ok(
+                  confirm_remove_client(
+                    YesNoForm.form(),
+                    groupSummary.groupName,
+                    client,
+                    backLink = controller.showAddClients(groupId, None, None),
+                    formAction = controller.submitConfirmRemoveFromUpdateClients(groupId, client.id),
+                    legendKey = "common.group.remove.client"
+                  )
+                )
+              )
+          )
+        )
+    }
+    }
+  }
+
+  def submitConfirmRemoveFromUpdateClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
+      withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
+        val redirectLink = controller.showAddClients(groupId, None, None)
+        maybeClient.fold(
+          Redirect(controller.showExistingGroupClients(group.groupId, None, None)).toFuture
+        )(clientToRemove =>
+          YesNoForm
+            .form("group.client.remove.error")
+            .bindFromRequest
+            .fold(
+              formWithErrors => {
+                Ok(
+                  confirm_remove_client(
+                    formWithErrors,
+                    group.groupName,
+                    clientToRemove,
+                    backLink = redirectLink,
+                    formAction = controller.submitConfirmRemoveFromUpdateClients(groupId, clientToRemove.id),
+                    legendKey = "common.group.remove.client"
+                  )
+                ).toFuture
+              }, (yes: Boolean) => {
+                if (yes) {
+                  groupService
+                      .removeClientFromGroup(groupId, clientToRemove.enrolmentKey) // can currently remove the last client in a group!
+                    .map(_ =>
+                      Redirect(redirectLink)
+                        .flashing("success" -> request.messages("client.removed.confirm", clientToRemove.name))
+                    )
+                }
+                else Redirect(redirectLink).toFuture
+              }
+            )
+        )
+      }
+    }
+    }
+  }
+
+
   def showConfirmRemoveFromSelectedClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
       clientService
@@ -314,7 +382,7 @@ class ManageGroupClientsController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
-          val showAddClientsCall: Call = controller.showAddClients(groupId, None, None)
+          val redirectLink: Call = controller.showAddClients(groupId, None, None)
           maybeClient.fold(
             Redirect(controller.showAddClients(group.groupId, None, None)).toFuture
           )(clientToRemove =>
@@ -328,7 +396,7 @@ class ManageGroupClientsController @Inject()
                       formWithErrors,
                       group.groupName,
                       clientToRemove,
-                      backLink = showAddClientsCall,
+                      backLink = redirectLink,
                       formAction = controller.submitConfirmRemoveFromSelectedClients(groupId, clientToRemove.id)
                     )
                   ).toFuture
@@ -339,13 +407,13 @@ class ManageGroupClientsController @Inject()
                       .put(SELECTED_CLIENTS, remainingClients)
                       .map(_ => {
                         remainingClients.size match {
-                          case 0 => Redirect(showAddClientsCall)
+                          case 0 => Redirect(redirectLink)
                           case _ => Redirect(controller.showReviewSelectedClients(group.groupId, None, None))
                         }
                       }
                       )
                   }
-                  else Redirect(showAddClientsCall).toFuture
+                  else Redirect(redirectLink).toFuture
                 }
               )
           )

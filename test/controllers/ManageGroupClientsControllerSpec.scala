@@ -896,7 +896,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET show confirm remove from clients to add ${ctrlRoute.showConfirmRemoveFromSelectedClients(grpId, clientToRemove.id).url}" should {
+  s"GET show confirm remove from selected clients ${ctrlRoute.showConfirmRemoveFromSelectedClients(grpId, clientToRemove.id).url}" should {
 
     "render the confirm remove client page" in {
       val summary = GroupSummary.of(accessGroup)
@@ -1034,4 +1034,117 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET show confirm remove from UPDATE clients ${ctrlRoute.showConfirmRemoveFromUpdateClients(grpId, clientToRemove.id).url}" should {
+
+    "render the confirm remove client page" in {
+      val summary = GroupSummary.of(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectLookupClient(arn)(clientToRemove)
+      expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+      val result = controller.showConfirmRemoveFromUpdateClients(grpId, clientToRemove.id)(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Remove friendly0 from this access group? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
+      html.select(Css.paragraphs).isEmpty() shouldBe true
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe routes.ManageGroupClientsController.showAddClients(grpId, None, None).url
+
+
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.id).url
+      html.select("label[for=answer]").text() shouldBe "Yes"
+      html.select("label[for=answer-no]").text() shouldBe "No"
+      html.select(Css.form + " input[name=answer]").size() shouldBe 2
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
+    }
+
+    "redirect when no client found" in {
+      val summary = GroupSummary.of(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectLookupClientNone(arn)
+
+      val result = controller.showConfirmRemoveFromUpdateClients(grpId, clientToRemove.id)(request)
+      // then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
+
+    }
+
+  }
+
+  s"POST submit confirm remove from UPDATE clients ${ctrlRoute.showConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey).url}" should {
+
+    "confirm remove client 'yes' removes  from group and redirect to clients to add page" in {
+      val summary = GroupSummary.of(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+      expectRemoveClientFromGroup(grpId, clientToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showAddClients(grpId, None, None).url
+    }
+
+
+    "confirm remove client 'no' redirects to group clients list" in {
+      val summary = GroupSummary.of(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey)}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showAddClients(grpId, None, None).url
+    }
+
+    "render errors when no selections of yes/no made" in {
+      val summary = GroupSummary.of(accessGroup)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(grpId, Some(summary))
+      expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey)}")
+          .withFormUrlEncodedBody("ohai" -> "blah")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Remove friendly0 from this access group? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
+
+    }
+  }
 }

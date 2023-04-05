@@ -93,7 +93,7 @@
         if(hasClientsAlreadyInGroup) {
             rows = rows :+ Html(
                 if(client.alreadyInGroup) {
-                    val removeLink = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
+                    val removeLink = routes.ManageGroupClientsController.showConfirmRemoveFromUpdateClients(group.groupId, client.id).url
                     a(key = msgs("common.remove"), href = removeLink).toString
                 } else ""
                 )

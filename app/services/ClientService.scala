@@ -26,6 +26,7 @@ import play.api.mvc.Request
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
 import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.EncryptionUtil
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -45,6 +46,9 @@ trait ClientService {
                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]]
 
   def lookupClient(arn: Arn)(clientId: String)
+                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]]
+
+  def getClient(arn: Arn)(clientId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]]
 
   def lookupClients(arn: Arn)(ids: Option[List[String]])
@@ -104,9 +108,7 @@ class ClientServiceImpl @Inject()(
                           (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[DisplayClient]] =
     agentPermissionsConnector.unassignedClients(arn)(page, pageSize, search, filter)
 
-  //TODO this uses the old endpoint!
-  def lookupClient(arn: Arn)
-                  (clientId: String)
+  def lookupClient(arn: Arn)(clientId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]] = {
     for {
       es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
@@ -114,7 +116,14 @@ class ClientServiceImpl @Inject()(
     } yield maybeClient
   }
 
-  //TODO this uses the old endpoint!
+  def getClient(arn: Arn)(clientId: String)
+               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]] = {
+    val enrolmentKey = EncryptionUtil.decryptEnrolmentKey(clientId)
+    agentUserClientDetailsConnector
+      .getClient(arn, enrolmentKey)
+      .map(maybeClient => maybeClient.map(c => DisplayClient.fromClient(c)))
+  }
+
   def lookupClients(arn: Arn)
                    (ids: Option[List[String]])
                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[DisplayClient]] = {

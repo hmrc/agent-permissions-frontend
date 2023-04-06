@@ -49,6 +49,26 @@ class AgentUserClientDetailsConnectorSpec
   val connector: AgentUserClientDetailsConnector =
     fakeApplication.injector.instanceOf[AgentUserClientDetailsConnectorImpl]
 
+  private val expectedClient: Client = Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Rapunzel")
+  "get client" should {
+
+    "return a Client when status response is OK" in {
+
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(OK, Json.toJson(expectedClient).toString))
+
+      connector.getClient(arn, expectedClient.enrolmentKey).futureValue.get shouldBe expectedClient
+    }
+
+
+    "throw error when status response is 404" in {
+
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(404, ""))
+
+      connector.getClient(arn, expectedClient.enrolmentKey).futureValue shouldBe None
+
+    }
+  }
+
   "getClientList" should {
     "return a Some[Seq[Client]] when status response is OK" in {
       expectHttpClientGET[HttpResponse](
@@ -63,8 +83,7 @@ class AgentUserClientDetailsConnectorSpec
         ))
 
       connector.getClients(arn).futureValue shouldBe
-        Seq(Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345",
-          friendlyName = "Rapunzel"))
+        Seq(expectedClient)
     }
 
     "return None when status response is Accepted" in {

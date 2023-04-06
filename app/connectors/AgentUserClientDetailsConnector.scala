@@ -39,6 +39,8 @@ trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   def getClients(arn: Arn)
                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]]
 
+  def getClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Client]]
+
   def getPaginatedClients(arn: Arn)
                          (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
@@ -74,6 +76,20 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
           case e =>
             throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
               e)
+        }
+      }
+    }
+  }
+
+  def getClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Client]] = {
+    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client/$enrolmentKey"
+    monitor("ConsumedAPI-getClientList-GET") {
+      http
+        .GET[HttpResponse](url)
+        .map { response =>
+        response.status match {
+          case OK => Option(response.json.as[Client])
+          case _ => None
         }
       }
     }

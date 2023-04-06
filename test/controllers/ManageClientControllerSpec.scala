@@ -210,7 +210,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectLookupClientNotFound(arn)(invalidClientId)
+      expectGetClientNotFound(arn)(invalidClientId)
 
       //when
       val result = controller.showClientDetails(invalidClientId)(request)
@@ -231,7 +231,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
-      expectLookupClient(arn)(expectedClient)
+      expectGetClient(arn)(expectedClient)
 
       //when
       val result = controller.showClientDetails(expectedClient.id)(request)
@@ -251,7 +251,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectLookupClient(arn)(expectedClient)
+      expectGetClient(arn)(expectedClient)
       expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
 
       //when
@@ -286,7 +286,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectLookupClient(arn)(expectedClient)
+      expectGetClient(arn)(expectedClient)
       //when
       val result = controller.showUpdateClientReference(expectedClient.id)(request)
 
@@ -305,7 +305,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectLookupClientNotFound(arn)("invalid")
+      expectGetClientNotFound(arn)("invalid")
 
       //when
       val caught = intercept[RuntimeException] {
@@ -321,7 +321,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectLookupClient(arn)(expectedClient)
+      expectGetClient(arn)(expectedClient)
 
       //when
       val result = controller.showUpdateClientReference(expectedClient.id)(request)

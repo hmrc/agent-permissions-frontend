@@ -19,7 +19,7 @@ package helpers
 import akka.Done
 import connectors.AgentUserClientDetailsConnector
 import org.scalamock.scalatest.MockFactory
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Enrolment, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
@@ -27,6 +27,19 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentUserClientDetailsConnectorMocks extends MockFactory {
 
+  def expectGetAucdClient(arn: Arn)(client: Client)(
+    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector
+      .getClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, client.enrolmentKey, *, *)
+      .returning(Future successful Option(client)).once()
+
+  def expectGetAucdClientNotFound(arn: Arn, enrolmentKey: String)(
+    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+    (agentUserClientDetailsConnector
+      .getClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, enrolmentKey, *, *)
+      .returning(Future successful None).once()
   def expectGetClients(arn: Arn)(clientList: Seq[Client])(
     implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector

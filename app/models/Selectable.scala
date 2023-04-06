@@ -18,6 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, UserDetails}
+import utils.EncryptionUtil
 
 import scala.util.hashing.MurmurHash3
 
@@ -62,7 +63,7 @@ case class DisplayClient(
                           alreadyInGroup: Boolean = false
                         ) extends Selectable {
   val enrolmentKey = s"$taxService~$identifierKey~$hmrcRef"
-  val id: String = MurmurHash3.stringHash(enrolmentKey).toString
+  val id: String = EncryptionUtil.encryptEnrolmentKey(enrolmentKey).toString
 }
 
 case object DisplayClient {
@@ -77,13 +78,11 @@ case object DisplayClient {
     val hmrcRef = keyElements.last
 
     DisplayClient(hmrcRef,
-      client.friendlyName,
+      Option(client.friendlyName).getOrElse(""), //to avoid null pointers and avoid getOrElse constantly !!
       taxService,
       identifierKey,
       selected)
   }
 
-  def toClient(dc: DisplayClient): Client =
-    Client( s"${dc.taxService}~${dc.identifierKey}~${dc.hmrcRef}", dc.name)
-
+  def toClient(dc: DisplayClient): Client = Client(s"${dc.taxService}~${dc.identifierKey}~${dc.hmrcRef}", dc.name)
 }

@@ -27,6 +27,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMeta
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.EncryptionUtil
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -76,7 +77,6 @@ class ClientServiceSpec extends BaseSpec {
     }
   }
 
-
   "getPaginatedClientsToAddToGroup" should {
     "Get group summary and PaginatedList[DisplayClient from mockAgentPermissionsConnector" in {
       //given
@@ -113,7 +113,6 @@ class ClientServiceSpec extends BaseSpec {
       summary shouldBe groupSummary // irrelevant
     }
   }
-
 
   "updateClientReference" should {
     "PUT client to agentUserClientDetailsConnector" in {
@@ -214,6 +213,34 @@ class ClientServiceSpec extends BaseSpec {
 
       //then
       client.get shouldBe displayClients.head
+    }
+  }
+
+  "get client" should {
+
+    "return client when client found in aucd" in {
+      //given no clients returned from agentUserClientConnector
+      val expectedClient = fakeClients.head
+      expectGetAucdClient(arn)(expectedClient)
+
+      val encryptedKey = EncryptionUtil.encryptEnrolmentKey(expectedClient.enrolmentKey)
+      //when
+      val client = await(service.getClient(arn)(encryptedKey))
+
+      //then
+      client shouldBe Some(DisplayClient.fromClient(expectedClient))
+    }
+
+    "return None when nothing returned from agentUserClientConnector" in {
+      //given no clients returned from agentUserClientConnector
+      val encryptedKey = EncryptionUtil.encryptEnrolmentKey("whatever")
+      expectGetAucdClientNotFound(arn, EncryptionUtil.decryptEnrolmentKey(encryptedKey))
+
+      //when
+      val client = await(service.getClient(arn)(encryptedKey))
+
+      //then
+      client shouldBe None
     }
   }
 

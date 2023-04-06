@@ -105,7 +105,9 @@ class ManageClientController @Inject()
   def showClientDetails(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).flatMap { maybeClient =>
+        clientService
+          .getClient(arn)(clientId)
+          .flatMap { maybeClient =>
           maybeClient.fold(
             Future.successful(NotFound(client_not_found()))
           )(client =>
@@ -121,7 +123,8 @@ class ManageClientController @Inject()
   def showUpdateClientReference(clientId: String): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).map {
+        clientService
+          .getClient(arn)(clientId).map {
           case Some(client) =>
             Ok(
               update_client_reference(

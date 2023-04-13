@@ -34,11 +34,8 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
 
-class AgentPermissionsConnectorSpec
-  extends BaseSpec
-    with HttpClientMocks
-    with AgentPermissionsConnectorMocks {
-
+class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with AgentPermissionsConnectorMocks {
+  
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
@@ -48,12 +45,11 @@ class AgentPermissionsConnectorSpec
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
-    appBuilder
-      .build()
+  override implicit lazy val fakeApplication: Application = appBuilder.build()
 
-  val connector: AgentPermissionsConnector =
-    fakeApplication.injector.instanceOf[AgentPermissionsConnectorImpl]
+  val connector: AgentPermissionsConnector = fakeApplication.injector.instanceOf[AgentPermissionsConnectorImpl]
+  val groupName: String = "my fav%& clients"
+  val encodedGroupName = URLEncoder.encode(groupName, UTF_8.name)
 
   "getOptinStatus" should {
     "return the OptinStatus when valid JSON response received" in {
@@ -283,7 +279,7 @@ class AgentPermissionsConnectorSpec
       ))
       val displayClients = Seq(DisplayClient.fromClient(Client("taxService~identKey~hmrcRef", "name")))
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/groups"
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/unassigned-clients"
       val mockJsonResponseBody = Json.toJson(paginatedClients).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
@@ -340,7 +336,7 @@ class AgentPermissionsConnectorSpec
 
 
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/group/$groupId/clients"
+        s"http://localhost:9447/agent-permissions/group/$groupId/clients?page=1&pageSize=20"
       val mockJsonResponseBody = Json.toJson(paginatedList).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
@@ -395,7 +391,7 @@ class AgentPermissionsConnectorSpec
       val groupSummary = GroupSummary(GroupId.random(), "Carrots", Some(1), 1)
 
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/group/$groupId/clients"
+        s"http://localhost:9447/agent-permissions/group/$groupId/clients/add?page=1&pageSize=20"
       val mockJsonResponseBody = Json.toJson((groupSummary, paginatedList)).toString
       val mockResponse = HttpResponse.apply(OK, mockJsonResponseBody)
 
@@ -540,9 +536,8 @@ class AgentPermissionsConnectorSpec
   "GET groupNameCheck" should {
     "return true if the name is available for the ARN" in {
 
-      val groupName = URLEncoder.encode("my fav%& clients", UTF_8.name)
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/group-name-check?name=$groupName"
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/access-group-name-check?name=$encodedGroupName"
 
       val mockResponse = HttpResponse.apply(OK, "")
 
@@ -553,9 +548,8 @@ class AgentPermissionsConnectorSpec
 
     "return false if the name already exists for the ARN" in {
 
-      val groupName = URLEncoder.encode("my fav%& clients", UTF_8.name)
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/group-name-check?name=$groupName"
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/access-group-name-check?name=$encodedGroupName"
 
       val mockResponse = HttpResponse.apply(CONFLICT, "")
 
@@ -566,9 +560,8 @@ class AgentPermissionsConnectorSpec
 
     "throw exception when it fails" in {
 
-      val groupName = URLEncoder.encode("my fav%& clients", UTF_8.name)
       val expectedUrl =
-        s"http://localhost:9447/agent-permissions/arn/${arn.value}/group-name-check?name=$groupName"
+        s"http://localhost:9447/agent-permissions/arn/${arn.value}/access-group-name-check?name=$encodedGroupName"
 
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "OH NOES!")
 
@@ -586,8 +579,7 @@ class AgentPermissionsConnectorSpec
 
     s"backend returns $OK" should {
       "return true" in {
-        val expectedUrl =
-          s"http://localhost:9447/agent-permissions/arn-allowed"
+        val expectedUrl = s"http://localhost:9447/agent-permissions/arn-allowed"
 
         val mockResponse = HttpResponse.apply(OK, "")
 

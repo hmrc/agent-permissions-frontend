@@ -24,7 +24,7 @@ import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.{GroupService, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
-import uk.gov.hmrc.agents.accessgroups.{AccessGroup, CustomGroup, GroupSummary, TaxGroup}
+import uk.gov.hmrc.agents.accessgroups.{AccessGroup, GroupSummary, TaxGroup}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import views.html.groups.manage.group_not_found
@@ -48,22 +48,6 @@ class GroupAction @Inject()
 
   import optInStatusAction._
 
-  @deprecated("use withGroupSummaryForAuthorisedOptedAgent")
-  def withGroupForAuthorisedOptedAgent(groupId: GroupId)
-                                      (body: CustomGroup => Future[Result])
-                                      (implicit ec: ExecutionContext,
-                                       hc: HeaderCarrier,
-                                       request: MessagesRequest[AnyContent],
-                                       appConfig: AppConfig): Future[Result] = {
-    authAction.isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        groupService
-          .getGroup(groupId)
-          .flatMap(_.fold(groupNotFound)(body(_)))
-      }
-    }
-  }
-
   def withGroupAndPageOfClientsForAuthorisedOptedAgent(groupId: GroupId, page: Int = 1, pageSize: Int = 10)
                                                       (body: (GroupSummary, PaginatedList[DisplayClient], Arn) => Future[Result])
                                                       (implicit ec: ExecutionContext,
@@ -74,7 +58,7 @@ class GroupAction @Inject()
       isOptedIn(arn) { _ =>
         groupService
           .getCustomSummary(groupId)
-          .flatMap(_.fold(groupNotFound)(summary => {
+          .flatMap(_.fold(groupNotFound())(summary => {
             groupService.getPaginatedClientsForCustomGroup(groupId)(page, pageSize)
               .flatMap(p => body(summary, PaginatedList(p._1, p._2), arn))
           })
@@ -83,6 +67,7 @@ class GroupAction @Inject()
     }
   }
 
+  // TODO stop usage for custom groups? - get page of team members
   def withAccessGroupForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)
                                             (callback: (AccessGroup, Arn) => Future[Result])
                                             (implicit ec: ExecutionContext, hc: HeaderCarrier,
@@ -92,11 +77,11 @@ class GroupAction @Inject()
         if (isCustom) {
           groupService
             .getGroup(groupId)
-            .flatMap(_.fold(groupNotFound)(customGroup => callback(customGroup, arn)))
+            .flatMap(_.fold(groupNotFound())(customGroup => callback(customGroup, arn)))
         } else {
           taxGroupService
             .getGroup(groupId)
-            .flatMap(_.fold(groupNotFound)(taxGroup => callback(taxGroup, arn)))
+            .flatMap(_.fold(groupNotFound())(taxGroup => callback(taxGroup, arn)))
         }
       }
     }
@@ -113,11 +98,11 @@ class GroupAction @Inject()
         if (isCustom) {
           groupService
             .getCustomSummary(groupId)
-            .flatMap(_.fold(groupNotFound)(callback(_, arn)))
+            .flatMap(_.fold(groupNotFound())(callback(_, arn)))
         } else {
           taxGroupService
             .getGroup(groupId)
-            .flatMap(_.fold(groupNotFound)(taxGroup => callback(GroupSummary.of(taxGroup), arn)))
+            .flatMap(_.fold(groupNotFound())(taxGroup => callback(GroupSummary.of(taxGroup), arn)))
         }
       }
     }
@@ -135,7 +120,7 @@ class GroupAction @Inject()
         taxGroupService
           .getGroup(groupId)
           .flatMap(
-            _.fold(groupNotFound)(body(_, arn))
+            _.fold(groupNotFound())(body(_, arn))
           )
       }
     }
@@ -194,17 +179,17 @@ class GroupAction @Inject()
         if (isCustom) {
           groupService
             .getGroup(groupId)
-            .flatMap(_.fold(groupNotFound)(customGroup => callback(customGroup, arn)))
+            .flatMap(_.fold(groupNotFound(isAssistant = true))(customGroup => callback(customGroup, arn)))
         } else {
           taxGroupService
             .getGroup(groupId)
-            .flatMap(_.fold(groupNotFound)(taxGroup => callback(taxGroup, arn)))
+            .flatMap(_.fold(groupNotFound(isAssistant = true))(taxGroup => callback(taxGroup, arn)))
         }
       }
     }
   }
 
-  def groupNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
-    NotFound(group_not_found()).toFuture
+  def groupNotFound(isAssistant: Boolean = false)(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+    NotFound(group_not_found(isAssistant)).toFuture
   }
 }

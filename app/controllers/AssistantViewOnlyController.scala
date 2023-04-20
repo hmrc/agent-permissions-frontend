@@ -95,6 +95,7 @@ class AssistantViewOnlyController @Inject()
           clients = list._1,
           summary = summary,
           filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+          formAction = routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
           paginationMetaData = Some(list._2)
         ))
       }
@@ -129,6 +130,7 @@ class AssistantViewOnlyController @Inject()
             clients = list.pageContent,
             summary = summary,
             filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+            formAction = routes.AssistantViewOnlyController.submitExistingTaxClientsViewOnly(summary.groupId),
             paginationMetaData = Some(list.paginationMetaData)
           )
         )

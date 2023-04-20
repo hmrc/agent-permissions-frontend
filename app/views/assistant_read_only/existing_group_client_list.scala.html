@@ -31,15 +31,21 @@
     clients: Seq[DisplayClient],
     summary: GroupSummary,
     filterForm: Form[SearchFilter],
+    formAction: Call,
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@pageTitle = @{
+    withSearchAndErrorPrefix(
+        filterForm.errors.nonEmpty,
+        msgs("assistant.clients.group.h1", summary.groupName),
+        if(summary.isCustomGroup) {filterForm("filter").value} else {None},
+        filterForm("search").value
+    )
+}
+
 @layout(
-    title = withSearchAndErrorPrefix(filterForm.errors.nonEmpty,
-                                     msgs("assistant.clients.group.h1", summary.groupName),
-                                     if(summary.isCustomGroup) {filterForm("filter").value} else {None},
-                                     filterForm("search").value
-    ),
+    title = pageTitle,
     backLinkHref = Some(appConfig.agentServicesAccountYourAssistantAccountUrl),
     fullWidth = true
 ) {
@@ -54,7 +60,7 @@
             summary.isCustomGroup,
             Some(clients),
             filterForm,
-            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
+            formAction,
             paginationMetaData
         )
     } else {
@@ -62,7 +68,7 @@
             summary.isCustomGroup,
             None,
             filterForm,
-            routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
+            formAction,
             paginationMetaData
         )
     }

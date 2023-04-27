@@ -114,7 +114,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
       html.select("#groups-hint").text() shouldBe "Select all that apply"
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
-      checkboxes size() shouldBe 3
+      checkboxes.size() shouldBe 3
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
       checkboxLabels.get(0).text() shouldBe "Group 3"
       checkboxLabels.get(1).text() shouldBe "Group 4"
@@ -152,7 +152,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val form = html.select(Css.form)
       form.attr("action").shouldBe(submitUrl)
       val checkboxes = form.select(".govuk-checkboxes#groups input[name=groups[]]")
-      checkboxes size() shouldBe 5
+      checkboxes.size() shouldBe 5
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
       checkboxLabels.get(0).text() shouldBe "Group 1"
       checkboxLabels.get(1).text() shouldBe "Group 2"

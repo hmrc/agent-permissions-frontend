@@ -16,9 +16,8 @@
 
 import models.{DisplayClient, GroupId, TeamMember}
 import play.api.data.Form
-import play.api.{Configuration, Environment, Mode}
-import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.agents.accessgroups.optin._
+import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future
@@ -33,13 +32,6 @@ package object controllers {
   implicit class BooleanFold(boolean: Boolean){
     def fold[B](l: B)(r: B => B): B = if(boolean) r(l) else l
     def foldAny(l: Any)(r: Any => Any): Any = if(boolean) r(l) else l
-  }
-
-  implicit class EnvironmentOps(private val env: Environment) extends AnyVal {
-
-    def isLocal(implicit config: Configuration): Boolean = {
-      env.mode == Mode.Test
-    }
   }
 
   object GroupType {

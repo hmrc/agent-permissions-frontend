@@ -31,6 +31,10 @@ lazy val microservice = Project(appName, file("."))
       "-unchecked",
       "-language:implicitConversions",
       "-Wconf:src=target/.*:s", // silence warnings from compiled files
+      "-Wconf:src=*html:s", // silence html warnings as they are wrong
+      "-Wconf:cat=deprecation:s",
+      "-Wconf:cat=unused-imports:s",
+      "-Wconf:cat=unused-privates:s",
       "-Wconf:msg=match may not be exhaustive:s", // silence warnings about non-exhaustive pattern matching
     )
   )

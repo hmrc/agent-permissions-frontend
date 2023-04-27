@@ -30,7 +30,7 @@
 @(
     form: Form[Boolean],
     groupName: String,
-    backLink: Option[String] = Some(routes.CreateGroupSelectNameController.showGroupName.url)
+    backLink: Option[String] = Some(routes.CreateGroupSelectNameController.showGroupName().url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(

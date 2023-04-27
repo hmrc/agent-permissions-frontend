@@ -29,7 +29,7 @@
 
 @(
     form: Form[String],
-    backLink: Option[String] = Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
+    backLink: Option[String] = Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(

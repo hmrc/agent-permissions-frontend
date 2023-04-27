@@ -34,7 +34,7 @@
 @(
     form: Form[SearchFilter],
     groupName: String,
-    backUrl: Option[String] = Some(routes.CreateGroupSelectNameController.showConfirmGroupName.url),
+    backUrl: Option[String] = Some(routes.CreateGroupSelectNameController.showConfirmGroupName().url),
     formAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

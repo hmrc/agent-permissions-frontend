@@ -46,9 +46,9 @@ class RootController @Inject()(
       sessionCacheRepository.getFromSession[OptinStatus](OPT_IN_STATUS).flatMap {
         case Some(status) =>
           if (controllers.isEligibleToOptIn(status))
-            Redirect(routes.OptInController.start.url).toFuture
+            Redirect(routes.OptInController.start().url).toFuture
           else if (controllers.isOptedIn(status))
-            Redirect(routes.OptOutController.start.url).toFuture
+            Redirect(routes.OptOutController.start().url).toFuture
           else {
             logger.warn(
               s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
@@ -59,7 +59,7 @@ class RootController @Inject()(
             case Some(status) =>
               sessionCacheRepository
                 .putSession(OPT_IN_STATUS, status)
-                .map(_ => Redirect(routes.RootController.start.url))
+                .map(_ => Redirect(routes.RootController.start().url))
             case None =>
               throw new RuntimeException(
                 "there was a problem when trying to get the opted-In status")

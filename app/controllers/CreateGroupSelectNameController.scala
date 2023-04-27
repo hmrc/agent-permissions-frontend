@@ -55,8 +55,8 @@ class CreateGroupSelectNameController @Inject()(
     withGroupTypeAndAuthorised { (groupType, _) =>
       withSessionItem[String](GROUP_NAME) { maybeName =>
         val backLink = if (groupType == CUSTOM_GROUP) {
-          Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
-        } else Some(routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType.url)
+          Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
+        } else Some(routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType().url)
 
         Ok(choose_name(
           GroupNameForm.form().fill(maybeName.getOrElse("")),
@@ -70,7 +70,7 @@ class CreateGroupSelectNameController @Inject()(
     withGroupTypeAndAuthorised { (_, _) =>
         GroupNameForm
           .form()
-          .bindFromRequest
+          .bindFromRequest()
           .fold(
             formWithErrors => Ok(choose_name(formWithErrors)).toFuture,
             (name: String) =>{
@@ -78,7 +78,7 @@ class CreateGroupSelectNameController @Inject()(
                 _ <- sessionCacheService.put[String](GROUP_NAME, name)
                 _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, false)
               } yield ()
-              saved.map(_=> Redirect(controller.showConfirmGroupName))
+              saved.map(_=> Redirect(controller.showConfirmGroupName()))
             }
           )
     }
@@ -95,7 +95,7 @@ class CreateGroupSelectNameController @Inject()(
     withGroupNameAndAuthorised { (groupName, groupType, arn) =>
       YesNoForm
         .form("group.name.confirm.required.error")
-        .bindFromRequest
+        .bindFromRequest()
         .fold(
           formWithErrors =>
             Ok(confirm_name(formWithErrors, groupName)).toFuture,
@@ -110,12 +110,12 @@ class CreateGroupSelectNameController @Inject()(
                         _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true)
                       } yield
                         if(groupType == CUSTOM_GROUP) {
-                        Redirect(routes.CreateGroupSelectClientsController.showSearchClients)
+                        Redirect(routes.CreateGroupSelectClientsController.showSearchClients())
                       } else Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None,None))
                     } else
-                      Redirect(controller.showAccessGroupNameExists).toFuture)
+                      Redirect(controller.showAccessGroupNameExists()).toFuture)
             else
-              Redirect(controller.showGroupName.url).toFuture
+              Redirect(controller.showGroupName().url).toFuture
           }
         )
     }

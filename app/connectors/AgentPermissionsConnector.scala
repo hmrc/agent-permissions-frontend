@@ -69,7 +69,7 @@ trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
                                      (page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(GroupSummary, PaginatedList[DisplayClient])]
 
-  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
+  @deprecated(message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead", since = "0.210.0")
   def getGroup(id: GroupId)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]]
 

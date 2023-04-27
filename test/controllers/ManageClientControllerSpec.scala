@@ -133,7 +133,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
   }
 
-  s"GET ${ctrlRoute.submitPageOfClients.url}" should {
+  s"GET ${ctrlRoute.submitPageOfClients().url}" should {
 
     "render the manage clients list with search term posted" in {
       //given
@@ -143,7 +143,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
       expectPutSessionItem(CLIENT_FILTER_INPUT, "")
 
-      val url = ctrlRoute.submitPageOfClients.url
+      val url = ctrlRoute.submitPageOfClients().url
       implicit val fakeRequest = FakeRequest(POST, url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withFormUrlEncodedBody("search"-> "friendly1", "submit"-> FILTER_BUTTON)
@@ -167,7 +167,7 @@ class ManageClientControllerSpec extends BaseSpec {
       
       //and we have CLEAR filter in query params
       implicit val fakeRequest =
-        FakeRequest(POST, ctrlRoute.submitPageOfClients.url)
+        FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
         .withHeaders("Authorization" -> "Bearer XYZ")
           .withFormUrlEncodedBody("submit"-> CLEAR_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -188,7 +188,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
       //and we have CLEAR filter in query params
       implicit val fakeRequest =
-        FakeRequest(POST, ctrlRoute.submitPageOfClients.url)
+        FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
           .withHeaders("Authorization" -> "Bearer XYZ")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -270,8 +270,7 @@ class ManageClientControllerSpec extends BaseSpec {
       linksToGroups.size() shouldBe 3
       linksToGroups.get(0).text() shouldBe "groupName"
       linksToGroups.get(0).attr("href") shouldBe
-        controllers.routes.ManageGroupClientsController.showExistingGroupClients(groupSummaries(0).groupId,None, None)
-          .url
+        controllers.routes.ManageGroupClientsController.showExistingGroupClients(groupSummaries(0).groupId,None, None).url
       linksToGroups.get(2).text() shouldBe "groupName2"
       linksToGroups.get(2).attr("href") shouldBe
         controllers.routes.ManageTaxGroupClientsController.showExistingGroupClients(groupSummaries(2).groupId,None,None).url}

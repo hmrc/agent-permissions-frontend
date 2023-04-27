@@ -321,7 +321,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
           .attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
 
 
-        html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveClient(taxGroupId, clientToRemove.id).url
+        html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveClient(taxGroupId).url
         html.select("label[for=answer]").text() shouldBe "Yes"
         html.select("label[for=answer-no]").text() shouldBe "No"
         html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -343,7 +343,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
     }
 
-    s"POST ${ctrlRoute.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey).url}" should {
+    s"POST ${ctrlRoute.submitConfirmRemoveClient(taxGroupId).url}" should {
 
       "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
 
@@ -354,12 +354,12 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         expectUpdateTaxGroup(taxGroupId, updatePayload)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId)}")
             .withFormUrlEncodedBody("answer" -> "true")
             .withSession(SessionKeys.sessionId -> "session-x")
 
 
-        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+        val result = controller.submitConfirmRemoveClient(taxGroupId)(request)
 
         status(result) shouldBe SEE_OTHER
 
@@ -373,12 +373,12 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId)}")
             .withFormUrlEncodedBody("answer" -> "false")
             .withSession(SessionKeys.sessionId -> "session-x")
 
 
-        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+        val result = controller.submitConfirmRemoveClient(taxGroupId)(request)
 
         status(result) shouldBe SEE_OTHER
 
@@ -392,12 +392,12 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId)}")
             .withFormUrlEncodedBody("ohai" -> "blah")
             .withSession(SessionKeys.sessionId -> "session-x")
 
         //when
-        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+        val result = controller.submitConfirmRemoveClient(taxGroupId)(request)
 
         //then
         status(result) shouldBe OK
@@ -417,12 +417,12 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         expectGetSessionItemNone(CLIENT_TO_REMOVE)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)}")
+          FakeRequest("POST", s"${controller.submitConfirmRemoveClient(taxGroupId)}")
             .withFormUrlEncodedBody("ohai" -> "blah")
             .withSession(SessionKeys.sessionId -> "session-x")
 
         //when
-        val result = controller.submitConfirmRemoveClient(taxGroupId, clientToRemove.enrolmentKey)(request)
+        val result = controller.submitConfirmRemoveClient(taxGroupId)(request)
 
         //then
         status(result) shouldBe SEE_OTHER

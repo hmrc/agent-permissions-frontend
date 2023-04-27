@@ -159,7 +159,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName.url
+        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
 
     }
 
@@ -237,7 +237,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val result = controller.showSelectTeamMembers()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName().url
     }
 
     "redirect when no group type is in session" in {
@@ -249,18 +249,18 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val result = controller.showSelectTeamMembers()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url
     }
   }
 
-  s"POST to ${ctrlRoute.submitSelectedTeamMembers.url}" should {
+  s"POST to ${ctrlRoute.submitSelectedTeamMembers().url}" should {
 
     "save selected team members to session" when {
 
       s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}" in {
 
         implicit val request = FakeRequest("POST",
-          ctrlRoute.submitSelectedTeamMembers.url)
+          ctrlRoute.submitSelectedTeamMembers().url)
           .withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
             "members[]" -> teamMembersIds.head,
@@ -286,7 +286,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
         implicit val request =
           FakeRequest("POST",
-            ctrlRoute.submitSelectedTeamMembers.url)
+            ctrlRoute.submitSelectedTeamMembers().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "members[]" -> teamMembersIds.head,
@@ -317,7 +317,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "display error when button is Continue, no team members were selected" in {
 
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers.url)
+      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "members" -> "",
@@ -346,7 +346,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     "display error when button is Continue and DESELECTION mean that nothing is now selected" in {
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers.url)
+      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "members" -> "",
@@ -381,7 +381,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "not show any errors when button is Filter and no filter term was provided" in {
 
       // given
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers.url)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "members" -> "",
@@ -409,7 +409,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       // given
       implicit val request = FakeRequest(
         "POST",
-        ctrlRoute.submitSelectedTeamMembers.url
+        ctrlRoute.submitSelectedTeamMembers().url
       ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -421,7 +421,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       // then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName.url)
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName().url)
     }
 
     "redirect to createGroup when POSTED without groupType in Session" in {
@@ -429,7 +429,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       // given
       implicit val request = FakeRequest(
         "POST",
-        ctrlRoute.submitSelectedTeamMembers.url
+        ctrlRoute.submitSelectedTeamMembers().url
       ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -443,7 +443,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       // then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
     }
   }
 
@@ -524,13 +524,13 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val result = controller.showReviewSelectedTeamMembers(None, None)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName.url)
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName().url)
     }
   }
 
-  s"POST ${routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers.url}" should {
+  s"POST ${routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers().url}" should {
 
-    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showGroupCreated.url}' page with answer 'false'" in {
+    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showGroupCreated().url}' page with answer 'false'" in {
 
       implicit val request =
         FakeRequest(
@@ -553,7 +553,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showGroupCreated.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showGroupCreated().url
     }
 
     s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' page with answer 'true'" in {
@@ -657,7 +657,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${ctrlRoute.showGroupCreated.url}" should {
+  s"GET ${ctrlRoute.showGroupCreated().url}" should {
 
     "show the confirmation page" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -717,7 +717,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST Remove a selected team member ${ctrlRoute.submitConfirmRemoveTeamMember.url}" should {
+  s"POST Remove a selected team member ${ctrlRoute.submitConfirmRemoveTeamMember().url}" should {
 
     s"redirect to '${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}' page with answer 'true'" in {
 

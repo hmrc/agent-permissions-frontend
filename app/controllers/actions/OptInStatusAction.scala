@@ -70,7 +70,7 @@ class OptInStatusAction @Inject()(val authConnector: AuthConnector,
             case Some(status) if status == OptedInReady =>
               sessionCacheService.put[OptinStatus](OPT_IN_STATUS, status)
                 .flatMap(_ => body(None))
-            case _ => Redirect(routes.RootController.start).toFuture
+            case _ => Redirect(routes.RootController.start()).toFuture
           }
     }
   }
@@ -81,14 +81,14 @@ class OptInStatusAction @Inject()(val authConnector: AuthConnector,
     sessionCacheService.get[OptinStatus](OPT_IN_STATUS)
       .flatMap {
         case Some(status) if predicate(status) => body(status)
-        case Some(_) => Redirect(routes.RootController.start.url).toFuture
+        case Some(_) => Redirect(routes.RootController.start().url).toFuture
         case None =>
           initialiseSession(arn)
             .flatMap(_ =>
               sessionCacheService.get[OptinStatus](OPT_IN_STATUS))
             .flatMap {
               case Some(status) if predicate(status) => body(status)
-              case Some(_) => Redirect(routes.RootController.start).toFuture
+              case Some(_) => Redirect(routes.RootController.start()).toFuture
               case None =>
                 throw new RuntimeException(
                   s"opt-in status could not be found for ${arn.value}")

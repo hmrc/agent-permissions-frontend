@@ -61,7 +61,7 @@ class OptInControllerSpec extends BaseSpec {
 
   val controller: OptInController = fakeApplication.injector.instanceOf[OptInController]
 
-  s"GET ${routes.OptInController.start.url}" should {
+  s"GET ${routes.OptInController.start().url}" should {
 
     "display content for start" in {
 
@@ -147,11 +147,11 @@ class OptInControllerSpec extends BaseSpec {
 
       val result = controller.start()(request)
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.RootController.start.url
+      redirectLocation(result).get shouldBe routes.RootController.start().url
     }
   }
 
-  s"GET ${routes.OptInController.showDoYouWantToOptIn.url}" should {
+  s"GET ${routes.OptInController.showDoYouWantToOptIn().url}" should {
     "display expected content" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -183,7 +183,7 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${routes.OptInController.submitDoYouWantToOptIn.url}" should {
+  s"POST ${routes.OptInController.submitDoYouWantToOptIn().url}" should {
 
     s"redirect to '${routes.OptInController.showYouHaveOptedIn}' page with answer 'true'" in {
 
@@ -203,7 +203,7 @@ class OptInControllerSpec extends BaseSpec {
       val result = controller.submitDoYouWantToOptIn()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.OptInController.showYouHaveOptedIn.url
+      redirectLocation(result).get shouldBe routes.OptInController.showYouHaveOptedIn().url
     }
 
     "redirect to 'ASA Manage account' page with answer 'false'" in {
@@ -273,7 +273,7 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${routes.OptInController.showYouHaveOptedIn.url}" should {
+  s"GET ${routes.OptInController.showYouHaveOptedIn().url}" should {
     "display expected content when client list not available yet" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -344,7 +344,7 @@ class OptInControllerSpec extends BaseSpec {
         .text() shouldBe "Create access group"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url
+        .attr("href") shouldBe routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url
     }
   }
 

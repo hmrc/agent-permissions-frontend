@@ -401,8 +401,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val result = controller.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE, None)
-        .url
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE, None).url
 
     }
 

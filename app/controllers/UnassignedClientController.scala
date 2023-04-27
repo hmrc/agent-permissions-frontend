@@ -96,7 +96,7 @@ class UnassignedClientController @Inject()(
         for {
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-          result <- renderUnassignedClients(arn, form = AddClientsToGroupForm.form(), page = page, search = search, filter = filter)
+          result <- renderUnassignedClients(arn = arn, form = AddClientsToGroupForm.form(), page = page, search = search, filter = filter)
         } yield result
       }
     }
@@ -163,7 +163,7 @@ class UnassignedClientController @Inject()(
                       "",
                       client,
                       backLink = controller.showSelectedUnassignedClients(None, None),
-                      formAction = controller.submitConfirmRemoveClient
+                      formAction = controller.submitConfirmRemoveClient()
                     )
                   ).toFuture
                 )
@@ -184,7 +184,7 @@ class UnassignedClientController @Inject()(
             else {
               YesNoForm
                 .form("group.client.remove.error")
-                .bindFromRequest
+                .bindFromRequest()
                 .fold(
                   formWithErrors => {
                     Ok(
@@ -193,7 +193,7 @@ class UnassignedClientController @Inject()(
                         "",
                         maybeClient.get,
                         backLink = controller.showSelectedUnassignedClients(None, None),
-                        formAction = controller.submitConfirmRemoveClient
+                        formAction = controller.submitConfirmRemoveClient()
                       )
                     ).toFuture
                   }, (yes: Boolean) => {
@@ -223,7 +223,7 @@ class UnassignedClientController @Inject()(
             } { clients =>
               YesNoForm
                 .form("group.clients.review.error")
-                .bindFromRequest
+                .bindFromRequest()
                 .fold(
                   formWithErrors => {
                     Ok(
@@ -238,7 +238,7 @@ class UnassignedClientController @Inject()(
                     if (yes) {
                       Redirect(controller.showUnassignedClients()).toFuture
                     } else {
-                      Redirect(controller.showSelectGroupsForSelectedUnassignedClients).toFuture
+                      Redirect(controller.showSelectGroupsForSelectedUnassignedClients()).toFuture
                     }
                   }
                 )
@@ -273,7 +273,7 @@ class UnassignedClientController @Inject()(
             }
             )
           }, validForm => {
-            if (validForm.createNew.isDefined) Redirect(routes.CreateGroupSelectNameController.showGroupName).toFuture
+            if (validForm.createNew.isDefined) Redirect(routes.CreateGroupSelectNameController.showGroupName()).toFuture
             else {
               for {
                 allGroups <- groupService.getGroupSummaries(arn)
@@ -289,7 +289,7 @@ class UnassignedClientController @Inject()(
                       grp.groupId, AddMembersToAccessGroupRequest(clients = Some(clients))
                     )
                   }).map { _ =>
-                    Redirect(controller.showConfirmClientsAddedToGroups)
+                    Redirect(controller.showConfirmClientsAddedToGroups())
                   }
                 }
               } yield result
@@ -306,7 +306,7 @@ class UnassignedClientController @Inject()(
       isOptedInComplete(arn) { _ =>
         sessionCacheService.get(GROUPS_FOR_UNASSIGNED_CLIENTS).flatMap {
           case None =>
-            Future.successful(Redirect(controller.showSelectGroupsForSelectedUnassignedClients.url))
+            Future.successful(Redirect(controller.showSelectGroupsForSelectedUnassignedClients().url))
           case Some(groups) =>
             sessionCacheService
               .delete(SELECTED_CLIENTS)

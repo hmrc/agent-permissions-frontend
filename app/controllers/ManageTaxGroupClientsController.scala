@@ -127,7 +127,7 @@ class ManageTaxGroupClientsController @Inject()
     }
   }
 
-  def submitConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitConfirmRemoveClient(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
         val groupId = group.id
@@ -136,7 +136,7 @@ class ManageTaxGroupClientsController @Inject()
         )(clientToRemove =>
           YesNoForm
             .form("group.client.remove.error")
-            .bindFromRequest
+            .bindFromRequest()
             .fold(
               formWithErrors => {
                 renderConfirmRemoveClient(group, groupId, clientToRemove, formWithErrors).toFuture
@@ -171,7 +171,7 @@ class ManageTaxGroupClientsController @Inject()
         group.groupName,
         clientToRemove,
         backLink = controller.showExistingGroupClients(groupId, None, None),
-        formAction = controller.submitConfirmRemoveClient(groupId, clientToRemove.id),
+        formAction = controller.submitConfirmRemoveClient(groupId),
         hintKey = Some("tax-group.clients.confirm.p1"),
         legendKey = "common.group.remove.client"
       )

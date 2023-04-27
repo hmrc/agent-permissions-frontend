@@ -48,7 +48,7 @@ class GroupAction @Inject()
 
   import optInStatusAction._
 
-  @deprecated("use withGroupSummaryForAuthorisedOptedAgent")
+  @deprecated(message = "use withGroupSummaryForAuthorisedOptedAgent", since = "0.210.0")
   def withGroupForAuthorisedOptedAgent(groupId: GroupId)
                                       (body: CustomGroup => Future[Result])
                                       (implicit ec: ExecutionContext,
@@ -147,7 +147,7 @@ class GroupAction @Inject()
                                            request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
-        maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
+        maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()).toFuture) {
           groupName => body(groupName, arn)
         }
       }
@@ -159,7 +159,7 @@ class GroupAction @Inject()
                                  request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
-        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType).toFuture)(
+        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()).toFuture)(
           groupType => body(groupType, arn)
         )
       }
@@ -171,16 +171,17 @@ class GroupAction @Inject()
                                  request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
-        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType).toFuture)(
+        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()).toFuture)(
           groupType =>
             sessionAction.withSessionItem[String](GROUP_NAME) { maybeGroupName =>
-              maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName).toFuture) {
+              maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()).toFuture) {
                 groupName => body(groupName, groupType, arn)
               }
             })
       }
     }
   }
+
 
   def withGroupForAuthorisedAssistant(groupId: GroupId, isCustom: Boolean = true)
                                      (callback: (AccessGroup, Arn) => Future[Result])

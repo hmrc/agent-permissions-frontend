@@ -69,7 +69,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectDeleteSessionItems(sessionKeys)
 
       implicit val request = FakeRequest("GET",
-        ctrlRoute.showSelectGroupType.url)
+        ctrlRoute.showSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
@@ -84,7 +84,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       val form = html.select("form")
       form.attr("method") shouldBe "POST"
-      form.attr("action") shouldBe ctrlRoute.submitSelectGroupType.url
+      form.attr("action") shouldBe ctrlRoute.submitSelectGroupType().url
 
       val radios = html.select(Css.radioButtonsField("answer-radios"))
       radios.select("label[for=answer]").text() shouldBe "Custom access group"
@@ -102,7 +102,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
 
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitSelectGroupType.url)
+        ctrlRoute.submitSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
         )
@@ -125,7 +125,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
 
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitSelectGroupType.url)
+        ctrlRoute.submitSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "true")
       expectPutSessionItem(GROUP_TYPE, CUSTOM_GROUP)
@@ -135,7 +135,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectNameController.showGroupName.url)
+      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectNameController.showGroupName().url)
     }
 
     "redirect when answer is 'false'/'Access group based on tax service'" in {
@@ -144,7 +144,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
 
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitSelectGroupType.url)
+        ctrlRoute.submitSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "false")
       expectPutSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
@@ -154,7 +154,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType.url)
+      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType().url)
     }
   }
 
@@ -166,7 +166,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
       implicit val request = FakeRequest("GET",
-        ctrlRoute.showSelectTaxServiceGroupType.url)
+        ctrlRoute.showSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
@@ -182,7 +182,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       val form = html.select("form")
       form.attr("method") shouldBe "POST"
-      form.attr("action") shouldBe ctrlRoute.submitSelectTaxServiceGroupType.url
+      form.attr("action") shouldBe ctrlRoute.submitSelectTaxServiceGroupType().url
 
       form.select("label[for=taxType]").text() shouldBe "Select clients by tax service"
       val taxTypeOptions = form.select("select#taxType option")
@@ -202,7 +202,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
       implicit val request = FakeRequest("GET",
-        ctrlRoute.showSelectTaxServiceGroupType.url)
+        ctrlRoute.showSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetAvailableTaxServiceClientCount(arn)(List(0,0,0,0,0))
@@ -230,7 +230,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
 
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitSelectTaxServiceGroupType.url)
+        ctrlRoute.submitSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("taxType" -> "")
 
@@ -251,7 +251,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //given
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitSelectTaxServiceGroupType.url)
+        ctrlRoute.submitSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("taxType" -> VAT)
 
@@ -268,7 +268,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showReviewTaxServiceGroupType.url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showReviewTaxServiceGroupType().url)
     }
 
   }
@@ -282,7 +282,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_SERVICE_TYPE, "HMRC-CGT-PD")
 
       implicit val request = FakeRequest("GET",
-        ctrlRoute.showReviewTaxServiceGroupType.url)
+        ctrlRoute.showReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
@@ -297,7 +297,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       val form = html.select("form")
       form.attr("method") should include("POST")
-      form.attr("action") shouldBe ctrlRoute.submitReviewTaxServiceGroupType.url
+      form.attr("action") shouldBe ctrlRoute.submitReviewTaxServiceGroupType().url
       form.select(Css.legend).text() shouldBe "Continue with selected clients?"
 
       val radios = html.select(Css.radioButtonsField("answer-radios"))
@@ -317,7 +317,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_SERVICE_TYPE, VAT)
 
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitReviewTaxServiceGroupType.url)
+        ctrlRoute.submitReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
@@ -340,7 +340,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitReviewTaxServiceGroupType.url)
+        ctrlRoute.submitReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "true"
         )
@@ -350,7 +350,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectNameController.showGroupName.url)
+      redirectLocation(result) shouldBe Some(controllers.routes.CreateGroupSelectNameController.showGroupName().url)
     }
 
     "redirect to select group type when 'no' selected" in {
@@ -359,7 +359,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
       implicit val request = FakeRequest("POST",
-        ctrlRoute.submitReviewTaxServiceGroupType.url)
+        ctrlRoute.submitReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "false")
 
@@ -368,7 +368,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showSelectGroupType.url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showSelectGroupType().url)
     }
   }
 }

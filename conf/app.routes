@@ -2,55 +2,55 @@
 ->      /hmrc-frontend                              hmrcfrontend.Routes
 GET     /assets/*file                               controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET     /                                           controllers.RootController.start
+GET     /                                           controllers.RootController.start()
 
 # opt-in/out
-GET     /turn-on-guide                              controllers.OptInController.start
-GET     /confirm-turn-on                            controllers.OptInController.showDoYouWantToOptIn
-POST    /confirm-turn-on                            controllers.OptInController.submitDoYouWantToOptIn
+GET     /turn-on-guide                              controllers.OptInController.start()
+GET     /confirm-turn-on                            controllers.OptInController.showDoYouWantToOptIn()
+POST    /confirm-turn-on                            controllers.OptInController.submitDoYouWantToOptIn()
 
-GET     /access-groups-turned-on                    controllers.OptInController.showYouHaveOptedIn
+GET     /access-groups-turned-on                    controllers.OptInController.showYouHaveOptedIn()
 
-GET     /turn-off-guide                             controllers.OptOutController.start
-GET     /confirm-turn-off                           controllers.OptOutController.showDoYouWantToOptOut
-POST    /confirm-turn-off                           controllers.OptOutController.submitDoYouWantToOptOut
+GET     /turn-off-guide                             controllers.OptOutController.start()
+GET     /confirm-turn-off                           controllers.OptOutController.showDoYouWantToOptOut()
+POST    /confirm-turn-off                           controllers.OptOutController.submitDoYouWantToOptOut()
 
-GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut
+GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut()
 
 # 1000+ create group journey
-GET     /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.showSelectGroupType
-POST    /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.submitSelectGroupType
-GET     /create-group/select-tax-service            controllers.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType
-POST    /create-group/select-tax-service            controllers.CreateGroupSelectGroupTypeController.submitSelectTaxServiceGroupType
-GET     /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.showReviewTaxServiceGroupType
-POST    /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType
+GET     /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.showSelectGroupType()
+POST    /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.submitSelectGroupType()
+GET     /create-group/select-tax-service            controllers.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType()
+POST    /create-group/select-tax-service            controllers.CreateGroupSelectGroupTypeController.submitSelectTaxServiceGroupType()
+GET     /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.showReviewTaxServiceGroupType()
+POST    /create-group/review-tax-service-group      controllers.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType()
 
-GET     /create-group/select-name       controllers.CreateGroupSelectNameController.showGroupName
-POST    /create-group/select-name       controllers.CreateGroupSelectNameController.submitGroupName
-GET     /create-group/confirm-name      controllers.CreateGroupSelectNameController.showConfirmGroupName
-POST    /create-group/confirm-name      controllers.CreateGroupSelectNameController.submitConfirmGroupName
-GET     /create-group/name-exists       controllers.CreateGroupSelectNameController.showAccessGroupNameExists
+GET     /create-group/select-name       controllers.CreateGroupSelectNameController.showGroupName()
+POST    /create-group/select-name       controllers.CreateGroupSelectNameController.submitGroupName()
+GET     /create-group/confirm-name      controllers.CreateGroupSelectNameController.showConfirmGroupName()
+POST    /create-group/confirm-name      controllers.CreateGroupSelectNameController.submitConfirmGroupName()
+GET     /create-group/name-exists       controllers.CreateGroupSelectNameController.showAccessGroupNameExists()
 
-GET     /create-group/search-clients                    controllers.CreateGroupSelectClientsController.showSearchClients
-POST    /create-group/search-clients                    controllers.CreateGroupSelectClientsController.submitSearchClients
+GET     /create-group/search-clients                    controllers.CreateGroupSelectClientsController.showSearchClients()
+POST    /create-group/search-clients                    controllers.CreateGroupSelectClientsController.submitSearchClients()
 GET     /create-group/select-clients                    controllers.CreateGroupSelectClientsController.showSelectClients(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/select-clients                    controllers.CreateGroupSelectClientsController.submitSelectedClients
+POST    /create-group/select-clients                    controllers.CreateGroupSelectClientsController.submitSelectedClients()
 GET     /create-group/clients-selected                  controllers.CreateGroupSelectClientsController.showReviewSelectedClients(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/clients-selected                  controllers.CreateGroupSelectClientsController.submitReviewSelectedClients
+POST    /create-group/clients-selected                  controllers.CreateGroupSelectClientsController.submitReviewSelectedClients()
 GET     /create-group/clients/confirm-remove            controllers.CreateGroupSelectClientsController.showConfirmRemoveClient(id: Option[String]?=None)
-POST    /create-group/clients/confirm-remove            controllers.CreateGroupSelectClientsController.submitConfirmRemoveClient
+POST    /create-group/clients/confirm-remove            controllers.CreateGroupSelectClientsController.submitConfirmRemoveClient()
 
 GET     /create-group/select-team-members               controllers.CreateGroupSelectTeamMembersController.showSelectTeamMembers(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/select-team-members               controllers.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers
+POST    /create-group/select-team-members               controllers.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers()
 GET     /create-group/team-members-selected             controllers.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(page: Option[Int], pageSize: Option[Int])
-POST    /create-group/team-members-selected             controllers.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers
+POST    /create-group/team-members-selected             controllers.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers()
 GET     /create-group/team-members/confirm-remove       controllers.CreateGroupSelectTeamMembersController.showConfirmRemoveTeamMember(id: Option[String]?=None)
-POST    /create-group/team-members/confirm-remove       controllers.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
-GET     /create-group/confirm                           controllers.CreateGroupSelectTeamMembersController.showGroupCreated
+POST    /create-group/team-members/confirm-remove       controllers.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember()
+GET     /create-group/confirm                           controllers.CreateGroupSelectTeamMembersController.showGroupCreated()
 
 # Manage groups
 GET     /manage-access-groups             controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])
-POST    /manage-access-groups             controllers.ManageGroupController.submitManageGroups
+POST    /manage-access-groups             controllers.ManageGroupController.submitManageGroups()
 
 GET     /rename-custom-group/:groupId     controllers.ManageGroupController.showRenameGroup(groupId: models.GroupId)
 POST    /rename-custom-group/:groupId     controllers.ManageGroupController.submitRenameGroup(groupId: models.GroupId)
@@ -65,12 +65,12 @@ POST    /delete-custom-group/:groupId        controllers.ManageGroupController.s
 
 GET     /delete-tax-group/:groupId           controllers.ManageGroupController.showDeleteTaxGroup(groupId: models.GroupId)
 POST    /delete-tax-group/:groupId           controllers.ManageGroupController.submitDeleteTaxGroup(groupId: models.GroupId)
-GET     /access-group-deleted                controllers.ManageGroupController.showGroupDeleted
+GET     /access-group-deleted                controllers.ManageGroupController.showGroupDeleted()
 
 # Manage custom groups - clients
 GET     /manage-custom-group/:groupId/view-clients                              controllers.ManageGroupClientsController.showExistingGroupClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
 GET     /manage-custom-group/:groupId/clients/confirm-remove/:clientId          controllers.ManageGroupClientsController.showConfirmRemoveClient(groupId: models.GroupId, clientId: String)
-POST    /manage-custom-group/:groupId/clients/confirm-remove/:clientId          controllers.ManageGroupClientsController.submitConfirmRemoveClient(groupId: models.GroupId, clientId: String)
+POST    /manage-custom-group/:groupId/clients/confirm-remove                    controllers.ManageGroupClientsController.submitConfirmRemoveClient(groupId: models.GroupId)
 GET     /manage-custom-group/:groupId/update-clients/confirm-remove/:clientId   controllers.ManageGroupClientsController.showConfirmRemoveFromSelectedClients(groupId: models.GroupId, clientId: String)
 POST    /manage-custom-group/:groupId/update-clients/confirm-remove/:clientId   controllers.ManageGroupClientsController.submitConfirmRemoveFromSelectedClients(groupId: models.GroupId, clientId: String)
 GET     /manage-custom-group/:groupId/update-clients/search                     controllers.ManageGroupClientsController.showSearchClientsToAdd(groupId: models.GroupId)
@@ -86,7 +86,7 @@ POST    /manage-custom-group/:groupId/update-clients/review                     
 # Manage tax groups - clients
 GET     /manage-tax-group/:groupId/clients                               controllers.ManageTaxGroupClientsController.showExistingGroupClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
 GET     /manage-tax-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageTaxGroupClientsController.showConfirmRemoveClient(groupId: models.GroupId, clientId: String)
-POST    /manage-tax-group/:groupId/clients/confirm-remove/:clientId      controllers.ManageTaxGroupClientsController.submitConfirmRemoveClient(groupId: models.GroupId, clientId: String)
+POST    /manage-tax-group/:groupId/clients/confirm-remove                controllers.ManageTaxGroupClientsController.submitConfirmRemoveClient(groupId: models.GroupId)
 GET     /manage-tax-group/:groupId/clients/excluded                      controllers.ManageTaxGroupClientsController.showExcludedClients(groupId: models.GroupId, page: Option[Int], pageSize: Option[Int])
 POST    /manage-tax-group/:groupId/clients/excluded                      controllers.ManageTaxGroupClientsController.submitUnexcludeClients(groupId: models.GroupId)
 
@@ -106,19 +106,19 @@ GET     /manage-group/:groupType/:groupId/team-members/confirm     controllers.M
 
 # UNASSIGNED CLIENTS
 GET     /unassigned-clients                                     controllers.UnassignedClientController.showUnassignedClients(page: Option[Int] ?= None)
-POST    /unassigned-clients                                     controllers.UnassignedClientController.submitAddUnassignedClients
+POST    /unassigned-clients                                     controllers.UnassignedClientController.submitAddUnassignedClients()
 GET     /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.showSelectedUnassignedClients(page: Option[Int] ?= None, pageSize: Option[Int] ?= None)
-POST    /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.submitSelectedUnassignedClients
+POST    /manage-access-group/unassigned-clients-selected        controllers.UnassignedClientController.submitSelectedUnassignedClients()
 GET     /unassigned-clients/confirm-remove                      controllers.UnassignedClientController.showConfirmRemoveClient(id: Option[String] ?= None)
-POST    /unassigned-clients/confirm-remove                      controllers.UnassignedClientController.submitConfirmRemoveClient
-GET     /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients
-POST    /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients
-GET     /manage-access-group/clients-assigned                   controllers.UnassignedClientController.showConfirmClientsAddedToGroups
+POST    /unassigned-clients/confirm-remove                      controllers.UnassignedClientController.submitConfirmRemoveClient()
+GET     /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.showSelectGroupsForSelectedUnassignedClients()
+POST    /manage-access-group/unassigned-clients-select-group    controllers.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients()
+GET     /manage-access-group/clients-assigned                   controllers.UnassignedClientController.showConfirmClientsAddedToGroups()
 
 
 # Manage clients
 GET     /manage-clients                        controllers.ManageClientController.showPageOfClients(page: Option[Int])
-POST    /manage-clients                        controllers.ManageClientController.submitPageOfClients
+POST    /manage-clients                        controllers.ManageClientController.submitPageOfClients()
 GET     /manage-clients/client-details/:id     controllers.ManageClientController.showClientDetails(id: String)
 
 GET     /manage-clients/client-details/update-client-reference/:id    controllers.ManageClientController.showUpdateClientReference(id: String)
@@ -131,7 +131,7 @@ GET     /manage-clients/assigned-to-groups/:id          controllers.AddClientToG
 
 # Manage team members
 GET     /manage-team-members                            controllers.ManageTeamMemberController.showPageOfTeamMembers(page: Option[Int])
-POST    /manage-team-members                            controllers.ManageTeamMemberController.submitPageOfTeamMembers
+POST    /manage-team-members                            controllers.ManageTeamMemberController.submitPageOfTeamMembers()
 GET     /manage-team-members/team-member-details/:id    controllers.ManageTeamMemberController.showTeamMemberDetails(id: String)
 
 GET     /manage-team-members/assign-to-a-group/:id      controllers.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(id: String)
@@ -144,9 +144,9 @@ POST    /your-account/group-clients/custom/:groupId     controllers.AssistantVie
 GET     /your-account/group-clients/tax/:groupId        controllers.AssistantViewOnlyController.showExistingTaxClientsViewOnly(groupId: models.GroupId, page: Option[Int] ?= None)
 POST    /your-account/group-clients/tax/:groupId        controllers.AssistantViewOnlyController.submitExistingTaxClientsViewOnly(groupId: models.GroupId)
 GET     /your-account/other-clients                     controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly(page: Option[Int] ?= None)
-POST    /your-account/other-clients                     controllers.AssistantViewOnlyController.submitUnassignedClientsViewOnly
+POST    /your-account/other-clients                     controllers.AssistantViewOnlyController.submitUnassignedClientsViewOnly()
 
-GET     /you-have-been-timed-out                        controllers.TimeoutController.timedOut
-GET     /keep-alive                                     controllers.TimeoutController.keepAlive
-GET     /sign-out                                       controllers.TimeoutController.signOut
+GET     /you-have-been-timed-out                        controllers.TimeoutController.timedOut()
+GET     /keep-alive                                     controllers.TimeoutController.keepAlive()
+GET     /sign-out                                       controllers.TimeoutController.signOut()
 

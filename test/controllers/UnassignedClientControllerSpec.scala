@@ -132,13 +132,13 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   }
 
-  s"POST ${ctrlRoutes.submitAddUnassignedClients.url}" should {
+  s"POST ${ctrlRoutes.submitAddUnassignedClients().url}" should {
 
     s"save selected unassigned clients and redirect to ${ctrlRoutes.showSelectedUnassignedClients()} " +
       s"when button is Continue and form is valid" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients.url)
+        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients().url)
           .withFormUrlEncodedBody(
             "clients[0]" -> displayClients.head.id,
             "clients[1]" -> displayClients.last.id,
@@ -167,7 +167,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       when button is FILTER (i.e. not CONTINUE)""" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients.url)
+        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients().url)
           .withFormUrlEncodedBody(
             "clients[0]" -> displayClients.head.id,
             "clients[1]" -> displayClients.last.id,
@@ -195,7 +195,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     "present page with errors when form validation fails" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients.url)
+        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients().url)
           .withFormUrlEncodedBody(
             "search" -> "",
             "filter" -> "",
@@ -264,7 +264,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
   }
 
-  s"POST ${ctrlRoutes.submitSelectedUnassignedClients.url}" should {
+  s"POST ${ctrlRoutes.submitSelectedUnassignedClients().url}" should {
 
     "redirect if no selected clients in session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -284,7 +284,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     s"redirect if yes to ${ctrlRoutes.showUnassignedClients().url}" in {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients.url)
+        FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -304,7 +304,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     s"redirect if no to ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients}" in {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients.url)
+        FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -319,13 +319,13 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe
-        Some(ctrlRoutes.showSelectGroupsForSelectedUnassignedClients.url)
+        Some(ctrlRoutes.showSelectGroupsForSelectedUnassignedClients().url)
     }
 
     "render Review selected clients page if errors" in {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients.url)
+        FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients().url)
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -354,7 +354,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   }
 
-  s"GET ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients.url}" should {
+  s"GET ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients().url}" should {
 
     "render html with the available groups for these unassigned clients" in {
       //given
@@ -385,7 +385,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val checkboxLabels = checkboxes.select("label")
       val checkboxInputs = checkboxes.select("input[type='checkbox']")
 
-      form.attr("action") shouldBe ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url
+      form.attr("action") shouldBe ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url
       checkboxes.size shouldBe 3
       checkboxLabels.get(0).text shouldBe "name 1"
       checkboxLabels.get(1).text shouldBe "name 2"
@@ -478,12 +478,12 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
   }
 
-  s"POST ${ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url}" should {
+  s"POST ${ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url}" should {
 
     "redirect to create group if CREATE NEW is selected" in {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url)
+        FakeRequest("POST", ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("createNew" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -497,7 +497,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName().url
 
     }
 
@@ -507,7 +507,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val expectedGroupAddedTo = groupSummaries(0)
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url
+          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url
         ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId.toString)
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -526,7 +526,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoutes.showConfirmClientsAddedToGroups.url
+      redirectLocation(result).get shouldBe ctrlRoutes.showConfirmClientsAddedToGroups().url
     }
 
     "show errors when nothing selected" in {
@@ -535,7 +535,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url)
+          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -566,7 +566,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients.url)
+          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("createNew" -> "true", "groups[0]" -> "12412312")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -591,7 +591,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
   }
 
-  s"GET ${ctrlRoutes.showConfirmClientsAddedToGroups.url}" should {
+  s"GET ${ctrlRoutes.showConfirmClientsAddedToGroups().url}" should {
 
     "render correctly the select groups for unassigned clients page" in {
       //given
@@ -633,7 +633,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoutes.showSelectGroupsForSelectedUnassignedClients.url
+      redirectLocation(result).get shouldBe ctrlRoutes.showSelectGroupsForSelectedUnassignedClients().url
 
     }
   }
@@ -665,7 +665,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
   }
 
-  s"POST Remove a selected client ${ctrlRoutes.submitConfirmRemoveClient.url}" should {
+  s"POST Remove a selected client ${ctrlRoutes.submitConfirmRemoveClient().url}" should {
 
     s"redirect to '${ctrlRoutes.showSelectedUnassignedClients(None, None).url}' page with answer 'true'" in {
 

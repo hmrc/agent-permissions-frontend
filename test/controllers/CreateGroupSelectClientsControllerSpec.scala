@@ -82,7 +82,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     expectGetSessionItem(GROUP_NAME, groupName)
   }
 
-  s"GET ${ctrlRoute.showSearchClients.url}" should {
+  s"GET ${ctrlRoute.showSearchClients().url}" should {
     "render the client search page" in {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
@@ -98,7 +98,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Search for clients"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName.url
+        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
 
       html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
 
@@ -121,7 +121,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Search for clients"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName.url
+        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
 
       html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
       html.select("#search").attr("value") shouldBe "Harry"
@@ -133,7 +133,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   }
 
-  s"POST ${ctrlRoute.submitSearchClients.url}" should {
+  s"POST ${ctrlRoute.submitSearchClients().url}" should {
     // TODO - using fully optional form atm, clarify expected error behaviour
     //    "render errors on client search page" in {
     //      expectAuthOkArnAllowedOptedInReadyWithGroupName()
@@ -186,7 +186,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text() shouldBe "Select clients"
       html
         .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showSearchClients.url
+        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showSearchClients().url
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -284,18 +284,18 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.showSelectClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName().url
     }
   }
 
-  s"POST to ${ctrlRoute.submitSelectedClients.url}" should {
+  s"POST to ${ctrlRoute.submitSelectedClients().url}" should {
 
     "save selected clients to session" when {
 
       s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedClients(None, None).url}" in {
 
         implicit val request = FakeRequest("POST",
-          ctrlRoute.submitSelectedClients.url)
+          ctrlRoute.submitSelectedClients().url)
           .withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
             "clients[]" -> displayClientsIds.head,
@@ -320,7 +320,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
         implicit val request =
           FakeRequest("POST",
-            ctrlRoute.submitSelectedClients.url)
+            ctrlRoute.submitSelectedClients().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "clients[]" -> displayClientsIds.head,
@@ -345,11 +345,11 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       }
 
-      s"bad submit (not continue or page number) redirect to ${ctrlRoute.showSearchClients.url}" in {
+      s"bad submit (not continue or page number) redirect to ${ctrlRoute.showSearchClients().url}" in {
 
         implicit val request =
           FakeRequest("POST",
-            ctrlRoute.submitSelectedClients.url)
+            ctrlRoute.submitSelectedClients().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "clients[]" -> displayClientsIds.head,
@@ -370,7 +370,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
         val result = controller.submitSelectedClients()(request)
 
         status(await(result)) shouldBe SEE_OTHER
-        redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+        redirectLocation(result).get shouldBe ctrlRoute.showSearchClients().url
       }
 
 
@@ -379,7 +379,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     "display error when button is Continue, no clients were selected" in {
 
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients.url)
+      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "clients[]" -> "",
@@ -405,7 +405,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     "display error when button is Continue and DESELECTION mean that nothing is now selected" in {
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients.url)
+      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "clients[]" -> "",
@@ -439,7 +439,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       // given
       implicit val request = FakeRequest(
         "POST",
-        ctrlRoute.submitSelectedClients.url
+        ctrlRoute.submitSelectedClients().url
       ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -454,7 +454,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       // then
       status(result) shouldBe SEE_OTHER
-      Helpers.redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName.url)
+      Helpers.redirectLocation(result) shouldBe Some(routes.CreateGroupSelectNameController.showGroupName().url)
     }
   }
 
@@ -535,7 +535,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.showReviewSelectedClients(None, None)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients().url
 
     }
 
@@ -550,11 +550,11 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.showReviewSelectedClients(None, None)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName.url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName().url
     }
   }
 
-  s"POST ${routes.CreateGroupSelectClientsController.submitReviewSelectedClients.url}" should {
+  s"POST ${routes.CreateGroupSelectClientsController.submitReviewSelectedClients().url}" should {
 
     s"redirect to '${routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url}' page with answer 'false'" in {
 
@@ -574,7 +574,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url
     }
 
-    s"redirect to '${ctrlRoute.showSearchClients.url}' page with answer 'true'" in {
+    s"redirect to '${ctrlRoute.showSearchClients().url}' page with answer 'true'" in {
 
       implicit val request =
         FakeRequest(
@@ -590,10 +590,10 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients().url
     }
 
-    s"redirect to '${ctrlRoute.showSearchClients.url}' with no SELECTED in session" in {
+    s"redirect to '${ctrlRoute.showSearchClients().url}' with no SELECTED in session" in {
 
       implicit val request =
         FakeRequest(
@@ -608,7 +608,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients().url
     }
 
     s"render errors when no radio button selected" in {
@@ -680,7 +680,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST Remove a selected client ${routes.CreateGroupSelectClientsController.submitConfirmRemoveClient.url}" should {
+  s"POST Remove a selected client ${routes.CreateGroupSelectClientsController.submitConfirmRemoveClient().url}" should {
 
     s"redirect to '${ctrlRoute.showReviewSelectedClients(None, None).url}' page with answer 'true'" in {
 
@@ -722,7 +722,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(None, None).url
     }
 
-    s"redirect to '${ctrlRoute.showSearchClients.url}' with no CLIENT_TO_REMOVE in session" in {
+    s"redirect to '${ctrlRoute.showSearchClients().url}' with no CLIENT_TO_REMOVE in session" in {
 
       implicit val request =
         FakeRequest(
@@ -737,7 +737,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients.url
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClients().url
     }
 
     s"render errors when no radio button selected" in {

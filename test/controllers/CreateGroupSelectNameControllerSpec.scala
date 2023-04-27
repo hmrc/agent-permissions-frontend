@@ -64,7 +64,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     expectGetSessionItem(GROUP_TYPE, groupType)
   }
 
-  s"GET ${ctrlRoute.showGroupName.url}" should {
+  s"GET ${ctrlRoute.showGroupName().url}" should {
 
     "have correct layout and content" in {
       expectAuthOkOptedInReadyWithGroupType()
@@ -79,7 +79,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/create-group/select-group-type"
       html.select(Css.backLink).text() shouldBe "Back"
       html.select(Css.H1).text() shouldBe "Custom access group"
-      html.select(Css.form).attr("action") shouldBe ctrlRoute.showGroupName.url
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.showGroupName().url
       html.select(Css.labelFor("name")).text() shouldBe "What do you want to call this access group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
       html.select(Css.submitButton).text() shouldBe "Continue"
@@ -103,14 +103,14 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   }
 
-  s"POST ${ctrlRoute.showGroupName.url}" should {
+  s"POST ${ctrlRoute.showGroupName().url}" should {
 
     "redirect to confirmation page with when posting a valid group name" in {
       expectAuthOkOptedInReadyWithGroupType()
 
       val groupName = "My Group Name"
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitGroupName.url)
+        FakeRequest("POST", ctrlRoute.submitGroupName().url)
           .withFormUrlEncodedBody("name" -> groupName)
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -121,14 +121,14 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       val result = controller.submitGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showConfirmGroupName.url
+      redirectLocation(result).get shouldBe ctrlRoute.showConfirmGroupName().url
     }
 
     "render correct error messages when form not filled in" in {
       expectAuthOkOptedInReadyWithGroupType()
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitGroupName.url)
+        FakeRequest("POST", ctrlRoute.submitGroupName().url)
           .withFormUrlEncodedBody("name" -> "")
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -152,7 +152,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       expectAuthOkOptedInReadyWithGroupType()
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitGroupName.url)
+        FakeRequest("POST", ctrlRoute.submitGroupName().url)
           .withFormUrlEncodedBody("name" -> RandomStringUtils.randomAlphanumeric(51))
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -185,7 +185,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Confirm access group name - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Confirm access group name"
-      html.select(Css.form).attr("action") shouldBe ctrlRoute.showConfirmGroupName.url
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.showConfirmGroupName().url
       html.select(Css.legend).text() shouldBe s"Is the access group name ‘$groupName’ correct?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
@@ -201,7 +201,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       val result = controller.showConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showGroupName.url
+      redirectLocation(result).get shouldBe ctrlRoute.showGroupName().url
     }
   }
 
@@ -211,7 +211,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, groupName)
 
       implicit val request =
-        FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
+        FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -235,23 +235,23 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       expectGetSessionItemNone(GROUP_NAME) // <-- We are testing this. no group in session
 
       implicit val request =
-        FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
+        FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showGroupName.url
+      redirectLocation(result).get shouldBe ctrlRoute.showGroupName().url
     }
 
-    s"redirect to ${ctrlRoute.showAccessGroupNameExists.url} when the access group name already exists" in {
+    s"redirect to ${ctrlRoute.showAccessGroupNameExists().url} when the access group name already exists" in {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGroupNameCheckConflict(arn, groupName)
 
       implicit val request =
-        FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
+        FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -259,14 +259,14 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showAccessGroupNameExists.url
+      redirectLocation(result).get shouldBe ctrlRoute.showAccessGroupNameExists().url
     }
 
     "redirect to search clients page when Confirm access group name 'yes' selected" in {
       expectAuthOkOptedInReadyWithGroupType()
 
       implicit val request =
-        FakeRequest("POST", ctrlRoute.submitGroupName.url)
+        FakeRequest("POST", ctrlRoute.submitGroupName().url)
           .withFormUrlEncodedBody("name" -> groupName, "answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -278,14 +278,14 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(routes.CreateGroupSelectClientsController.showSearchClients
-        .url)
+        ().url)
     }
 
     "redirect to /group/group-name when Confirm access group name 'no' selected" in {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
 
-      implicit val request = FakeRequest("POST", ctrlRoute.submitConfirmGroupName.url)
+      implicit val request = FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
         .withFormUrlEncodedBody("name" -> groupName, "answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -293,11 +293,11 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(
-        ctrlRoute.showGroupName.url)
+        ctrlRoute.showGroupName().url)
     }
   }
 
-  s"GET ${ctrlRoute.showAccessGroupNameExists.url}" should {
+  s"GET ${ctrlRoute.showAccessGroupNameExists().url}" should {
 
     "display the right content" in {
       expectAuthOkOptedInReadyWithGroupType()
@@ -320,7 +320,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
         .text shouldBe "Enter a new access group name"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe s"${ctrlRoute.showGroupName.url}"
+        .attr("href") shouldBe s"${ctrlRoute.showGroupName().url}"
     }
   }
 

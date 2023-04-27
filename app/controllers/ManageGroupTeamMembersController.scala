@@ -131,7 +131,7 @@ class ManageGroupTeamMembersController @Inject()
         )(teamMemberToRemove =>
           YesNoForm
             .form("group.member.remove.error")
-            .bindFromRequest
+            .bindFromRequest()
             .fold(
               formWithErrors => {
                 Ok(
@@ -284,7 +284,7 @@ class ManageGroupTeamMembersController @Inject()
           ) { members => {
             YesNoForm
               .form("group.teamMembers.review.error")
-              .bindFromRequest
+              .bindFromRequest()
               .fold(
                 formWithErrors => {
                   Ok(
@@ -352,7 +352,7 @@ class ManageGroupTeamMembersController @Inject()
           )(teamMemberToRemove =>
             YesNoForm
               .form("group.member.selected.remove.error")
-              .bindFromRequest
+              .bindFromRequest()
               .fold(
                 formWithErrors => {
                   Ok(

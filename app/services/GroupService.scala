@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[GroupServiceImpl])
 trait GroupService {
 
-  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
+  @deprecated(message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead", since = "0.210.0")
   def getGroup(groupId: GroupId)
               (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[CustomGroup]]
 
@@ -97,7 +97,7 @@ class GroupServiceImpl @Inject()(
                                   agentPermissionsConnector: AgentPermissionsConnector
                                 ) extends GroupService with Logging {
 
-  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
+  @deprecated(message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead", since = "0.210.0")
   def getGroup(id: GroupId)
               (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[Option[CustomGroup]] =
     agentPermissionsConnector.getGroup(id)

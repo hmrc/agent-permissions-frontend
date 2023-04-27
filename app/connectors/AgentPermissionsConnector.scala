@@ -307,7 +307,7 @@ class AgentPermissionsConnectorImpl @Inject()(val http: HttpClient)
     }
   }
 
-  @deprecated("group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead")
+  @deprecated(message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead", since = "0.210.0")
   def getGroup(id: GroupId)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]] = {
     val url = s"$baseUrl/agent-permissions/groups/$id"

@@ -84,7 +84,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
   val displayClients: Seq[DisplayClient] = fakeClients.map(fromClient(_))
 
   private val chars: List[Char] = List.range('a', 'z')
-  val excludedClients = chars.map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"John $i")).toSet
+  private val excludedClientsList: List[Client] = chars.map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"John $i"))
+  val excludedClients = excludedClientsList.toSet
   val excludedDisplayClients = excludedClients.map(fromClient(_))
 
   val encodedDisplayClients: Seq[String] = displayClients.map(client =>
@@ -166,11 +167,12 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     "render excluded/non excluded correctly with searchTerm set" in {
       //given
       expectAuthOkOptedInReady()
-      val taxGroupWithExcluded = taxGroup.copy(excludedClients = excludedClients.take(2))
+      val pageOfClients = excludedClientsList.takeRight(4).map(fromClient(_))
+      val taxGroupWithExcluded = taxGroup.copy(excludedClients = excludedClientsList.takeRight(2).toSet)
       expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-      expectGetPageOfClients(taxGroup.arn, 1, 20)(excludedDisplayClients.take(4).toSeq)
+      expectGetPageOfClients(taxGroup.arn, 1, 20)(pageOfClients)
 
       implicit val requestWithQueryParams = FakeRequest(GET,
         ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
@@ -180,8 +182,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result =
-        controller.showExistingGroupClients(taxGroupId, None, None)(requestWithQueryParams)
+      val result = controller.showExistingGroupClients(taxGroupId, None, None)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -192,16 +193,26 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(H2).text shouldBe "Filter results for 'friendly1'"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
-      th.size() shouldBe 4
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
+      th.size() shouldBe 4
       trs.size() shouldBe 4
 
       val row1Cells = trs.get(0).select("td")
-      row1Cells.get(0).text() shouldBe "John u"
+      val johnV = pageOfClients(0)
+      johnV.name shouldBe "John v"
+      row1Cells.get(0).text() shouldBe johnV.name
       row1Cells.get(3).text() shouldBe "Remove"
 
+      val row2Cells = trs.get(2).select("td")
+      val johnX = pageOfClients(2)
+      johnX.name shouldBe "John x"
+      row2Cells.get(0).text() shouldBe johnX.name
+      row2Cells.get(3).text() shouldBe "Client removed"
+
       val row3Cells = trs.get(3).select("td")
-      row3Cells.get(0).text() shouldBe "John x"
+      val johnY = pageOfClients(3)
+      johnY.name shouldBe "John y"
+      row3Cells.get(0).text() shouldBe johnY.name
       row3Cells.get(3).text() shouldBe "Client removed"
     }
 
@@ -595,7 +606,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       "Remove clients from the excluded list EVEN if current page has no selected but there are saved selected" in {
 
-        val currentPageOfClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name).take(10)
+        val currentPageOfClients = excludedClientsList.map(fromClient(_)).sortBy(_.name).take(10)
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", ctrlRoute.submitUnexcludeClients(taxGroupWithExcludedId).url)
             .withFormUrlEncodedBody(
@@ -605,8 +616,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
-        val alreadySelectedToUnexclude = excludedDisplayClients.takeRight(1)
-        val updatePayload = UpdateTaxServiceGroupRequest(
+        val alreadySelectedToUnexclude = excludedDisplayClients.take(1)
+        val expectedUpdatePayload = UpdateTaxServiceGroupRequest(
           excludedClients = Some(excludedClients -- alreadySelectedToUnexclude.map(x => toClient(x)))
         )
         expectAuthOkOptedInReady()
@@ -614,13 +625,14 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         expectGetSessionItem(SELECTED_CLIENTS, alreadySelectedToUnexclude.toSeq)
         expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
         expectGetSessionItem(CURRENT_PAGE_CLIENTS, currentPageOfClients)
-        expectUpdateTaxGroup(taxGroupWithExcludedId, updatePayload)
+        expectUpdateTaxGroup(taxGroupWithExcludedId, expectedUpdatePayload)
         expectDeleteSessionItem(SELECTED_CLIENTS)
 
+        //when
         val result = controller.submitUnexcludeClients(taxGroupWithExcludedId)()(request)
 
+        //then
         status(result) shouldBe SEE_OTHER
-
         redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
       }
 

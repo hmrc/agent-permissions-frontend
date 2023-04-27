@@ -488,7 +488,7 @@ class ManageGroupClientsController @Inject()
                     val x = for {
                       _ <- sessionCacheService.deleteAll(managingGroupKeys)
                       _ <- groupService.addMembersToGroup(groupId, AddMembersToAccessGroupRequest(None, Some(toSave)))
-                    } yield (Unit)
+                    } yield ()
                     x.map(_ => Redirect(controller.showExistingGroupClients(groupId, None, None))
                       .flashing("success" -> request.messages("group.clients.added.confirm", toSave.size))
                     )

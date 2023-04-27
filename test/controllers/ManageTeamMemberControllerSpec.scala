@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.{CUSTOM, TAX_SERVICE}
 import controllers.actions.AuthAction
-import helpers.Css.H1
+import helpers.Css.{H1, checkYourAnswersListRows}
 import helpers.{BaseSpec, Css}
 import models.{GroupId, TeamMember}
 import org.jsoup.Jsoup
@@ -196,7 +196,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.title() shouldBe "Team member details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Team member details"
 
-      html.body.text().contains("Not assigned to an access group") shouldBe true
+      html.body.text().contains("Not assigned to a group") shouldBe true
+
+      html.select(checkYourAnswersListRows).get(0).text() shouldBe "Name John 1 name"
+      html.select(checkYourAnswersListRows).get(1).text() shouldBe "Email john1@abc.com"
+      html.select(checkYourAnswersListRows).get(2).text() shouldBe "Role Administrator - Can manage access groups and client details."
     }
 
     "render the team member details page with a list of groups" in {
@@ -218,13 +222,13 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.title() shouldBe "Team member details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Team member details"
 
-      html.body.text().contains("Not assigned to an access group") shouldBe false
+      html.body.text().contains("Not assigned to a group") shouldBe false
 
       val linksToGroups = html.select("main div#member-of-groups ul li a")
       linksToGroups.size() shouldBe 3
       linksToGroups.get(0).text() shouldBe "groupName"
       linksToGroups.get(0).attr("href") shouldBe
-        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(0).groupId, CUSTOM, None).url
+        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries.head.groupId, CUSTOM, None).url
 
       linksToGroups.get(2).text() shouldBe "groupName2"
       linksToGroups.get(2).attr("href") shouldBe

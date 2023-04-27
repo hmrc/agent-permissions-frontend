@@ -27,18 +27,17 @@
                 SummaryListRow(
                     Key(Text(msgs(summaryListRow.key))),
                     Value(Text(summaryListRow.value)),
-                    actions = Some(
-                        Actions(
+                    actions = if(summaryListRow.link.isDefined) {
+                        Some(Actions(
                             classes = summaryListRow.linkClasses.getOrElse(""),
                             items = Seq(
                                 ActionItem(
-                                    href = summaryListRow.link.url,
+                                    href = summaryListRow.link.get.url,
                                     content = Text(msgs(summaryListRow.linkMsgKey)),
                                     visuallyHiddenText = summaryListRow.hiddenText
                                 )
                             )
-                        )
-                    )
+                        )) } else { None }
                 )
             )
         )

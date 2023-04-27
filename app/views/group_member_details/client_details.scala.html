@@ -18,68 +18,65 @@
 @import controllers.routes
 @import views.html.main_layout
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
+@import views.components.models.SummaryListData
 
-@this(layout: main_layout, h1: h1, h2: h2, h3: h3, p: p, a: a, span: span, ul_html: ul_html)
+@this(layout: main_layout, h1: h1, h2: h2, p: p, a: a, span: span, ul_html: ul_html, summary_list: summary_list)
 
 @(client: DisplayClient, clientGroups: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@clientReference = @{
-    if(client.name.isEmpty) {
-        Html(msgs("details.no-data") + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(client.id).url))
-    } else {
-        Html(client.name + "    " + a("common.update", href = routes.ManageClientController.showUpdateClientReference(client.id).url))
-    }
-}
-
-@displayTaxReference = @{
-    Html(displayObfuscatedReference(client.name, client.hmrcRef))
-}
-
 @layout(
     title = msgs("details.clients"),
-    backLinkHref = Some(routes.ManageClientController.showPageOfClients(None).url),
-    fullWidth = true
+    backLinkHref = Some(routes.ManageClientController.showPageOfClients(None).url)
 ) {
 
-    <div class="govuk-grid-row">
-        @h1("details.clients", classes = Some("govuk-grid-column-two-thirds"))
+    @h1("details.clients")
 
-        <div class="govuk-grid-column-two-thirds">
-            @h2("group.client.list.table.th1", size = "s")
-            @p(html = Some(clientReference))
-
-            @h2("group.client.list.table.th2", size = "s")
-            @p(html = Some(displayTaxReference))
-
-            @h2("group.client.list.table.th3", size = "s")
-            @p(displayTaxServiceFromServiceKey(client.taxService))
-
-            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
-            @a("common.return.manage-clients", href = routes.ManageClientController.showPageOfClients(None).url)
-
-        </div>
-
-        <div class="govuk-grid-column-one-third" id="member-of-groups">
-            @h2("common.details.groups.header")
-
-            @if(clientGroups.isEmpty) {
-                @p("common.details.not-assigned")
-            } else {
-                @ul_html(items = clientGroups.map { group =>
-                    if(group.taxService.isEmpty){
-                        a(group.groupName, href = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None).url)
-                    }else{
-                        a(group.groupName, href = routes.ManageTaxGroupClientsController.showExistingGroupClients(group.groupId, None, None).url)
-                    }
-                })
-            }
-
-                @a("common.details.assign-to-group",
-                    href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
+    <div>
+        @summary_list(
+            Seq(
+                SummaryListData(
+                    key = "group.client.list.table.th1",
+                    value = if(client.name.isEmpty) { msgs("details.no-data") } else { client.name },
+                    link = Some(routes.ManageClientController.showUpdateClientReference(client.id)),
+                    linkMsgKey = "common.update",
+                    hiddenText = Some(msgs("group.client.list.table.th1"))
+                ),
+                SummaryListData(
+                    key = "group.client.list.table.th2",
+                    value = displayObfuscatedReference(client.name, client.hmrcRef)
+                ),
+                SummaryListData(
+                    key = "group.client.list.table.th3",
+                    value = displayTaxServiceFromServiceKey(client.taxService)
                 )
-
-            </div>
+            )
+        )
     </div>
+
+    <div id="member-of-groups">
+        @h2("common.details.groups.header")
+
+        @if(clientGroups.isEmpty) {
+            @p("common.details.not-assigned")
+        } else {
+            @ul_html(items = clientGroups.map { group =>
+                if(group.taxService.isEmpty){
+                    a(group.groupName, href = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None).url)
+                }else{
+                    a(group.groupName, href = routes.ManageTaxGroupClientsController.showExistingGroupClients(group.groupId, None, None).url)
+                }
+            })
+        }
+
+        @a("common.details.assign-to-group",
+            href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
+        )
+
+    </div>
+
+    <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+    @a("common.return.manage-clients", href = routes.ManageClientController.showPageOfClients(None).url)
+
 
 }

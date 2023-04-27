@@ -17,8 +17,9 @@
 @import config.AppConfig
 @import views.html.main_layout
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
+@import views.components.models.SummaryListData
 
-@this(layout: main_layout, h1: h1, h2: h2, h3: h3, p: p, a: a, span: span, ul_html: ul_html)
+@this(layout: main_layout, h1: h1, h2: h2, p: p, a: a, span: span, ul_html: ul_html, summary_list: summary_list)
 
 @(
     teamMember: TeamMember,
@@ -26,64 +27,66 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
-    @roleText = @{
-        val role = teamMember.credentialRole.getOrElse("")
-        if(role == "Admin" || role == "User") {
-            p("details.team-members.role.admin")
+@roleText = @{
+    val role = teamMember.credentialRole.getOrElse("")
+    if(role == "Admin" || role == "User") {
+        msgs("details.team-members.role.admin")
+    } else {
+        msgs("details.team-members.role.standard")
+    }
+}
+
+@layout(
+    title = msgs("details.team-members"),
+    backLinkHref = Some(routes.ManageTeamMemberController.showPageOfTeamMembers(None).url)
+) {
+
+    @h1("details.team-members")
+
+    <div>
+        @summary_list(
+            Seq(
+                SummaryListData(
+                    key = "group.members.list.table.th1",
+                    value = teamMember.name
+                ),
+                SummaryListData(
+                    key = "group.members.list.table.th2",
+                    value = teamMember.email
+                ),
+                SummaryListData(
+                    key = "group.members.list.table.th3",
+                    value = roleText
+                )
+            )
+        )
+    </div>
+
+    <div id="member-of-groups">
+        @h2("common.details.groups.header")
+
+        @if(teamMemberGroups.isEmpty) {
+            @p("common.details.not-assigned")
         } else {
-            p("details.team-members.role.standard")
-        }
-    }
-
-    @layout(
-        title = msgs("details.team-members"),
-        backLinkHref = Some(routes.ManageTeamMemberController.showPageOfTeamMembers(None).url),
-        fullWidth = true
-    ) {
-
-        <div class="govuk-grid-row">
-            @h1("details.team-members", classes = Some("govuk-grid-column-two-thirds"))
-
-            <div class="govuk-grid-column-two-thirds">
-                    <!-- personally I would flip the info hierarchy but hey ho -->
-                @h2("group.members.list.table.th1", size = "s")
-                @p(teamMember.name)
-
-                @h2("group.members.list.table.th2", size = "s")
-                @p(teamMember.email)
-
-                @h2("group.members.list.table.th3", size = "s")
-                @roleText
-
-                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
-                @a(
-                    "common.return.manage-team-members",
-                    href = routes.ManageTeamMemberController.showPageOfTeamMembers(None).url
-                )
-
-            </div>
-
-            <div class="govuk-grid-column-one-third" id="member-of-groups">
-                @h2("common.details.groups.header")
-
-                @if(teamMemberGroups.isEmpty) {
-                    @p("common.details.not-assigned")
-                } else {
-                    @ul_html(items = teamMemberGroups.map{ group =>
-
-                        a( group.groupName,
-                            href = routes.ManageGroupTeamMembersController
-                                    .showExistingGroupTeamMembers(group.groupId, group.groupType, None).url)
-
-                    })
+            @ul_html(items = teamMemberGroups.map{ group =>
+                a( group.groupName,
+                    href = routes.ManageGroupTeamMembersController
+                            .showExistingGroupTeamMembers(group.groupId, group.groupType, None).url)
                 }
-                @a(
-                    "common.details.assign-to-group",
-                    href = routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id).url
-                )
+            )
+        }
+        @a(
+            "common.details.assign-to-group",
+            href = routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id).url
+        )
 
-            </div>
-        </div>
+    </div>
 
-    }
+    <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+    @a(
+        "common.return.manage-team-members",
+        href = routes.ManageTeamMemberController.showPageOfTeamMembers(None).url
+    )
+
+}

@@ -34,17 +34,18 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AddTeamMemberToGroupsController @Inject()(
-                                                 teamMemberAction: TeamMemberAction,
-                                                 mcc: MessagesControllerComponents,
-                                                 groupService: GroupService,
-                                                 taxGroupService: TaxGroupService,
-                                                 select_groups: select_groups,
-                                                 confirm_added: confirm_added
-                                               )(implicit val appConfig: AppConfig,
-                                                 ec: ExecutionContext,
-                                                 implicit override val messagesApi: MessagesApi
-                                               ) extends FrontendController(mcc)
+class AddTeamMemberToGroupsController @Inject()
+(
+  teamMemberAction: TeamMemberAction,
+  mcc: MessagesControllerComponents,
+  groupService: GroupService,
+  taxGroupService: TaxGroupService,
+  select_groups: select_groups,
+  confirm_added: confirm_added
+)(implicit val appConfig: AppConfig,
+  ec: ExecutionContext,
+  implicit override val messagesApi: MessagesApi
+) extends FrontendController(mcc)
 
   with I18nSupport
   with Logging {
@@ -87,20 +88,20 @@ class AddTeamMemberToGroupsController @Inject()(
         }
       }, { groupIds =>
         val agentUser = TeamMember.toAgentUser(tm)
-        val groupsAddedTo: mutable.MutableList[GroupId] = new mutable.MutableList()
+        var groupsAddedTo: Seq[GroupId] = Seq[GroupId]()
         Future.sequence(groupIds.map { encoded => {
           val typeAndGroupId = encoded.split("_")
           val groupType = typeAndGroupId(0)
           val groupId: GroupId = GroupId.fromString(typeAndGroupId(1))
-          groupsAddedTo += groupId
+          groupsAddedTo = groupsAddedTo :+ groupId
           if (GroupType.CUSTOM == groupType) {
             groupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
           } else {
             taxGroupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
           }
         }
-        }).map {_ =>
-          sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupsAddedTo)
+        }).map { _ =>
+          sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupsAddedTo.toSeq)
           Redirect(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id))
         }
       }

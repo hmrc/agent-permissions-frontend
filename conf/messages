@@ -282,8 +282,8 @@ role.admin=Administrator
 details.team-members.role.admin=Administrator - Can manage access groups and client details.
 details.team-members.role.standard=Standard - Can view assigned access groups and clients.
 
-common.details.assign-to-group=Assign to an access group
-common.details.not-assigned=Not assigned to an access group
+common.details.assign-to-group=Add to custom access groups
+common.details.not-assigned=Not assigned to a group
 common.details.groups.header=Member of these groups
 
 update-client-reference=Update client reference

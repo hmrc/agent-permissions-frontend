@@ -25,7 +25,7 @@ import models.{DisplayClient, GroupId}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
-import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -337,6 +337,29 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       th.size() shouldBe 0
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
       trs.size() shouldBe 0
+    }
+
+    "render NOT_FOUND when no group is found for this group id" in {
+      //given
+      AssistantAuthOk()
+      expectGetGroupById(accessGroup.id, None)
+
+      //when
+      val result = controller.showExistingGroupClientsViewOnly(accessGroup.id)(request)
+
+      status(result) shouldBe NOT_FOUND
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group not found - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group not found"
+      html
+        .select(Css.paragraphs)
+        .text() shouldBe "Please check the url or return to Your account"
+      html
+        .select(Css.linkStyledAsButton)
+        .text() shouldBe "Back to your account"
+      html
+        .select(Css.linkStyledAsButton)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
     }
   }
 

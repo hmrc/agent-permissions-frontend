@@ -19,12 +19,14 @@
 
 @this(layout: main_layout, h1: h1, p: p, a_button: link_as_button)
 
-@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(isAssistant: Boolean = false)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@buttonLinkHref = @{if(isAssistant) appConfig.agentServicesAccountYourAssistantAccountUrl else routes.ManageGroupController.showManageGroups(None,None).url}
 
 @layout(title = msgs("group.not.found.error.h1")) {
 
   @h1("group.not.found.error.h1")
-  @p("group.not.found.error.p")
-  @a_button(key = "group.not.found.error.a", href = routes.ManageGroupController.showManageGroups(None,None).url)
+  @p(if(isAssistant)"group.not.found.error.standard.p" else "group.not.found.error.p")
+  @a_button(key = if(isAssistant) "group.not.found.error.standard.a" else "group.not.found.error.a", href = buttonLinkHref)
 }
 

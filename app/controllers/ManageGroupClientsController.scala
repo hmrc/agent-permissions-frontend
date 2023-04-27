@@ -124,7 +124,7 @@ class ManageGroupClientsController @Inject()
                     groupSummary.groupName,
                     client,
                     backLink = controller.showExistingGroupClients(groupId, None, None),
-                    formAction = controller.submitConfirmRemoveClient(groupId, client.id),
+                    formAction = controller.submitConfirmRemoveClient(groupId),
                     legendKey = "common.group.remove.client"
                   )
                 )
@@ -135,7 +135,7 @@ class ManageGroupClientsController @Inject()
     }
   }
 
-  def submitConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitConfirmRemoveClient(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (group: GroupSummary, _: Arn) => {
       withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
         val redirectLink = controller.showExistingGroupClients(groupId, None, None)
@@ -144,7 +144,7 @@ class ManageGroupClientsController @Inject()
         )(clientToRemove =>
           YesNoForm
             .form("group.client.remove.error")
-            .bindFromRequest
+            .bindFromRequest()
             .fold(
               formWithErrors => {
                 Ok(
@@ -153,7 +153,7 @@ class ManageGroupClientsController @Inject()
                     group.groupName,
                     clientToRemove,
                     backLink = redirectLink,
-                    formAction = controller.submitConfirmRemoveClient(groupId, clientToRemove.id)
+                    formAction = controller.submitConfirmRemoveClient(groupId)
                   )
                 ).toFuture
               }, (yes: Boolean) => {
@@ -195,7 +195,7 @@ class ManageGroupClientsController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       SearchAndFilterForm
         .form()
-        .bindFromRequest
+        .bindFromRequest()
         .fold(
           formWithErrors => {
             Ok(
@@ -321,7 +321,7 @@ class ManageGroupClientsController @Inject()
         )(clientToRemove =>
           YesNoForm
             .form("group.client.remove.error")
-            .bindFromRequest
+            .bindFromRequest()
             .fold(
               formWithErrors => {
                 Ok(
@@ -387,7 +387,7 @@ class ManageGroupClientsController @Inject()
           )(clientToRemove =>
             YesNoForm
               .form("group.client.review.remove.error")
-              .bindFromRequest
+              .bindFromRequest()
               .fold(
                 formWithErrors => {
                   Ok(
@@ -476,7 +476,7 @@ class ManageGroupClientsController @Inject()
             val paginatedList = PaginatedListBuilder.build[DisplayClient](1, 20, clients)
             YesNoForm
               .form("group.clients.review.error")
-              .bindFromRequest
+              .bindFromRequest()
               .fold(
                 formWithErrors => {
                   renderReviewUpdateClients(groupSummary, paginatedList, formWithErrors).toFuture

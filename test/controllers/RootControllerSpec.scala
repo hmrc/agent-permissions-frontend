@@ -59,7 +59,7 @@ class RootControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe routes.RootController.start.url
+        redirectLocation(result).get shouldBe routes.RootController.start().url
       }
 
       "throw an exception if there was no response from the backend" in {
@@ -85,7 +85,7 @@ class RootControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe routes.OptInController.start.url
+        redirectLocation(result).get shouldBe routes.OptInController.start().url
       }
 
       "redirect to opt-out journey if the optin status is eligible to opt-out" in {
@@ -98,7 +98,7 @@ class RootControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe routes.OptOutController.start.url
+        redirectLocation(result).get shouldBe routes.OptOutController.start().url
       }
 
       "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {

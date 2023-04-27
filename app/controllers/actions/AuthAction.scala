@@ -31,7 +31,6 @@ import uk.gov.hmrc.play.bootstrap.config.AuthRedirects
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.{Inject, Singleton}
-import scala.annotation.nowarn
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -46,7 +45,6 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
   private val agentEnrolment = "HMRC-AS-AGENT"
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
-  @nowarn
   def isAuthorisedAgent(body: Arn => Future[Result])
                        (implicit ec: ExecutionContext, request: RequestHeader, appConfig: AppConfig): Future[Result] = {
 
@@ -127,7 +125,7 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
       logger.warn(s"user does not have ASA agent enrolment")
       Forbidden
     }
-    case _: UnsupportedAuthProvider ⇒
+    case _: UnsupportedAuthProvider =>
       logger.warn(s"user has an unsupported auth provider")
       Forbidden
   }

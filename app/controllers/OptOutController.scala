@@ -68,14 +68,14 @@ class OptOutController @Inject()
         isOptedIn(arn) { _ =>
           YesNoForm
             .form("do-you-want-to-opt-out.yes.error")
-            .bindFromRequest
+            .bindFromRequest()
             .fold(
               formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
               (iWantToOptOut: Boolean) => {
                 if (iWantToOptOut) {
                   optInService
                     .optOut(arn)
-                    .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut.url))
+                    .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut().url))
                 } else
                   Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
               }

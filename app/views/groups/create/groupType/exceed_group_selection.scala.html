@@ -24,14 +24,14 @@
 
 @layout(
     title = msgs("All access groups have been created"),
-    backLinkHref = Some(routes.CreateGroupSelectNameController.showConfirmGroupName.url)) {
+    backLinkHref = Some(routes.CreateGroupSelectNameController.showConfirmGroupName().url)) {
 
     @h1(msgs("access-group-name-exceed-groups.title"))
 
     @p(msgs("access-group-name-exceed-groups.p"))
 
     <div class="govuk-button-group">
-        @button(key = msgs("group.existing.custom.groups.button"), href = routes.CreateGroupSelectGroupTypeController.submitSelectGroupType.url)
+        @button(key = msgs("group.existing.custom.groups.button"), href = routes.CreateGroupSelectGroupTypeController.submitSelectGroupType().url)
 
         <a class="govuk-link_exceed_group" href="@routes.ManageGroupController.showManageGroups(None, None).url">
         @p(msgs("group.manage.h1"))</a>

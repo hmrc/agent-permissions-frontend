@@ -201,14 +201,14 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitUnassignedClientsViewOnly.url}" should {
+  s"POST ${ctrlRoute.submitUnassignedClientsViewOnly().url}" should {
 
     "save search/filter terms and redirect to 1st page when 'filter' is clicked" in {
       //given
       AssistantAuthOk()
 
       val requestWithFormBody = FakeRequest(POST,
-        ctrlRoute.submitUnassignedClientsViewOnly.url)
+        ctrlRoute.submitUnassignedClientsViewOnly().url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "filter", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
@@ -230,7 +230,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       AssistantAuthOk()
 
       val requestWithFormBody = FakeRequest(POST,
-        ctrlRoute.submitUnassignedClientsViewOnly.url)
+        ctrlRoute.submitUnassignedClientsViewOnly().url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "clear", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")

@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import views.html.main_layout
 @import views.html.partials.clients_table_filter_form
+@import uk.gov.hmrc.agentmtdidentifiers.model.EnrolmentKey
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
@@ -50,7 +51,7 @@
         true,
         clients = if(unassignedClients.isEmpty) None else Some(unassignedClients),
         filterForm,
-        routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly,
+        routes.AssistantViewOnlyController.submitUnassignedClientsViewOnly(),
         paginationMetaData = if(unassignedClients.isEmpty) None else paginationMetaData
     )
 }

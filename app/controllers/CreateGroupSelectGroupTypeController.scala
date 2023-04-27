@@ -73,7 +73,7 @@ class CreateGroupSelectGroupTypeController @Inject()
       isOptedIn(arn) { _ =>
         YesNoForm
           .form("group.type.error")
-          .bindFromRequest
+          .bindFromRequest()
           .fold(
             formWithErrors =>
               Ok(select_group_type(formWithErrors)).toFuture,
@@ -81,11 +81,11 @@ class CreateGroupSelectGroupTypeController @Inject()
               if (isCustomGroupType) {
                 sessionCacheService
                   .put(GROUP_TYPE, CUSTOM_GROUP)
-                  .map(_ => Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName))
+                  .map(_ => Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()))
               } else {
                 sessionCacheService
                   .put(GROUP_TYPE, TAX_SERVICE_GROUP)
-                  .map(_ => Redirect(ctrlRoutes.showSelectTaxServiceGroupType))
+                  .map(_ => Redirect(ctrlRoutes.showSelectTaxServiceGroupType()))
               }
             }
           )
@@ -126,9 +126,9 @@ class CreateGroupSelectGroupTypeController @Inject()
                           for {
                             _ <- sessionCacheService.put[String](GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
                             _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, false) // could change to true and skip name group page
-                          } yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType)
+                          } yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType())
                         else {
-                          Redirect(ctrlRoutes.showReviewTaxServiceGroupType).toFuture
+                          Redirect(ctrlRoutes.showReviewTaxServiceGroupType()).toFuture
                         })
                 })
             }
@@ -139,7 +139,7 @@ class CreateGroupSelectGroupTypeController @Inject()
   def showReviewTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
     withGroupTypeAndAuthorised { (_, _) =>
       withSessionItem[String](GROUP_SERVICE_TYPE) { maybeTaxServiceGroupType =>
-        maybeTaxServiceGroupType.fold(Redirect(ctrlRoutes.showSelectTaxServiceGroupType))(taxGroupType =>
+        maybeTaxServiceGroupType.fold(Redirect(ctrlRoutes.showSelectTaxServiceGroupType()))(taxGroupType =>
           Ok(review_group_type(YesNoForm.form(""), taxGroupType))
         ).toFuture
       }
@@ -151,7 +151,7 @@ class CreateGroupSelectGroupTypeController @Inject()
       YesNoForm.form("group.tax-service.review.error").bindFromRequest()
         .fold(formWithErrors => {
           withSessionItem[String](GROUP_SERVICE_TYPE) { maybeTaxServiceGroupType =>
-            maybeTaxServiceGroupType.fold(Redirect(ctrlRoutes.showSelectTaxServiceGroupType))(taxGroupType =>
+            maybeTaxServiceGroupType.fold(Redirect(ctrlRoutes.showSelectTaxServiceGroupType()))(taxGroupType =>
               Ok(review_group_type(formWithErrors, taxGroupType))
             ).toFuture
           }
@@ -159,9 +159,9 @@ class CreateGroupSelectGroupTypeController @Inject()
           (continue: Boolean) => {
             if (continue) {
               // could add skip to name tax group here
-              Redirect(routes.CreateGroupSelectNameController.showGroupName)
+              Redirect(routes.CreateGroupSelectNameController.showGroupName())
             } else {
-              Redirect(ctrlRoutes.showSelectGroupType)
+              Redirect(ctrlRoutes.showSelectGroupType())
             }
           }.toFuture
         )

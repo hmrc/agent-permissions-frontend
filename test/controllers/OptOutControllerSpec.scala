@@ -51,7 +51,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   val controller: OptOutController = fakeApplication.injector.instanceOf[OptOutController]
 
-  s"GET ${routes.OptOutController.start.url}" should {
+  s"GET ${routes.OptOutController.start().url}" should {
 
     "display content for start" in {
 
@@ -83,7 +83,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   }
 
-  s"GET showDoYouWantToOptOut on url ${routes.OptOutController.showDoYouWantToOptOut.url}" should {
+  s"GET showDoYouWantToOptOut on url ${routes.OptOutController.showDoYouWantToOptOut().url}" should {
 
     "display expected content" in {
 
@@ -108,7 +108,7 @@ class OptOutControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to submitDoYouWantToOptOut on url ${routes.OptOutController.submitDoYouWantToOptOut.url}" should {
+  s"POST to submitDoYouWantToOptOut on url ${routes.OptOutController.submitDoYouWantToOptOut().url}" should {
 
     s"redirect to ${routes.OptOutController.showYouHaveOptedOut} page with answer 'true'" in {
 
@@ -125,7 +125,7 @@ class OptOutControllerSpec extends BaseSpec {
       val result = controller.submitDoYouWantToOptOut()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.OptOutController.showYouHaveOptedOut.url
+      redirectLocation(result).get shouldBe routes.OptOutController.showYouHaveOptedOut().url
     }
 
     "redirect to 'manage dashboard' page when user decides not to opt out" in {
@@ -170,7 +170,7 @@ class OptOutControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET showYouHaveOptedOut on url: ${routes.OptOutController.showYouHaveOptedOut.url}" should {
+  s"GET showYouHaveOptedOut on url: ${routes.OptOutController.showYouHaveOptedOut().url}" should {
 
     "display expected content" in {
 

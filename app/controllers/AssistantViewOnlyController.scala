@@ -25,7 +25,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, SessionCacheOperationsService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agents.accessgroups.{AccessGroup, GroupSummary, TaxGroup}
+import uk.gov.hmrc.agents.accessgroups.{AccessGroup, GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.assistant_read_only._
 

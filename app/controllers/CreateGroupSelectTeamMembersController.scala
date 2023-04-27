@@ -69,7 +69,7 @@ class CreateGroupSelectTeamMembersController @Inject()
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
         val backUrl = if (groupType == CUSTOM_GROUP) {
           Some(selectClientsController.showReviewSelectedClients(None, None).url)
-        } else Some(selectNameController.showConfirmGroupName.url)
+        } else Some(selectNameController.showConfirmGroupName().url)
         teamMemberService
           .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(PAGE_SIZE))
           .map { paginatedList =>
@@ -170,7 +170,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               groupName = groupName,
               form = YesNoForm.form(),
               backUrl = Some(controller.showSelectTeamMembers(None, None).url),
-              formAction = controller.submitReviewSelectedTeamMembers,
+              formAction = controller.submitReviewSelectedTeamMembers(),
               paginationMetaData = Some(list.paginationMetaData)
             )
           ).toFuture
@@ -190,7 +190,7 @@ class CreateGroupSelectTeamMembersController @Inject()
             val list = PaginatedListBuilder.build[TeamMember](1, PAGE_SIZE, members)
             YesNoForm
               .form("group.teamMembers.review.error")
-              .bindFromRequest
+              .bindFromRequest()
               .fold(
                 formWithErrors => {
                   Ok(
@@ -199,7 +199,7 @@ class CreateGroupSelectTeamMembersController @Inject()
                       groupName = groupName,
                       form = formWithErrors,
                       backUrl = Some(controller.showSelectTeamMembers(None, None).url),
-                      formAction = controller.submitReviewSelectedTeamMembers,
+                      formAction = controller.submitReviewSelectedTeamMembers(),
                       paginationMetaData = Some(list.paginationMetaData)
                     )
                   ).toFuture
@@ -214,7 +214,7 @@ class CreateGroupSelectTeamMembersController @Inject()
                           groupName = groupName,
                           form =  YesNoForm.form("group.teamMembers.review.error").withError("answer", "group.teamMembers.review.error.no-members"),
                           backUrl = Some(controller.showSelectTeamMembers(None, None).url),
-                          formAction = controller.submitReviewSelectedTeamMembers,
+                          formAction = controller.submitReviewSelectedTeamMembers(),
                           paginationMetaData = Some(list.paginationMetaData)
                         )
                       ).toFuture
@@ -225,7 +225,7 @@ class CreateGroupSelectTeamMembersController @Inject()
                         case CUSTOM_GROUP =>
                           groupService
                             .createGroup(arn, groupName)
-                            .map(_ => Redirect(controller.showGroupCreated))
+                            .map(_ => Redirect(controller.showGroupCreated()))
                       }
                     }
                   }
@@ -270,7 +270,7 @@ class CreateGroupSelectTeamMembersController @Inject()
           else {
             YesNoForm
               .form("group.member.remove.error")
-              .bindFromRequest
+              .bindFromRequest()
               .fold(
                 formWithErrors => {
                   Ok(confirm_remove_member(formWithErrors, groupName, maybeTeamMember.get)).toFuture
@@ -295,7 +295,7 @@ class CreateGroupSelectTeamMembersController @Inject()
     sessionCacheService
       .get[String](GROUP_SERVICE_TYPE)
       .flatMap(maybeService => {
-        val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType
+        val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()
         maybeService.fold(
           Redirect(startAgainRoute).toFuture
         )(service => {
@@ -306,7 +306,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               for {
                 _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
                 _ <- sessionCacheService.deleteAll(creatingGroupKeys)
-              } yield Redirect(controller.showGroupCreated)
+              } yield Redirect(controller.showGroupCreated())
             )
         }
         )

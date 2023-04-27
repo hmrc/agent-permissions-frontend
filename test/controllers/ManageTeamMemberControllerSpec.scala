@@ -126,7 +126,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   }
 
-  s"POST ${ctrlRoute.submitPageOfTeamMembers.url}" should {
+  s"POST ${ctrlRoute.submitPageOfTeamMembers().url}" should {
 
     "redirect and clear filter when CLEAR FILTER is clicked" in {
       //given
@@ -136,7 +136,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
 
       //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
+      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
         .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -158,7 +158,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
 
       //and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers.url)
+      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
         .withFormUrlEncodedBody(
           "submit" -> FILTER_BUTTON,
           "search" -> dude

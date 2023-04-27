@@ -35,7 +35,7 @@
         groupName: String,
         form: Form[AddClientsToGroup],
         formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
-        backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSearchClients.url),
+        backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSearchClients().url),
         paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

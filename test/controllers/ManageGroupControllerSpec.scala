@@ -201,7 +201,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       buttonLink.text() shouldBe "Create new access group"
       buttonLink
         .attr("href")
-        .shouldBe(routes.CreateGroupSelectGroupTypeController.showSelectGroupType.url)
+        .shouldBe(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
       buttonLink.hasClass("govuk-button") shouldBe true
 
       val backlink = html.select(backLink)
@@ -272,7 +272,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${ctrlRoute.submitManageGroups.url}" should {
+  s"POST to ${ctrlRoute.submitManageGroups().url}" should {
 
     "redirect to showManageGroups and work for FILTER_BUTTON" in {
 
@@ -282,7 +282,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          ctrlRoute.submitManageGroups.url)
+          ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
             "search" -> "xx",
             "submit" -> FILTER_BUTTON
@@ -306,7 +306,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          ctrlRoute.submitManageGroups.url)
+          ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
             "submit" -> CLEAR_BUTTON
           )
@@ -329,7 +329,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          ctrlRoute.submitManageGroups.url)
+          ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
             "search"-> "abc",
             "submit" -> s"${PAGINATION_BUTTON}_2",
@@ -356,7 +356,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
-          ctrlRoute.submitManageGroups.url)
+          ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
             "search"-> updatedSearchTerm,
             "submit" -> s"${PAGINATION_BUTTON}_2",
@@ -393,8 +393,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.title shouldBe "Rename group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Rename group"
       html.select(Css.form).attr("action") shouldBe ctrlRoute
-        .submitRenameGroup(groupId)
-        .url
+        .submitRenameGroup(groupId).url
       html
         .select(Css.labelFor("name"))
         .text() shouldBe "What do you want to call this access group?"
@@ -498,9 +497,7 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute
-        .showGroupRenamed(groupId)
-        .url
+      redirectLocation(result).get shouldBe ctrlRoute.showGroupRenamed(groupId).url
     }
 
     "redirect when no group is returned for this group id" in {
@@ -731,8 +728,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup.id)
-            .url)
+            .submitDeleteGroup(accessGroup.id).url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -743,7 +739,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       //and
       redirectLocation(result) shouldBe Some(
-        ctrlRoute.showGroupDeleted.url)
+        ctrlRoute.showGroupDeleted().url)
 
     }
 
@@ -755,8 +751,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup.id)
-            .url)
+            .submitDeleteGroup(accessGroup.id).url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -791,7 +786,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET ${ctrlRoute.showGroupDeleted.url}" should {
+  s"GET ${ctrlRoute.showGroupDeleted().url}" should {
 
     "render correctly" in {
       //given
@@ -863,8 +858,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(taxGroup.id)
-            .url)
+            .submitDeleteGroup(taxGroup.id).url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -875,7 +869,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       status(result) shouldBe SEE_OTHER
       //and
       redirectLocation(result) shouldBe Some(
-        ctrlRoute.showGroupDeleted.url)
+        ctrlRoute.showGroupDeleted().url)
 
     }
 
@@ -887,8 +881,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST",
           ctrlRoute
-            .submitDeleteGroup(taxGroup.id)
-            .url)
+            .submitDeleteGroup(taxGroup.id).url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 

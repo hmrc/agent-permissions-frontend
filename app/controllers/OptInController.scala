@@ -68,7 +68,7 @@ class OptInController @Inject()(
         isEligibleToOptIn(arn) { _ =>
           YesNoForm
             .form("do-you-want-to-opt-in.yes.error")
-            .bindFromRequest
+            .bindFromRequest()
             .fold(
               formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
               (iWantToOptIn: Boolean) => {
@@ -77,7 +77,7 @@ class OptInController @Inject()(
                   optInService
                     .optIn(arn, lang)
                     .map(_ =>
-                      Redirect(routes.OptInController.showYouHaveOptedIn.url))
+                      Redirect(routes.OptInController.showYouHaveOptedIn().url))
                 else
                   Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
               }

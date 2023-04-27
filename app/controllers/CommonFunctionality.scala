@@ -23,7 +23,6 @@ import play.api.data.{Form, FormBinding}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Call, Request, Result}
 import services.{SessionCacheOperationsService, SessionCacheService}
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -104,7 +103,7 @@ abstract class POSTPaginatedSearchableClientSelectHandler(sessionCacheService: S
   val reloadCall: (Option[Int], Option[String], Option[String]) => Call
   val onContinue: AddClientsToGroup => Future[Result]
 
-  def handlePost(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_], formBinding: FormBinding): Future[Result] = {
+  def handlePost(implicit ec: ExecutionContext, request: Request[_], formBinding: FormBinding): Future[Result] = {
     new POSTPaginationHandler[AddClientsToGroup](sessionCacheService) {
       val emptyForm: Form[AddClientsToGroup] = AddClientsToGroupForm.form()
       val renderPage: Form[AddClientsToGroup] => Future[Result] = self.renderPage

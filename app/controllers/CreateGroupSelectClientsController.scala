@@ -67,7 +67,7 @@ class CreateGroupSelectClientsController @Inject()
               search_clients(
                 form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
                 groupName = groupName,
-                backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url)
+                backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName().url)
               )
           ).toFuture
         }
@@ -76,17 +76,17 @@ class CreateGroupSelectClientsController @Inject()
   }
 
   def submitSearchClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, arn) =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
       SearchAndFilterForm
         .form()
-        .bindFromRequest
+        .bindFromRequest()
         .fold(
           formWithErrors => {
               Ok(
                 search_clients(
                   formWithErrors,
                   groupName,
-                  Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName.url)
+                  Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName().url)
                 ),
               ).toFuture
           }, formData => {
@@ -106,7 +106,7 @@ class CreateGroupSelectClientsController @Inject()
               select_paginated_clients(
                 paginatedClients.pageContent,
                 groupName,
-                backUrl = Some(controller.showSearchClients.url),
+                backUrl = Some(controller.showSearchClients().url),
                 form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
                 paginationMetaData = Some(paginatedClients.paginationMetaData))
             )
@@ -165,7 +165,7 @@ class CreateGroupSelectClientsController @Inject()
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                     Redirect(controller.showSelectClients(Some(pageToShow), Some(CLIENT_PAGE_SIZE))).toFuture
                   } else { //bad submit
-                    Redirect(controller.showSearchClients).toFuture
+                    Redirect(controller.showSearchClients()).toFuture
                   }
                 }
                 )
@@ -179,7 +179,7 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
         maybeClients.fold(
-          Redirect(controller.showSearchClients).toFuture
+          Redirect(controller.showSearchClients()).toFuture
         )(clients => {
           val paginatedList = PaginatedListBuilder.build[DisplayClient](
             maybePage.getOrElse(1),
@@ -234,7 +234,7 @@ class CreateGroupSelectClientsController @Inject()
           else {
             YesNoForm
               .form("group.client.remove.error")
-              .bindFromRequest
+              .bindFromRequest()
               .fold(
                 formWithErrors => {
                   Ok(confirm_remove_client(formWithErrors, groupName, maybeClient.get)).toFuture
@@ -258,12 +258,12 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
         maybeClients =>
-          maybeClients.fold(Redirect(controller.showSearchClients).toFuture)(
+          maybeClients.fold(Redirect(controller.showSearchClients()).toFuture)(
             clients => {
               val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
               YesNoForm
                 .form("group.clients.review.error")
-                .bindFromRequest
+                .bindFromRequest()
                 .fold(
                   formWithErrors => {
                     Ok(
@@ -278,7 +278,7 @@ class CreateGroupSelectClientsController @Inject()
                     if (yes) {
                       sessionCacheService
                         .deleteAll(clientFilteringKeys)
-                        .map(_ => Redirect(controller.showSearchClients))
+                        .map(_ => Redirect(controller.showSearchClients()))
                     } else {
                       if (clients.nonEmpty) {
                         Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture

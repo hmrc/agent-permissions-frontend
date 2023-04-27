@@ -30,7 +30,6 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.group_member_details.add_groups_to_team_member.{confirm_added, select_groups}
 
 import javax.inject.{Inject, Singleton}
-import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

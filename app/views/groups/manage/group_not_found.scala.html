@@ -26,7 +26,7 @@
 @layout(title = msgs("group.not.found.error.h1")) {
 
   @h1("group.not.found.error.h1")
-  @p("group.not.found.error.p")
-  @a_button(key = "group.not.found.error.a", href = buttonLinkHref)
+  @p(if(isAssistant)"group.not.found.error.standard.p" else "group.not.found.error.p")
+  @a_button(key = if(isAssistant) "group.not.found.error.standard.a" else "group.not.found.error.a", href = buttonLinkHref)
 }
 

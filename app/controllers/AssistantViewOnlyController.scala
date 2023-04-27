@@ -117,10 +117,10 @@ class AssistantViewOnlyController @Inject()
       for {
         // needs Tax service saved to session on page load
         search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-        filter = if (group.asInstanceOf[TaxGroup].service == "HMRC-TERS") {
+        filter = if (summary.taxService.getOrElse("") == "HMRC-TERS") {
           Some("TRUST")
         } else {
-          Some(group.asInstanceOf[TaxGroup].service)
+          summary.taxService
         }
         _ <- sessionCacheOps.saveSearch(search, filter)
         list <- clientService.getPaginatedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE)

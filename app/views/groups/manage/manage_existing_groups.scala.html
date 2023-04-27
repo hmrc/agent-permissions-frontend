@@ -93,7 +93,9 @@
                         "common.clients",
                         summary.clientCount.getOrElse("Client count unavailable").toString,
                         if(summary.taxService.isDefined){
-                            routes.ManageTaxGroupClientsController.showExistingGroupClients(summary.groupId, None, None)} else {routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId, None, None)
+                            Some(routes.ManageTaxGroupClientsController.showExistingGroupClients(summary.groupId, None, None))
+                            } else {
+                            Some(routes.ManageGroupClientsController.showExistingGroupClients(summary.groupId, None, None))
                         },
                         linkMsgKey = "group.manage.clients",
                         linkClasses = Some("govuk-!-width-one-half"),
@@ -103,9 +105,9 @@
                         "common.teamMembers",
                         summary.teamMemberCount.toString,
                         if(summary.taxService.isDefined){
-                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, TAX_SERVICE, None)
+                            Some(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, TAX_SERVICE, None))
                         } else {
-                            routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, CUSTOM, None)
+                            Some(routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(summary.groupId, CUSTOM, None))
                         },
                         linkMsgKey = "group.manage.members",
                         linkClasses = Some("govuk-!-width-one-half"),

@@ -84,6 +84,8 @@ tax-service.trusts=Maintain a Trust or Estate
 group.not.found.error.h1=Access group not found
 group.not.found.error.p=Please check the url or return to the Manage groups page
 group.not.found.error.a=Back to manage groups page
+group.not.found.error.standard.p=Please check the url or return to Your account
+group.not.found.error.standard.a=Back to your account
 
 opt-in-info.h1=Turn on access groups
 opt-in-info.inset=By default, agent services accounts allow all team members to view and manage the tax affairs of all clients using shared sign in details.
@@ -282,8 +284,8 @@ role.admin=Administrator
 details.team-members.role.admin=Administrator - Can manage access groups and client details.
 details.team-members.role.standard=Standard - Can view assigned access groups and clients.
 
-common.details.assign-to-group=Assign to an access group
-common.details.not-assigned=Not assigned to an access group
+common.details.assign-to-group=Add to custom access groups
+common.details.not-assigned=Not assigned to a group
 common.details.groups.header=Member of these groups
 
 update-client-reference=Update client reference

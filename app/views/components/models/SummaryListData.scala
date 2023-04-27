@@ -20,7 +20,7 @@ import play.api.mvc.Call
 
 case class SummaryListData(key: String,
                            value: String,
-                           link: Call,
+                           link: Option[Call] = None,
                            hiddenText: Option[String] = None,
                            linkMsgKey: String = "common.change",
                            linkClasses: Option[String] = None

@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
-import helpers.Css.H1
+import helpers.Css.{H1, checkYourAnswersListRows}
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
@@ -243,6 +243,16 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Client details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Client details"
 
+      val summaryListRows = html.select(checkYourAnswersListRows)
+
+      summaryListRows.get(0).childrenSize() shouldBe 3 // update link
+      summaryListRows.get(1).childrenSize() shouldBe 2
+      summaryListRows.get(2).childrenSize() shouldBe 2
+
+      summaryListRows.get(0).text() shouldBe "Client reference friendly0 Update Client reference"
+      summaryListRows.get(1).text() shouldBe "Tax reference ending in 6780"
+      summaryListRows.get(2).text() shouldBe "Tax service VAT"
+
     }
 
     "render the clients details page with list of groups" in {
@@ -264,13 +274,14 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Client details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Client details"
 
-      html.body.text().contains("Not assigned to an access group") shouldBe false
+      html.body.text().contains("Not assigned to a group") shouldBe false
 
       val linksToGroups = html.select("main div#member-of-groups ul li a")
       linksToGroups.size() shouldBe 3
       linksToGroups.get(0).text() shouldBe "groupName"
       linksToGroups.get(0).attr("href") shouldBe
-        controllers.routes.ManageGroupClientsController.showExistingGroupClients(groupSummaries(0).groupId,None, None).url
+        controllers.routes.ManageGroupClientsController.showExistingGroupClients(groupSummaries.head.groupId,None, None).url
+
       linksToGroups.get(2).text() shouldBe "groupName2"
       linksToGroups.get(2).attr("href") shouldBe
         controllers.routes.ManageTaxGroupClientsController.showExistingGroupClients(groupSummaries(2).groupId,None,None).url}

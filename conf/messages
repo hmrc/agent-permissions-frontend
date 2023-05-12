@@ -47,12 +47,14 @@ common.return.manage-clients=Return to manage clients
 common.return.manage-team-members=Return to manage team members
 
 common.total.clients=Showing total of <strong>{0}</strong> clients
+common.total.team-members=Showing total of <strong>{0}</strong> team members
+
 paginated.clients.showing=Showing {0} to {1} of {2} clients
 client.search.results.label=with reference: ‘{0}’
 client.filter.results.label=in tax service: ‘{0}’
-common.total.team-members=Showing total of <strong>{0}</strong> team members
 paginated.team-members.showing=Showing {0} to {1} of {2} team members
 paginated.team-members.for.search=for the search term ‘{0}’
+
 common.total.team-members.selected=<strong>{0}</strong> team members selected across all searches
 common.total.clients.selected=<strong>{0}</strong> clients selected across all searches
 already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients in your group
@@ -72,7 +74,6 @@ error.search-filter.invalid=Tax reference or client reference must not include t
 error.select-members.empty=You must select at least one team member
 error.search-members.empty=You must enter a name or email to apply filters
 error.search-members.invalid=Name or email must not include the characters < or >
-
 error.search.invalid=Filter term must not include the characters < or >
 
 tax-service.mdt-it=Making Tax Digital for Income Tax
@@ -135,7 +136,6 @@ group.tax-service.select.label=Select clients by tax service
 group.tax-service.answer.label=Add new clients to this access group automatically?
 group.tax-service.answer.hint=If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service.
 group.tax-service.select.error=Select the tax type for this access group
-
 
 group.tax-service.review.h1=You have selected all “{0}” clients
 group.tax-service.review.legend=Continue with selected clients?
@@ -200,16 +200,8 @@ group.teamMembers.review.no.label=No, continue
 group.teamMembers.review.error=Select yes if you need to select more team members
 group.teamMembers.review.error.no-members=You have removed all team members, select at least one to continue
 
-group.teamMembers.add.review.h1=You have selected {0} team members to add to the group
-group.teamMembers.add.review.removed.confirm={0} removed from team members to add
-group.teamMembers.review.error.no-clients=You have removed all team members, select at least one to continue
 group.teamMembers.review.remove.error=Select yes if you no longer want to add this client to the access group
 group.teamMembers.added.flash.message={0} team members added
-
-cya.h1=Check your selection
-cya.p=Confirm clients and team members selected for this access group
-cya.inset=The team members you have selected will have permission to view and manage the tax affairs of all the clients in this access group
-cya.submit=Confirm access group
 
 group.created.h1=Access group created
 group.created.panelContent={0} access group is now active
@@ -217,7 +209,6 @@ group.created.p=The team members you selected can now view and manage the tax af
 
 group.manage.h1=Manage access groups
 group.manage.p=The team members in the group will be able to manage the tax affairs of clients in the group.
-group.manage.tabs.1.label=Access groups
 group.manage.tabs.2.label=Unassigned clients
 
 group.manage.no.groups.h3=No groups found

@@ -49,6 +49,12 @@ common.return.manage-team-members=Yn ôl i reoli aelodau o’r tîm
 common.total.clients=Yn dangos cyfanswm o <strong>{0}</strong> o gleientiaid
 common.total.team-members=Yn dangos cyfanswm o <strong>{0}</strong> aelod o’r tîm
 
+paginated.clients.showing=Showing {0} to {1} of {2} clients
+client.search.results.label=with reference: ‘{0}’
+client.filter.results.label=in tax service: ‘{0}’
+paginated.team-members.showing=Showing {0} to {1} of {2} team members
+paginated.team-members.for.search=for the search term ‘{0}’
+
 common.total.team-members.selected=<strong>{0}</strong> team members selected across all searches
 common.total.clients.selected=<strong>{0}</strong> clients selected across all searches
 already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients in your group
@@ -63,14 +69,11 @@ team-members.not-found.heading=Ni chanfuwyd unrhyw aelodau tîm
 
 error.select-clients.empty=Mae’n rhaid i chi ddewis o leiaf un cleient
 error.search-filter.empty=Mae’n rhaid i chi nodi cyfeirnod treth, cyfeirnod cleient neu ddewis gwasanaeth treth i roi hidlyddion ar waith
-
 error.search-filter.invalid=Mae’n rhaid i’r cyfeirnod treth neu gyfeirnod y cleient beidio â chynnwys y cymeriadau < neu >
 
 error.select-members.empty=Mae’n rhaid i chi ddewis o leiaf un aelod tîm
 error.search-members.empty=Mae’n rhaid i chi nodi enw neu e-bost i roi hidlyddion ar waith
-
 error.search-members.invalid=Mae’n rhaid i’r enw neu’r e-bost beidio â chynnwys y cymeriadau < neu >
-
 error.search.invalid=Mae’n rhaid i’r term hidlo beidio â chynnwys y cymeriadau < neu >
 
 tax-service.mdt-it=Troi Treth yn Ddigidol ar gyfer Treth Incwm
@@ -81,8 +84,9 @@ tax-service.trusts=Cynnal Ymddiriedolaeth neu Ystâd
 
 group.not.found.error.h1=Heb ddod o hyd i grŵp mynediad
 group.not.found.error.p=Gwiriwch yr URL neu ewch yn ôl i’r dudalen Rheoli grwpiau
-
 group.not.found.error.a=Yn ôl i’r dudalen rheoli grwpiau
+group.not.found.error.standard.p=Please check the url or return to Your account
+group.not.found.error.standard.a=Back to your account
 
 opt-in-info.h1=Galluogi grwpiau mynediad
 opt-in-info.inset=Yn ddiofyn, mae cyfrifon gwasanaethau asiant yn caniatáu i bob aelod o’r tîm weld a rheoli materion treth pob cleient gan ddefnyddio manylion mewngofnodi a rennir.
@@ -121,6 +125,7 @@ you-have-opted-out.p2=Bydd eich cyfrif yn dangos eich bod wedi dewis analluogi g
 
 group.type.h1=Creu grŵp mynediad
 group.type.label=Sut hoffech chi greu'r grŵp hwn?
+group.type.error=Select the type of access group you want to create
 group.type.custom.label=Grŵp mynediad personol
 group.type.custom.hint=Dewiswch gleientiaid ar sail unrhyw feini prawf. Gallwch gael cyfanswm o 1,200 o gleientiaid ac aelodau tîm mewn grŵp mynediad arferol. 
 group.type.tax.service.label=Grŵp mynediad yn seiliedig ar wasanaeth treth
@@ -183,18 +188,12 @@ group.teamMembers.review.no.label=No, continue
 group.teamMembers.review.error=Select yes if you need to select more team members
 group.teamMembers.review.error.no-members=You have removed all team members, select at least one to continue
 
-cya.h1=Gwiriwch eich dewis
-cya.p=Cadarnhau cleientiaid ac aelodau tîm a ddewiswyd ar gyfer y grŵp mynediad hwn
-cya.inset=Bydd gan yr aelodau tîm rydych wedi’u dewis ganiatâd i weld a rheoli materion treth yr holl gleientiaid yn y grŵp mynediad hwn
-cya.submit=Cadarnhau grŵp mynediad
-
 group.created.h1=Grŵp mynediad wedi’i greu
 group.created.panelContent=Mae grŵp mynediad {0} bellach yn weithredol
 group.created.p=Gall yr aelodau tîm a ddewiswyd gennych bellach weld a rheoli materion treth yr holl gleientiaid yn y grŵp mynediad hwn
 
 group.manage.h1=Rheoli grwpiau mynediad
 group.manage.p=Bydd yr aelodau tîm yn y grŵp yn gallu rheoli materion treth cleientiaid yn y grŵp.
-group.manage.tabs.1.label=Grwpiau mynediad
 group.manage.tabs.2.label=Cleientiaid sydd heb eu neilltuo
 
 group.manage.no.groups.h3=Ni chanfuwyd unrhyw grwpiau

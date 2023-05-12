@@ -1,344 +1,289 @@
-service.name = Agent services account
-
-generic.title={0} - {1} - GOV.UK
-error-prefix=Error:
-common.errorSummary.heading=There is a problem
-
-common.yes.label=Yes
-common.no.label=No
-common.caption.group.name={0} access group
-common.continue=Continue
-common.what.happens.next=What happens next
-common.change=Change
+access-group-name-exceed-groups.p=Your organisation has already created groups for all the tax services you offer. you can still create custom access groups.
+access-group-name-exceed-groups.title=You have already created all the tax service access groups
+access-group-name-exists.button=Enter a new access group name
+access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.
+access-group-name-exists.title=Access group name already exists
+already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients in your group
+already.selected.members.nonjs=You currently have <strong>{0}</strong> team members in your group
+assistant.clients.group.h1={0} clients
+assistant.clients.group.p=You can manage these clients’ tax as you are in this access group.
+assistant.clients.unassigned.h1=Other clients you can manage
+assistant.clients.unassigned.p=You can manage these clients’ tax as they are not in any access groups. 
+client-filter.select.label.empty-option=Choose tax service
+client-filter.select.label=Filter by tax service
+client-filter.text.label=Filter by tax reference or client reference
+client-reference.updated.h1=Client reference will update shortly
+client-reference.updated.p=You have asked us to update this client reference in your agent services account. We’ll update it to {0} in the next two hours. We will not change the client reference in other HMRC online services.
+client.added.to.groups.h1=Client added to access groups
+client.added.to.groups.p1=You have added {0} to the following groups:
+client.added.to.groups.p2=The team members in these access groups can now view and manage the tax affairs of the client you added.
+client.added.to.groups.title=Client {0} added to access groups {1}
+client.filter.results.label=in tax service: ‘{0}’
+client.manage-clients.back=Back to manage clients page
+client.not.found.error.h1=Client not found
+client.not.found.error.p=Please check the url or return to the Manage groups page
+client.removed.confirm={0} removed from this access group.
+client.search.results.label=with reference: ‘{0}’
+client.select.back=Back to {0}
+client.select.groups.h1=Which custom access groups would you like to add {0} to?
+client.select.groups.hint=You can only add clients to custom groups manually. Select all that apply.
+client.select.groups.none.h1=There are no available groups to add {0} to
+client.select.groups.none=Client is currently not in any access groups
+client.select.groups.p1=Client is currently in these access groups:
+clients.assigned.complete.h1=Clients added to access groups
+clients.assigned.complete.p=You have added these clients to the following groups:
+clients.not-found.heading=No clients found
+clients.not-found.p=Update your filters and try again or clear your filters to see all your clients
 common.actions=Actions
-common.update=Update
-common.clients=Clients
-common.teamMembers=Team members
+common.add=Add
+common.button.search.again=Search again
 common.cancel=Cancel
-common.skip-to-results=Skip to results
-common.skip-to-clients=Skip to client list
-common.skip-to-team-members=Skip to team member list
+common.caption.group.name={0} access group
+common.change=Change
+common.clients=Clients
+common.continue=Continue
+common.custom-group=Custom group
+common.details.assign-to-group=Add to custom access groups
+common.details.groups.header=Member of these groups
+common.details.not-assigned=Not assigned to a group
+common.errorSummary.heading=There is a problem
+common.group.already.in=Already in this group
+common.group.max.clients=You can have a total of 1,200 clients and team members in a custom access group.
+common.group.remove.client=Remove {0} from this access group?
+common.next=Next
+common.no.label=No
+common.previous=Previous
+common.remove.client=Remove {0} from selected clients?
+common.remove.member=Remove {0} from selected team members?
+common.remove=Remove
 common.results-for1=Filter results for ''{0}''
 common.results-for2=Filter results for ''{0}'' and ''{1}''
-common.custom-group=Custom group
-common.tax-group=Tax service group
-common.add=Add
-common.remove=Remove
-common.remove.client=Remove {0} from selected clients?
-common.group.remove.client=Remove {0} from this access group?
-common.remove.member=Remove {0} from selected team members?
-common.group.max.clients=You can have a total of 1,200 clients and team members in a custom access group.
-save.and.continue.button=Save and continue
-submit.button=Submit
-common.button.search.again=Search again
-common.group.already.in=Already in this group
-
-filter.legend=Filters
-filter.apply=Apply filters
-filter.clear=Clear filters
-
-common.next=Next
-common.previous=Previous
-
-common.return.to.dashboard=Return to manage access groups
-common.return.to.unassigned.clients=Return to unassigned clients
 common.return.manage-account=Return to manage account
 common.return.manage-clients=Return to manage clients
 common.return.manage-team-members=Return to manage team members
-
-common.total.clients=Showing total of <strong>{0}</strong> clients
-common.total.team-members=Showing total of <strong>{0}</strong> team members
-
-paginated.clients.showing=Showing {0} to {1} of {2} clients
-client.search.results.label=with reference: ‘{0}’
-client.filter.results.label=in tax service: ‘{0}’
-paginated.team-members.showing=Showing {0} to {1} of {2} team members
-paginated.team-members.for.search=for the search term ‘{0}’
-
-common.total.team-members.selected=<strong>{0}</strong> team members selected across all searches
+common.return.to.dashboard=Return to manage access groups
+common.return.to.unassigned.clients=Return to unassigned clients
+common.skip-to-clients=Skip to client list
+common.skip-to-results=Skip to results
+common.skip-to-team-members=Skip to team member list
+common.tax-group=Tax service group
+common.teamMembers=Team members
 common.total.clients.selected=<strong>{0}</strong> clients selected across all searches
-already.selected.clients.nonjs=You currently have <strong>{0}</strong> clients in your group
-already.selected.members.nonjs=You currently have <strong>{0}</strong> team members in your group
-
-unassigned-clients.not-found.heading=No unassigned clients found
-unassigned-clients.not-found.p=Update your filters and try again or clear your filters to see all your unassigned clients
-clients.not-found.p=Update your filters and try again or clear your filters to see all your clients
-clients.not-found.heading=No clients found
-team-members.not-found.p=Update your filters and try again or clear your filters to see all your team members
-team-members.not-found.heading=No team members found
-
-error.select-clients.empty=You must select at least one client
+common.total.clients=Showing total of <strong>{0}</strong> clients
+common.total.team-members.selected=<strong>{0}</strong> team members selected across all searches
+common.total.team-members=Showing total of <strong>{0}</strong> team members
+common.update=Update
+common.what.happens.next=What happens next
+common.yes.label=Yes
+details.clients=Client details
+details.link-hidden= for {0}
+details.no-data=We could not retrieve this
+details.team-members.role.admin=Administrator - Can manage access groups and client details.
+details.team-members.role.standard=Standard - Can view assigned access groups and clients.
+details.team-members=Team member details
+do-you-want-to-opt-in.h1=Do you want to turn on access groups?
+do-you-want-to-opt-in.no.label=No, I want to keep access groups turned off
+do-you-want-to-opt-in.yes.error=Select yes to turn on access groups
+do-you-want-to-opt-in.yes.label=Yes, I want to turn access groups on
+do-you-want-to-opt-out.h1=Do you want to turn off access groups?
+do-you-want-to-opt-out.no.label=No, I want to keep access groups turned on
+do-you-want-to-opt-out.yes.error=Select yes to turn off access groups
+do-you-want-to-opt-out.yes.label=Yes, I want to turn access groups off
+ending.in=ending in {0}
+error-prefix=Error:
+error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
+error.client-reference.max-length=Client reference must be 80 characters or fewer
+error.client-reference.required=Enter client reference
+error.client.list.empty=You must select at least one client 
+error.client.select.groups.empty=You must select at least one group
+error.group.filter.invalid=Group name must not include the characters < or >
+error.group.filter.max.length=You can only enter 32 characters or fewer
+error.group.filter.required=You must enter a group name or part of it
+error.member.select.groups.empty=You must select at least one group
+error.members.list.empty=You must select at least one team member 
 error.search-filter.empty=You must enter a tax reference, client reference or select a tax service to apply filters
 error.search-filter.invalid=Tax reference or client reference must not include the characters < or >
-
-error.select-members.empty=You must select at least one team member
 error.search-members.empty=You must enter a name or email to apply filters
 error.search-members.invalid=Name or email must not include the characters < or >
 error.search.invalid=Filter term must not include the characters < or >
-
-tax-service.mdt-it=Making Tax Digital for Income Tax
-tax-service.vat=VAT
-tax-service.ppt=Plastic Packaging Tax
-tax-service.cgt=Capital Gains Tax on UK Property account
-tax-service.trusts=Maintain a Trust or Estate
-
+error.select-clients.empty=You must select at least one client
+error.select-members.empty=You must select at least one team member
+filter.apply=Apply filters
+filter.clear=Clear filters
+filter.legend=Filters
+generic.title={0} - {1} - GOV.UK
+group-name-filter.text.label=Filter by group name
+group.client.list.1.h2=Showing {0} results for ‘{1}’
+group.client.list.2.h2=Showing {0} results for ‘{1}’ and ‘{2}’
+group.client.list.h1=Select clients
+group.client.list.table.checkbox=Checkboxes
+group.client.list.table.th1=Client reference
+group.client.list.table.th2=Tax reference
+group.client.list.table.th3=Tax service
+group.client.list.update.h1=Update clients in this group
+group.client.remove.error=Select yes if you need to remove this client from the access group
+group.client.review.remove.error=Select yes if you no longer want to add this client to the access group
+group.client.search.h1=Search for clients
+group.clients.add.review.client.removed.confirm={0} removed from clients to add
+group.clients.add.review.h1=You have selected {0} clients to add to the group
+group.clients.added.confirm={0} clients added.
+group.clients.review.error.no-clients=You have removed all clients, select at least one to continue
+group.clients.review.error=Select yes if you need to select more clients
+group.clients.review.h1=You have selected {0} clients
+group.clients.review.no.label=No, continue to adding team members
+group.clients.review.radio.legend=Do you need to select more clients?
+group.clients.review.title=Review selected clients
+group.clients.review.yes.label=Yes, select more clients
+group.confirm.h1=Confirm access group name
+group.confirm.name.label=Is the access group name ‘{0}’ correct?
+group.create.name.h1=Custom access group
+group.create.name.label=What do you want to call this access group?
+group.created.h1=Access group created
+group.created.p=The team members you selected can now view and manage the tax affairs of all the clients in this access group
+group.created.panelContent={0} access group is now active
+group.delete.name.label=Are you sure you want to delete {0} access group?
+group.delete.select.error=Select ‘yes’ if you would like to delete the group
+group.deleted.h1={0} access group deleted
+group.deleted.p=Clients from this group will now be visible to all team members, unless they are in other groups.
+group.existing.clients.button=Add more clients
+group.existing.clients.h1=Manage clients in this group
+group.existing.clients.title=Manage clients - {0}
+group.existing.custom.groups.button=Create custom access group
+group.manage.clients=Manage clients
+group.manage.confirm.updated.clients.h1={0} access group clients updated
+group.manage.confirm.updated.clients.p=You have changed the clients that can be managed by the team members in this access group.
+group.manage.confirm.updated.team-members.h1={0} access group team members updated
+group.manage.confirm.updated.team-members.p=The team members you selected can view and manage the tax affairs of all the clients in this access group.
+group.manage.delete=Delete group
+group.manage.h1=Manage access groups
+group.manage.members=Manage team members
+group.manage.no.groups.button=Create new access group
+group.manage.no.groups.h3=No groups found
+group.manage.no.groups.p=Update your filters and try again or clear your filters to see all your groups
+group.manage.p=The team members in the group will be able to manage the tax affairs of clients in the group.
+group.manage.rename=Rename group
+group.manage.tabs.2.label=Unassigned clients
+group.member.remove.error=Select yes if you need to remove this team member from the access group
+group.member.selected.remove.error=Select yes if you no longer want to add this team member to the access group
+group.members.list.filter.label=Filter by name or email
+group.members.list.table.th1=Name
+group.members.list.table.th2=Email
+group.members.list.table.th3=Role
+group.name.confirm.required.error=Select yes if the access group name is correct
+group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
+group.name.max.length=Access group name must be 50 characters or fewer
+group.name.required=Enter an access group name
+group.not.found.error.a=Back to manage groups page
 group.not.found.error.h1=Access group not found
 group.not.found.error.p=Please check the url or return to the Manage groups page
-group.not.found.error.a=Back to manage groups page
-group.not.found.error.standard.p=Please check the url or return to Your account
 group.not.found.error.standard.a=Back to your account
-
+group.not.found.error.standard.p=Please check the url or return to Your account
+group.renamed.h1=Access group renamed
+group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
+group.select.members.list.h1=Select team members
+group.selected.teamMembers.change=Add more team members
+group.tax-service.answer.hint=If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service.
+group.tax-service.answer.label=Add new clients to this access group automatically?
+group.tax-service.h1=Group based on tax service
+group.tax-service.review.error=Select yes if you would like to create a group of this type
+group.tax-service.review.h1=You have selected all “{0}” clients
+group.tax-service.review.legend=Continue with selected clients?
+group.tax-service.review.no=No, start again
+group.tax-service.review.yes=Yes, continue to naming group
+group.tax-service.select.error=Select the tax type for this access group
+group.tax-service.select.label=Select clients by tax service
+group.teamMembers.added.flash.message={0} team members added
+group.teamMembers.review.error.no-members=You have removed all team members, select at least one to continue
+group.teamMembers.review.error=Select yes if you need to select more team members
+group.teamMembers.review.h1=You have selected {0} team members
+group.teamMembers.review.no.label=No, continue
+group.teamMembers.review.radio.legend=Do you need to select more team members?
+group.teamMembers.review.remove.error=Select yes if you no longer want to add this client to the access group
+group.teamMembers.review.title=Review selected team members
+group.teamMembers.review.yes.label=Yes, select more team members
+group.type.custom.hint=Select clients based on any criteria. You can have a total of 1,200 clients and team members in a custom access group.
+group.type.custom.label=Custom access group  
+group.type.error=Select the type of access group you want to create
+group.type.h1=Create an access group
+group.type.label=How would you like to create this group?
+group.type.tax.service.hint=Select all clients for one tax service. <br>These groups can be set to update automatically when you get new clients.
+group.type.tax.service.label=Access group based on tax service
+group.update.members.list.h1=Update team members in this group
+group.view.clients=View clients
+member.added.to.groups.h1=Team member added to access groups
+member.added.to.groups.p1=You have added {0} to the following groups:
+member.added.to.groups.p2={0} can now view and manage the tax affairs of the clients in these access groups.
+member.added.to.groups.title=Team member {0} added to access groups {1}
+member.manage-team-members.back=Back to manage team members page
+member.not.found.error.h1=Team member not found
+member.not.found.error.p=Please check the url or return to the Manage team members page
+member.select.back=Back to {0}
+member.select.groups.h1=Which access groups would you like to add {0} to?
+member.select.groups.none.h1=There are no available groups to add {0} to
+member.select.groups.none=Team member is currently not in any access groups
+member.select.groups.p1=Team member is currently in these access groups:
 opt-in-info.h1=Turn on access groups
 opt-in-info.inset=By default, agent services accounts allow all team members to view and manage the tax affairs of all clients using shared sign in details.
 opt-in-info.p1=This feature is designed for agent services accounts with multiple clients who would like to assign team members to view and manage their client‘s tax affairs.
 opt-in-info.p2=If you turn on this feature you can create access groups of clients based on client type, tax services, regions or your internal working groups. 
 opt-in-info.p3=You can then manage access permissions by assigning your team members to each access group.
 opt-in-info.p4=Your organisation may have already created access groups and then turned this feature off. Turning access groups on will restore these groups.
-
-do-you-want-to-opt-in.h1=Do you want to turn on access groups?
-do-you-want-to-opt-in.yes.label=Yes, I want to turn access groups on
-do-you-want-to-opt-in.yes.error=Select yes to turn on access groups
-do-you-want-to-opt-in.no.label=No, I want to keep access groups turned off
-
-you-have-opted-in.h1.ready.true=You have turned on access groups
-you-have-opted-in.h1.ready.false=You have turned on access groups but we need some time to gather the client data
-you-have-opted-in.p1.ready.true=You can now create access groups for your clients and assign your team members to each access group. Any access groups created in the past have been restored. 
-you-have-opted-in.p1.ready.false=Your client data is currently being processed.
-you-have-opted-in.p2.ready.true=Clients and team members can be in more than one access group and you can make changes to these assignments whenever you need to.
-you-have-opted-in.p2.ready.false=You will receive a confirmation email to let you know when this is done and what to do next.
-you-have-opted-in.button.ready.true=Create access group
-you-have-opted-in.button.ready.false=Return to manage account
-
 opt-out-info.h1=Turn off access groups
 opt-out-info.inset=If you turn off this feature any access groups you have created will be disabled. The groups can be turned on again at any time.
 opt-out-info.p1=Turning off access groups will mean that all your team members can view and manage the tax affairs of all your clients. We recommend checking with your team before turning off access groups.
 opt-out-info.p2=If you turn access groups back on your groups will be restored. Team members will only be able to manage the clients in their access groups.
-
-do-you-want-to-opt-out.h1=Do you want to turn off access groups?
-do-you-want-to-opt-out.yes.label=Yes, I want to turn access groups off
-do-you-want-to-opt-out.no.label=No, I want to keep access groups turned on
-do-you-want-to-opt-out.yes.error=Select yes to turn off access groups
-
-you-have-opted-out.h1=You have turned off access groups
-you-have-opted-out.p1=You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients.
-you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account’ page.
-
-group.type.h1=Create an access group
-group.type.label=How would you like to create this group?
-group.type.error=Select the type of access group you want to create
-group.type.custom.label=Custom access group  
-group.type.custom.hint=Select clients based on any criteria. You can have a total of 1,200 clients and team members in a custom access group.
-group.type.tax.service.label=Access group based on tax service
-group.type.tax.service.hint=Select all clients for one tax service. <br>These groups can be set to update automatically when you get new clients.
-
-group.tax-service.h1=Group based on tax service
-group.tax-service.select.label=Select clients by tax service
-group.tax-service.answer.label=Add new clients to this access group automatically?
-group.tax-service.answer.hint=If you select ‘Yes’ we will add new clients as soon as they authorise you for this tax service.
-group.tax-service.select.error=Select the tax type for this access group
-
-group.tax-service.review.h1=You have selected all “{0}” clients
-group.tax-service.review.legend=Continue with selected clients?
-group.tax-service.review.yes=Yes, continue to naming group
-group.tax-service.review.no=No, start again
-group.tax-service.review.error=Select yes if you would like to create a group of this type
-
-group.create.name.h1=Custom access group
-group.create.name.label=What do you want to call this access group?
-group.name.max.length=Access group name must be 50 characters or fewer
-group.name.required=Enter an access group name
-group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
-group.confirm.h1=Confirm access group name
-group.confirm.name.label=Is the access group name ‘{0}’ correct?
-group.name.confirm.required.error=Select yes if the access group name is correct
-
-group.client.search.h1=Search for clients
-
-group.client.list.h1=Select clients
-select.members.list.h1=Select team members
-group.client.list.1.h2=Showing {0} results for ‘{1}’
-group.client.list.2.h2=Showing {0} results for ‘{1}’ and ‘{2}’
-client-filter.text.label=Filter by tax reference or client reference
-client-filter.select.label=Filter by tax service
-client-filter.select.label.empty-option=Choose tax service
-
-group.client.list.table.checkbox=Checkboxes
-group.client.list.table.th1=Client reference
-group.client.list.table.th2=Tax reference
-group.client.list.table.th3=Tax service
-error.client.list.empty=You must select at least one client 
-
-group.clients.review.h1=You have selected {0} clients
-group.clients.add.review.h1=You have selected {0} clients to add to the group
-group.clients.add.review.client.removed.confirm={0} removed from clients to add
-group.clients.review.title=Review selected clients
-group.clients.review.radio.legend=Do you need to select more clients?
-group.clients.review.yes.label=Yes, select more clients
-group.clients.review.no.label=No, continue to adding team members
-group.clients.review.error=Select yes if you need to select more clients
-group.clients.review.error.no-clients=You have removed all clients, select at least one to continue
-group.client.review.remove.error=Select yes if you no longer want to add this client to the access group
-
-group.client.remove.error=Select yes if you need to remove this client from the access group
-group.member.remove.error=Select yes if you need to remove this team member from the access group
-group.member.selected.remove.error=Select yes if you no longer want to add this team member to the access group
-
-group.select.members.list.h1=Select team members
-group.update.members.list.h1=Update team members in this group
-group.members.list.filter.label=Filter by name or email
-group.members.list.table.th1=Name
-group.members.list.table.th2=Email
-group.members.list.table.th3=Role
-error.members.list.empty=You must select at least one team member 
-
-group.teamMembers.review.h1=You have selected {0} team members
-group.selected.teamMembers.change=Add more team members
-group.teamMembers.review.title=Review selected team members
-group.teamMembers.review.radio.legend=Do you need to select more team members?
-group.teamMembers.review.yes.label=Yes, select more team members
-group.teamMembers.review.no.label=No, continue
-group.teamMembers.review.error=Select yes if you need to select more team members
-group.teamMembers.review.error.no-members=You have removed all team members, select at least one to continue
-
-group.teamMembers.review.remove.error=Select yes if you no longer want to add this client to the access group
-group.teamMembers.added.flash.message={0} team members added
-
-group.created.h1=Access group created
-group.created.panelContent={0} access group is now active
-group.created.p=The team members you selected can now view and manage the tax affairs of all the clients in this access group
-
-group.manage.h1=Manage access groups
-group.manage.p=The team members in the group will be able to manage the tax affairs of clients in the group.
-group.manage.tabs.2.label=Unassigned clients
-
-group.manage.no.groups.h3=No groups found
-group.manage.no.groups.p=Update your filters and try again or clear your filters to see all your groups
-group.manage.no.groups.button=Create new access group
-group.manage.rename=Rename group
-group.manage.delete=Delete group
-group.manage.clients=Manage clients
-group.view.clients=View clients
-group.manage.members=Manage team members
-client.removed.confirm={0} removed from this access group.
-group.existing.clients.h1=Manage clients in this group
-group.existing.clients.title=Manage clients - {0}
-group.existing.clients.button=Add more clients
-group.existing.custom.groups.button=Create custom access group
-group.client.list.update.h1=Update clients in this group
-group.clients.added.confirm={0} clients added.
-group.renamed.h1=Access group renamed
-group.renamed.panelContent=<strong>{0}</strong> access group renamed to <strong>{1}</strong>
-
-tax-group.client.excluded=Client removed
-tax-group.clients.tax.info=This is a tax service group which updates automatically. New clients will be added as soon as they authorise you to manage their {0}. Clients will also be removed if you cancel your authorisation to manage their {0}.
-tax-group.clients.confirm.p1=If you remove Eve Adams from this tax group, only team members in their remaining groups can manage their tax.
-tax-group.client.removed.confirm={0} has been removed from this access group. <a href="{1}">View their client details</a> to see any other groups they are in.
-tax-group.manage.removed.clients.h1=Removed clients
-tax-group.manage.removed.clients.h2=Showing {0} Removed {1} clients
-tax-group.manage.removed.clients.updated={0} Removed clients have been put back in the group
-tax-group.manage.removed.clients.submit=Add selected clients back into group
-tax-group.manage.removed.clients.view=View removed clients
-tax-group.manage.removed.clients.not-found.p=There are no excluded clients for this group
-tax-group.manage.removed.clients.not-found.back=Back to tax group clients
-
-group.delete.name.label=Are you sure you want to delete {0} access group?
-group.delete.select.error=Select ‘yes’ if you would like to delete the group
-
-group.deleted.h1={0} access group deleted
-group.deleted.p=Clients from this group will now be visible to all team members, unless they are in other groups.
-
-access-group-name-exists.title=Access group name already exists
-access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.
-access-group-name-exists.button=Enter a new access group name
-
-access-group-name-exceed-groups.title=You have already created all the tax service access groups
-access-group-name-exceed-groups.p=Your organisation has already created groups for all the tax services you offer. you can still create custom access groups.
-
-group.manage.confirm.updated.clients.h1={0} access group clients updated
-group.manage.confirm.updated.clients.p=You have changed the clients that can be managed by the team members in this access group.
-
-group.manage.confirm.updated.team-members.h1={0} access group team members updated
-group.manage.confirm.updated.team-members.p=The team members you selected can view and manage the tax affairs of all the clients in this access group.
-
-unassigned.client.list.p=These clients are visible to all team members.
-unassigned.client.assign.hint=Select all that apply
-unassigned.client.assign.h1=Which access groups would you like to add the selected clients to?
-unassigned.client.assign.existing.or.new.error=You cannot add to existing groups at the same time as creating a new group
-unassigned.client.assign.nothing.selected.error=You must select an access group or add a new group
-unassigned.client.no.groups.h1=You do not have any access groups. Add these clients to a new access group
-unassigned.client.no.groups.button=Add to a new access group
-
-clients.assigned.complete.h1=Clients added to access groups
-clients.assigned.complete.p=You have added these clients to the following groups:
-
-details.no-data=We could not retrieve this
-details.clients=Client details
-details.team-members=Team member details
-details.link-hidden= for {0}
-
-role.standard=Standard
+paginated.clients.showing=Showing {0} to {1} of {2} clients
+paginated.team-members.for.search=for the search term ‘{0}’
+paginated.team-members.showing=Showing {0} to {1} of {2} team members
 role.admin=Administrator
-details.team-members.role.admin=Administrator - Can manage access groups and client details.
-details.team-members.role.standard=Standard - Can view assigned access groups and clients.
-
-common.details.assign-to-group=Add to custom access groups
-common.details.not-assigned=Not assigned to a group
-common.details.groups.header=Member of these groups
-
-update-client-reference=Update client reference
-update-client-reference.caption=Tax reference: {0}
-update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
-error.client-reference.required=Enter client reference
-error.client-reference.max-length=Client reference must be 80 characters or fewer
-error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
-
-client-reference.updated.h1=Client reference will update shortly
-client-reference.updated.p=You have asked us to update this client reference in your agent services account. We’ll update it to {0} in the next two hours. We will not change the client reference in other HMRC online services.
-error.group.filter.max.length=You can only enter 32 characters or fewer
-error.group.filter.required=You must enter a group name or part of it
-error.group.filter.invalid=Group name must not include the characters < or >
-group-name-filter.text.label=Filter by group name
-
-client.select.groups.h1=Which custom access groups would you like to add {0} to?
-client.select.groups.p1=Client is currently in these access groups:
-client.select.groups.hint=You can only add clients to custom groups manually. Select all that apply.
-client.select.groups.none=Client is currently not in any access groups
-error.client.select.groups.empty=You must select at least one group
-client.select.groups.none.h1=There are no available groups to add {0} to
-client.select.back=Back to {0}
-
-client.not.found.error.h1=Client not found
-client.not.found.error.p=Please check the url or return to the Manage groups page
-client.manage-clients.back=Back to manage clients page
-
-client.added.to.groups.title=Client {0} added to access groups {1}
-client.added.to.groups.h1=Client added to access groups
-client.added.to.groups.p1=You have added {0} to the following groups:
-client.added.to.groups.p2=The team members in these access groups can now view and manage the tax affairs of the client you added.
-
-member.select.groups.h1=Which access groups would you like to add {0} to?
-member.select.groups.none=Team member is currently not in any access groups
-member.select.groups.p1=Team member is currently in these access groups:
-member.select.groups.none.h1=There are no available groups to add {0} to
-member.select.back=Back to {0}
-error.member.select.groups.empty=You must select at least one group
-
-member.not.found.error.h1=Team member not found
-member.not.found.error.p=Please check the url or return to the Manage team members page
-member.manage-team-members.back=Back to manage team members page
-
-member.added.to.groups.title=Team member {0} added to access groups {1}
-member.added.to.groups.h1=Team member added to access groups
-member.added.to.groups.p1=You have added {0} to the following groups:
-member.added.to.groups.p2={0} can now view and manage the tax affairs of the clients in these access groups.
-ending.in=ending in {0}
-assistant.clients.group.h1={0} clients
-assistant.clients.group.p=You can manage these clients’ tax as you are in this access group.
-assistant.clients.unassigned.h1=Other clients you can manage
-assistant.clients.unassigned.p=You can manage these clients’ tax as they are not in any access groups. 
-
+role.standard=Standard
+save.and.continue.button=Save and continue
+select.members.list.h1=Select team members
+service.name = Agent services account
 signout.h1=You have signed out
 signout.signin.again.a=Sign in again
 signout.signin.again.p=to use this service.
+submit.button=Submit
+tax-group.client.excluded=Client removed
+tax-group.client.removed.confirm={0} has been removed from this access group. <a href="{1}">View their client details</a> to see any other groups they are in.
+tax-group.clients.confirm.p1=If you remove Eve Adams from this tax group, only team members in their remaining groups can manage their tax.
+tax-group.clients.tax.info=This is a tax service group which updates automatically. New clients will be added as soon as they authorise you to manage their {0}. Clients will also be removed if you cancel your authorisation to manage their {0}.
+tax-group.manage.removed.clients.h1=Removed clients
+tax-group.manage.removed.clients.h2=Showing {0} Removed {1} clients
+tax-group.manage.removed.clients.not-found.back=Back to tax group clients
+tax-group.manage.removed.clients.not-found.p=There are no excluded clients for this group
+tax-group.manage.removed.clients.submit=Add selected clients back into group
+tax-group.manage.removed.clients.updated={0} Removed clients have been put back in the group
+tax-group.manage.removed.clients.view=View removed clients
+tax-service.cgt=Capital Gains Tax on UK Property account
+tax-service.mdt-it=Making Tax Digital for Income Tax
+tax-service.ppt=Plastic Packaging Tax
+tax-service.trusts=Maintain a Trust or Estate
+tax-service.vat=VAT
+team-members.not-found.heading=No team members found
+team-members.not-found.p=Update your filters and try again or clear your filters to see all your team members
 timeout.h1=You have been signed out
 timeout.p=You have not done anything for 15 minutes, so we have signed you out to keep your account secure.
+unassigned-clients.not-found.heading=No unassigned clients found
+unassigned-clients.not-found.p=Update your filters and try again or clear your filters to see all your unassigned clients
+unassigned.client.assign.existing.or.new.error=You cannot add to existing groups at the same time as creating a new group
+unassigned.client.assign.h1=Which access groups would you like to add the selected clients to?
+unassigned.client.assign.hint=Select all that apply
+unassigned.client.assign.nothing.selected.error=You must select an access group or add a new group
+unassigned.client.list.p=These clients are visible to all team members.
+unassigned.client.no.groups.button=Add to a new access group
+unassigned.client.no.groups.h1=You do not have any access groups. Add these clients to a new access group
+update-client-reference.caption=Tax reference: {0}
+update-client-reference.text=Please note that adding a client reference here does not update the client’s details in the Government Gateway account. It only affects the client reference in your access groups.
+update-client-reference=Update client reference
+you-have-opted-in.button.ready.false=Return to manage account
+you-have-opted-in.button.ready.true=Create access group
+you-have-opted-in.h1.ready.false=You have turned on access groups but we need some time to gather the client data
+you-have-opted-in.h1.ready.true=You have turned on access groups
+you-have-opted-in.p1.ready.false=Your client data is currently being processed.
+you-have-opted-in.p1.ready.true=You can now create access groups for your clients and assign your team members to each access group. Any access groups created in the past have been restored. 
+you-have-opted-in.p2.ready.false=You will receive a confirmation email to let you know when this is done and what to do next.
+you-have-opted-in.p2.ready.true=Clients and team members can be in more than one access group and you can make changes to these assignments whenever you need to.
+you-have-opted-out.h1=You have turned off access groups
+you-have-opted-out.p1=You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients.
+you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account’ page.

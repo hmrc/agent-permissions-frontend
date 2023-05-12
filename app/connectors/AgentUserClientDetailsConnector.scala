@@ -21,8 +21,9 @@ import com.codahale.metrics.MetricRegistry
 import com.google.inject.ImplementedBy
 import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
+import models.AgencyDetails
 import play.api.Logging
-import play.api.http.Status.{ACCEPTED, NO_CONTENT, OK}
+import play.api.http.Status.{ACCEPTED, NOT_FOUND, NO_CONTENT, OK}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
 import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
@@ -50,6 +51,7 @@ trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   def updateClientReference(arn: Arn, client: Client)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
+  def getAgencyDetails(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgencyDetails]]
 }
 
 @Singleton
@@ -146,5 +148,16 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
 
   }
 
-
+  override def getAgencyDetails(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgencyDetails]] = {
+    val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/agency-details"
+    monitor("ConsumedAPI-agency-details-GET") {
+      http.GET[HttpResponse](url).map { response =>
+        response.status match {
+          case OK => response.json.asOpt[AgencyDetails]
+          case NOT_FOUND => None
+          case e => throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}", e)
+        }
+      }
+    }
+  }
 }

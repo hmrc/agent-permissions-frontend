@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.CUSTOM
 import controllers.actions.AuthAction
 import helpers.Css._
@@ -620,9 +620,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
-      expectGetGroupById(groupId, Some(customGroup))
       val expectedUsersToAdd = teamMembers.map(tm => toAgentUser(tm)).toSet
-      expectUpdateGroup(groupId, UpdateAccessGroupRequest(teamMembers = Some(expectedUsersToAdd)))
+      expectAddMembersToGroup(groupId, AddMembersToAccessGroupRequest(teamMembers = Some(expectedUsersToAdd)))
       expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
       val result = controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)(request)

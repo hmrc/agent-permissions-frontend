@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.TAX_SERVICE
 import controllers.actions.AuthAction
 import helpers.Css._
@@ -592,9 +592,9 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectGetTaxGroupById(groupId, Some(taxGroup))
-      expectGetTaxGroupById(groupId, Some(taxGroup))
-      val expectedUsersToAdd = teamMembers.map(tm => toAgentUser(tm)).toSet ++ taxGroup.teamMembers
-      expectUpdateTaxGroup(groupId, UpdateTaxServiceGroupRequest(teamMembers = Some(expectedUsersToAdd)))
+      val expectedUsersToAdd = teamMembers.map(tm => toAgentUser(tm)).toSet
+      expectAddMembersToGroup(groupId, AddMembersToAccessGroupRequest(teamMembers = Some(expectedUsersToAdd)))
+
       expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
       val result = controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)(request)

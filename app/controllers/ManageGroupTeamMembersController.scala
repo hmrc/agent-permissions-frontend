@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.{UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
+import connectors.AddMembersToAccessGroupRequest
 import controllers.GroupType.{CUSTOM, isCustom}
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
@@ -352,25 +352,14 @@ class ManageGroupTeamMembersController @Inject()
                   if (yes)
                     Redirect(controller.showExistingGroupTeamMembers(group.groupId, groupType, None)).toFuture
                   else {
-                    withAccessGroup(groupId, GroupType.isCustom(groupType)) { accessGroup =>
-                      val membersAlreadyInGroup: Seq[TeamMember] = agentUsersInGroupAsTeamMembers(accessGroup)
-                      val existingPlusNewMembers = Some((membersToAdd :++ membersAlreadyInGroup).map(tm => toAgentUser(tm)).toSet)
-                      if (group.isTaxGroup) {
-                        val groupRequest = UpdateTaxServiceGroupRequest(teamMembers = existingPlusNewMembers)
-                        taxGroupService.updateGroup(groupId, groupRequest).map(_ => {
-                          sessionCacheService.delete(SELECTED_TEAM_MEMBERS)
-                          Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
-                            .flashing("success" -> request.messages("group.teamMembers.added.flash.message", membersToAdd.size))
-                        }
-                        )
-                      } else {
-                        val groupRequest = UpdateAccessGroupRequest(teamMembers = existingPlusNewMembers)
-                        groupService.updateGroup(groupId, groupRequest).map(_ => {
-                          sessionCacheService.delete(SELECTED_TEAM_MEMBERS)
-                          Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
-                            .flashing("success" -> request.messages("group.teamMembers.added.flash.message", membersToAdd.size))
-                        })
-                      }
+                    val agents = membersToAdd.map(toAgentUser(_)).toSet
+                    val addMembersRequest = AddMembersToAccessGroupRequest(teamMembers = Some(agents))
+                    for {
+                      _ <- groupService.addMembersToGroup(groupId, addMembersRequest)
+                      _ <- sessionCacheService.delete(SELECTED_TEAM_MEMBERS)
+                    } yield {
+                      Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
+                        .flashing("success" -> request.messages("group.teamMembers.added.flash.message", membersToAdd.size))
                     }
                   }
                 }

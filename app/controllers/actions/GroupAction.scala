@@ -87,21 +87,6 @@ class GroupAction @Inject()
     }
   }
 
-  def withAccessGroup(groupId: GroupId, isCustom: Boolean = true)
-                     (callback: AccessGroup => Future[Result])
-                     (implicit ec: ExecutionContext, hc: HeaderCarrier,
-                      request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
-    if (isCustom) {
-      groupService
-        .getGroup(groupId)
-        .flatMap(_.fold(groupNotFound())(customGroup => callback(customGroup)))
-    } else {
-      taxGroupService
-        .getGroup(groupId)
-        .flatMap(_.fold(groupNotFound())(taxGroup => callback(taxGroup)))
-    }
-  }
-
   def withGroupSummaryForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)
                                              (callback: (GroupSummary, Arn) => Future[Result])
                                              (implicit ec: ExecutionContext,

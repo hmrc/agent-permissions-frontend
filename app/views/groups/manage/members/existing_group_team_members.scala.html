@@ -48,7 +48,6 @@
             @h1(msgs("group.manage.members"))
         </div>
 
-        @* TODO use a partial *@
         @govukSkipLink(
             SkipLink(
                 href = "#members",
@@ -68,7 +67,7 @@
 
         @link_as_button(
             key = "group.selected.teamMembers.change",
-            href = routes.ManageGroupTeamMembersController.showManageGroupTeamMembers(group.groupId, group.groupType, None).url,
+            href = routes.ManageGroupTeamMembersController.showAddTeamMembers( group.groupType,group.groupId, None).url,
             id = "update-team-members-button")
 
     } else {

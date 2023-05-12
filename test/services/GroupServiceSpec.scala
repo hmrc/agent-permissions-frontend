@@ -376,7 +376,7 @@ class GroupServiceSpec extends BaseSpec {
       val output: Seq[TeamMember] = await(service.getTeamMembersFromGroup(arn)(teamMembersInGroup))
 
       //then
-      output shouldBe teamMembersInGroup.map(_.copy(selected = true)).sortBy(_.name)
+      output shouldBe teamMembersInGroup.map(_.copy(alreadyInGroup = true, selected = false)).sortBy(_.name)
     }
   }
 

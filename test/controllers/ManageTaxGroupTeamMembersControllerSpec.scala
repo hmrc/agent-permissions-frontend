@@ -22,8 +22,9 @@ import controllers.GroupType.TAX_SERVICE
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
+import models.TeamMember.toAgentUser
 import models.{AddTeamMembersToGroup, GroupId, TeamMember}
-import org.apache.commons.lang3.RandomStringUtils.random
+import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
@@ -32,7 +33,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, TaxGroup, UserDetails}
+import uk.gov.hmrc.agents.accessgroups.{AgentUser, GroupSummary, TaxGroup, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -49,10 +50,10 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val teamMemberService: TeamMemberService = mock[TeamMemberService]
 
-  val groupId = "xyz"
-  private val agentUser: AgentUser = AgentUser(random(5), "Rob the Agent")
+  val groupId = GroupId.random()
+  private val agentUser: AgentUser = AgentUser(randomAlphanumeric(5), "Rob the Agent")
   val taxGroup: TaxGroup = new TaxGroup(
-    GroupId.random(),
+    groupId,
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
@@ -64,6 +65,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     false,
     Set.empty
   )
+
+  val taxGroupSummary = GroupSummary.of(taxGroup)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -101,18 +104,23 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   val controller: ManageGroupTeamMembersController = fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
   private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
-  s"GET ${ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url}" should {
+
+  def expectAuthOkOptedInReady(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+  }
+
+  s"GET ${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup.copy(teamMembers = agentUsers)))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.showExistingGroupTeamMembers(groupId, TAX_SERVICE)(request)
 
       //then
       status(result) shouldBe OK
@@ -131,27 +139,24 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(0).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(1).text() shouldBe "john5@abc.com"
       trs.get(4).select("td").get(2).text() shouldBe "Administrator"
-      html.select("a#update-team-members-button").text() shouldBe "Update team members"
+      html.select("a#update-team-members-button").text() shouldBe "Add more team members"
     }
 
     "render with name/email searchTerm set" in {
       //given
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url +
+        ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup.copy(teamMembers = agentUsers)))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
-
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, TAX_SERVICE)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -174,18 +179,16 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url + "?submit=filter&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup.copy(teamMembers = agentUsers)))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, TAX_SERVICE)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -208,18 +211,16 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup.copy(teamMembers = agentUsers)))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, TAX_SERVICE)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -239,41 +240,35 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup.copy(teamMembers = agentUsers)))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, TAX_SERVICE)(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url)
     }
   }
 
-  s"GET ${ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url}" should {
+  s"GET ${ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None).url}" should {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectAuthOkOptedInReady()
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup.copy(teamMembers = Set.empty)))
+      expectGetTaxGroupById(groupId, Some(taxGroup.copy(teamMembers = Set.empty)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
       expectGetPageOfTeamMembers(arn)(teamMembers)
-      expectPutSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
 
       //when
-      val result = controller.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None)(request)
+      val result = controller.showAddTeamMembers(TAX_SERVICE, groupId, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -298,19 +293,15 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page filtered results exist" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       val membersInGroup = teamMembers.take(4)
       expectGetTeamMembersFromGroup(arn)(membersInGroup)
       expectGetPageOfTeamMembers(arn)(membersInGroup)
-      expectPutSessionItem(SELECTED_TEAM_MEMBERS, membersInGroup)
 
       //when
-      val result = controller.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None)(request)
+      val result = controller.showAddTeamMembers(TAX_SERVICE, groupId, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -339,20 +330,15 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectAuthOkOptedInReady()
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetPageOfTeamMembers(arn)(teamMembers)
       val membersInGroup = teamMembers.take(4)
       expectGetTeamMembersFromGroup(arn)(membersInGroup)
-      expectPutSessionItem(SELECTED_TEAM_MEMBERS, membersInGroup)
-
 
       //when
-      val result = controller.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None)(request)
+      val result = controller.showAddTeamMembers(TAX_SERVICE, groupId, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -375,12 +361,12 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${ctrlRoute.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE).url}" should {
+  s"POST to ${ctrlRoute.submitAddTeamMembers(TAX_SERVICE, groupId).url}" should {
 
-    s"successfully post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE, None).url}" in {
+    s"successfully post redirect to ${ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url}" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(TAX_SERVICE, groupId).url)
           .withFormUrlEncodedBody(
             "members[0]" -> teamMembers.head.id,
             "members[1]" -> teamMembers.last.id,
@@ -389,26 +375,23 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
       val expectedFormData = AddTeamMembersToGroup(None, Some(List(teamMembers.head.id, teamMembers.last.id)), CONTINUE_BUTTON) // checks formData =>
-
       expectSavePageOfTeamMembers(expectedFormData, teamMembers) // checks .savePageOfTeamMembers(formData)
 
-      val result = controller.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitAddTeamMembers(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
 
     }
 
     "display error when none selected and CONTINUE button pressed" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(TAX_SERVICE, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -416,15 +399,13 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitAddTeamMembers(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -439,7 +420,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     "NOT display error when filter button is pushed with no search value" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(TAX_SERVICE, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -447,16 +428,14 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(None, None, FILTER_BUTTON)
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitAddTeamMembers(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
 
@@ -465,7 +444,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     s"go to next page when $PAGINATION_BUTTON is pushed" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(TAX_SERVICE, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -473,26 +452,24 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(None, None, s"${PAGINATION_BUTTON}_2")
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitAddTeamMembers(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, Option(2)).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, Option(2)).url)
 
     }
 
-    s"redirect to ${ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url} when the Filter is clicked " in {
+    s"redirect to ${ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None).url} when the Filter is clicked " in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(TAX_SERVICE, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "1",
@@ -500,52 +477,44 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(Some("1"), None, FILTER_BUTTON)
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitAddTeamMembers(TAX_SERVICE, groupId)(request)
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url
+        ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None).url
     }
   }
 
-  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE, None).url}" should {
-
+  s"GET ${ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url}" should {
 
     "redirect if no team members selected in session" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
     }
 
     "render correctly the manage group REVIEW SELECTED page" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers ++ teamMembers2)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE, Option(1))(request)
+      val result = controller.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, Option(1), None)(request)
 
       //then
       status(result) shouldBe OK
@@ -563,7 +532,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       paginationListItems.get(0).text() shouldBe "1"
       paginationListItems.get(1).text() shouldBe "2"
       paginationListItems.get(1).select("a")
-        .attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE, Option(2)).url + "&pageSize=10"
+        .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, Option(2), None).url + "&pageSize=10"
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more team members?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
@@ -576,49 +545,79 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 
     }
+
+    "render correctly when only 1 team member selected (you can't remove the last member)" in {
+      //given
+      expectAuthOkOptedInReady()
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+
+      //when
+      val result = controller.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, Option(1), None)(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      //and
+      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "You have selected 1 team members"
+
+      val tableOfSelectedMembers = html.select(Css.tableWithId("members"))
+      //only 3 table columns as REMOVE link (i.e. normally the last table column) should not be present
+      tableOfSelectedMembers.select("tbody tr").size() shouldBe 1
+      val headCells = tableOfSelectedMembers.select("thead tr th")
+      headCells.size() shouldBe 3
+      headCells.get(2).text shouldBe "Role"
+      val row1Cells = tableOfSelectedMembers.select("tbody tr td")
+      row1Cells.get(2).text shouldBe "Administrator"
+      row1Cells.size() shouldBe 3
+
+      //no pagination as only 1 member selected
+      val paginationListItems = html.select(Css.pagination_li)
+      paginationListItems.size() shouldBe 0
+
+    }
   }
 
-  s"POST ${ctrlRoute.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE).url}" should {
+  s"POST ${ctrlRoute.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId).url}" should {
 
-    s"redirect to '${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(taxGroup.id, TAX_SERVICE)}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None)}' page with answer 'false'" in {
 
-      implicit val request = FakeRequest("POST",
-        s"${controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)}")
+      val endpoint = s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}"
+      implicit val request = FakeRequest("POST", endpoint)
         .withFormUrlEncodedBody("answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
-      expectUpdateTaxGroup(taxGroup.id, UpdateTaxServiceGroupRequest(teamMembers = Some(agentUsers)))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      val expectedUsersToAdd = teamMembers.map(tm => toAgentUser(tm)).toSet ++ taxGroup.teamMembers
+      expectUpdateTaxGroup(groupId, UpdateTaxServiceGroupRequest(teamMembers = Some(expectedUsersToAdd)))
+      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute
-        .showGroupTeamMembersUpdatedConfirmation(taxGroup.id, TAX_SERVICE).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
     }
 
-    s"redirect to '${ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None)}'" +
-      s" page with answer 'true'" in {
+    s"redirect to '${ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None)}' page with answer 'true'" in {
 
       implicit val request = FakeRequest("POST",
-        s"${controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)}")
+        s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
     }
 
     s"render errors when no radio button selected" in {
@@ -626,17 +625,15 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)}")
+          s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectGetTaxGroupById(groupId, Some(taxGroup))
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -647,72 +644,241 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url}' when no SELECTED_TEAM_MEMBERS in session" in {
+    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url}' when no SELECTED_TEAM_MEMBERS in session" in {
 
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)}")
+          s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
-      val result = controller.submitReviewSelectedTeamMembers(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url)
 
     }
   }
 
-  s"GET ${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(taxGroup.id, TAX_SERVICE).url}" should {
+  val memberToRemove = teamMembers.head
 
-    "redirect if no team members selected in session" in {
-      //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
-      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
+  s"GET ${ctrlRoute.showConfirmRemoveTeamMember(groupId, GroupType.TAX_SERVICE, memberToRemove.id).url}" should {
 
-      //when
-      val result = controller.showGroupTeamMembersUpdatedConfirmation(taxGroup.id, TAX_SERVICE)(request)
+    "render the confirm remove team member page" in {
 
-      //then
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(taxGroup.id, TAX_SERVICE, None).url
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectLookupTeamMember(arn)(memberToRemove)
+      expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
+      val result = controller.showConfirmRemoveTeamMember(groupId, GroupType.TAX_SERVICE, memberToRemove.id)(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
+
+
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE).url
+      html.select("label[for=answer]").text() shouldBe "Yes"
+      html.select("label[for=answer-no]").text() shouldBe "No"
+      html.select(Css.form + " input[name=answer]").size() shouldBe 2
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
     }
 
-    "render correctly the manage TEAM MEMBERS UPDATED page" in {
-      //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
-      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
+  }
+
+  s"POST confirm remove team member at:${ctrlRoute.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE).url}" should {
+
+    " remove from group and redirect to group team members list when 'yes' selected" in {
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectRemoveTeamMemberFromGroup(groupId, memberToRemove, false)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
+    }
+
+    "redirects to group members list when  'no' selected " in {
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(
+          "POST", s"${controller.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE)}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
+    }
+
+    "render errors when no selections of yes/no made" in {
+
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE)}")
+          .withFormUrlEncodedBody("ohai" -> "blah")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showGroupTeamMembersUpdatedConfirmation(taxGroup.id, TAX_SERVICE)(request)
+      val result = controller.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE)(request)
 
       //then
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Bananas access group team members updated - Agent services account - GOV.UK"
-      html.select(Css.confirmationPanelH1).text() shouldBe "Bananas access group team members updated"
-      html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
-      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups(None, None).url
-      html.select(Css.backLink).size() shouldBe 0
+      html.title() shouldBe "Error: Remove John 1 name from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this team member from the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this team member from the access group"
+
+    }
+  }
+
+  s"GET show confirm remove from team members to add ${ctrlRoute.showConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id).url}" should {
+
+    "render the confirm remove team member page" in {
+
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
+      val result = controller.showConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)(request)
+      // then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html.select(Css.paragraphs).isEmpty() shouldBe true
+      html
+        .select(Css.backLink)
+        .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
+
+
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id).url
+      html.select("label[for=answer]").text() shouldBe "Yes"
+      html.select("label[for=answer-no]").text() shouldBe "No"
+      html.select(Css.form + " input[name=answer]").size() shouldBe 2
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+
+    }
+
+    "redirect when no team member found" in {
+
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItemNone(MEMBER_TO_REMOVE)
+
+      val result = controller.showConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)(request)
+      // then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
+
     }
 
   }
 
+  //  actual GroupService.getCustomSummary(09ddd6b7-390b-4361-981c-51fe04d452c3, HeaderCarrier(None,None,Some(SessionId(session-x)),None,RequestChain(ee9c),783259514121333,List(),None,None,None,None,None,None,List((Host,localhost), (path,Action(parser=<function1>))))
+  //  expected GroupService.getCustomSummary(2230467a-02f7-4863-b8cc-79ae1a539527, *, *)
+  s"POST submitConfirmRemoveFromTeamMembersToAdd ${ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id).url}" should {
+
+    "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
+
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectPutSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.filterNot(_.id == memberToRemove.id))
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
+    }
+
+    "confirm remove client 'no' redirects to group clients list" in {
+
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+
+      val result = controller.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)(request)
+
+      status(result) shouldBe SEE_OTHER
+
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
+    }
+
+    "render errors when no selections of yes/no made" in {
+
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)}")
+          .withFormUrlEncodedBody("ohai" -> "blah")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)(request)
+
+      //then
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Error: Remove John 1 name from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you no longer want to add this team member to the access group"
+      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you no longer want to add this team member to the access group"
+
+    }
+  }
 }

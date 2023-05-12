@@ -192,13 +192,19 @@ group.members.list.table.th3=Role
 error.members.list.empty=You must select at least one team member 
 
 group.teamMembers.review.h1=You have selected {0} team members
-group.selected.teamMembers.change=Update team members
+group.selected.teamMembers.change=Add more team members
 group.teamMembers.review.title=Review selected team members
 group.teamMembers.review.radio.legend=Do you need to select more team members?
 group.teamMembers.review.yes.label=Yes, select more team members
 group.teamMembers.review.no.label=No, continue
 group.teamMembers.review.error=Select yes if you need to select more team members
 group.teamMembers.review.error.no-members=You have removed all team members, select at least one to continue
+
+group.teamMembers.add.review.h1=You have selected {0} team members to add to the group
+group.teamMembers.add.review.removed.confirm={0} removed from team members to add
+group.teamMembers.review.error.no-clients=You have removed all team members, select at least one to continue
+group.teamMembers.review.remove.error=Select yes if you no longer want to add this client to the access group
+group.teamMembers.added.flash.message={0} team members added
 
 cya.h1=Check your selection
 cya.p=Confirm clients and team members selected for this access group

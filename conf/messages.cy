@@ -174,7 +174,7 @@ group.members.list.table.th3=Swydd
 error.members.list.empty=Mae’n rhaid i chi ddewis o leiaf un aelod tîm
 
 group.teamMembers.review.h1=Rydych wedi dewis {0} aelod tîm
-group.selected.teamMembers.change=Diweddaru aelodau tîm
+group.selected.teamMembers.change=Ychwanegu mwy o aelodau tîm
 
 group.teamMembers.review.title=Adolygu aelodau’r tîm sydd wedi’u dewis
 group.teamMembers.review.radio.legend=Do you need to select more team members?

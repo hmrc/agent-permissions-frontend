@@ -58,7 +58,7 @@
                 Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse("")))
             )
             if(paginatedList.pageContent.size > 1) {
-                var removeLink = routes.ManageGroupTeamMembersController.showConfirmRemoveFromSelectedTeamMember(group.groupId, group.groupType, teamMember.id).url
+                var removeLink = routes.ManageGroupTeamMembersController.showConfirmRemoveFromTeamMembersToAdd( group.groupType,group.groupId, teamMember.id).url
                 row = row :+ (Html(a(key = msgs("common.remove"), href = removeLink).toString))
             }
             row
@@ -93,7 +93,7 @@
             @if(paginatedList.paginationMetaData.totalPages > 1) {
                 @GET_pagination(
                     pagination = paginatedList.paginationMetaData,
-                    baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewSelectedTeamMembers(group.groupId, group.groupType, None),
+                    baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewTeamMembersToAdd(group.groupType, group.groupId, None, None),
                     additionalParams = form.data
                 )
             }
@@ -105,7 +105,7 @@
             </div>
         }
 
-        @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewSelectedTeamMembers(group.groupId, group.groupType)) {
+        @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewTeamMembersToAdd(group.groupType, group.groupId)) {
             @radioButtons(
                 field = form("answer"),
                 items = Seq(

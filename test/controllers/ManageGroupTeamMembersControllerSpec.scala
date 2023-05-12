@@ -17,11 +17,12 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateAccessGroupRequest}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.CUSTOM
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
+import models.TeamMember.toAgentUser
 import models.{AddTeamMembersToGroup, GroupId, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils.random
 import org.jsoup.Jsoup
@@ -49,8 +50,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   val groupId = GroupId.random()
   private val agentUser: AgentUser = AgentUser(random(5), "Rob the Agent")
-  val accessGroup: CustomGroup = CustomGroup(
-    GroupId.random(),
+  val customGroup: CustomGroup = CustomGroup(
+    groupId,
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
@@ -59,7 +60,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     agentUser,
     Set.empty,
     Set.empty)
-  val groupSummary = GroupSummary.of(accessGroup)
+  val groupSummary = GroupSummary.of(customGroup)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -102,18 +103,18 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 
-  s"GET ${ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url}" should {
+  s"GET ${ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url}" should {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup.id, Some(accessGroup.copy(teamMembers = agentUsers)))
+      expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.showExistingGroupTeamMembers(groupId, CUSTOM)(request)
 
       //then
       status(result) shouldBe OK
@@ -132,14 +133,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(0).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(1).text() shouldBe "john5@abc.com"
       trs.get(4).select("td").get(2).text() shouldBe "Administrator"
-      html.select("a#update-team-members-button").text() shouldBe "Update team members"
+      html.select("a#update-team-members-button").text() shouldBe "Add more team members"
     }
 
     "render with name/email searchTerm set" in {
       //given
 
       implicit val requestWithQueryParams = FakeRequest(GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url +
+        ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url +
           "?submit=filter&search=John+1"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -147,12 +148,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup.id, Some(accessGroup.copy(teamMembers = agentUsers)))
+      expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
 
       //when
-      val result = controller.showExistingGroupTeamMembers(accessGroup.id, CUSTOM)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, CUSTOM)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -175,18 +176,18 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url + "?submit=filter&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup.id, Some(accessGroup.copy(teamMembers = agentUsers)))
+      expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(accessGroup.id, CUSTOM)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, CUSTOM)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -209,18 +210,18 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup.id, Some(accessGroup.copy(teamMembers = agentUsers)))
+      expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(accessGroup.id, CUSTOM)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, CUSTOM)(requestWithQueryParams)
 
       //then
       status(result) shouldBe OK
@@ -240,41 +241,39 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //given
       implicit val requestWithQueryParams = FakeRequest(
         GET,
-        ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
+        ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup.id, Some(accessGroup.copy(teamMembers = agentUsers)))
+      expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
       //when
-      val result = controller.showExistingGroupTeamMembers(accessGroup.id, CUSTOM)(requestWithQueryParams)
+      val result = controller.showExistingGroupTeamMembers(groupId, CUSTOM)(requestWithQueryParams)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url)
     }
   }
 
-  s"GET ${ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None).url}" should {
+  s"GET ${ctrlRoute.showAddTeamMembers(CUSTOM, groupId, None).url}" should {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetGroupById(accessGroup.id, Some(accessGroup.copy(teamMembers = Set.empty)))
+      expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = Set.empty)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
       expectGetPageOfTeamMembers(arn)(teamMembers)
-      expectPutSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
 
       //when
-      val result = controller.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None)(request)
+      val result = controller.showAddTeamMembers(CUSTOM, groupId, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -302,16 +301,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
       expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
-      expectGetGroupById(accessGroup.id, Some(accessGroup))
+      expectGetGroupById(groupId, Some(customGroup))
       val membersInGroup = teamMembers.take(4)
       expectGetTeamMembersFromGroup(arn)(membersInGroup)
       expectGetPageOfTeamMembers(arn)(membersInGroup)
-      expectPutSessionItem(SELECTED_TEAM_MEMBERS, membersInGroup)
 
       //when
-      val result = controller.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None)(request)
+      val result = controller.showAddTeamMembers(CUSTOM, groupId, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -343,17 +340,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectGetGroupById(accessGroup.id, Some(accessGroup))
+      expectGetGroupById(groupId, Some(customGroup))
       expectGetPageOfTeamMembers(arn)(teamMembers)
       val membersInGroup = teamMembers.take(4)
       expectGetTeamMembersFromGroup(arn)(membersInGroup)
-      expectPutSessionItem(SELECTED_TEAM_MEMBERS, membersInGroup)
-
 
       //when
-      val result = controller.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None)(request)
+      val result = controller.showAddTeamMembers(CUSTOM, groupId, None)(request)
 
       //then
       status(result) shouldBe OK
@@ -376,12 +370,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST to ${ctrlRoute.submitManageGroupTeamMembers(accessGroup.id, CUSTOM).url}" should {
+  s"POST to ${ctrlRoute.submitAddTeamMembers(CUSTOM, groupId).url}" should {
 
-    s"successfully post redirect to ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, None).url}" in {
+    s"successfully post redirect to ${ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url}" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup.id, CUSTOM).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(CUSTOM, groupId).url)
           .withFormUrlEncodedBody(
             "members[0]" -> teamMembers.head.id,
             "members[1]" -> teamMembers.last.id,
@@ -400,18 +394,18 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers) // checks .savePageOfTeamMembers(formData)
 
 
-      val result = controller.submitManageGroupTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitAddTeamMembers(CUSTOM, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        ctrlRoute.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, None).url
+        ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
 
     }
 
     "display error when none selected and CONTINUE button pressed" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup.id, CUSTOM).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(CUSTOM, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -427,7 +421,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitAddTeamMembers(CUSTOM, groupId)(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -442,7 +436,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     "NOT display error when filter button is pushed with no search value" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup.id, CUSTOM).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(CUSTOM, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -459,7 +453,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitAddTeamMembers(CUSTOM, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
 
@@ -468,7 +462,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     s"go to next page when $PAGINATION_BUTTON is pushed" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup.id, CUSTOM).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(CUSTOM, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "",
@@ -485,17 +479,17 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitAddTeamMembers(CUSTOM, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, Option(2)).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showAddTeamMembers(CUSTOM, groupId, Option(2)).url)
 
     }
 
-    s"redirect to ${ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None).url} when the Filter is clicked " in {
+    s"redirect to ${ctrlRoute.showAddTeamMembers(CUSTOM, groupId, None).url} when the Filter is clicked " in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitManageGroupTeamMembers(accessGroup.id, CUSTOM).url)
+        FakeRequest("POST", ctrlRoute.submitAddTeamMembers(CUSTOM, groupId).url)
           .withFormUrlEncodedBody(
             "members" -> "",
             "search" -> "1",
@@ -512,14 +506,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
 
       // when
-      val result = controller.submitManageGroupTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitAddTeamMembers(CUSTOM, groupId)(request)
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None).url
+        ctrlRoute.showAddTeamMembers(CUSTOM, groupId, None).url
     }
   }
 
-  s"GET ${ctrlRoute.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, None).url}" should {
+  s"GET ${ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url}" should {
 
     "redirect if no team members selected in session" in {
       //given
@@ -530,12 +524,11 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None)(request)
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
     }
 
     "render correctly the manage group REVIEW SELECTED page" in {
@@ -547,7 +540,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, Option(1))(request)
+      val result = controller.showReviewTeamMembersToAdd(CUSTOM, groupId, Option(1), None)(request)
 
       //then
       status(result) shouldBe OK
@@ -565,7 +558,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       paginationListItems.get(0).text() shouldBe "1"
       paginationListItems.get(1).text() shouldBe "2"
       paginationListItems.get(1).select("a")
-        .attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, Option(2)).url + "&pageSize=10"
+        .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, Option(2), None).url + "&pageSize=10"
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more team members?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
@@ -588,7 +581,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
       //when
-      val result = controller.showReviewSelectedTeamMembers(accessGroup.id, CUSTOM, Option(1))(request)
+      val result = controller.showReviewTeamMembersToAdd(CUSTOM, groupId, Option(1), None)(request)
 
       //then
       status(result) shouldBe OK
@@ -615,47 +608,43 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"POST ${ctrlRoute.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM).url}" should {
+  s"POST ${ctrlRoute.submitReviewTeamMembersToAdd(CUSTOM, groupId).url}" should {
 
-    s"redirect to '${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(accessGroup.id, CUSTOM)}' page with answer 'false'" in {
+    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None)}' page with answer 'false'" in {
 
       implicit val request = FakeRequest("POST",
-        s"${controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)}")
+        s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
         .withFormUrlEncodedBody("answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
-      expectUpdateGroup(accessGroup.id, UpdateAccessGroupRequest(teamMembers = Some(agentUsers)))
+      val expectedUsersToAdd = teamMembers.map(tm => toAgentUser(tm)).toSet
+      expectAddMembersToGroup(groupId, AddMembersToAccessGroupRequest(teamMembers = Some(expectedUsersToAdd)))
+      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
 
-      val result = controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute
-        .showGroupTeamMembersUpdatedConfirmation(accessGroup.id, CUSTOM).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
     }
 
-    s"redirect to '${ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None)}'" +
-      s" page with answer 'true'" in {
+    s"redirect to '${ctrlRoute.showAddTeamMembers(CUSTOM, groupId, None)}' page with answer 'true'" in {
 
       implicit val request = FakeRequest("POST",
-        s"${controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)}")
+        s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
-      val result = controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
     }
 
     s"render errors when no radio button selected" in {
@@ -663,7 +652,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)}")
+          s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -673,7 +662,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
-      val result = controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
@@ -684,12 +673,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url}' when no SELECTED_TEAM_MEMBERS in session" in {
+    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url}' when no SELECTED_TEAM_MEMBERS in session" in {
 
       implicit val request =
         FakeRequest(
           "POST",
-          s"${controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)}")
+          s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -699,57 +688,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
-      val result = controller.submitReviewSelectedTeamMembers(accessGroup.id, CUSTOM)(request)
+      val result = controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(accessGroup.id, CUSTOM, None).url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url)
 
     }
-  }
-
-  s"GET ${ctrlRoute.showGroupTeamMembersUpdatedConfirmation(accessGroup.id, CUSTOM).url}" should {
-
-    "redirect if no team members selected in session" in {
-      //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
-      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
-      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
-
-      //when
-      val result = controller.showGroupTeamMembersUpdatedConfirmation(accessGroup.id, CUSTOM)(request)
-
-      //then
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe
-        ctrlRoute.showManageGroupTeamMembers(accessGroup.id, CUSTOM, None).url
-    }
-
-    "render correctly the manage TEAM MEMBERS UPDATED page" in {
-      //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
-      expectDeleteSessionItem(SELECTED_TEAM_MEMBERS)
-
-      //when
-      val result = controller.showGroupTeamMembersUpdatedConfirmation(accessGroup.id, CUSTOM)(request)
-
-      //then
-      status(result) shouldBe OK
-
-      val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Bananas access group team members updated - Agent services account - GOV.UK"
-      html.select(Css.confirmationPanelH1).text() shouldBe "Bananas access group team members updated"
-      html.select("a#returnToDashboard").text() shouldBe "Return to manage access groups"
-      html.select("a#returnToDashboard").attr("href") shouldBe routes.ManageGroupController.showManageGroups(None, None).url
-      html.select(Css.backLink).size() shouldBe 0
-    }
-
   }
 
   val memberToRemove = teamMembers.head
@@ -757,7 +701,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showConfirmRemoveTeamMember(groupId, GroupType.CUSTOM, memberToRemove.id).url}" should {
 
     "render the confirm remove team member page" in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectLookupTeamMember(arn)(memberToRemove)
@@ -789,7 +733,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   s"POST confirm remove team member at:${ctrlRoute.submitConfirmRemoveTeamMember(groupId, CUSTOM).url}" should {
 
     " remove from group and redirect to group team members list when 'yes' selected" in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
@@ -809,7 +753,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
 
     "redirects to group members list when  'no' selected " in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
@@ -829,7 +773,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
 
     "render errors when no selections of yes/no made" in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
@@ -854,16 +798,15 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET show confirm remove from team members to add ${ctrlRoute.showConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id).url}" should {
+  s"GET show confirm remove from team members to add ${ctrlRoute.showConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id).url}" should {
 
-    "render the confirm remove client page" in {
-      val summary = GroupSummary.of(accessGroup)
+    "render the confirm remove team member page" in {
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
-      expectLookupTeamMember(arn)(memberToRemove)
-      expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
 
-      val result = controller.showConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id)(request)
+      val result = controller.showConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)(request)
       // then
       status(result) shouldBe OK
 
@@ -874,10 +817,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).isEmpty() shouldBe true
       html
         .select(Css.backLink)
-        .attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(groupId, CUSTOM, None).url
+        .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
 
 
-      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id).url
+      html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id).url
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -886,24 +829,26 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
 
     "redirect when no team member found" in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
-      expectLookupTeamMemberNone(arn)
+      expectGetSessionItemNone(MEMBER_TO_REMOVE)
 
-      val result = controller.showConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id)(request)
+      val result = controller.showConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)(request)
       // then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(groupId, CUSTOM, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
 
     }
 
   }
 
-  s"POST submitConfirmRemoveFromSelectedTeamMember ${ctrlRoute.submitConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id).url}" should {
+//  actual GroupService.getCustomSummary(09ddd6b7-390b-4361-981c-51fe04d452c3, HeaderCarrier(None,None,Some(SessionId(session-x)),None,RequestChain(ee9c),783259514121333,List(),None,None,None,None,None,None,List((Host,localhost), (path,Action(parser=<function1>))))
+//  expected GroupService.getCustomSummary(2230467a-02f7-4863-b8cc-79ae1a539527, *, *)
+  s"POST submitConfirmRemoveFromTeamMembersToAdd ${ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id).url}" should {
 
     "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
@@ -911,52 +856,52 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.filterNot(_.id == memberToRemove.id))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedTeamMember(groupId,CUSTOM,  memberToRemove.id)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
 
-      val result = controller.submitConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id)(request)
+      val result = controller.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)(request)
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(groupId, CUSTOM, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
     }
 
     "confirm remove client 'no' redirects to group clients list" in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
 
-      val result = controller.submitConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id)(request)
+      val result = controller.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)(request)
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(groupId, CUSTOM, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
     }
 
     "render errors when no selections of yes/no made" in {
-      val summary = GroupSummary.of(accessGroup)
+      val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id)}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)}")
           .withFormUrlEncodedBody("ohai" -> "blah")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.submitConfirmRemoveFromSelectedTeamMember(groupId, CUSTOM, memberToRemove.id)(request)
+      val result = controller.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)(request)
 
       //then
       status(result) shouldBe OK

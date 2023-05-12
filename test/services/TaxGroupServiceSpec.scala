@@ -158,4 +158,27 @@ class TaxGroupServiceSpec extends BaseSpec {
     }
   }
 
+  "add many members to a group" should {
+    "call put/update on agentPermissionsConnector" in {
+
+      //given
+      val groupId = GroupId.random()
+      val payload = AddMembersToTaxServiceGroupRequest(teamMembers = Some(Set(AgentUser("whatever", "Joseph Blogs"))))
+
+      (mockAgentPermissionsConnector
+        .addMembersToTaxGroup(_: GroupId, _: AddMembersToTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(groupId, payload, *, *)
+        .returning(Future successful Done)
+        .once()
+
+      //when
+      val response = await(service.addMembersToGroup(groupId, payload))
+
+      //then
+      response shouldBe Done
+
+
+    }
+  }
+
 }

@@ -1,0 +1,142 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.AppConfig
+@import controllers.routes
+@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import views.html.main_layout
+
+@import views.html.components.pagination.POST_pagination
+@import views.html.partials.search_and_filter
+
+@this(
+        layout: main_layout,
+        p: p, h1: h1, h2: h2, span: span,
+        caption: caption, table: table,
+        submit_button: submit_button,
+        search_and_filter: search_and_filter,
+        pagination: POST_pagination,
+        textbox: textbox,
+        info_text: info_text,
+        input_select: input_select,
+        checkbox: checkbox,
+        summaryErrors: SummaryErrors,
+        govukSkipLink: GovukSkipLink,
+        formWithCSRF: FormWithCSRF,
+)
+
+@(
+    teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
+    form: Form[AddTeamMembersToGroup],
+    formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers,
+    paginationMetaData: Option[PaginationMetaData] = None
+)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@tableRows = @{
+    teamMembers.zipWithIndex.map{ case(member, idx) =>
+        Seq(
+            Html(
+                if(member.alreadyInGroup){
+                    info_text("common.group.already.in").toString
+                }else{
+                    checkbox(
+                        name = Some("members[]"),
+                        id = Some(s"add-member-$idx"),
+                        value = Some(member.id),
+                        label = member.name,
+                        checked = member.selected
+                    ).toString
+                }
+
+            ),
+            Html(member.name),
+            Html(member.email),
+            Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
+        )
+
+    }
+
+
+}
+
+    @* Values used by JS selected client counter to enable counting selections on other pages. *@
+@totalResults = @{paginationMetaData.fold(teamMembers.length)(_.totalSize)}
+@totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
+
+@govukSkipLink(SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-teamMembers"))))
+
+@formWithCSRF(action = formAction) {
+
+    @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
+    <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
+    @if(teamMembers.nonEmpty) {
+
+        @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
+            @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
+        }
+
+        @if(form.errors.map(error => error.message).contains("error.select-teamMembers.empty")) {
+            <div class="govuk-form-group govuk-form-group--error">
+                <p id="teamMembers-error" class="govuk-error-message">
+                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-teamMembers.empty")
+                </p>
+                }
+
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-visually-hidden">
+            @msgs("select.members.list.h1")
+            </legend>
+            @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
+            <div id="teamMembers" tabindex="0">
+
+            @table(
+                caption = Some("common.teamMembers"),
+                captionClasses = "govuk-visually-hidden",
+                id = Some("multi-select-table"),
+                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
+                headings = Seq(
+                    (span(""), Map("id" -> "select-all")),
+                    (Html(msgs("group.members.list.table.th1")), Map.empty),
+                    (Html(msgs("group.members.list.table.th2")), Map.empty),
+                    (Html(msgs("group.members.list.table.th3")), Map.empty)
+                ),
+                rows = tableRows,
+            )
+            </div>
+        </fieldset>
+        @if(paginationMetaData.get.totalPages > 1) {
+            @pagination(pagination = paginationMetaData.get)
+        }
+        @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
+        @* the following 2 paragraphs are dependent on whether js enabled or not*@
+        @p(key = msgs("common.total.team-members.selected", totalSelected),
+            id = Some("member-count-text"),
+            attrs = Map("role" -> "status")
+        )
+
+        @p(key = msgs("already.selected.members.nonjs", totalSelected),
+            id = Some("member-count-text-non-js"),
+        )
+
+    } else {
+        <div id="teamMembers">
+            @h2("team-members.not-found.heading")
+            @p("team-members.not-found.p")
+        </div>
+    }
+
+    @submit_button()
+}

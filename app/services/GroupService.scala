@@ -127,7 +127,7 @@ class GroupServiceImpl @Inject()(
       groupTeamMembers = ugsAsTeamMembers
         .filter(tm => teamMembersInGroup.map(_.userId).contains(tm.userId))
         .sortBy(_.name)
-      groupTeamMembersSelected = groupTeamMembers.map(_.copy(selected = true)) // makes them selected
+      groupTeamMembersSelected = groupTeamMembers.map(_.copy(alreadyInGroup = true))
     } yield groupTeamMembersSelected
 
   def getGroupSummaries(arn: Arn)

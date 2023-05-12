@@ -32,7 +32,8 @@ case class TeamMember(
                        email: String,
                        userId: Option[String] = None,
                        credentialRole: Option[String] = None,
-                       selected: Boolean = false
+                       selected: Boolean = false,
+                       alreadyInGroup: Boolean = false
                      ) extends Selectable {
   private val hashKey = s"$name$email${userId.getOrElse(throw new RuntimeException("userId missing from TeamMember"))}"
   val id: String = MurmurHash3.stringHash(hashKey).toString

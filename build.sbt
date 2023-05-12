@@ -2,8 +2,6 @@ import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
 val appName = "agent-permissions-frontend"
 
-val silencerVersion = "1.7.8"
-
 TwirlKeys.templateImports ++= Seq(
   "views.html.components._",
   "views.html.main_layout",
@@ -30,7 +28,7 @@ lazy val microservice = Project(appName, file("."))
       "-Wconf:src=*html:w", // silence html warnings as they are wrong
       "-Wconf:cat=deprecation:s",
       "-Wconf:cat=unused-privates:s",
-      "-Wconf:msg=match may not be exhaustive:s", // silence warnings about non-exhaustive pattern matching
+      "-Wconf:msg=match may not be exhaustive:is", // summarize warnings about non-exhaustive pattern matching
     )
   )
   .configs(IntegrationTest)

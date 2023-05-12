@@ -18,14 +18,14 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.main_layout
-@import views.html.partials.paginated_selectable_team_members_table_form
+@import views.html.partials.existing_group_paginated_selectable_team_members_table_form
 
 @this(
     layout: main_layout,
     p: p, h1: h1, span: span, caption: caption,
     summaryErrors: SummaryErrors,
     table: table,
-    paginated_selectable_team_members_table_form: paginated_selectable_team_members_table_form
+    existing_group_paginated_selectable_team_members_table_form: existing_group_paginated_selectable_team_members_table_form
 )
 
 @(
@@ -62,10 +62,10 @@
         @p(s"common.group.max.clients")
     </div>
 
-    @paginated_selectable_team_members_table_form(
+    @existing_group_paginated_selectable_team_members_table_form(
         teamMembers,
         form,
-        controllers.routes.ManageGroupTeamMembersController.submitManageGroupTeamMembers(group.groupId, group.groupType),
+        controllers.routes.ManageGroupTeamMembersController.submitAddTeamMembers( group.groupType, group.groupId),
         paginationMetaData
     )
 

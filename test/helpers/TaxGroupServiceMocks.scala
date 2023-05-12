@@ -17,7 +17,7 @@
 package helpers
 
 import akka.Done
-import connectors.{AddOneTeamMemberToGroupRequest, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
+import connectors.{AddMembersToTaxServiceGroupRequest, AddOneTeamMemberToGroupRequest, CreateTaxServiceGroupRequest, UpdateTaxServiceGroupRequest}
 import models.GroupId
 import org.scalamock.scalatest.MockFactory
 import services.TaxGroupService
@@ -30,9 +30,9 @@ import scala.concurrent.{ExecutionContext, Future}
 trait TaxGroupServiceMocks extends MockFactory {
 
   def expectGetTaxGroupClientCount(arn: Arn)
-                                             (numberOfEachService: List[Int])
-                                             (implicit taxGroupService: TaxGroupService): Unit = {
-    val data : Map[String, Int] = Map(
+                                  (numberOfEachService: List[Int])
+                                  (implicit taxGroupService: TaxGroupService): Unit = {
+    val data: Map[String, Int] = Map(
       "HMRC-MTD-IT" -> numberOfEachService.head,
       "HMRC-MTD-VAT" -> numberOfEachService(1),
       "HMRC-CGT-PD" -> numberOfEachService(2),
@@ -46,7 +46,7 @@ trait TaxGroupServiceMocks extends MockFactory {
   }
 
   def expectCreateTaxGroup(arn: Arn)
-                       (implicit taxGroupService: TaxGroupService): Unit =
+                          (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
       .createGroup(_: Arn, _: CreateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
@@ -54,7 +54,7 @@ trait TaxGroupServiceMocks extends MockFactory {
       .once()
 
   def expectDeleteTaxGroup(id: GroupId)
-                       (implicit taxGroupService: TaxGroupService): Unit =
+                          (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
       .deleteGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
@@ -68,7 +68,7 @@ trait TaxGroupServiceMocks extends MockFactory {
       .returning(Future successful maybeGroup)
 
   def expectUpdateTaxGroup(id: GroupId, payload: UpdateTaxServiceGroupRequest)
-                       (implicit taxGroupService: TaxGroupService): Unit =
+                          (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
       .updateGroup(_: GroupId, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
@@ -76,9 +76,17 @@ trait TaxGroupServiceMocks extends MockFactory {
       .once()
 
   def expectAddOneMemberToTaxGroup(id: GroupId, payload: AddOneTeamMemberToGroupRequest)
-                               (implicit taxGroupService: TaxGroupService): Unit =
+                                  (implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
       .addOneMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
+
+  def expectAddMembersToTaxGroup(id: GroupId, payload: AddMembersToTaxServiceGroupRequest)
+                             (implicit taxGroupService: TaxGroupService): Unit =
+    (taxGroupService
+      .addMembersToGroup(_: GroupId, _: AddMembersToTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .expects(id, payload, *, *)
+      .returning(Future successful Done)
+
 }

@@ -48,6 +48,14 @@ object AddMembersToAccessGroupRequest {
   implicit val format: OFormat[AddMembersToAccessGroupRequest] = Json.format[AddMembersToAccessGroupRequest]
 }
 
+case class AddMembersToTaxServiceGroupRequest(teamMembers: Option[Set[AgentUser]] = None,
+                                              excludedClients: Option[Set[Client]] = None)
+
+object AddMembersToTaxServiceGroupRequest {
+  implicit val format: OFormat[AddMembersToTaxServiceGroupRequest] = Json.format[AddMembersToTaxServiceGroupRequest]
+}
+
+
 case class UpdateTaxServiceGroupRequest(
                                          groupName: Option[String] = None,
                                          teamMembers: Option[Set[AgentUser]] = None,

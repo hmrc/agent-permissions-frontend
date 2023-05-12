@@ -17,7 +17,7 @@
 package controllers
 
 import config.AppConfig
-import connectors.AddMembersToAccessGroupRequest
+import connectors.{AddMembersToAccessGroupRequest, AddMembersToTaxServiceGroupRequest}
 import controllers.GroupType.{CUSTOM, isCustom}
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
@@ -353,9 +353,13 @@ class ManageGroupTeamMembersController @Inject()
                     Redirect(controller.showExistingGroupTeamMembers(group.groupId, groupType, None)).toFuture
                   else {
                     val agents = membersToAdd.map(toAgentUser(_)).toSet
-                    val addMembersRequest = AddMembersToAccessGroupRequest(teamMembers = Some(agents))
                     for {
-                      _ <- groupService.addMembersToGroup(groupId, addMembersRequest)
+                      _ <- if (isCustom(groupType)) {
+                        val addMembersRequest = AddMembersToAccessGroupRequest(teamMembers = Some(agents))
+                        groupService.addMembersToGroup(groupId, addMembersRequest)
+                      } else {
+                        taxGroupService.addMembersToGroup(groupId, AddMembersToTaxServiceGroupRequest(teamMembers = Some(agents)))
+                      }
                       _ <- sessionCacheService.delete(SELECTED_TEAM_MEMBERS)
                     } yield {
                       Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))

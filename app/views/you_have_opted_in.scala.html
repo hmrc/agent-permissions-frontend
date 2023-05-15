@@ -20,7 +20,7 @@
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, a: a, link_as_button: link_as_button)
 
-@(optinStatus: OptinStatus)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(optinStatus: OptinStatus, email: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @ready = @{optinStatus == OptedInReady}
 
@@ -33,7 +33,7 @@
     @h1(s"you-have-opted-in.h1.ready.$ready")
     @h2(s"common.what.happens.next")
     @p(s"you-have-opted-in.p1.ready.$ready")
-    @p(s"you-have-opted-in.p2.ready.$ready")
+    @p(html = Some(Html(msgs(s"you-have-opted-in.p2.ready.$ready", email))))
 
     <div class="govuk-button-group">
         @link_as_button(key = s"you-have-opted-in.button.ready.$ready", href = continueUrl, classes = Some("govuk-!-margin-top-5"))

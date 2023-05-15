@@ -20,16 +20,20 @@ import com.google.inject.AbstractModule
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
+import models.AgencyDetails
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.http.{SessionKeys, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys, UpstreamErrorResponse}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class OptInControllerSpec extends BaseSpec {
 
@@ -281,6 +285,9 @@ class OptInControllerSpec extends BaseSpec {
       await(
         sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInNotReady))
 
+      // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
+      (mockAgentUserClientDetailsConnector.getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
+
       val result = controller.showYouHaveOptedIn()(request)
 
       status(result) shouldBe OK
@@ -296,12 +303,12 @@ class OptInControllerSpec extends BaseSpec {
       html
         .select(Css.paragraphs)
         .get(0)
-        .text() shouldBe "Your client data is currently being processed."
+        .text() shouldBe "We’re processing your client data."
 
       html
         .select(Css.paragraphs)
         .get(1)
-        .text() shouldBe "You will receive a confirmation email to let you know when this is done and what to do next."
+        .text() shouldBe "When this is done, we’ll let you know by emailing agency@email.com and we’ll tell you what to do next."
 
       html
         .select(Css.linkStyledAsButton)
@@ -317,6 +324,9 @@ class OptInControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
       await(
         sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInReady))
+
+      // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
+      (mockAgentUserClientDetailsConnector.getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 
       val result = controller.showYouHaveOptedIn()(request)
 

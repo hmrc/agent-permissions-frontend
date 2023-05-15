@@ -17,6 +17,7 @@
 package controllers
 
 import config.AppConfig
+import connectors.AgentUserClientDetailsConnector
 import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -33,6 +34,7 @@ class OptInController @Inject()(
    authAction: AuthAction,
    mcc: MessagesControllerComponents,
    optInStatusAction: OptInStatusAction,
+   aucdConnector: AgentUserClientDetailsConnector,
    optInService: OptInServiceImpl,
    start_optIn: start,
    want_to_opt_in: want_to_opt_in,
@@ -91,7 +93,10 @@ class OptInController @Inject()(
     implicit request =>
       isAuthorisedAgent { arn =>
         isOptedIn(arn) { status =>
-            Ok(you_have_opted_in(status)).toFuture
+          // In case of problems retrieving the email, I'm choosing to display a blank string rather than an error page
+          aucdConnector.getAgencyDetails(arn).map(_.flatMap(_.agencyEmail).getOrElse("")).recover {
+            case _ => ""
+          }.map(email => Ok(you_have_opted_in(status, email)))
         }
       }
   }

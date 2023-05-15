@@ -164,7 +164,7 @@ class ManageTaxGroupClientsController @Inject()
   }
 
   private def renderConfirmRemoveClient(group: TaxGroup, groupId: GroupId, clientToRemove: DisplayClient, formWithErrors: Form[Boolean])
-                                       (implicit request: Request[_]) : Result= {
+                                       (implicit request: MessagesRequest[_]) : Result= {
     Ok(
       confirm_remove_client(
         formWithErrors,
@@ -172,7 +172,7 @@ class ManageTaxGroupClientsController @Inject()
         clientToRemove,
         backLink = controller.showExistingGroupClients(groupId, None, None),
         formAction = controller.submitConfirmRemoveClient(groupId),
-        hintKey = Some("tax-group.clients.confirm.p1"),
+        hintKey = Some(request.messages("tax-group.clients.confirm.p1", clientToRemove.name)),
         legendKey = "common.group.remove.client"
       )
     )

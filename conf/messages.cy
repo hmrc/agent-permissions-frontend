@@ -232,7 +232,7 @@ signout.signin.again.p= i ddefnyddio’r gwasanaeth hwn.
 submit.button=Cyflwyno
 tax-group.client.excluded=Client removed
 tax-group.client.removed.confirm={0} has been removed from this access group. <a href="{1}">View their client details</a> to see any other groups they are in.
-tax-group.clients.confirm.p1=If you remove Even Adams from this group it will affect which team members can manage their tax. View their client details page to see if access to their tax will still be restricted to certain team members.
+tax-group.clients.confirm.p1=If you remove {0} from this group it will affect which team members can manage their tax. View their client details page to see if access to their tax will still be restricted to certain team members.
 tax-group.clients.tax.info=This is a tax service group which updates automatically. New clients will be added as soon as they authorise you to manage their {0}. Clients will also be removed if you cancel your authorisation to manage their {0}.
 tax-group.manage.removed.clients.h1=Removed clients
 tax-group.manage.removed.clients.h2=Showing {0} Removed {1} clients

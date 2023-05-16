@@ -58,7 +58,10 @@
     @p("common.group.max.clients3")
     @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
         @if(groups.isEmpty) {
+            <div class="govuk-button-group">
             @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")
+            <a class="govuk-link" href= @routes.ManageGroupController.submitManageGroups().url >Go to manage access groups</a>
+            </div>
         } else {
             <fieldset class="govuk-fieldset">
                 <legend class="govuk-visually-hidden">@heading</legend>

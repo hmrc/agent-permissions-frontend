@@ -76,7 +76,7 @@
             )
         }
         @a(
-            "common.details.assign-to-group",
+            if (teamMemberGroups.isEmpty) "common.details.assign-to-group.zero" else "common.details.assign-to-group.some",
             href = routes.AddTeamMemberToGroupsController.showSelectGroupsForTeamMember(teamMember.id).url
         )
 

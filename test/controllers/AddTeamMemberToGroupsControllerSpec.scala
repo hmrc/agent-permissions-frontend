@@ -272,7 +272,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Team member John Smith 1 added to access groups Group 1,Group 2 - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Team member added to access groups"
+      html.select(Css.H1).text() shouldBe "John Smith 1 added to access groups"
       html.select(Css.H2).text() shouldBe "What happens next"
       html.select(Css.li("groups-added-to")).get(0).text shouldBe "Group 1"
       html.select(Css.li("groups-added-to")).get(1).text shouldBe "Group 2"

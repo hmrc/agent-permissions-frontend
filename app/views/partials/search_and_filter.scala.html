@@ -23,7 +23,9 @@
     withFilter: Boolean = true,
     searchLabelKey: String  = "client-filter.text.label",
     filterLabelKey: String  = "client-filter.select.label",
-    emptyFilterOptionKey: String  = "client-filter.select.label.empty-option"
+    emptyFilterOptionKey: String  = "client-filter.select.label.empty-option",
+    applyButtonKey: Option[String] = None,
+    clearButtonKey: Option[String] = None,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @searchGridClass = @{if(withFilter) "govuk-grid-column-one-third" else "govuk-grid-column-one-half"}
@@ -57,7 +59,7 @@
         }
 
         <div class="govuk-grid-column-one-third @paddingTopType" id="button-wrapper">
-            @filter_buttons(additionalClasses = "")
+            @filter_buttons(additionalClasses = "", applyKey = applyButtonKey, clearKey = clearButtonKey)
         </div>
     </fieldset>
 </div>

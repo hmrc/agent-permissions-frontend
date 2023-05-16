@@ -40,6 +40,7 @@
     customError: Option[String] = None,
     hasTimeout: Boolean = true,
     backLinkHref: Option[String] = None,
+    backLinkTextKey: Option[String] = None,
     fullWidth: Boolean = false,
 )(mainContent: Html)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -93,6 +94,14 @@
     } src='@controllers.routes.Assets.versioned("javascripts/agent-permissions.js")'> </script>
 }
 
+@maybeBackLink = @{
+    (backLinkHref, backLinkTextKey) match {
+        case (None, _) => None
+        case (Some(href), None) => Some(BackLink(href = href))
+        case (Some(href), Some(textKey)) => Some(BackLink(href = href, content = Text(msgs(textKey))))
+    }
+}
+
 @hmrcLayout(
     pageTitle = pageTitle,
     serviceName = Some(msgs("service.name")),
@@ -100,7 +109,7 @@
     isWelshTranslationAvailable = true,
     serviceUrl = Some(appConfig.agentServicesAccountManageAccountUrl),
     signOutUrl = None,
-    backLinkUrl = backLinkHref,
+    backLink = maybeBackLink,
     nonce = CSPNonce.get,
     mainContentLayout = None,
     additionalHeadBlock = Some(head(hasTimeout)),

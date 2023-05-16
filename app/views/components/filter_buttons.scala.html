@@ -18,7 +18,7 @@
 
 @this(button: GovukButton)
 
-@(additionalClasses: String = "govuk-!-margin-bottom-7")(implicit msgs: Messages)
+@(additionalClasses: String = "govuk-!-margin-bottom-7", applyKey: Option[String] = None, clearKey: Option[String] = None)(implicit msgs: Messages)
 
 
     <div class="govuk-button-group @additionalClasses">
@@ -26,7 +26,7 @@
         Button(
             attributes = Map("id" -> "filter-button"),
             classes = "govuk-button--secondary",
-            content = Text(msgs("filter.apply")),
+            content = Text(msgs(applyKey.getOrElse("filter.apply"))),
             inputType = Some("submit"),
             name = Some("submit"),
             value = Some("filter")
@@ -36,7 +36,7 @@
         Button(
             attributes = Map("id" -> "clear-button"),
             classes = "govuk-button--secondary",
-            content = Text(msgs("filter.clear")),
+            content = Text(msgs(clearKey.getOrElse("filter.clear"))),
             inputType = Some("submit"),
             name = Some("submit"),
             value = Some("clear")

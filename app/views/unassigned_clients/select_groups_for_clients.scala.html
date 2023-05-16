@@ -53,7 +53,9 @@
     }
 
     @h1(heading)
-    @p("common.group.max.clients")
+    @p("common.group.max.clients1")
+    @p("common.group.max.clients2")
+    @p("common.group.max.clients3")
     @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
         @if(groups.isEmpty) {
             @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")

@@ -29,8 +29,8 @@
 @searchGridClass = @{if(withFilter) "govuk-grid-column-one-third" else "govuk-grid-column-one-half"}
 @paddingTopType = @{if(withFilter && msgs(searchLabelKey).length > 38) "pad-top-2" else "pad-top-1" }
 
-@applyButtonKey = @{if (withFilter) "filter.apply" else "filter.apply.singular"} /* APB-7104 */
-@clearButtonKey = @{if (withFilter) "filter.clear" else "filter.clear.singular"} /* APB-7104 */
+@applyButtonKey = @{if (withFilter) "filter.apply" else "filter.apply.singular" /* APB-7104 */}
+@clearButtonKey = @{if (withFilter) "filter.clear" else "filter.clear.singular" /* APB-7104 */}
 
 <div class="govuk-grid-row" role="search" id="search-filter-wrapper">
 

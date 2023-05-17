@@ -48,7 +48,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @h1("group.manage.members.h1")
-        @p("group.manage.members.p")
+        @p(html = Some(Html(msgs("group.manage.members.p", "/tax-and-scheme-management/users?origin=Agent"))))
     </div>
 
     @team_members_details_table_filter_form(teamMembers, form, paginationMetaData)

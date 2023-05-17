@@ -48,7 +48,7 @@ class UnassignedClientController @Inject()(
                                             val sessionCacheService: SessionCacheService,
                                             val sessionCacheOps: SessionCacheOperationsService,
                                             unassigned_clients_list: unassigned_clients_list,
-                                            review_clients_paginated: review_clients_paginated,
+                                            review_selected_clients: review_selected_clients,
                                             select_groups_for_clients: select_groups_for_clients,
                                             clients_added_to_groups_complete: clients_added_to_groups_complete,
                                             confirm_remove_client: confirm_remove_client
@@ -132,11 +132,9 @@ class UnassignedClientController @Inject()(
               val paginatedClients = PaginatedListBuilder.build(page = page.getOrElse(1), pageSize = pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE), fullList = clients)
 
               Ok(
-                review_clients_paginated(
+                review_selected_clients(
                   clients = paginatedClients.pageContent,
-                  groupName = "",
                   form = YesNoForm.form(),
-                  isCreateGroupJourney = false,
                   paginationMetaData = Some(paginatedClients.paginationMetaData)
                 )
               ).toFuture
@@ -227,11 +225,9 @@ class UnassignedClientController @Inject()(
                 .fold(
                   formWithErrors => {
                     Ok(
-                      review_clients_paginated(
+                      review_selected_clients(
                         clients,
-                        "",
-                        formWithErrors,
-                        isCreateGroupJourney = false
+                        formWithErrors
                       )
                     ).toFuture
                   }, (yes: Boolean) => {

@@ -53,10 +53,14 @@
     }
 
     @h1(heading)
-    @p("common.group.max.clients")
+    @if(groups.isEmpty) {
+        @p("unassigned.client.no.groups.p")
+    } else {
+        @p("common.group.max.clients")
+    }
     @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
         @if(groups.isEmpty) {
-            @submit_button(messageKey = "unassigned.client.no.groups.button", name = "createNew", value = "true")
+            @submit_button(messageKey = "group.type.h1", name = "createNew", value = "true")
         } else {
             <fieldset class="govuk-fieldset">
                 <legend class="govuk-visually-hidden">@heading</legend>
@@ -85,24 +89,9 @@
                         },
                         hint = Some(msgs("unassigned.client.assign.hint"))
                     )
-
-                    @checkboxes(
-                        field = form("createNew"),
-                        name = "createNew",
-                        items = Seq(
-                            CheckboxData(
-                                id = "create_new",
-                                name = "createNew",
-                                label = "Add to a new access group",
-                                value = "true",
-                                checked = form.data.get("createNew").isDefined
-                            )
-                        ),
-                        hint = Some("or")
-                    )
                 </div>
 
-                @submit_button()
+                @submit_button("save.and.continue.button")
 
             </fieldset>
         }

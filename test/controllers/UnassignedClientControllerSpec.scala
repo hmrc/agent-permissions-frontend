@@ -461,7 +461,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      val pageHeading = "You do not have any access groups. Add these clients to a new access group"
+      val pageHeading = "You do not have any access groups"
       html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe pageHeading
       //and the back link should go to the unassigned clients tab
@@ -471,8 +471,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       val form = html.select("main form")
       //shouldn't be anything in the form except the button hence checking the full html
-      form.html() shouldBe "<button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
-        "id=\"continue\" name=\"createNew\" value=\"true\"> Add to a new access group </button>"
+      form.html() shouldBe "<div class=\"govuk-button-group\"> <button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
+        "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button> <a class=\"govuk-link\" href=\"/agent-permissions/manage-access-groups\">Go to manage access groups</a> " +
+        "\n" + "</div>"
 
 
     }

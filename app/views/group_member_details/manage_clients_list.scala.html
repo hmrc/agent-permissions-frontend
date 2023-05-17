@@ -42,6 +42,7 @@
                                      form("filter").value,
                                      form("search").value),
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
+    backLinkTextKey = Some("group.manage.clients.back"),
     fullWidth = true
 ) {
 
@@ -49,6 +50,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @h1("group.manage.clients")
+        @p("group.manage.clients.p")
     </div>
 
     @clients_details_table_filter_form(paginatedList, form, formAction)

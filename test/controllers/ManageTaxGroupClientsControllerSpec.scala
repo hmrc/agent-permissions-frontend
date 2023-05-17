@@ -146,14 +146,14 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       //first row
       val row1Cells = trs.get(0).select("td")
       row1Cells.get(0).text() shouldBe "friendly0"
-      row1Cells.get(1).text() shouldBe "ending in 6780"
+      row1Cells.get(1).text() shouldBe "*****6780"
       row1Cells.get(2).text() shouldBe "VAT"
       row1Cells.get(3).text() shouldBe "Client removed"
 
       //last row
       val row3Cells = trs.get(2).select("td")
       row3Cells.get(0).text() shouldBe "friendly2"
-      row3Cells.get(1).text() shouldBe "ending in 6782"
+      row3Cells.get(1).text() shouldBe "*****6782"
       row3Cells.get(2).text() shouldBe "VAT"
       row3Cells.get(3).select("a").attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(taxGroupId, displayClients(2).id).url
       row3Cells.get(3).text() shouldBe "Remove"
@@ -514,7 +514,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         row1Checkbox.attr("value") shouldBe currentPageOfClients(0).id
         row1Cells.get(1).text shouldBe "John a"
         row1Cells.get(1).text shouldBe currentPageOfClients(0).name
-        row1Cells.get(2).text shouldBe "ending in 678a"
+        row1Cells.get(2).text shouldBe "*****678a"
         row1Cells.get(3).text shouldBe "VAT"
 
         val row10Cells = trs.get(9).select("td")
@@ -523,7 +523,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         row10Checkbox.attr("value") shouldBe currentPageOfClients(9).id
         row10Cells.get(1).text shouldBe "John j"
         row10Cells.get(1).text shouldBe currentPageOfClients(9).name
-        row10Cells.get(2).text shouldBe "ending in 678j"
+        row10Cells.get(2).text shouldBe "*****678j"
         row10Cells.get(3).text shouldBe "VAT"
 
       }
@@ -563,7 +563,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         row1Checkbox.attr("value") shouldBe currentPageOfClients(0).id
         row1Cells.get(1).text shouldBe "John a"
         row1Cells.get(1).text shouldBe currentPageOfClients(0).name
-        row1Cells.get(2).text shouldBe "ending in 678a"
+        row1Cells.get(2).text shouldBe "*****678a"
         row1Cells.get(3).text shouldBe "VAT"
 
       }

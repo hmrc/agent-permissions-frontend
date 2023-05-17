@@ -68,7 +68,7 @@
             })
         }
 
-        @a("common.details.assign-to-group",
+        @a(if (clientGroups.isEmpty) "common.details.assign-to-custom-group.zero" else "common.details.assign-to-custom-group.some",
             href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
         )
 

@@ -103,17 +103,19 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe s"Filter results for '$searchTerm' Manage team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage team members"
+      html.title() shouldBe s"Filter results for '$searchTerm' Manage team members’ access groups - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Manage team members’ access groups"
 
       html.select(Css.inputTextWithId("search")).attr("value") shouldBe searchTerm
 
+      html.select("#filter-button").text() shouldBe "Apply filter" // 'filter' (singular) not 'filters' - APB-7104
+      html.select("#clear-button").text() shouldBe "Clear filter"
+
       val th = html.select(Css.tableWithId("members")).select("thead th")
-      th.size() shouldBe 4
+      th.size() shouldBe 3
       th.get(0).text() shouldBe "Name"
       th.get(1).text() shouldBe "Email"
-      th.get(2).text() shouldBe "Role"
-      th.get(3).text() shouldBe "Actions"
+      th.get(2).text() shouldBe "Actions"
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
       trs.size() shouldBe 5
@@ -196,7 +198,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.title() shouldBe "Team member details - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Team member details"
 
-      html.body.text().contains("Not assigned to a group") shouldBe true
+      html.body.text().contains("Not in any access groups") shouldBe true
 
       html.select(checkYourAnswersListRows).get(0).text() shouldBe "Name John 1 name"
       html.select(checkYourAnswersListRows).get(1).text() shouldBe "Email john1@abc.com"

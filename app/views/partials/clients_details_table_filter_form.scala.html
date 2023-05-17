@@ -55,6 +55,18 @@
         )
     }
 
+    @filterReminder = @{
+        val filterTerms = Seq(
+            form.get.search.filter(_.nonEmpty).toSeq,
+            form.get.filter.filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
+        ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
+        val `for` = msgs("paginated.clients.showing.total.filter-preposition")
+        val and = msgs("paginated.clients.showing.total.filter-conjunction")
+        if (filterTerms.isEmpty) "" else (s" ${`for`} " + filterTerms.mkString(s" $and "))
+    }
+
+
+
     @govukSkipLink(
         SkipLink(
             href = "#clients",
@@ -71,25 +83,9 @@
             @defining((paginatedList.paginationMetaData.currentPageNumber - 1) * paginatedList.paginationMetaData.pageSize) { pageStart =>
                 <p class="govuk-body" id="filter-results-info">
                     @span(
-                        msgs("paginated.clients.showing",
-                            pageStart + 1,
-                            pageStart + paginatedList.paginationMetaData.currentPageSize,
-                            paginatedList.paginationMetaData.totalSize
-                        )
+                        msgs("paginated.clients.showing.total", paginatedList.paginationMetaData.totalSize) + filterReminder,
+                        classes = Some("govuk-heading-m")
                     )
-                    @if(form.data.nonEmpty
-                            && (form.data.get("search").isDefined || form.data.get("filter").isDefined)) {
-
-                        @if(form.get.search.isDefined) {
-                            @span(
-                                msgs("client.search.results.label", form.get.search.get)
-                            )
-                        }
-                        @if(form.get.filter.isDefined && !form.get.filter.get.isEmpty) {
-                            @span(msgs("client.filter.results.label",
-                                displayTaxServiceFromServiceKey(form.get.filter.get)))
-                        }
-                    }
                 </p>
             }
             @table(

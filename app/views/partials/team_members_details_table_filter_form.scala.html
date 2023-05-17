@@ -43,7 +43,6 @@
             Seq(
                 Html(member.name),
                 Html(member.email),
-                Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
                 a(
                     key = Html(
                         msgs("details.team-members") + span(classes = Some("govuk-visually-hidden"),
@@ -67,7 +66,7 @@
         @search_and_filter(
             form,
             withFilter = false,
-            searchLabelKey = "group.members.list.filter.label"
+            searchLabelKey = "group.members.list.filter.label",
         )
 
         @if(teamMembers.nonEmpty) {
@@ -78,11 +77,8 @@
                 @defining((paginationMeta.currentPageNumber - 1) * paginationMeta.pageSize) { pageStart =>
                     <p class="govuk-body">
                         @span(
-                            msgs("paginated.team-members.showing",
-                                pageStart + 1,
-                                pageStart + paginationMeta.currentPageSize,
-                                paginationMeta.totalSize
-                            )
+                            msgs("paginated.team-members.showing.total", paginationMeta.totalSize),
+                            classes = Some("govuk-heading-m")
                         )
                         @if(form.data.nonEmpty && form.data.get("search").isDefined) {
                             @span(msgs("paginated.team-members.for.search", form.data.get("search").get))
@@ -99,7 +95,6 @@
                 headings = Seq(
                     (Html(msgs("group.members.list.table.th1")), Map.empty),
                     (Html(msgs("group.members.list.table.th2")), Map.empty),
-                    (Html(msgs("group.members.list.table.th3")), Map.empty),
                     (Html(msgs("common.actions")), Map.empty)
                 ),
                 rows = tableRows,

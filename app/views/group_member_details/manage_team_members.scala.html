@@ -36,17 +36,19 @@
 
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty,
-                                     msgs("group.manage.members"),
+                                     msgs("group.manage.members.h1"),
                                      None,
                                      form("search").value),
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
+    backLinkTextKey = Some("group.manage.members.back"),
     fullWidth = true
 ) {
 
     @summaryErrors(form.errors, Some("search"))
 
     <div class="govuk-!-width-two-thirds">
-        @h1("group.manage.members")
+        @h1("group.manage.members.h1")
+        @p(html = Some(Html(msgs("group.manage.members.p", "/tax-and-scheme-management/users?origin=Agent"))))
     </div>
 
     @team_members_details_table_filter_form(teamMembers, form, paginationMetaData)

@@ -24,7 +24,7 @@
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, h2: h2, a: a,
+    p: p, h1: h1, h2: h2, a: a, span: span,
     caption: caption, table: table,
     govukSkipLink: GovukSkipLink,
     link_as_button: link_as_button,
@@ -52,7 +52,6 @@
                 href = routes.AddClientToGroupsController.showSelectGroupsForClient(client.id).url
             ),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client.taxService)),
             Html(
                 if(excludedClients.contains(client)) {
                     msgs("tax-group.client.excluded")
@@ -74,7 +73,7 @@
 ) {
 
     <div class="govuk-!-width-two-thirds">
-        @caption(msgs("common.caption.group.name", group.groupName))
+        @caption(group.groupName)
         @h1("group.existing.clients.h1")
     </div>
     @* TODO use a partial *@
@@ -89,11 +88,19 @@
 
         @search_and_filter(form, withFilter = false)
 
-        @if(groupClients.nonEmpty) {
+        @if(form.data.get("search").exists(_.trim.nonEmpty) /* if a filter was applied */) {
+            @span(
+                msgs("paginated.clients.showing.total", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
+                classes = Some("govuk-heading-m")
+            )
+        } else {
+            @span(
+                msgs("paginated.clients.showing.tax-group.total", paginationMetaData.fold(groupClients.length)(_.totalSize), group.taxService.fold("")(displayTaxServiceFromServiceKey)),
+                classes = Some("govuk-heading-m")
+            )
+        }
 
-            @if(withSearchPrefix("", None, form("search").value) != "") {
-                @h2(withSearchPrefix("", None, form("search").value))
-            }
+        @if(groupClients.nonEmpty) {
 
             @table(
                 caption = Some("common.clients"),
@@ -102,7 +109,6 @@
                 headings = Seq(
                     (Html(msgs("group.client.list.table.th1")), Map.empty),
                     (Html(msgs("group.client.list.table.th2")), Map.empty),
-                    (Html(msgs("group.client.list.table.th3")), Map.empty),
                     (Html(msgs("common.actions")), Map.empty),
 
                 ),
@@ -112,9 +118,6 @@
             @if(paginationMetaData.get.totalPages > 1) {
                 @pagination(pagination = paginationMetaData.get)
             }
-
-            @p(msgs("common.total.clients", groupClients.length),
-                id = Some("clients-in-group"))
 
         } else {
             <div id="clients">

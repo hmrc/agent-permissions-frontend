@@ -81,3 +81,8 @@ nav#pagination-nav {
     padding-left: 0 !important;
   }
 }
+
+.govuk-tag.govuk-tag--no-uppercase {
+  letter-spacing: normal;
+  text-transform: none !important;
+}

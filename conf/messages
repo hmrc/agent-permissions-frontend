@@ -250,7 +250,8 @@ opt-out-info.inset=If you turn off this feature any access groups you have creat
 opt-out-info.p1=Turning off access groups will mean that all your team members can view and manage the tax affairs of all your clients. We recommend checking with your team before turning off access groups.
 opt-out-info.p2=If you turn access groups back on your groups will be restored. Team members will only be able to manage the clients in their access groups.
 paginated.clients.showing=Showing {0} to {1} of {2} clients
-paginated.clients.showing.total=Showing total of {0} clients
+paginated.clients.showing.total=Showing total of {0} clients {1}
+paginated.clients.showing.tax-group.total=Showing {0} {1} clients
 paginated.clients.showing.total.filter-preposition=for
 paginated.clients.showing.total.filter-conjunction=and
 paginated.team-members.for.search=for the search term ‘{0}’
@@ -266,7 +267,7 @@ signout.signin.again.a=Sign in again
 signout.signin.again.p=to use this service.
 submit.button=Submit
 tax-group.client.excluded=Client removed
-tax-group.client.removed.confirm={0} has been removed from this access group. <a href="{1}">View their client details</a> to see any other groups they are in.
+tax-group.client.removed.confirm=You have removed {0} from this access group. <a href="{1}">View {0}’s details</a>
 tax-group.clients.confirm.p1=If you remove {0} from this tax group, only team members in their remaining groups can manage their tax.
 tax-group.clients.tax.info=This is a tax service group which updates automatically. New clients will be added as soon as they authorise you to manage their {0}. Clients will also be removed if you cancel your authorisation to manage their {0}.
 tax-group.manage.removed.clients.h1=Removed clients

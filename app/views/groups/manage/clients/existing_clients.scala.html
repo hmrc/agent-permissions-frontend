@@ -21,6 +21,7 @@
 @import views.html.components.pagination.POST_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
+@import utils.ViewUtils
 
 @this(
     layout: main_layout,
@@ -107,8 +108,7 @@
                 ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
                 val `for` = msgs("paginated.clients.showing.total.filter-preposition")
                 val and = msgs("paginated.clients.showing.total.filter-conjunction")
-                if (filterTerms.isEmpty) "" else (s" ${`for`} " + filterTerms.mkString(s" $and "))
-                val filterReminder = if (filterTerms.isEmpty) "" else (s"${`for`} " + filterTerms.mkString(s" $and "))
+                val filterReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), form.data.get("filter"))
                 if (groupClients.length == 1)
                   msgs("group.manage.clients.showing.one", filterReminder)
                 else

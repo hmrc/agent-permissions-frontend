@@ -55,18 +55,6 @@
         )
     }
 
-    @filterReminder = @{
-        val filterTerms = Seq(
-            form.get.search.filter(_.nonEmpty).toSeq,
-            form.get.filter.filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
-        ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
-        val `for` = msgs("paginated.clients.showing.total.filter-preposition")
-        val and = msgs("paginated.clients.showing.total.filter-conjunction")
-        if (filterTerms.isEmpty) "" else (s" ${`for`} " + filterTerms.mkString(s" $and "))
-    }
-
-
-
     @govukSkipLink(
         SkipLink(
             href = "#clients",
@@ -83,7 +71,7 @@
             @defining((paginatedList.paginationMetaData.currentPageNumber - 1) * paginatedList.paginationMetaData.pageSize) { pageStart =>
                 <p class="govuk-body" id="filter-results-info">
                     @span(
-                        msgs("paginated.clients.showing.total", paginatedList.paginationMetaData.totalSize) + filterReminder,
+                        msgs("paginated.clients.showing.total", paginatedList.paginationMetaData.totalSize, filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
                         classes = Some("govuk-heading-m")
                     )
                 </p>

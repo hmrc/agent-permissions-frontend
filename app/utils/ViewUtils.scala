@@ -130,4 +130,28 @@ object ViewUtils {
     }
 
   }
+
+  /**
+   * Given filter terms (or none), return a string like so:
+   * (Some("mySearch"), Some("myFilter") => "for mySearch and myFilter"
+   * (Some("mySearch"), None) => "for mySearch"
+   * (None, None) => ""
+   * This is in order to interpolate the string in the search results summary string, like:
+   * "Displaying 10 results for mySearch and myFilter in this group"
+   * or similar.
+   *
+   * This logic was requested as part of the APB-7104 content changes
+   */
+  def filterReminderSubstring(formSearch: Option[String], formFilter: Option[String])(implicit msgs: Messages): String = {
+    val filterTerms = List(
+      formSearch.filter(_.nonEmpty).toSeq,
+      formFilter.filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
+    ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
+    val `for` = msgs("paginated.clients.showing.total.filter-preposition")
+    val and = msgs("paginated.clients.showing.total.filter-conjunction")
+    filterTerms match {
+      case Nil => ""
+      case terms => (s"${`for`} " + filterTerms.mkString(s" $and ")).trim
+    }
+  }
 }

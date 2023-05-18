@@ -92,8 +92,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Unassigned clients - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Unassigned clients"
+      html.title() shouldBe "Clients who are not in any groups - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Clients who are not in any groups"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
@@ -119,8 +119,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'friendly1' Unassigned clients - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Unassigned clients"
+      html.title() shouldBe "Filter results for 'friendly1' Clients who are not in any groups - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Clients who are not in any groups"
 
       val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       ths.size() shouldBe 4
@@ -232,7 +232,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       redirectLocation(result).get shouldBe ctrlRoutes.showUnassignedClients().url
     }
 
-    "render html when there are groups" in {
+    "render review selected clients" in {
       //given
       await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
@@ -246,9 +246,10 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
+      html.select(caption).text() shouldBe "Clients who are not in any groups"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("selected-clients")).select("tbody tr").size() shouldBe 3
-      //and the back link should go to the unassigned clients tab
+      //and the back link should go to unassigned clients
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/unassigned-clients"
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"
@@ -258,7 +259,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         .text() shouldBe "Yes, select more clients"
       answerRadios
         .select("label[for=answer-no]")
-        .text() shouldBe "No"
+        .text() shouldBe "No, continue to select groups"
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 
     }
@@ -301,7 +302,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       redirectLocation(result) shouldBe Some(ctrlRoutes.showUnassignedClients().url)
     }
 
-    s"redirect if no to ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients}" in {
+    s"redirect if no to ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients()}" in {
       //given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients().url)
@@ -373,9 +374,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add the selected clients to? - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Which access groups would you like to add the selected clients to?"
-      //and the back link should go to the unassigned clients tab
+      html.title() shouldBe "Which custom access groups would you like to add the selected clients to? - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Which custom access groups would you like to add the selected clients to?"
+      //and the back link should go to unassigned clients
       html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
 
       //checkboxes
@@ -398,13 +399,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       checkboxInputs.get(2).attr("name") shouldBe "groups[]"
       checkboxInputs.get(2).attr("value") shouldBe groupSummaries(2).groupId.toString
 
-      form.select("#createNew-hint").text shouldBe "or"
-      val createNewCheckboxes = form.select("div#createNew .govuk-checkboxes__item")
-      createNewCheckboxes.select("label").text shouldBe "Add to a new access group"
-      createNewCheckboxes.select("input[type='checkbox']").attr("name") shouldBe "createNew"
-      createNewCheckboxes.select("input[type='checkbox']").attr("value") shouldBe "true"
-
-      form.select("button#continue[type=submit]").text shouldBe "Continue"
+      form.select("button#continue[type=submit]").text shouldBe "Save and continue"
 
     }
 
@@ -444,7 +439,6 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       checkboxInputs.get(0).attr("value") shouldBe id1.toString
     }
 
-
     "render html when there are no available groups for these unassigned clients" in {
       //given
       val groupSummaries = Seq.empty
@@ -461,7 +455,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      val pageHeading = "You do not have any access groups. Add these clients to a new access group"
+      val pageHeading = "You do not have any access groups"
       html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe pageHeading
       //and the back link should go to the unassigned clients tab
@@ -472,7 +466,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val form = html.select("main form")
       //shouldn't be anything in the form except the button hence checking the full html
       form.html() shouldBe "<button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
-        "id=\"continue\" name=\"createNew\" value=\"true\"> Add to a new access group </button>"
+        "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button>"
 
 
     }
@@ -554,41 +548,12 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
       html.select(Css.errorSummaryForField(groupSummaries(0).groupId.toString))
-        .text() shouldBe "You must select an access group or add a new group"
-      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You must select an access group or add a new group"
+        .text() shouldBe "You must select an access group"
+      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You must select an access group"
 
 
     }
 
-    "show errors when both createNew and existing groups are selected" in {
-      //given
-      val groupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
-
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
-          .withFormUrlEncodedBody("createNew" -> "true", "groups[0]" -> "12412312")
-          .withSession(SessionKeys.sessionId -> "session-x")
-
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetGroupsForArn(arn)(groupSummaries)
-
-      //when
-      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
-
-      //then
-      status(result) shouldBe OK
-      //and should show errors
-      val html = Jsoup.parse(contentAsString(result))
-      html.select(Css.errorSummaryForField(groupSummaries(0).groupId.toString))
-        .text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
-      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You cannot add to existing groups at the same time as creating a new group"
-
-
-    }
   }
 
   s"GET ${ctrlRoutes.showConfirmClientsAddedToGroups().url}" should {
@@ -671,7 +636,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       val clientToRemove = displayClients.head
 
-      implicit val request = FakeRequest("POST", s"${controller.submitConfirmRemoveClient}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient}")
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -693,7 +659,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       val clientToRemove = displayClients.head
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveClient()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -714,7 +680,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest(
           "POST",
           s"${controller.submitConfirmRemoveClient()}")

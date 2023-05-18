@@ -51,7 +51,7 @@
 @pageTitle = @{
     withSearchAndErrorPrefix(
         !form.errors.isEmpty,
-        msgs("group.manage.tabs.2.label"),
+        msgs("unassigned-clients.h1"),
         form("filter").value,
         form("search").value
     )
@@ -61,7 +61,7 @@
     backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
     fullWidth = true) {
 
-    @h1("group.manage.tabs.2.label")
+    @h1("unassigned-clients.h1")
     <div class="govuk-!-width-two-thirds">
         @inset_text("unassigned.client.list.p", classes = "govuk-!-margin-bottom-9", id= Some("info"))
     </div>
@@ -76,6 +76,7 @@
             paginationMetaData,
             showSearch = true,
             showFilter = true,
+            submitButtonKey = "common.details.assign-to-group.zero"
         )
     } else {
 

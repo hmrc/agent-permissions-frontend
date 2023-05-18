@@ -39,7 +39,6 @@
     clients: Seq[DisplayClient],
     groupName: String,
     form: Form[Boolean],
-    isCreateGroupJourney: Boolean = true,
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -52,12 +51,7 @@
                 Html(
                     a(
                         key = msgs("common.remove"),
-                        href =
-                            if(isCreateGroupJourney) {
-                                routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
-                            } else {
-                                routes.UnassignedClientController.showConfirmRemoveClient(Option(client.id)).url
-                            }
+                        href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
                     ).toString
                 )
             )
@@ -67,29 +61,18 @@
 
 @layout(
     title = msgs("group.clients.review.title"),
-    backLinkHref = if(isCreateGroupJourney) {
-        Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url)
-    } else {
-        Some(routes.UnassignedClientController.showUnassignedClients(None).url)
-    },
+    backLinkHref = Some(routes.CreateGroupSelectClientsController.showSelectClients(None, None).url),
     formErrors = form.errors,
     fullWidth = true
 ) {
 
         <div class="govuk-!-width-two-thirds">
-            @if(isCreateGroupJourney){
-                @caption(msgs("common.caption.group.name", groupName))
-            } else {
-                @caption(msgs("unassigned-clients.h1"))
-            }
+            @caption(msgs("common.caption.group.name", groupName))
+
             @if(paginationMetaData.get.totalSize == 1){
                 @h1(msgs("group.clients.review.h1.singular"))
             } else {
                 @h1(msgs("group.clients.review.h1", paginationMetaData.get.totalSize))
-            }
-
-            @if(!isCreateGroupJourney){
-                @p("unassigned-clients.review.p")
             }
         </div>
 
@@ -114,16 +97,12 @@
             }
         }
 
-        @formWithCSRF(action = if(isCreateGroupJourney) {
-            routes.CreateGroupSelectClientsController.submitReviewSelectedClients
-        } else {
-            routes.UnassignedClientController.submitSelectedUnassignedClients
-        }) {
+        @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitReviewSelectedClients) {
             @radioButtons(
                 field = form("answer"),
                 items = Seq(
                     RadioData("true", "group.clients.review.yes.label"),
-                    RadioData("false", if(isCreateGroupJourney) "group.clients.review.no.label" else "unassigned-clients.review.no.label", id = Some("answer-no"))
+                    RadioData("false", "group.clients.review.no.label", id = Some("answer-no"))
                 ),
                 legend = Some(LegendData(msg = "group.clients.review.radio.legend"))
             )

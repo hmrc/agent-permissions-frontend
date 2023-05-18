@@ -39,7 +39,7 @@ class CreateGroupSelectClientsController @Inject()
   mcc: MessagesControllerComponents,
   search_clients: search_clients,
   select_paginated_clients: select_paginated_clients,
-  review_clients_paginated: review_clients_paginated,
+  review_selected: review_selected,
   confirm_remove_client: confirm_remove_client,
   val sessionCacheService: SessionCacheService,
   val sessionCacheOps: SessionCacheOperationsService,
@@ -187,7 +187,7 @@ class CreateGroupSelectClientsController @Inject()
             clients
           )
           Ok(
-            review_clients_paginated(
+            review_selected(
               paginatedList.pageContent,
               groupName,
               YesNoForm.form(),
@@ -267,7 +267,7 @@ class CreateGroupSelectClientsController @Inject()
                 .fold(
                   formWithErrors => {
                     Ok(
-                      review_clients_paginated(
+                      review_selected(
                         paginatedList.pageContent,
                         groupName,
                         formWithErrors,
@@ -284,7 +284,7 @@ class CreateGroupSelectClientsController @Inject()
                         Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
                       } else { // throw empty client error (would prefer redirect to showSearchClients)
                         Ok(
-                          review_clients_paginated(
+                          review_selected(
                             paginatedList.pageContent,
                             groupName,
                             YesNoForm.form("group.clients.review.error").withError("answer", "group.clients.review.error.no-clients"),

@@ -99,9 +99,26 @@
 
         @if(groupClients.nonEmpty) {
 
-            @if(withSearchPrefix("", form("filter").value, form("search").value) != "") {
-                @h2(withSearchPrefix("", form("filter").value, form("search").value))
-            }
+            @h2({
+                // display logic specified in APB-7104
+                val filterTerms = Seq(
+                    form.data.get("search").filter(_.nonEmpty).toSeq,
+                    form.data.get("filter").filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
+                ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
+                val `for` = msgs("paginated.clients.showing.total.filter-preposition")
+                val and = msgs("paginated.clients.showing.total.filter-conjunction")
+                if (filterTerms.isEmpty) "" else (s" ${`for`} " + filterTerms.mkString(s" $and "))
+                val filterReminder = if (filterTerms.isEmpty) "" else (s"${`for`} " + filterTerms.mkString(s" $and "))
+                if (groupClients.length == 1)
+                  msgs("group.manage.clients.showing.one", filterReminder)
+                else
+                  msgs("group.manage.clients.showing.many", groupClients.length, filterReminder)
+            })
+
+            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
+                border-width: 0;
+                color: #c6c6c6;
+                background-color: #c6c6c6">
 
             @table(
                 caption = Some("common.clients"),
@@ -114,9 +131,6 @@
             @if(paginationMetaData.get.totalPages > 1) {
                 @pagination(pagination = paginationMetaData.get)
             }
-
-            @p(msgs("common.total.clients", groupClients.length),
-                id = Some("clients-in-group"))
 
         } else {
             <div id="clients">

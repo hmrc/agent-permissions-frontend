@@ -39,6 +39,8 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @fieldsetHtml = {
+    @p(html = Some(Html(msgs("group.client.search.p", groupName))))
+
     @textbox(
         field = form("search"),
         label = msgs("client-filter.text.label"),
@@ -59,9 +61,7 @@
     formErrors = form.errors,
     backLinkHref = backUrl
 ) {
-
     @formWithCSRF(action = formAction) {
-
         @caption(msgs("common.caption.group.name", groupName))
         @govukFieldset(Fieldset(
         legend = Some(Legend(

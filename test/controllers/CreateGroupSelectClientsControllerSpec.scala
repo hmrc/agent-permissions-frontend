@@ -100,9 +100,9 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
         .select(Css.backLink)
         .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
 
-      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
 
-      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
 
     }
 
@@ -123,9 +123,9 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
         .select(Css.backLink)
         .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
 
-      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
       html.select("#search").attr("value") shouldBe "Harry"
-      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
       //TODO this isn't working
       //html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
 

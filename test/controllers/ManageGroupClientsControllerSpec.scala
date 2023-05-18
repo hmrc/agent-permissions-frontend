@@ -196,7 +196,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title shouldBe "Filter results for 'friendly1' and 'VAT' Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas access group"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
-      html.select(H2).text shouldBe "Filter results for 'friendly1' and 'VAT'"
+      html.select(H2).text shouldBe "Showing 1 client for ‘friendly1’ and ‘VAT’ in this group"
 
       val clientsTable = html.select(Css.tableWithId("clients"))
       val th = clientsTable.select("thead th")
@@ -355,9 +355,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         .select(Css.backLink)
         .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
 
-      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
 
-      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
 
     }
 
@@ -380,9 +380,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         .select(Css.backLink)
         .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
 
-      html.select(Css.labelFor("search")).text() shouldBe "Filter by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
       html.select("#search").attr("value") shouldBe "Harry"
-      html.select(Css.labelFor("filter")).text() shouldBe "Filter by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
       //TODO this isn't working
       //html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
 
@@ -448,9 +448,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Update clients in this group - Agent services account - GOV.UK"
+      html.title shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Carrots access group"
-      html.select(Css.H1).text shouldBe "Update clients in this group"
+      html.select(Css.H1).text shouldBe "Select clients"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
@@ -576,8 +576,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Update clients in this group"
+        html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Select clients"
         html
           .select(Css.errorSummaryForField("clients"))
       }
@@ -641,8 +641,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Update clients in this group - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Update clients in this group"
+      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients"
       html
         .select(Css.errorSummaryForField("clients"))
     }

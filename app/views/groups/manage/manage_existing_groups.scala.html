@@ -75,6 +75,14 @@
             searchLabelKey = "group-name-filter.text.label"
         )
     }
+
+    @if(summaries.nonEmpty) {
+        @h2({
+            val searchTerm = filterGroupSummaryForm.data.get("search").filter(_.nonEmpty).map(term => s"‘$term’")getOrElse(msgs("group.manage.showing.access-groups-substring"))
+            if(summaries.length == 1) msgs("group.manage.showing.one", searchTerm) else msgs("group.manage.showing.many", summaries.length, searchTerm)
+        })
+    }
+
     <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     style="height: 3px;
         border-width: 0;

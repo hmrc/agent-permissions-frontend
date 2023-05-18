@@ -129,15 +129,14 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val ths = html.select(Css.tableWithId("clients")).select("thead th")
-      ths.size() shouldBe 4
+      ths.size() shouldBe 3
       ths.get(0).text() shouldBe "Client reference"
       ths.get(1).text() shouldBe "Tax reference"
-      ths.get(2).text() shouldBe "Tax service"
-      ths.get(3).text() shouldBe "Actions"
+      ths.get(2).text() shouldBe "Actions"
 
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
 
@@ -147,16 +146,14 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       val row1Cells = trs.get(0).select("td")
       row1Cells.get(0).text() shouldBe "friendly0"
       row1Cells.get(1).text() shouldBe "*****6780"
-      row1Cells.get(2).text() shouldBe "VAT"
-      row1Cells.get(3).text() shouldBe "Client removed"
+      row1Cells.get(2).text() shouldBe "Client removed"
 
       //last row
       val row3Cells = trs.get(2).select("td")
       row3Cells.get(0).text() shouldBe "friendly2"
       row3Cells.get(1).text() shouldBe "*****6782"
-      row3Cells.get(2).text() shouldBe "VAT"
-      row3Cells.get(3).select("a").attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(taxGroupId, displayClients(2).id).url
-      row3Cells.get(3).text() shouldBe "Remove"
+      row3Cells.get(2).select("a").attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(taxGroupId, displayClients(2).id).url
+      row3Cells.get(2).text() shouldBe "Remove"
 
       //and view removed clients button should be present
       val viewRemovedClientsButton = html.select(linkStyledAsButtonWithId("view-excluded-clients"))
@@ -188,32 +185,31 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Filter results for 'friendly1' Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
-      html.select(H2).text shouldBe "Filter results for 'friendly1'"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
-      th.size() shouldBe 4
+      th.size() shouldBe 3
       trs.size() shouldBe 4
 
       val row1Cells = trs.get(0).select("td")
       val johnV = pageOfClients(0)
       johnV.name shouldBe "John v"
       row1Cells.get(0).text() shouldBe johnV.name
-      row1Cells.get(3).text() shouldBe "Remove"
+      row1Cells.get(2).text() shouldBe "Remove"
 
       val row2Cells = trs.get(2).select("td")
       val johnX = pageOfClients(2)
       johnX.name shouldBe "John x"
       row2Cells.get(0).text() shouldBe johnX.name
-      row2Cells.get(3).text() shouldBe "Client removed"
+      row2Cells.get(2).text() shouldBe "Client removed"
 
       val row3Cells = trs.get(3).select("td")
       val johnY = pageOfClients(3)
       johnY.name shouldBe "John y"
       row3Cells.get(0).text() shouldBe johnY.name
-      row3Cells.get(3).text() shouldBe "Client removed"
+      row3Cells.get(2).text() shouldBe "Client removed"
     }
 
     "render with search that matches nothing" in {
@@ -240,7 +236,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Filter results for 'nothing' Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val tableOfClients = html.select(Css.tableWithId("clients"))

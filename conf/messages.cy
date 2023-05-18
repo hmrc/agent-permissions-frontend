@@ -267,6 +267,7 @@ timeout.h1=Rydych wedi cael eich allgofnodi
 timeout.p=Nid ydych wedi gwneud dim byd ers 15, felly rydym wedi’ch allgofnodi er mwyn cadw’ch cyfrif yn ddiogel.
 unassigned-clients.not-found.heading=Ni chanfuwyd unrhyw gleientiaid sydd heb eu neilltuo
 unassigned-clients.not-found.p=Diweddarwch eich hidlyddion a rhowch gynnig arall arni. Fel arall, cliriwch eich hidlyddion i weld pob un o’ch cleientiaid sydd heb eu neilltuo
+unassigned-clients.none=You have assigned all your clients to access groups
 unassigned-clients.h1=Clients who are not in any groups
 unassigned-clients.review.p=You can assign these clients to an access group on the next screen.
 unassigned-clients.review.no.label=No, continue to select group

@@ -119,7 +119,7 @@ class TeamMemberServiceSpec extends BaseSpec {
 
     }
 
-    "return correct page of team members filtered with search input" in {
+    "return correct page of team members filtered with search input of partial case insensitive member name" in {
 
       val users: Seq[UserDetails] = (1 to 17).map(
         i =>
@@ -145,6 +145,32 @@ class TeamMemberServiceSpec extends BaseSpec {
           TeamMember("Name 11", "bob11@accounting.com", Some("user11"), None),
           TeamMember("Name 12", "bob12@accounting.com", Some("user12"), None),
           TeamMember("Name 13", "bob13@accounting.com", Some("user13"), None)
+        )
+
+    }
+
+    "return correct page of team members filtered with search input of partial case insensitive email address" in {
+
+      val users: Seq[UserDetails] = (1 to 17).map(
+        i =>
+          UserDetails(userId = Option(s"user$i"),
+            None,
+            Some(s"Name $i"),
+            Some(s"bob$i@accounting.com")))
+      val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
+
+      val pageSize = 5
+      expectGetTeamMembers(arn)(users)
+      expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
+      expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "b1@accounting")
+      val expectedPage: Seq[TeamMember] = members.filter(m => m.email.toLowerCase.contains("b1@accounting"))
+      expectPutSessionItem(CURRENT_PAGE_TEAM_MEMBERS, expectedPage)
+      val page: PaginatedList[TeamMember] = await(service.getPageOfTeamMembers(arn)(1, pageSize))
+
+      page.paginationMetaData shouldBe PaginationMetaData(lastPage = true, firstPage = true, 1,1, 5, 1, 1, Some(Map("totalSelected" -> JsNumber(0))))
+      page.pageContent shouldBe
+        Seq(
+          TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None),
         )
 
     }

@@ -101,7 +101,7 @@ class TeamMemberServiceImpl @Inject()(
       allArnMembers <- getTeamMembersFromConnector(arn)
       filteredMembers = searchTerm.fold(allArnMembers)(term => {
         val nameFiltered = allArnMembers.filter(_.name.toLowerCase.contains(term.toLowerCase))
-        val emailFiltered = allArnMembers.filter(_.name.toLowerCase.contains(term.toLowerCase))
+        val emailFiltered = allArnMembers.filter(_.email.toLowerCase.contains(term.toLowerCase))
         (nameFiltered ++ emailFiltered).distinct.sortBy(_.name)
       })
       firstMemberInPage = (page - 1) * pageSize

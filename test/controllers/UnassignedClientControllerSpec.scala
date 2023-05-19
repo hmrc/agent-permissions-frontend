@@ -78,56 +78,113 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
 
   s"GET ${ctrlRoutes.showUnassignedClients().url}" should {
+    "render correct content" when {
+      "no search on unassigned clients list" in {
+        // given
+        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(allowed = true)
+        expectGetUnassignedClients(arn)(displayClients)
+        //when
+        val result = controller.showUnassignedClients()(request)
 
-    "render unassigned clients list" in {
-      // given
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetUnassignedClients(arn)(displayClients)
-      //when
-      val result = controller.showUnassignedClients()(request)
+        //then
+        status(result) shouldBe OK
 
-      //then
-      status(result) shouldBe OK
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Clients who are not in any groups - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Clients who are not in any groups"
+        html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
 
-      val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Clients who are not in any groups - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Clients who are not in any groups"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
-
-      val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
-      th.size() shouldBe 4
-      val tr = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
-      tr.size() shouldBe 3
+        val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
+        th.size() shouldBe 4
+        val tr = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+        tr.size() shouldBe 3
 
 
-    }
+      }
 
-    "render list with client search" in {
-      // given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-      await(mockSessionService.put(CLIENT_SEARCH_INPUT, "friendly1"))
-      expectGetUnassignedClients(arn)(displayClients, search = Some("friendly1"))
+      "unassigned clients list has search results" in {
+        // given
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(allowed = true)
+        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+        await(mockSessionService.put(CLIENT_SEARCH_INPUT, "friendly1"))
+        expectGetUnassignedClients(arn)(displayClients, search = Some("friendly1"))
 
-      //when
-      val result = controller.showUnassignedClients()(request)
+        //when
+        val result = controller.showUnassignedClients()(request)
 
-      //then
-      status(result) shouldBe OK
+        //then
+        status(result) shouldBe OK
 
-      val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'friendly1' Clients who are not in any groups - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Clients who are not in any groups"
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Filter results for 'friendly1' Clients who are not in any groups - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Clients who are not in any groups"
 
-      val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
-      ths.size() shouldBe 4
-      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
-      trs.size() shouldBe 1
+        val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
+        ths.size() shouldBe 4
+        val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+        trs.size() shouldBe 1
 
-      html.select("input#search").attr("value") shouldBe "friendly1"
+        html.select("input#search").attr("value") shouldBe "friendly1"
+      }
+
+      "unassigned clients list has NO search results" in {
+        // given
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(allowed = true)
+        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+        await(mockSessionService.put(CLIENT_SEARCH_INPUT, "nothing"))
+        expectGetUnassignedClients(arn)(Seq.empty, search = Some("nothing"))
+
+        //when
+        val result = controller.showUnassignedClients()(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Filter results for 'nothing' Clients who are not in any groups - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Clients who are not in any groups"
+
+        // no table
+        val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
+        ths.size() shouldBe 0
+        // form still visible
+        val form = html.select("main form")
+        form.size() shouldBe 1
+        html.select("input#search").attr("value") shouldBe "nothing"
+
+        html.select("main h3").text() shouldBe "No clients found"
+        html.select(paragraphs).text() shouldBe "Update your filters and try again. Clear your filters to see all your clients who are not in any groups."
+
+      }
+
+      "no unassigned clients (all assigned to groups)" in {
+        // given
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectIsArnAllowed(allowed = true)
+        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+        expectGetUnassignedClients(arn)(Seq.empty)
+
+        //when
+        val result = controller.showUnassignedClients()(request)
+
+        //then
+        status(result) shouldBe OK
+
+        val html = Jsoup.parse(contentAsString(result))
+        html.title() shouldBe "Clients who are not in any groups - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Clients who are not in any groups"
+
+        html.select(H2).text() shouldBe "You have assigned all your clients to access groups"
+        // no table or form
+        val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
+        ths.size() shouldBe 0
+        val form = html.select("main form")
+        form.size() shouldBe 0
+      }
     }
 
   }

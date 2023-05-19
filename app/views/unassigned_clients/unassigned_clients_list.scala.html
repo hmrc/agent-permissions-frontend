@@ -76,16 +76,19 @@
             paginationMetaData,
             showSearch = true,
             showFilter = true,
-            submitButtonKey = "common.details.assign-to-group.zero"
+            submitButtonKey = "common.details.assign-to-custom-group.zero"
         )
     } else {
+        @if(form("filter").value == None && form("search").value == None) {
+            @h2("unassigned-clients.none")
+        } else {
+            @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
+                @search_and_filter(form, true)
+            }
 
-        @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
-            @search_and_filter(form, true)
+            @h3("unassigned-clients.not-found.heading")
+            @p("unassigned-clients.not-found.p")
         }
-
-        @h3("unassigned-clients.not-found.heading")
-        @p("unassigned-clients.not-found.p")
 
     }
 

@@ -439,7 +439,40 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       checkboxInputs.get(0).attr("value") shouldBe id1.toString
     }
 
-    "render html when there are no available groups for these unassigned clients" in {
+    "render html when there are no available custom groups for these unassigned clients" in {
+      //given
+      val id1 = GroupId.random()
+      val groupSummaries = List(
+        GroupSummary(id1, s"tax service group", Some(3), 4, Some("VAT")))
+
+      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetGroupsForArn(arn)(groupSummaries)
+
+      //when
+      val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      val pageHeading = "You do not have any custom access groups"
+      html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe pageHeading
+      //and the back link should go to unassigned clients
+      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
+
+      html.select(paragraphs).get(0).text() shouldBe "You cannot manually add clients to tax service access groups here. You can only manually add clients to custom access groups."
+
+      val form = html.select("main form")
+      //shouldn't be anything in the form except the button group hence checking the full html
+      form.html() shouldBe "<div class=\"govuk-button-group\"> <button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
+        "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button> <a class=\"govuk-link\" href=\"/agent-permissions/manage-access-groups\">Go to manage access groups</a> " +
+        "\n" + "</div>"
+    }
+
+    "render no_access_groups when there are no groups for the unassigned clients" in {
       //given
       val groupSummaries = Seq.empty
 
@@ -458,18 +491,15 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val pageHeading = "You do not have any access groups"
       html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe pageHeading
-      //and the back link should go to the unassigned clients tab
+      //and the back link should go to unassigned clients
       html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
 
-      //checkboxes
+      html.select(paragraphs).text() shouldBe "Create access groups if you want to restrict which team members can manage each client. Select ‘Create an access group’ and follow the instructions."
 
       val form = html.select("main form")
       //shouldn't be anything in the form except the button hence checking the full html
-      form.html() shouldBe "<div class=\"govuk-button-group\"> <button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
-        "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button> <a class=\"govuk-link\" href=\"/agent-permissions/manage-access-groups\">Go to manage access groups</a> " +
-        "\n" + "</div>"
-
-
+      form.html() shouldBe "<button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
+        "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button>"
     }
   }
 

@@ -50,6 +50,7 @@ class UnassignedClientController @Inject()(
                                             unassigned_clients_list: unassigned_clients_list,
                                             review_selected_clients: review_selected_clients,
                                             select_groups_for_clients: select_groups_for_clients,
+                                            no_access_groups: no_access_groups,
                                             clients_added_to_groups_complete: clients_added_to_groups_complete,
                                             confirm_remove_client: confirm_remove_client
                                           )
@@ -248,10 +249,17 @@ class UnassignedClientController @Inject()(
     isAuthorisedAgent { arn =>
       isOptedInComplete(arn) { _ =>
         groupService.getGroupSummaries(arn).map(groups =>
-          Ok(
-            select_groups_for_clients(
-              SelectGroupsForm.form().fill(SelectGroups(None, None)),
-              groups.filter(_.isCustomGroup))))
+          if(groups.isEmpty) {
+            Ok(no_access_groups())
+          } else {
+            Ok(
+              select_groups_for_clients(
+                SelectGroupsForm.form().fill(SelectGroups(None, None)),
+                groups.filter(_.isCustomGroup)
+              )
+            )
+          }
+        )
       }
     }
   }

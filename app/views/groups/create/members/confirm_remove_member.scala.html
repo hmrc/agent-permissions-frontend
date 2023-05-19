@@ -42,12 +42,12 @@
     formErrors = form.errors,
     backLinkHref = Some(backLink.url)
 ) {
-    @caption(msgs("common.caption.group.name", groupName))
+    @caption(groupName)
 
     @formWithCSRF(action = formAction) {
-
         @radioButtons(
             field = form("answer"),
+            hint = Some(msgs("common.group.remove.member.hint", teamMember.name)),
             items = Seq(
                 RadioData("true", "common.yes.label"),
                 RadioData("false", "common.no.label", id = Some("answer-no"))

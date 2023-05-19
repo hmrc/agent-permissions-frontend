@@ -48,6 +48,7 @@
     paginationMetaData: Option[PaginationMetaData] = None,
     showSearch: Boolean = false,
     showFilter: Boolean = false,
+    displayTaxService: Boolean = true,
     backLinkHref:Option[String] = None,
     submitButtonKey: String = "common.continue"
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -70,9 +71,8 @@
 
             ),
             Html(client._1.name),
-            Html(displayObfuscatedReference(client._1.name, client._1.hmrcRef)),
-            Html(displayTaxServiceFromServiceKey(client._1.taxService)),
-        )
+            Html(displayObfuscatedReference(client._1.name, client._1.hmrcRef))
+        ) ++ Seq(Html(displayTaxServiceFromServiceKey(client._1.taxService))).filter(_ => displayTaxService)
 
     )
 }
@@ -117,10 +117,9 @@
                 attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
                     (span(""),Map("id" -> "select-all")),
-                    (Html(msgs("group.client.list.table.th1")), Map.empty),
-                    (Html(msgs("group.client.list.table.th2")), Map.empty),
-                    (Html(msgs("group.client.list.table.th3")), Map.empty)
-                ),
+                    (Html(msgs("group.client.list.table.th1")), Map.empty[String, String]),
+                    (Html(msgs("group.client.list.table.th2")), Map.empty[String, String])
+                ) ++ Seq((Html(msgs("group.client.list.table.th3")), Map.empty[String, String])).filter(_ => displayTaxService),
                 rows = tableRows,
             )
             </div>

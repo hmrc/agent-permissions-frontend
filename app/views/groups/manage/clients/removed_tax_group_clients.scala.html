@@ -54,7 +54,7 @@
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(msgs("common.caption.group.name", group.groupName))
+        @caption(group.groupName)
         @h1("tax-group.manage.removed.clients.h1")
         @h2(msgs("tax-group.manage.removed.clients.h2", clients.size.toString, group.groupName))
     </div>
@@ -66,6 +66,7 @@
         paginationMetaData,
         showSearch = true,
         showFilter = false,
+        displayTaxService = false,
         submitButtonKey = "tax-group.manage.removed.clients.submit"
     )
 

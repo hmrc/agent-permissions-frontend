@@ -473,7 +473,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe s"Review selected team members - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe s"You have selected 5 team members"
+      html.select(Css.H1).text() shouldBe s"You have selected 5 team members to add to the group"
       html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
 
       val table = html.select(Css.tableWithId("selected-team-members"))
@@ -500,7 +500,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios.select("label[for=answer]").text() shouldBe "Yes, select more team members"
-      answerRadios.select("label[for=answer-no]").text() shouldBe "No, continue"
+      answerRadios.select("label[for=answer-no]").text() shouldBe "No"
     }
 
     "redirect when no selected team members in session" in {
@@ -615,7 +615,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 11 team members"
+      html.select(H1).text() shouldBe "You have selected 11 team members to add to the group"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
       table.select("thead th").size() shouldBe 4
@@ -645,7 +645,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 0 team members"
+      html.select(H1).text() shouldBe "You have selected 0 team members to add to the group"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
       table.select("thead th").size() shouldBe 0  // no table rendered

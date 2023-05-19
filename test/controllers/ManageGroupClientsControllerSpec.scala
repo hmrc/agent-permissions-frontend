@@ -132,7 +132,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
@@ -194,7 +194,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Filter results for 'friendly1' and 'VAT' Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
       html.select(H2).text shouldBe "Showing 1 client for ‘friendly1’ and ‘VAT’ in this group"
 
@@ -234,7 +234,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val tableOfClients = html.select(Css.tableWithId("clients"))
@@ -322,7 +322,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas access group"
+      html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val clientsTable = html.select(Css.tableWithId("clients"))
@@ -449,7 +449,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Select clients - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Carrots access group"
+      html.select(Css.PRE_H1).text shouldBe "Carrots"
       html.select(Css.H1).text shouldBe "Select clients"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))

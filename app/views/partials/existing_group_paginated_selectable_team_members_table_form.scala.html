@@ -63,8 +63,7 @@
 
             ),
             Html(member.name),
-            Html(member.email),
-            Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
+            Html(member.email)
         )
 
     }
@@ -110,8 +109,7 @@
                 headings = Seq(
                     (span(""), Map("id" -> "select-all")),
                     (Html(msgs("group.members.list.table.th1")), Map.empty),
-                    (Html(msgs("group.members.list.table.th2")), Map.empty),
-                    (Html(msgs("group.members.list.table.th3")), Map.empty)
+                    (Html(msgs("group.members.list.table.th2")), Map.empty)
                 ),
                 rows = tableRows,
             )

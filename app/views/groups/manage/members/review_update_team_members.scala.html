@@ -41,8 +41,7 @@
     @tableHeadings = @{
         var ths: Seq[(Html, Map[String, String])] = Seq(
             (Html(msgs("group.members.list.table.th1")), Map.empty),
-            (Html(msgs("group.members.list.table.th2")), Map.empty),
-            (Html(msgs("group.members.list.table.th3")), Map.empty),
+            (Html(msgs("group.members.list.table.th2")), Map.empty)
         )
         if(paginatedList.pageContent.size > 1) {
             ths = ths :+ (Html(msgs("common.actions")), Map.empty[String, String])
@@ -54,8 +53,7 @@
         paginatedList.pageContent.map(teamMember => {
             var row: Seq[Html] = Seq(
                 Html(teamMember.name),
-                Html(teamMember.email),
-                Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse("")))
+                Html(teamMember.email)
             )
             if(paginatedList.pageContent.size > 1) {
                 var removeLink = routes.ManageGroupTeamMembersController.showConfirmRemoveFromTeamMembersToAdd( group.groupType,group.groupId, teamMember.id).url

@@ -496,11 +496,10 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
 
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
-        ths.size() shouldBe 4
+        ths.size() shouldBe 3
         ths.get(0).text shouldBe ""
         ths.get(1).text shouldBe "Client reference"
         ths.get(2).text shouldBe "Tax reference"
-        ths.get(3).text shouldBe "Tax service"
         val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
         trs.size() shouldBe 10
 
@@ -511,7 +510,6 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         row1Cells.get(1).text shouldBe "John a"
         row1Cells.get(1).text shouldBe currentPageOfClients(0).name
         row1Cells.get(2).text shouldBe "*****678a"
-        row1Cells.get(3).text shouldBe "VAT"
 
         val row10Cells = trs.get(9).select("td")
         val row10Checkbox = row10Cells.get(0).select("input")
@@ -520,7 +518,6 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         row10Cells.get(1).text shouldBe "John j"
         row10Cells.get(1).text shouldBe currentPageOfClients(9).name
         row10Cells.get(2).text shouldBe "*****678j"
-        row10Cells.get(3).text shouldBe "VAT"
 
       }
 
@@ -545,11 +542,10 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
 
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
-        ths.size() shouldBe 4
+        ths.size() shouldBe 3
         ths.get(0).text shouldBe ""
         ths.get(1).text shouldBe "Client reference"
         ths.get(2).text shouldBe "Tax reference"
-        ths.get(3).text shouldBe "Tax service"
         val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
         trs.size() shouldBe 1
 
@@ -560,7 +556,6 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         row1Cells.get(1).text shouldBe "John a"
         row1Cells.get(1).text shouldBe currentPageOfClients(0).name
         row1Cells.get(2).text shouldBe "*****678a"
-        row1Cells.get(3).text shouldBe "VAT"
 
       }
 

@@ -37,40 +37,34 @@
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
     formAction: Call,
-    paginationMetaData: Option[PaginationMetaData]
+    paginationMetaData: Option[PaginationMetaData],
+    displayRole: Boolean = true
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @showRemoveLink = @{group.teamMemberCount > 1}
 
 @tableHeadings = @{
-    var ths = Seq[(Html, Map[String, String])](
+    Seq[(Html, Map[String, String])](
         (Html(msgs("group.members.list.table.th1")), Map.empty),
-        (Html(msgs("group.members.list.table.th2")), Map.empty),
-        (Html(msgs("group.members.list.table.th3")), Map.empty),
-    )
-    if(showRemoveLink) {
-        ths = ths :+ (Html(msgs("common.actions")), Map.empty[String,String])
-    }
-    ths
+        (Html(msgs("group.members.list.table.th2")), Map.empty)
+    ) ++
+    Seq((Html(msgs("group.members.list.table.th3")), Map.empty[String,String])).filter(_ => displayRole) ++
+    Seq((Html(msgs("common.actions")), Map.empty[String,String])).filter(_ => showRemoveLink)
 }
 @tableRows = @{
-    teamMembers.map(member => {
-        var row =  Seq[Html](
+    teamMembers.map(member =>
+        Seq[Html](
             Html(member.name),
-            Html(member.email),
-            Html(displayTeamMemberRole(member.credentialRole.getOrElse(""))),
-        )
-        if(showRemoveLink) {
-            row = row.:+(Html(
-                a(
-                    key = msgs("common.remove"),
-                    href = routes.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(group.groupId, group.groupType, member.id).url
-                ).toString
-            ))
-
-        }
-        row
-    })
+            Html(member.email)
+        ) ++
+        Seq(Html(displayTeamMemberRole(member.credentialRole.getOrElse("")))).filter(_ => displayRole) ++
+        Seq(Html(
+            a(
+                key = msgs("common.remove"),
+                href = routes.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(group.groupId, group.groupType, member.id).url
+            ).toString
+        )).filter(_ => showRemoveLink)
+    )
 }
 
 @govukSkipLink(SkipLink(
@@ -91,20 +85,12 @@
         @paginationMetaData.fold {
             @p(msgs("common.total.team-members", teamMembers.length), id = Some("team-members-in-group"))
         }{ paginationMeta =>
-            @defining((paginationMeta.currentPageNumber - 1) * paginationMeta.pageSize) { pageStart =>
-                <p class="govuk-body">
-                    @span(
-                        msgs("paginated.team-members.showing",
-                            pageStart + 1,
-                            pageStart + paginationMeta.currentPageSize,
-                            paginationMeta.totalSize
-                        )
-                    )
-                    @if(form.data.nonEmpty && form.data.contains("search")) {
-                        @span(msgs("paginated.team-members.for.search", form.data("search")))
-                    }
-                </p>
-            }
+            <p class="govuk-body">
+                @span(
+                    msgs("paginated.team-members.showing.in-group", paginationMetaData.fold(teamMembers.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), None)),
+                    classes = Some("govuk-heading-m")
+                )
+            </p>
         }
 
 

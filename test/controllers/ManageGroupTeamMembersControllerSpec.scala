@@ -128,11 +128,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(0).text() shouldBe "John 1 name"
       trs.get(0).select("td").get(1).text() shouldBe "john1@abc.com"
-      trs.get(0).select("td").get(2).text() shouldBe "Administrator"
 
       trs.get(4).select("td").get(0).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(1).text() shouldBe "john5@abc.com"
-      trs.get(4).select("td").get(2).text() shouldBe "Administrator"
       html.select("a#update-team-members-button").text() shouldBe "Add more team members"
     }
 
@@ -160,7 +158,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for 'John 1' Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
-      html.select(paragraphs).get(0).text shouldBe "Showing 1 to 1 of 1 team members for the search term ‘John 1’"
+      html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘John 1’ in this group"
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 
@@ -168,7 +166,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(0).text() shouldBe "John 1 name"
       trs.get(0).select("td").get(1).text() shouldBe "john1@abc.com"
-      trs.get(0).select("td").get(2).text() shouldBe "Administrator"
 
     }
 
@@ -194,7 +191,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for 'hn2@ab' Manage team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members"
-      html.select(paragraphs).get(0).text shouldBe "Showing 1 to 1 of 1 team members for the search term ‘hn2@ab’"
+      html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘hn2@ab’ in this group"
 
       val trs =
         html.select(Css.tableWithId("members")).select("tbody tr")
@@ -203,7 +200,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(0).text() shouldBe "John 2 name"
       trs.get(0).select("td").get(1).text() shouldBe "john2@abc.com"
-      trs.get(0).select("td").get(2).text() shouldBe "Administrator"
     }
 
     "render with filter that matches nothing" in {
@@ -278,8 +274,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Update team members in this group"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -287,11 +283,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(1).text() shouldBe "John 1 name"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
-      trs.get(0).select("td").get(3).text() shouldBe "Administrator"
 
       trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
-      trs.get(4).select("td").get(3).text() shouldBe "Administrator"
 
       html.select("p#member-count-text").text() shouldBe "0 team members selected across all searches"
     }
@@ -313,8 +307,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'John' Update team members in this group - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Update team members in this group"
+      html.title() shouldBe "Filter results for 'John' Select team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members"
 
       html.select(H2).text() shouldBe "Filter results for 'John'"
 
@@ -324,15 +318,12 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(1).text() shouldBe teamMembers.head.name
       trs.get(0).select("td").get(2).text() shouldBe teamMembers.head.email
-      trs.get(0).select("td").get(3).text() shouldBe "Administrator"
 
       trs.get(1).select("td").get(1).text() shouldBe teamMembers(1).name
       trs.get(1).select("td").get(2).text() shouldBe teamMembers(1).email
-      trs.get(1).select("td").get(3).text() shouldBe "Administrator"
 
       trs.get(3).select("td").get(1).text() shouldBe teamMembers(3).name
       trs.get(3).select("td").get(2).text() shouldBe teamMembers(3).email
-      trs.get(3).select("td").get(3).text() shouldBe "Administrator"
     }
 
     "render correctly the manage TEAM MEMBERS LIST page" in {
@@ -352,8 +343,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Update team members in this group - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Update team members in this group"
+      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -361,11 +352,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(0).select("td").get(1).text() shouldBe "John 1 name"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
-      trs.get(0).select("td").get(3).text() shouldBe "Administrator"
 
       trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
-      trs.get(4).select("td").get(3).text() shouldBe "Administrator"
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
   }
@@ -427,8 +416,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then - check page content
-      html.title() shouldBe "Error: Update team members in this group - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Update team members in this group"
+      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members"
       html
         .select(Css.errorSummaryForField("members"))
     }
@@ -548,7 +537,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       //and
       html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 14 team members"
+      html.select(H1).text() shouldBe "You have selected 14 team members to add to the group"
 
       html.select(Css.tableWithId("members")).select("tbody tr").size() shouldBe 10
 
@@ -567,7 +556,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         .text() shouldBe "Yes, select more team members"
       answerRadios
         .select("label[for=answer-no]")
-        .text() shouldBe "No, continue"
+        .text() shouldBe "No"
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 
     }
@@ -589,17 +578,15 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       //and
       html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 1 team members"
+      html.select(H1).text() shouldBe "You have selected 1 team members to add to the group"
 
       val tableOfSelectedMembers = html.select(Css.tableWithId("members"))
       //only 3 table columns as REMOVE link (i.e. normally the last table column) should not be present
       tableOfSelectedMembers.select("tbody tr").size() shouldBe 1
       val headCells = tableOfSelectedMembers.select("thead tr th")
-      headCells.size() shouldBe 3
-      headCells.get(2).text shouldBe "Role"
+      headCells.size() shouldBe 2
       val row1Cells = tableOfSelectedMembers.select("tbody tr td")
-      row1Cells.get(2).text shouldBe "Administrator"
-      row1Cells.size() shouldBe 3
+      row1Cells.size() shouldBe 2
 
       //no pagination as only 1 member selected
       val paginationListItems = html.select(Css.pagination_li)
@@ -667,7 +654,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 5 team members"
+      html.select(H1).text() shouldBe "You have selected 5 team members to add to the group"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to select more team members"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to select more team members"
 

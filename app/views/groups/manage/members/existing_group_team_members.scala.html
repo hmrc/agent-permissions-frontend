@@ -44,7 +44,7 @@
         fullWidth = true) {
 
         <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", group.groupName))
+            @caption(group.groupName)
             @h1(msgs("group.manage.members"))
         </div>
 
@@ -62,7 +62,8 @@
             paginatedMembers.pageContent,
             form,
             routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, group.groupType, None),
-            Option(paginatedMembers.paginationMetaData)
+            Option(paginatedMembers.paginationMetaData),
+            displayRole = false
         )
 
         @link_as_button(

@@ -34,7 +34,7 @@
 @(form: Form[SelectGroups], groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @heading = @{
-    if(groups.nonEmpty) "unassigned.client.assign.h1" else "unassigned.client.no.groups.h1"
+    if(groups.nonEmpty) "unassigned.client.assign.h1" else "unassigned.client.no.custom-groups.h1"
 }
 
 @formErrorsClasses = @{if(form.errors) "govuk-form-group--error" else ""}
@@ -54,13 +54,18 @@
 
     @h1(heading)
     @if(groups.isEmpty) {
-        @p("unassigned.client.no.groups.p")
+        @p("unassigned.client.no.custom-groups.p1")
+        @p("unassigned.client.no.custom-groups.p2")
+        @p("unassigned.client.no.custom-groups.p3")
     } else {
         @p("common.group.max.clients")
     }
     @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
         @if(groups.isEmpty) {
+            <div class="govuk-button-group">
             @submit_button(messageKey = "group.type.h1", name = "createNew", value = "true")
+            <a class="govuk-link" href= @routes.ManageGroupController.submitManageGroups().url >Go to manage access groups</a>
+            </div>
         } else {
             <fieldset class="govuk-fieldset">
                 <legend class="govuk-visually-hidden">@heading</legend>

@@ -140,7 +140,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       trs.get(9).select("td").get(1).text() shouldBe "John"
       trs.get(9).select("td").get(2).text() shouldBe "john10@abc.com"
       trs.get(9).select("td").get(3).text() shouldBe "Administrator"
-      html.select(Css.submitButton).text() shouldBe "Continue"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
     "have the correct back link when tax service group type" in {

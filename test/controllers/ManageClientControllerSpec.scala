@@ -269,7 +269,7 @@ class ManageClientControllerSpec extends BaseSpec {
       summaryListRows.get(2).childrenSize() shouldBe 2
 
       summaryListRows.get(0).text() shouldBe "Client reference friendly0 Update Client reference"
-      summaryListRows.get(1).text() shouldBe "Tax reference *****6780"
+      summaryListRows.get(1).text() shouldBe "Tax reference ending in 6780"
       summaryListRows.get(2).text() shouldBe "Tax service VAT"
 
     }
@@ -435,7 +435,7 @@ class ManageClientControllerSpec extends BaseSpec {
       html.title() shouldBe "Client reference will update shortly - Agent services account - GOV.UK"
       html
         .select(Css.confirmationPanelH1)
-        .text() shouldBe "Tax reference: *****6780 Client reference will update shortly"
+        .text() shouldBe "Tax reference: ending in 6780 Client reference will update shortly"
       html.select(Css.paragraphs).get(0)
         .text()shouldBe "You have asked us to update this client reference in your agent services account. We’ll update it to The New Name in the next two hours. We will not change the client reference in other HMRC online services."
     }

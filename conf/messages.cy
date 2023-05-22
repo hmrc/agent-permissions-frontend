@@ -94,7 +94,7 @@ do-you-want-to-opt-out.h1=A ydych am analluogi grwpiau mynediad?
 do-you-want-to-opt-out.no.label=Na, rwyf am gadw grwpiau mynediad wedi’u galluogi
 do-you-want-to-opt-out.yes.error=Dewiswch ‘Iawn’ i analluogi grwpiau mynediad
 do-you-want-to-opt-out.yes.label=Iawn, rwyf am analluogi grwpiau mynediad
-ending.in=*****{0}
+ending.in=ending in {0}
 error-prefix=Gwall:
 error.client-reference.invalid=Mae’n rhaid i gyfeirnod y cleient gynnwys y llythrennau a i z, rhifau, bylchau a’r cymeriadau hyn yn unig: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 error.client-reference.max-length=Mae’n rhaid i’r cyfeirnod cleient fod yn 80 o gymeriadau neu lai

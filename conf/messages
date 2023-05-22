@@ -290,6 +290,7 @@ tax-service.ppt=Plastic Packaging Tax
 tax-service.trusts=Maintain a Trust or Estate
 tax-service.vat=VAT
 team-members.not-found.heading=No team members found
+team-members.filter.form.not-found.heading=No filter results for ''{0}''
 team-members.not-found.p=Update your filters and try again or clear your filters to see all your team members
 timeout.h1=You have been signed out
 timeout.p=You have not done anything for 15 minutes, so we have signed you out to keep your account secure.

@@ -270,6 +270,7 @@ tax-service.ppt=Treth Deunydd Pacio Plastig
 tax-service.trusts=Cynnal Ymddiriedolaeth neu Ystâd
 tax-service.vat=TAW
 team-members.not-found.heading=Ni chanfuwyd unrhyw aelodau tîm
+team-members.filter.form.not-found.heading=Dim canlyniadau hidlo ar gyfer "{0}"
 team-members.not-found.p=Diweddarwch eich hidlyddion a rhowch gynnig arall arni. Fel arall, cliriwch eich hidlyddion i weld pob aelod o’ch tîm
 timeout.h1=Rydych wedi cael eich allgofnodi
 timeout.p=Nid ydych wedi gwneud dim byd ers 15, felly rydym wedi’ch allgofnodi er mwyn cadw’ch cyfrif yn ddiogel.

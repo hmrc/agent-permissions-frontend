@@ -94,7 +94,7 @@ do-you-want-to-opt-out.h1=Do you want to turn off access groups?
 do-you-want-to-opt-out.no.label=No, I want to keep access groups turned on
 do-you-want-to-opt-out.yes.error=Select yes to turn off access groups
 do-you-want-to-opt-out.yes.label=Yes, I want to turn access groups off
-ending.in=*****{0}
+ending.in=ending in {0}
 error-prefix=Error:
 error.client-reference.invalid=Client reference must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 error.client-reference.max-length=Client reference must be 80 characters or fewer

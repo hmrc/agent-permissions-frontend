@@ -22,6 +22,7 @@ import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, SessionCacheService}
@@ -160,12 +161,12 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
   "showSelectTaxServiceGroupType" should {
 
-    "render correctly" in {
+    "render select_group_tax_type correctly" in {
       //given
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
-      implicit val request = FakeRequest("GET",
+      implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -193,7 +194,9 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax (22)"
       taxTypeOptions.get(5).text() shouldBe "VAT (85)"
 
-      html.select(Css.submitButton).text() shouldBe "Continue"
+      html.select("#tsg-inset").text() shouldBe "We will add new clients to this group automatically. We’ll do this when they authorise you for the selected tax service. You can manually remove specific clients later, using the ‘Manage access groups’ section."
+
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
     "render error page if info is empty" in {

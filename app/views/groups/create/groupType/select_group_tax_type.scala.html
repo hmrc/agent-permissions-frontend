@@ -16,13 +16,11 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import views.components.models.{LegendData, RadioData}
 @import views.html.main_layout
 
 @this(
     layout: main_layout,
-    p: p, h1: h1,
-    radioButtons: radioButtons,
+    h1: h1, p: p, inset_text: inset_text,
     input_select: input_select,
     submit_button: submit_button,
     formWithCSRF: FormWithCSRF
@@ -45,10 +43,15 @@
         @input_select(
             field = form("taxType"),
             label = msgs("group.tax-service.select.label"),
-            emptyOptionText = msgs("Select tax service"),
+            emptyOptionText = msgs("group.tax-service.select.label.empty-option"),
             options = getFiltersTaxServiceListWithClientCount(clientCountByTaxService)
         )
 
-        @submit_button()
+        @inset_text(
+            key = p("group.tax-service.select.inset.p1").toString + p("group.tax-service.select.inset.p2").toString,
+            id = Some("tsg-inset")
+        )
+
+        @submit_button("save.and.continue.button")
     }
 }

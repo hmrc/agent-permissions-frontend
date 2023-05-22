@@ -30,7 +30,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.group_created
-import views.html.groups.create.members.{confirm_remove_member, review_members_paginated, select_paginated_team_members}
+import views.html.groups.create.members.{confirm_deselect_member, review_members_paginated, select_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,7 +44,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   sessionAction: SessionAction,
   teamMemberService: TeamMemberService,
   taxGroupService: TaxGroupService,
-  confirm_remove_member: confirm_remove_member,
+  confirm_deselect_member: confirm_deselect_member,
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
   group_created: group_created,
@@ -252,7 +252,10 @@ class CreateGroupSelectTeamMembersController @Inject()
               sessionCacheService
                 .put(MEMBER_TO_REMOVE, member)
                 .flatMap(_ =>
-                  Ok(confirm_remove_member(YesNoForm.form(), groupName, member)).toFuture
+                  Ok(confirm_deselect_member(YesNoForm.form(), groupName, member,
+                    backLink = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None),
+                    formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember)
+                  ).toFuture
                 )
           }
         } yield result
@@ -273,7 +276,10 @@ class CreateGroupSelectTeamMembersController @Inject()
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  Ok(confirm_remove_member(formWithErrors, groupName, maybeTeamMember.get)).toFuture
+                  Ok(confirm_deselect_member(formWithErrors, groupName, maybeTeamMember.get,
+                    backLink = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None),
+                    formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember)
+                  ).toFuture
                 }, (yes: Boolean) => {
                   if (yes) {
                     val clientsMinusRemoved = maybeSelectedTeamMembers.get.filterNot(_ == maybeTeamMember.get)

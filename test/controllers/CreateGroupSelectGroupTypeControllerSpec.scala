@@ -295,8 +295,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "You have selected all “Capital Gains Tax on UK Property account” clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "You have selected all “Capital Gains Tax on UK Property account” clients"
+      html.title() shouldBe "You have selected all ‘Capital Gains Tax on UK Property account’ clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "You have selected all ‘Capital Gains Tax on UK Property account’ clients"
 
       val form = html.select("form")
       form.attr("method") should include("POST")
@@ -330,8 +330,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Error: You have selected all “VAT” clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "You have selected all “VAT” clients"
+      html.title() shouldBe "Error: You have selected all ‘VAT’ clients - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "You have selected all ‘VAT’ clients"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you would like to create a group of this type"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you would like to create a group of this type"
      }

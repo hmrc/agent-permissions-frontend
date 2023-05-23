@@ -684,6 +684,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         .select(Css.paragraphs).get(0)
         .text shouldBe "The team members you selected can now view and manage the tax affairs of all the clients in this access group"
 
+      html
+        .select(Css.paragraphs).get(1)
+        .text shouldBe "New clients for this tax service will be added to the group automatically."
+
     }
 
   }

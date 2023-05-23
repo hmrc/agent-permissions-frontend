@@ -148,6 +148,7 @@ group.create.name.h1=Grŵp mynediad wedi'i deilwra
 group.create.name.label=Beth hoffech alw’r grŵp mynediad hwn?
 group.created.h1=Grŵp mynediad wedi’i greu
 group.created.p=Gall yr aelodau tîm a ddewiswyd gennych bellach weld a rheoli materion treth yr holl gleientiaid yn y grŵp mynediad hwn
+group.created.p1=Bydd cleientiaid newydd ar gyfer y gwasanaeth treth hwn yn cael eu hychwanegu at y gr?p yn awtomatig.
 group.created.panelContent=Mae grŵp mynediad {0} bellach yn weithredol
 group.delete.name.label=A ydych yn siŵr eich bod am ddileu grŵp mynediad {0}?
 group.delete.select.error=Dewiswch ‘Iawn’ os ydych am ddileu’r grŵp

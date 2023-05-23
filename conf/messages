@@ -1,4 +1,4 @@
-access-group-name-exceed-groups.p=Your organisation has already created groups for all the tax services you offer. you can still create custom access groups.
+access-group-name-exceed-groups.p=Your organisation has already created groups for all the tax services you offer. You can still create custom access groups.
 access-group-name-exceed-groups.title=You have already created all the tax service access groups
 access-group-name-exists.button=Enter a new access group name
 access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.

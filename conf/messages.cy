@@ -1,5 +1,5 @@
-access-group-name-exceed-groups.p=Your organisation has already created groups for all the tax services you offer. you can still create custom access groups.
-access-group-name-exceed-groups.title=You have already created all the tax service access groups
+access-group-name-exceed-groups.p=Mae''ch sefydliad wedi galluogi grwpiau mynediad. Gallwch greu grwpiau mynediad newydd, neu fwrw golwg dros grwpiau presennol, drwy''r sgrin ''Rheoli cyfrif''.
+access-group-name-exceed-groups.title=Rydych eisoes wedi creu holl grwpiau mynediad y gwasanaeth treth
 access-group-name-exists.button=Nodwch enw newydd ar gyfer y grŵp mynediad
 access-group-name-exists.p=Mae eisoes gennych grŵp mynediad o’r enw {0}. Nodwch enw newydd ar gyfer y grŵp mynediad.
 access-group-name-exists.title=Mae enw’r grŵp mynediad eisoes yn bodoli

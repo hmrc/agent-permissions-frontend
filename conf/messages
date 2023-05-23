@@ -150,6 +150,7 @@ group.create.name.h1=What do you want to call this group?
 group.create.name.label=Access group name
 group.created.h1=Access group created
 group.created.p=The team members you selected can now view and manage the tax affairs of all the clients in this access group
+group.created.p1=New clients for this tax service will be added to the group automatically.
 group.created.panelContent={0} access group is now active
 group.delete.name.label=Are you sure you want to delete {0} access group?
 group.delete.select.error=Select ‘yes’ if you would like to delete the group

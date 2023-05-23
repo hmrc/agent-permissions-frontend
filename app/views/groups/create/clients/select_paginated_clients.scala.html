@@ -64,6 +64,7 @@
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
     backLinkHref = backUrl,
+    backLinkTextKey = Some(msgs("back to search")),
     formErrors = Seq.empty,
     fullWidth = true) {
 

@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.main_layout
 @import views.html.partials.existing_group_paginated_selectable_team_members_table_form
+@import utils.ViewUtils
 
 @this(
     layout: main_layout,
@@ -47,6 +48,16 @@
             ("search").value)
 }
 
+@resultsSummary = @{
+    if (form.data.get("search").exists(_.trim.nonEmpty)) {
+        val searchReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), None)
+        msgs("paginated.team-members.showing", teamMembers.size.toString, searchReminder)
+    } else {
+        msgs("paginated.team-members.showing.all", teamMembers.size.toString)
+    }
+}
+
+
 @layout(
     title = pageTitle,
     backLinkHref = Some(controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, group.groupType, None).url),
@@ -66,7 +77,8 @@
         teamMembers,
         form,
         controllers.routes.ManageGroupTeamMembersController.submitAddTeamMembers( group.groupType, group.groupId),
-        paginationMetaData
+        paginationMetaData,
+        resultsSummary = Some(resultsSummary)
     )
 
 }

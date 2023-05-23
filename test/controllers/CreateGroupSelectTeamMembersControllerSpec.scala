@@ -227,7 +227,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       trs.size() shouldBe 0
 
       // Not found content
-      html.select(Css.H2).text() shouldBe "No filter results for '()'"
+      html.select(Css.H2).text() shouldBe "No filter results for ''"
       html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
 
     }

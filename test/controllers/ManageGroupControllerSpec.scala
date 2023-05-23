@@ -396,7 +396,7 @@ class ManageGroupControllerSpec extends BaseSpec {
         .submitRenameGroup(groupId).url
       html
         .select(Css.labelFor("name"))
-        .text() shouldBe "Access group name"
+        .text() shouldBe "What do you want to call this group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
@@ -445,7 +445,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitRenameTaxGroup(groupId).url
       html
         .select(Css.labelFor("name"))
-        .text() shouldBe "Access group name"
+        .text() shouldBe "What do you want to call this group?"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }

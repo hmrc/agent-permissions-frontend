@@ -119,8 +119,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Manage team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage team members"
+      html.title() shouldBe "Manage team members in this group - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Manage team members in this group"
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 
@@ -156,8 +156,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'John 1' Manage team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage team members"
+      html.title() shouldBe "Filter results for 'John 1' Manage team members in this group - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Manage team members in this group"
       html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘John 1’ in this group"
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
@@ -189,8 +189,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage team members"
+      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members in this group - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Manage team members in this group"
       html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘hn2@ab’ in this group"
 
       val trs =
@@ -222,8 +222,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage team members"
+      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members in this group - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Manage team members in this group"
 
       val tableOfTeamMembers = html.select(Css.tableWithId("members"))
       tableOfTeamMembers.isEmpty shouldBe true
@@ -355,7 +355,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
-      html.select(Css.submitButton).text() shouldBe "Continue"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
   }
 
@@ -700,8 +700,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html.title() shouldBe "Remove John 1 name from this access group? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from this access group?"
       html
         .select(Css.backLink)
         .attr("href") shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
@@ -777,8 +777,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Remove John 1 name from selected team members? - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
+      html.title() shouldBe "Error: Remove John 1 name from this access group? - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Remove John 1 name from this access group?"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this team member from the access group"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this team member from the access group"
 

@@ -39,13 +39,13 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @layout(
-        title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("group.manage.members", group.groupName), None, form("search").value),
+        title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.team-members.h1", group.groupName), None, form("search").value),
         backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url),
         fullWidth = true) {
 
         <div class="govuk-!-width-two-thirds">
             @caption(group.groupName)
-            @h1(msgs("group.manage.members"))
+            @h1(msgs("tax-group.manage.team-members.h1"))
         </div>
 
         @govukSkipLink(

@@ -89,16 +89,25 @@
         @search_and_filter(form, withFilter = false)
 
         @if(form.data.get("search").exists(_.trim.nonEmpty) /* if a filter was applied */) {
-            @span(
-                msgs("paginated.clients.showing.total", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
-                classes = Some("govuk-heading-m")
-            )
+            @if(groupClients.length == 1) {
+                @span(
+                    msgs("group.manage.clients.showing.results.one", filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
+                    classes = Some("govuk-heading-m")
+                )
+            } else {
+                @span(
+                    msgs("group.manage.clients.showing.results.many", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
+                    classes = Some("govuk-heading-m")
+                )
+            }
         } else {
             @span(
                 msgs("paginated.clients.showing.tax-group.total", paginationMetaData.fold(groupClients.length)(_.totalSize), group.taxService.fold("")(displayTaxServiceFromServiceKey)),
                 classes = Some("govuk-heading-m")
             )
         }
+
+        <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
         @if(groupClients.nonEmpty) {
 

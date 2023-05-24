@@ -66,7 +66,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showGroupName().url}" should {
 
-    "have correct layout and content" in {
+    "render choose_name with correct content" in {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, "My Shiny Group")
 
@@ -75,17 +75,15 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Custom access group - Agent services account - GOV.UK"
+      html.title() shouldBe "What do you want to call this group? - Agent services account - GOV.UK"
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/create-group/select-group-type"
       html.select(Css.backLink).text() shouldBe "Back"
-      html.select(Css.H1).text() shouldBe "Custom access group"
+      html.select(Css.H1).text() shouldBe "What do you want to call this group?"
       html.select(Css.form).attr("action") shouldBe ctrlRoute.showGroupName().url
-      html.select(Css.labelFor("name")).text() shouldBe "What do you want to call this access group?"
+      html.select(Css.labelFor("name")).text() shouldBe "Access group name"
       html.select(Css.form + " input[name=name]").size() shouldBe 1
-      html.select(Css.submitButton).text() shouldBe "Continue"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
 
-      html.select(".hmrc-report-technical-issue").text() shouldBe "Is this page not working properly? (opens in new tab)"
-      html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
     }
 
     "have correct back link if tax group" in {
@@ -138,7 +136,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Custom access group - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: What do you want to call this group? - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
         .text() shouldBe "Enter an access group name"
@@ -162,7 +160,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Custom access group - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: What do you want to call this group? - Agent services account - GOV.UK"
       html
         .select(Css.errorSummaryForField("name"))
         .text() shouldBe "Access group name must be 50 characters or fewer"
@@ -186,7 +184,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       html.title() shouldBe "Confirm access group name - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Confirm access group name"
       html.select(Css.form).attr("action") shouldBe ctrlRoute.showConfirmGroupName().url
-      html.select(Css.legend).text() shouldBe s"Is the access group name ‘$groupName’ correct?"
+      html.select(Css.legend).text() shouldBe s"Is ‘$groupName’ the correct name for this access group?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
       html.select(Css.form + " input[name=answer]").size() shouldBe 2
@@ -210,7 +208,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -234,7 +232,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItemNone(GROUP_NAME) // <-- We are testing this. no group in session
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -250,7 +248,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGroupNameCheckConflict(arn, groupName)
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -265,7 +263,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     "redirect to search clients page when Confirm access group name 'yes' selected" in {
       expectAuthOkOptedInReadyWithGroupType()
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitGroupName().url)
           .withFormUrlEncodedBody("name" -> groupName, "answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -285,7 +283,8 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
 
-      implicit val request = FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
         .withFormUrlEncodedBody("name" -> groupName, "answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 

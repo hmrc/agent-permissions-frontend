@@ -21,6 +21,7 @@
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agents.accessgroups.TaxGroup
+@import utils.ViewUtils
 
 @this(
     layout: main_layout,
@@ -45,6 +46,11 @@
     }
 }
 
+@resultsSummary = @{
+    val searchReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), None)
+    msgs("tax-group.manage.removed.clients.h2", clients.size.toString, displayTaxServiceFromServiceKey(group.service), searchReminder)
+}
+
 @layout(
     title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.removed.clients.h1"), form("filter").value, form("search").value),
     backLinkHref = Some(routes.ManageTaxGroupClientsController.showExistingGroupClients(group.id, None, None).url),
@@ -56,7 +62,6 @@
     <div class="govuk-!-width-two-thirds">
         @caption(group.groupName)
         @h1("tax-group.manage.removed.clients.h1")
-        @h2(msgs("tax-group.manage.removed.clients.h2", clients.size.toString, group.groupName))
     </div>
 
     @paginated_selectable_clients_table_form(
@@ -67,7 +72,8 @@
         showSearch = true,
         showFilter = false,
         displayTaxService = false,
-        submitButtonKey = "tax-group.manage.removed.clients.submit"
+        submitButtonKey = "tax-group.manage.removed.clients.submit",
+        resultsSummary = Some(resultsSummary)
     )
 
 }

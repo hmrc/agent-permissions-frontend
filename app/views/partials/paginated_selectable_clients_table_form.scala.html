@@ -50,7 +50,9 @@
     showFilter: Boolean = false,
     displayTaxService: Boolean = true,
     backLinkHref:Option[String] = None,
-    submitButtonKey: String = "save.and.continue.button"
+    submitButtonKey: String = "save.and.continue.button",
+    resultsSummary: Option[String] = None
+
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -109,6 +111,11 @@
             </legend>
             @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
             <div id="clients" tabindex="0">
+
+            @resultsSummary.map { summary =>
+                @h2(summary)
+                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+            }
 
             @table(
                 caption = Some("common.clients"),

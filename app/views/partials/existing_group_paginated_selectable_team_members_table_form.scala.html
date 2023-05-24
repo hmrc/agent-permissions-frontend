@@ -35,14 +35,15 @@
         checkbox: checkbox,
         summaryErrors: SummaryErrors,
         govukSkipLink: GovukSkipLink,
-        formWithCSRF: FormWithCSRF,
+        formWithCSRF: FormWithCSRF
 )
 
 @(
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[AddTeamMembersToGroup],
     formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers,
-    paginationMetaData: Option[PaginationMetaData] = None
+    paginationMetaData: Option[PaginationMetaData] = None,
+    resultsSummary: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
@@ -83,10 +84,6 @@
     <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
     @if(teamMembers.nonEmpty) {
 
-        @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
-            @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
-        }
-
         @if(form.errors.map(error => error.message).contains("error.select-teamMembers.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
                 <p id="teamMembers-error" class="govuk-error-message">
@@ -100,6 +97,11 @@
             </legend>
             @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
             <div id="teamMembers" tabindex="0">
+
+            @resultsSummary.map { summary =>
+                @h2(summary)
+                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+            }
 
             @table(
                 caption = Some("common.teamMembers"),

@@ -15,41 +15,43 @@
  *@
 
 @import config.AppConfig
-@import controllers.routes
+@import views.components.models.{LegendData, RadioData}
 @import views.html.main_layout
 
 @this(
     layout: main_layout,
-    h1: h1, p: p, inset_text: inset_text,
-    input_select: input_select,
+    p: p, h1: h1, caption: caption,
+    radioButtons: radioButtons,
     submit_button: submit_button,
     formWithCSRF: FormWithCSRF
 )
 
 @(
-    form: Form[TaxServiceGroupType],
-    clientCountByTaxService: Map[String, Int]
+    form: Form[Boolean],
+    groupName: String,
+    teamMember: TeamMember,
+    backLink: Call,
+    formAction: Call
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title = @{msgs("common.deselect.member", teamMember.name)}
+
 @layout(
-    title = msgs("group.tax-service.h1"),
+    title = title,
     formErrors = form.errors,
-    backLinkHref = Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
+    backLinkHref = Some(backLink.url)
 ) {
-    @h1("group.tax-service.h1")
+    @caption(groupName)
 
-    @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitSelectTaxServiceGroupType) {
-
-        @input_select(
-            field = form("taxType"),
-            label = msgs("group.tax-service.select.label"),
-            emptyOptionText = msgs("group.tax-service.select.label.empty-option"),
-            options = getFiltersTaxServiceListWithClientCount(clientCountByTaxService)
-        )
-
-        @inset_text(
-            key = p("group.tax-service.select.inset.p1").toString + p("group.tax-service.select.inset.p2").toString,
-            id = Some("tsg-inset")
+    @formWithCSRF(action = formAction) {
+        @radioButtons(
+            field = form("answer"),
+            items = Seq(
+                RadioData("true", "common.yes.label"),
+                RadioData("false", "common.no.label", id = Some("answer-no"))
+            ),
+            legend = Some(LegendData(title, isH1 = true)),
+            classes = "govuk-radios--inline"
         )
 
         @submit_button("save.and.continue.button")

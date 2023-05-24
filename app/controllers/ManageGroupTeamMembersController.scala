@@ -30,8 +30,8 @@ import services.{GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agents.accessgroups.{AccessGroup, CustomGroup, GroupSummary, TaxGroup}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.members.confirm_remove_member
-import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, team_members_update_complete, update_paginated_team_members}
+import views.html.groups.create.members.{confirm_deselect_member, confirm_remove_member}
+import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -47,10 +47,9 @@ class ManageGroupTeamMembersController @Inject()
   teamMemberService: TeamMemberService,
   existing_group_team_members: existing_group_team_members,
   confirm_remove_member: confirm_remove_member,
+  confirm_deselect_member: confirm_deselect_member,
   update_paginated_team_members: update_paginated_team_members,
-  review_update_team_members: review_update_team_members,
-  team_members_update_complete: team_members_update_complete,
-)
+  review_update_team_members: review_update_team_members)
 (
   implicit val appConfig: AppConfig,
   ec: ExecutionContext,
@@ -147,7 +146,10 @@ class ManageGroupTeamMembersController @Inject()
                 if (yes) {
                   groupService
                     .removeTeamMemberFromGroup(groupId, teamMemberToRemove.userId.get, isCustom(groupType))
-                    .map(_ => Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)))
+                    .map(_ =>
+                      Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
+                        .flashing("success" -> request.messages("client.removed.confirm", teamMemberToRemove.name))
+                    )
                 }
                 else Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)).toFuture
               }
@@ -259,7 +261,7 @@ class ManageGroupTeamMembersController @Inject()
           Redirect(controller.showReviewTeamMembersToAdd(group.groupType, group.groupId, None, None)).toFuture
         )(teamMemberToRemove =>
           Ok(
-            confirm_remove_member(
+            confirm_deselect_member(
               YesNoForm.form(),
               group.groupName,
               teamMemberToRemove,
@@ -286,7 +288,7 @@ class ManageGroupTeamMembersController @Inject()
               .fold(
                 formWithErrors => {
                   Ok(
-                    confirm_remove_member(
+                    confirm_deselect_member(
                       formWithErrors,
                       group.groupName,
                       teamMemberToRemove,

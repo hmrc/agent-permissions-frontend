@@ -25,6 +25,7 @@ client.not.found.error.p=Gwiriwch yr URL neu ewch yn ôl i’r dudalen Rheoli gr
 client.removed.confirm={0} removed from this access group.
 client.search.results.label=with reference: ‘{0}’
 client.select.back=Yn ôl i {0}
+client.select.back.search=Yn �l i chwilio
 client.select.groups.h1=At ba grwpiau mynediad yr ydych am ychwanegu {0}?
 client.select.groups.hint=You can only add clients to custom groups manually. Select all that apply.
 client.select.groups.none.h1=Does dim grwpiau ar gael i ychwanegu {0} atynt

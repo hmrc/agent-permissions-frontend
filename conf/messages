@@ -25,6 +25,7 @@ client.not.found.error.p=Please check the url or return to the Manage groups pag
 client.removed.confirm={0} removed from this access group.
 client.search.results.label=with reference: ‘{0}’
 client.select.back=Back to {0}
+client.select.back.search=Back to search
 client.select.groups.h1=Which custom access groups would you like to add {0} to?
 client.select.groups.hint=You can only add clients to custom groups manually. Select all that apply.
 client.select.groups.none.h1=There are no available groups to add {0} to

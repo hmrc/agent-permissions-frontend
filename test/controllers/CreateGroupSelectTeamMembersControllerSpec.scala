@@ -123,6 +123,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         .select(Css.backLink)
         .attr("href") shouldBe routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url
 
+      html.select(paragraphs).get(0).text() shouldBe "Select team members for this access groups by ticking the boxes."
+
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
       th.get(1).text() shouldBe "Name"
@@ -259,8 +261,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}" in {
 
-        implicit val request = FakeRequest("POST",
-          ctrlRoute.submitSelectedTeamMembers().url)
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
           .withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
             "members[]" -> teamMembersIds.head,
@@ -284,9 +286,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       s"button is Filter and redirect to ${ctrlRoute.showSelectTeamMembers(None, None).url}" in {
 
-        implicit val request =
-          FakeRequest("POST",
-            ctrlRoute.submitSelectedTeamMembers().url)
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "members[]" -> teamMembersIds.head,
@@ -317,7 +318,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "display error when button is Continue, no team members were selected" in {
 
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "members" -> "",
@@ -346,7 +348,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     "display error when button is Continue and DESELECTION mean that nothing is now selected" in {
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "members" -> "",
@@ -407,9 +410,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "redirect to createGroup when POSTED without groupName in Session" in {
 
       // given
-      implicit val request = FakeRequest(
-        "POST",
-        ctrlRoute.submitSelectedTeamMembers().url
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url
       ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -427,11 +429,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "redirect to createGroup when POSTED without groupType in Session" in {
 
       // given
-      implicit val request = FakeRequest(
-        "POST",
-        ctrlRoute.submitSelectedTeamMembers().url
-      ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
+          .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
@@ -532,10 +533,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to '${routes.CreateGroupSelectTeamMembersController.showGroupCreated().url}' page with answer 'false'" in {
 
-      implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedTeamMembers()}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -562,10 +561,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
 
-      implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedTeamMembers()}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -578,10 +575,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' with no SELECTED in session" in {
 
-      implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedTeamMembers()}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -598,10 +593,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedTeamMembers()}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -692,7 +685,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     "render with team member to confirm removal" in {
       //given
-      val memberToRemove = teamMembers(0)
+      val memberToRemove = teamMembers.head
       expectAuthOkOptedInReadyWithGroupType()
       expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(5))
@@ -723,7 +716,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val teamMemberToRemove = teamMembers.head
 
-      implicit val request = FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember}")
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -746,7 +740,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       //given
       val memberToRemove = teamMembers.head
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -768,10 +762,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     s"redirect with no MEMBER_TO_REMOVE in session" in {
 
       //given
-      implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedTeamMembers()}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -790,10 +782,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     s"render errors when no radio button selected" in {
 
       //given
-      implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitConfirmRemoveTeamMember()}")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 

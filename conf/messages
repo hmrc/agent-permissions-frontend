@@ -180,6 +180,7 @@ group.manage.showing.one=Showing 1 result for {0}
 group.manage.showing.many=Showing {0} results for {1}
 group.manage.showing.access-groups-substring=access groups
 group.manage.rename=Rename group
+group.member.p=Select team members for this access groups by ticking the boxes.
 group.member.remove.error=Select yes if you need to remove this team member from the access group
 group.member.selected.remove.error=Select yes if you no longer want to add this team member to the access group
 group.members.list.filter.label=Filter by name or email

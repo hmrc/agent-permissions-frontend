@@ -51,7 +51,7 @@
 
     @formWithCSRF(action = formAction) {
 
-        @textbox(field = form("name"), label = "group.create.name.label")
+        @textbox(field = form("name"), label = "group.create.name.h1")
         @link_as_button(
             href = routes.ManageGroupController.showManageGroups(None,None).url,
             key = "common.cancel",

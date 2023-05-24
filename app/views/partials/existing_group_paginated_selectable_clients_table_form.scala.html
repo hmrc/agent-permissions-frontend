@@ -22,6 +22,7 @@
 @import views.html.partials.search_and_filter
 @import views.html.components.pagination.POST_pagination
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
+@import utils.ViewUtils
 
 @this(
     layout: main_layout,
@@ -49,7 +50,7 @@
     showSearch: Boolean = false,
     showFilter: Boolean = false,
     backLinkHref:Option[String] = None,
-    submitButtonKey: String = "common.continue",
+    submitButtonKey: String = "save.and.continue.button",
     group: GroupSummary
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -133,6 +134,20 @@
                 @msgs("group.client.list.h1")
             </legend>
             @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
+
+            @if(form.data.contains("search") || form.data.contains("filter")) {
+                @h2({
+                    // display logic specified in APB-7104
+                    val filterReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), form.data.get("filter"))
+                    if(clients.length == 1)
+                        msgs("group.manage.clients.showing.results.one", filterReminder)
+                    else
+                        msgs("group.manage.clients.showing.results.many", clients.length, filterReminder)
+                })
+            }
+
+            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
             <div id="clients" tabindex="0">
 
             @table(

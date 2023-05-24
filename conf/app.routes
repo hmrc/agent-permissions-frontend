@@ -47,6 +47,7 @@ POST    /create-group/team-members-selected             controllers.CreateGroupS
 GET     /create-group/team-members/confirm-remove       controllers.CreateGroupSelectTeamMembersController.showConfirmRemoveTeamMember(id: Option[String]?=None)
 POST    /create-group/team-members/confirm-remove       controllers.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember()
 GET     /create-group/confirm                           controllers.CreateGroupSelectTeamMembersController.showGroupCreated()
+GET     /create-group/tax/confirm                       controllers.CreateGroupSelectTeamMembersController.showTaxGroupCreated()
 
 # Manage groups
 GET     /manage-access-groups             controllers.ManageGroupController.showManageGroups(page: Option[Int], pageSize: Option[Int])

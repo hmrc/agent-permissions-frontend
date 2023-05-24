@@ -531,7 +531,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   s"POST ${routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers().url}" should {
 
-    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showGroupCreated().url}' page with answer 'false'" in {
+    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showTaxGroupCreated().url}' page with answer 'false'" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
@@ -552,7 +552,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       //then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showGroupCreated().url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showTaxGroupCreated().url
     }
 
     s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' page with answer 'true'" in {
@@ -659,6 +659,37 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
 
       val result = controller.showGroupCreated(request)
+
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+
+      html.title() shouldBe "Access group created - Agent services account - GOV.UK"
+      html
+        .select(Css.confirmationPanelH1)
+        .text() shouldBe "Access group created"
+      html
+        .select(Css.confirmationPanelBody)
+        .text() shouldBe s"$groupName access group is now active"
+      html.select(Css.H2).text() shouldBe "What happens next"
+      html.select(Css.backLink).size() shouldBe 0
+
+      html
+        .select(Css.paragraphs).get(0)
+        .text shouldBe "The team members you selected can now view and manage the tax affairs of all the clients in this access group"
+
+    }
+
+  }
+
+  s"GET ${ctrlRoute.showTaxGroupCreated().url}" should {
+
+    "show the confirmation page" in {
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
+
+      val result = controller.showTaxGroupCreated(request)
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))

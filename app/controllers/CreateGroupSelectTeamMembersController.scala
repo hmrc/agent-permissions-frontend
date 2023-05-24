@@ -29,8 +29,8 @@ import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.group_created
 import views.html.groups.create.members.{confirm_deselect_member, review_members_paginated, select_paginated_team_members}
+import views.html.groups.create.{TaxGroup_created, group_created}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,6 +48,7 @@ class CreateGroupSelectTeamMembersController @Inject()
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
   group_created: group_created,
+  TaxGroup_created: TaxGroup_created,
   select_paginated_team_members: select_paginated_team_members,
   review_members_paginated: review_members_paginated,
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi
@@ -312,7 +313,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               for {
                 _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
                 _ <- sessionCacheService.deleteAll(creatingGroupKeys)
-              } yield Redirect(controller.showGroupCreated())
+              } yield Redirect(controller.showTaxGroupCreated())
             )
         }
         )
@@ -324,6 +325,14 @@ class CreateGroupSelectTeamMembersController @Inject()
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) { maybeGroupName =>
         Ok(group_created(maybeGroupName.getOrElse(""))).toFuture
+      }
+    }
+  }
+
+  def showTaxGroupCreated: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) { maybeGroupName =>
+        Ok(TaxGroup_created(maybeGroupName.getOrElse(""))).toFuture
       }
     }
   }

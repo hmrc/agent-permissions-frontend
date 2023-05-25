@@ -64,6 +64,7 @@
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
     backLinkHref = backUrl,
+    backLinkTextKey = Some(msgs("client.select.back.search")),
     formErrors = Seq.empty,
     fullWidth = true) {
 
@@ -78,7 +79,7 @@
         @p("common.group.max.clients")
     </div>
 
-    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData)
+    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData, submitButtonKey = "save.and.continue.button")
 
 }
 

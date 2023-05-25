@@ -59,7 +59,7 @@
 @layout(
     title = msgs("group.client.search.h1"),
     formErrors = form.errors,
-    backLinkHref = backUrl
+    backLinkHref = backUrl,
 ) {
     @formWithCSRF(action = formAction) {
         @caption(msgs("common.caption.group.name", groupName))
@@ -71,6 +71,6 @@
         html = fieldsetHtml
         ))
 
-        @submit_button()
+        @submit_button("group.client.search.h1")
     }
 }

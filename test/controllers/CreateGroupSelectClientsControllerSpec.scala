@@ -206,7 +206,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(19).select("td").get(1).text() shouldBe "friendly19"
       trs.get(19).select("td").get(2).text() shouldBe "ending in 7819"
       trs.get(19).select("td").get(3).text() shouldBe "VAT"
-      html.select(Css.submitButton).text() shouldBe "Continue"
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
     "render with filtered clients held in session when a filter was applied" in {

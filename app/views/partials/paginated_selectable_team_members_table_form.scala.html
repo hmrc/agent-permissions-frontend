@@ -129,7 +129,7 @@
 
     } else {
         <div id="teamMembers">
-            @h2("team-members.not-found.heading")
+            @h2(key = msgs("team-members.filter.form.not-found.heading", form("search").value.getOrElse("")))
             @p("team-members.not-found.p")
         </div>
     }

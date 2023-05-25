@@ -15,21 +15,17 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukPhaseBanner
 @import uk.gov.hmrc.hmrcfrontend.views.config.StandardBetaBanner
-@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.{HmrcLayout, HmrcReportTechnicalIssueHelper}
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcReportTechnicalIssueHelper
 @import views.html.helper.CSPNonce
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcStandardPage
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage._
 
 @this(
-    hmrcLayout: HmrcLayout,
     hmrcStandardPage: HmrcStandardPage,
-    govukPhaseBanner: GovukPhaseBanner,
     standardBetaBanner: StandardBetaBanner,
     fullWidthMainContent: fullWidthMainContentLayout,
     hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
-    hmrcReportTechnicalIssue: HmrcReportTechnicalIssue,
     summaryErrors: SummaryErrors,
     govukNotificationBanner: GovukNotificationBanner,
     head: head

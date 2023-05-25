@@ -279,7 +279,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       html.select(Css.paragraphs).get(0).text() shouldBe "You have added John Smith 1 to the following groups:"
       html.select(Css.paragraphs).get(1).text()
         .shouldBe("John Smith 1 can now view and manage the tax affairs of the clients in these access groups.")
-      html.select("a#back-to-manage").text() shouldBe "Back to manage team members page"
+      html.select("a#back-to-manage").text() shouldBe "Return to manage team members page"
 
     }
 

@@ -15,19 +15,17 @@
  *@
 
 @import config.AppConfig
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukPhaseBanner
 @import uk.gov.hmrc.hmrcfrontend.views.config.StandardBetaBanner
-@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.{HmrcLayout, HmrcReportTechnicalIssueHelper}
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcReportTechnicalIssueHelper
 @import views.html.helper.CSPNonce
-@import play.api.Mode
-@import play.api.Environment
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcStandardPage
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage._
 
 @this(
-    hmrcLayout: HmrcLayout,
-    govukPhaseBanner: GovukPhaseBanner,
+    hmrcStandardPage: HmrcStandardPage,
     standardBetaBanner: StandardBetaBanner,
+    fullWidthMainContent: fullWidthMainContentLayout,
     hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
-    hmrcReportTechnicalIssue: HmrcReportTechnicalIssue,
     summaryErrors: SummaryErrors,
     govukNotificationBanner: GovukNotificationBanner,
     head: head
@@ -53,28 +51,25 @@
 }
 
 @mainContentWithTechIssueHelper = {
-@if(!appConfig.isTest) {
-    @gtmNoScript
-}
-    <div class="govuk-grid-row">
-        <div class="@if(fullWidth) {govuk-grid-column-full} else {govuk-grid-column-two-thirds}">
-            @summaryErrors(formErrors, customError)
+    @if(!appConfig.isTest) {
+        @gtmNoScript
+    }
+    @summaryErrors(formErrors, customError)
 
-            @if(request.flash.get("success").isDefined) {
-                @govukNotificationBanner(
-                    NotificationBanner(
-                        content = HtmlContent(request.flash.get("success").get),
-                        bannerType = Some("success")
-                    )
-                )
-            }
+    @if(request.flash.get("success").isDefined) {
+        @govukNotificationBanner(
+            NotificationBanner(
+                content = HtmlContent(request.flash.get("success").get),
+                bannerType = Some("success")
+            )
+        )
+    }
 
-            @mainContent
-            <div class="govuk-!-margin-bottom-9 govuk-!-margin-top-9">
-            @hmrcReportTechnicalIssueHelper()
-            </div>
-        </div>
+    @mainContent
+    <div class="govuk-!-margin-bottom-9 govuk-!-margin-top-9">
+        @hmrcReportTechnicalIssueHelper()
     </div>
+
 }
 
 @pageTitle = @{
@@ -102,16 +97,21 @@
     }
 }
 
-@hmrcLayout(
+@hmrcStandardPage(HmrcStandardPageParams(
     pageTitle = pageTitle,
     serviceName = Some(msgs("service.name")),
-    phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
-    isWelshTranslationAvailable = true,
-    serviceUrl = Some(appConfig.agentServicesAccountManageAccountUrl),
-    signOutUrl = None,
+    serviceURLs = ServiceURLs(
+        serviceUrl = Some(appConfig.agentServicesAccountManageAccountUrl),
+        signOutUrl = None
+    ),
+    banners = Banners(
+        phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
+    ),
     backLink = maybeBackLink,
-    nonce = CSPNonce.get,
-    mainContentLayout = None,
-    additionalHeadBlock = Some(head(hasTimeout)),
-    additionalScriptsBlock = Some(scripts)
-)(mainContentWithTechIssueHelper)
+    isWelshTranslationAvailable = true,
+    templateOverrides = TemplateOverrides(
+        additionalHeadBlock = Some(head(hasTimeout)),
+        additionalScriptsBlock = Some(scripts),
+        mainContentLayout = if(fullWidth) Some(fullWidthMainContent(_)) else None
+    )
+))(mainContentWithTechIssueHelper)

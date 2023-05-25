@@ -490,7 +490,7 @@ class ManageGroupClientsController @Inject()
                       _ <- groupService.addMembersToGroup(groupId, AddMembersToAccessGroupRequest(None, Some(toSave)))
                     } yield ()
                     x.map(_ => Redirect(controller.showExistingGroupClients(groupId, None, None))
-                      .flashing("success" -> request.messages("group.clients.added.confirm", toSave.size))
+                      .flashing("success" -> request.messages("common.clients.added", toSave.size))
                     )
                   }
                 }

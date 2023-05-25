@@ -38,7 +38,7 @@
     form: Form[_]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@h1Text = @{msgs(if(availableGroups.isEmpty) "member.select.groups.none.h1" else "member.select.groups.h1", teamMember.name)}
+@h1Text = @{msgs(if(availableGroups.isEmpty) "common.select.groups.none.h1" else "member.select.groups.h1", teamMember.name)}
 
     @layout(
         title = withErrorPrefix(form.hasErrors, h1Text),
@@ -50,7 +50,7 @@
         @govukErrorSummary(
             ErrorSummary(errorList = Seq(
                 ErrorLink(Some("#" + availableGroups(0).groupId),
-                    Text(msgs("error.member.select.groups.empty"))
+                    Text(msgs("error.select.groups.empty"))
                 )
             )
             )

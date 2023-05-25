@@ -227,7 +227,7 @@ class ManageTaxGroupClientsController @Inject()
                     updateExcludedClients(groupId, maybeSelected, currentPageClients, AddClientsToGroup(submit = CONTINUE_BUTTON), group.excludedClients)
                       .map(numberRemoved =>
                         Redirect(controller.showExistingGroupClients(groupId, None, None))
-                          .flashing("success" -> request.messages("tax-group.manage.removed.clients.updated", numberRemoved))
+                          .flashing("success" -> request.messages("common.clients.added", numberRemoved))
                       )
 
                   } else {
@@ -244,7 +244,7 @@ class ManageTaxGroupClientsController @Inject()
                         updateExcludedClients(groupId, maybeSelected, currentPageClients, formData, group.excludedClients)
                           .map(numberRemoved =>
                             Redirect(controller.showExistingGroupClients(groupId, None, None))
-                              .flashing("success" -> request.messages("tax-group.manage.removed.clients.updated", numberRemoved))
+                              .flashing("success" -> request.messages("common.clients.added", numberRemoved))
                           )
                       case FILTER_BUTTON =>
                         sessionCacheService

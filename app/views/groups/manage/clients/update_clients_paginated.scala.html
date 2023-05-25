@@ -43,7 +43,7 @@
 
 @pageTitle = @{
 withSearchAndErrorPrefix(form.errors.nonEmpty,
-                        msgs("group.client.list.update.h1"),
+                        msgs("group.client.list.h1"),
                         form("filter").value,
                         form("search").value)
 }
@@ -58,8 +58,8 @@ withSearchAndErrorPrefix(form.errors.nonEmpty,
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(msgs("common.caption.group.name", group.groupName))
-        @h1("group.client.list.update.h1")
+        @caption(group.groupName)
+        @h1("group.client.list.h1")
         @p("common.group.max.clients")
     </div>
 

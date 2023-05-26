@@ -44,7 +44,7 @@
     formErrors = form.errors,
     backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url)
 ) {
-    @caption(msgs("common.caption.group.name", group.groupName))
+    @caption(group.groupName)
     @h1("group.manage.delete")
 
     @formWithCSRF(action = formAction) {

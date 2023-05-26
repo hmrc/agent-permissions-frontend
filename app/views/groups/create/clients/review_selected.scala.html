@@ -22,42 +22,42 @@
 @import views.html.components.pagination.GET_pagination
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, a: a,
-    caption: caption,
-    link_as_button: link_as_button,
-    table: table,
-    submit_button: submit_button,
-    checkbox: checkbox,
-    radioButtons: radioButtons,
-    formWithCSRF: FormWithCSRF,
-    summaryErrors: SummaryErrors,
-    GET_pagination: GET_pagination
+        layout: main_layout,
+        p: p, h1: h1, a: a,
+        caption: caption,
+        link_as_button: link_as_button,
+        table: table,
+        submit_button: submit_button,
+        checkbox: checkbox,
+        radioButtons: radioButtons,
+        formWithCSRF: FormWithCSRF,
+        summaryErrors: SummaryErrors,
+        GET_pagination: GET_pagination
 )
 
 @(
-    clients: Seq[DisplayClient],
-    groupName: String,
-    form: Form[Boolean],
-    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
+        clients: Seq[DisplayClient],
+        groupName: String,
+        form: Form[Boolean],
+        paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @tableRows = @{
-        clients.map(client => {
-            Seq(
-                Html(client.name),
-                Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-                Html(displayTaxServiceFromServiceKey(client.taxService)),
-                Html(
-                    a(
-                        key = msgs("common.remove"),
-                        href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
-                    ).toString
-                )
+@tableRows = @{
+    clients.map(client => {
+        Seq(
+            Html(client.name),
+            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
+            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            Html(
+                a(
+                    key = msgs("common.remove"),
+                    href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
+                ).toString
             )
-        }
         )
     }
+    )
+}
 
 @layout(
     title = msgs("group.clients.review.title"),
@@ -66,48 +66,48 @@
     fullWidth = true
 ) {
 
-        <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", groupName))
+    <div class="govuk-!-width-two-thirds">
+        @caption(groupName)
 
-            @if(paginationMetaData.get.totalSize == 1){
-                @h1(msgs("group.clients.review.h1.singular"))
-            } else {
-                @h1(msgs("group.clients.review.h1", paginationMetaData.get.totalSize))
-            }
-        </div>
+        @if(paginationMetaData.get.totalSize == 1) {
+            @h1(msgs("group.clients.review.h1.singular"))
+        } else {
+            @h1(msgs("group.clients.review.h1", paginationMetaData.get.totalSize))
+        }
+    </div>
 
-        @if(clients.nonEmpty) {
-            @table(
-                caption = Some("common.clients"),
-                captionClasses = "govuk-visually-hidden",
-                id = Some("selected-clients"),
-                headings = Seq(
-                    (Html(msgs("group.client.list.table.th1")), Map.empty),
-                    (Html(msgs("group.client.list.table.th2")), Map.empty),
-                    (Html(msgs("group.client.list.table.th3")), Map.empty),
-                    (Html(msgs("common.actions")), Map.empty),
-                ),
-                rows = tableRows,
-            )
+    @if(clients.nonEmpty) {
+        @table(
+            caption = Some("common.clients"),
+            captionClasses = "govuk-visually-hidden",
+            id = Some("selected-clients"),
+            headings = Seq(
+                (Html(msgs("group.client.list.table.th1")), Map.empty),
+                (Html(msgs("group.client.list.table.th2")), Map.empty),
+                (Html(msgs("group.client.list.table.th3")), Map.empty),
+                (Html(msgs("common.actions")), Map.empty),
+            ),
+            rows = tableRows,
+        )
 
-            @if(paginationMetaData.exists(_.totalPages > 1)) {
-                @GET_pagination(
+        @if(paginationMetaData.exists(_.totalPages > 1)) {
+            @GET_pagination(
                 pagination = paginationMetaData.get,
                 baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
-            }
         }
-
-        @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitReviewSelectedClients) {
-            @radioButtons(
-                field = form("answer"),
-                items = Seq(
-                    RadioData("true", "group.clients.review.yes.label"),
-                    RadioData("false", "group.clients.review.no.label", id = Some("answer-no"))
-                ),
-                legend = Some(LegendData(msg = "group.clients.review.radio.legend"))
-            )
-
-            @submit_button("save.and.continue.button")
-        }
-
     }
+
+    @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitReviewSelectedClients) {
+        @radioButtons(
+            field = form("answer"),
+            items = Seq(
+                RadioData("true", "group.clients.review.yes.label"),
+                RadioData("false", "group.clients.review.no.label", id = Some("answer-no"))
+            ),
+            legend = Some(LegendData(msg = "group.clients.review.radio.legend"))
+        )
+
+        @submit_button("save.and.continue.button")
+    }
+
+}

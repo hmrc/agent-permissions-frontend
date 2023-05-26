@@ -73,7 +73,7 @@
 
 
         <div class="govuk-!-width-two-thirds">
-            @caption(msgs("common.caption.group.name", group.groupName))
+            @caption(group.groupName)
             @h1(msgs("group.teamMembers.review.h1", paginatedList.paginationMetaData.totalSize))
         </div>
 
@@ -108,7 +108,7 @@
                 field = form("answer"),
                 items = Seq(
                     RadioData("true", "group.teamMembers.review.yes.label"),
-                    RadioData("false", "group.teamMembers.review.no.label", id = Some("answer-no"))
+                    RadioData("false", "common.no.label", id = Some("answer-no"))
                 ),
                 legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
             )

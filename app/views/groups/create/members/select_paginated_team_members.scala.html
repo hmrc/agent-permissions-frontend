@@ -45,7 +45,7 @@
 }
 
 @pageTitle = @{
-    withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"group.${msgKey}.members.list.h1", groupName), None, form("search").value)
+    withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"select.members.list.h1", groupName), None, form("search").value)
 }
 
 @layout(
@@ -58,8 +58,8 @@
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(msgs("common.caption.group.name", groupName))
-        @h1(msgs(s"group.${msgKey}.members.list.h1",groupName))
+        @caption(groupName)
+        @h1(msgs(s"select.members.list.h1", groupName))
         @p("group.member.p")
     </div>
 

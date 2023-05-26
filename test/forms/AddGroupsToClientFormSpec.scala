@@ -41,7 +41,7 @@ class AddGroupsToClientFormSpec extends AnyWordSpec
         .form()
         .bindFromRequest(params)
       boundForm.hasErrors shouldBe true
-      boundForm.errors.head.messages shouldBe Seq("error.client.select.groups.empty")
+      boundForm.errors.head.messages shouldBe Seq("error.select.groups.empty")
     }
   }
 

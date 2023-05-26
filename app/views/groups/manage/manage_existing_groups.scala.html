@@ -79,7 +79,7 @@
     @if(summaries.nonEmpty) {
         @h2({
             val searchTerm = filterGroupSummaryForm.data.get("search").filter(_.nonEmpty).map(term => s"‘$term’")getOrElse(msgs("group.manage.showing.access-groups-substring"))
-            if(summaries.length == 1) msgs("group.manage.showing.one", searchTerm) else msgs("group.manage.showing.many", summaries.length, searchTerm)
+            if(summaries.length == 1) msgs("group.manage.showing.one", searchTerm) else msgs("common.showing.results.many", summaries.length, searchTerm)
         })
     }
 

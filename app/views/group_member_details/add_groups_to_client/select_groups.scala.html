@@ -38,7 +38,7 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @h1Text = @{
-    msgs(if(availableGroups.isEmpty) "client.select.groups.none.h1" else "client.select.groups.h1", client.name)
+    msgs(if(availableGroups.isEmpty) "common.select.groups.none.h1" else "client.select.groups.h1", client.name)
 }
     
 @backLink = @{
@@ -52,7 +52,7 @@
         @govukErrorSummary(
             ErrorSummary(errorList = Seq(
                 ErrorLink(Some("#" + availableGroups(0).groupId),
-                    Text(msgs("error.client.select.groups.empty"))
+                    Text(msgs("error.select.groups.empty"))
                 )
             )
             )

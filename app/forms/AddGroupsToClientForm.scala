@@ -24,7 +24,7 @@ object AddGroupsToClientForm {
   def form(): Form[List[String]] = {
     Form(
       single(
-        "groups" -> list(text).verifying("error.client.select.groups.empty", groups => groups.nonEmpty)
+        "groups" -> list(text).verifying("error.select.groups.empty", groups => groups.nonEmpty)
       )
     )
   }

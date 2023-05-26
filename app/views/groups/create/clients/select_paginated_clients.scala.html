@@ -58,7 +58,7 @@
                 displayTaxServiceFromServiceKey(form.get.filter.get)
             else
                 form.get.search.get
-        msgs("group.client.list.1.h2", paginationMetaData.get.totalSize, txt)
+        msgs("common.showing.results.many", paginationMetaData.get.totalSize, txt)
     }
 }
 @layout(
@@ -71,7 +71,7 @@
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(msgs("common.caption.group.name", groupName))
+        @caption(groupName)
         @h1(msgs("group.client.list.h1", groupName))
         @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
             @h2(searchParamMsg)

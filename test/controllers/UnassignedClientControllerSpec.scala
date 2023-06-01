@@ -525,7 +525,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val form = html.select("main form")
       //shouldn't be anything in the form except the button group hence checking the full html
       form.html() shouldBe "<div class=\"govuk-button-group\"> <button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
-        "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button> <a class=\"govuk-link\" href=\"/agent-permissions/manage-access-groups\">Go to manage access groups</a> " +
+        "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button> <a href=\"/agent-permissions/manage-access-groups\" class=\" govuk-link govuk-body\">Return to manage access groups</a> " +
         "\n" + "</div>"
     }
 

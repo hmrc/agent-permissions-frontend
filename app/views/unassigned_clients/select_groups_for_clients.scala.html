@@ -23,7 +23,7 @@
 
 @this(
         layout: main_layout,
-        p: p, h1: h1,
+        p: p, h1: h1, a:a,
         submit_button: submit_button,
         link_as_button: link_as_button,
         checkboxes: checkboxes,
@@ -64,7 +64,10 @@
         @if(groups.isEmpty) {
             <div class="govuk-button-group">
             @submit_button(messageKey = "group.type.h1", name = "createNew", value = "true")
-            <a class="govuk-link" href= @routes.ManageGroupController.submitManageGroups().url >Go to manage access groups</a>
+                @a(
+                    key = "common.return.to.dashboard",
+                    href = routes.ManageGroupController.submitManageGroups().url
+                    )
             </div>
         } else {
             <fieldset class="govuk-fieldset">

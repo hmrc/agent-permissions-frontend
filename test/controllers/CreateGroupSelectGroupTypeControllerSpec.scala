@@ -91,7 +91,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       radios.select("label[for=answer]").text() shouldBe "Custom access group"
       radios.select("#answer-item-hint").text() shouldBe "Select clients based on any criteria. You can have a total of 1,200 clients and team members in a custom access group."
       radios.select("#answer-no-item-hint")
-        .text() shouldBe "Select all clients for one tax service. These groups can be set to update automatically when you get new clients."
+        .text() shouldBe "Select all clients for one tax service. These groups update automatically when you get new clients."
       radios.select("label[for=answer-no]").text() shouldBe "Access group based on tax service"
 
       html.select(Css.submitButton).text() shouldBe "Continue"
@@ -189,9 +189,9 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       val taxTypeOptions = form.select("select#taxType option")
       taxTypeOptions.get(0).text() shouldBe "Select tax service"
       taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
-      taxTypeOptions.get(2).text() shouldBe "Maintain a Trust or Estate (108)"
-      taxTypeOptions.get(3).text() shouldBe "Making Tax Digital for Income Tax (13)"
-      taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax (22)"
+      taxTypeOptions.get(2).text() shouldBe "Making Tax Digital for Income Tax (13)"
+      taxTypeOptions.get(3).text() shouldBe "Plastic Packaging Tax (22)"
+      taxTypeOptions.get(4).text() shouldBe "Trusts and estates (108)"
       taxTypeOptions.get(5).text() shouldBe "VAT (85)"
 
       html.select("#tsg-inset").text() shouldBe "We will add new clients to this group automatically. We’ll do this when they authorise you for the selected tax service. You can manually remove specific clients later, using the ‘Manage access groups’ section."

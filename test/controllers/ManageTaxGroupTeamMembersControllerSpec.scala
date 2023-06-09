@@ -159,7 +159,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'John 1' Manage team members in this group - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘John 1’ Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
       html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘John 1’ in this group"
 
@@ -189,7 +189,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members in this group - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘hn2@ab’ Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
       html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘hn2@ab’ in this group"
 
@@ -220,7 +220,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'hn2@ab' Manage team members in this group - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘hn2@ab’ Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
 
       val tableOfTeamMembers = html.select(Css.tableWithId("members"))
@@ -299,7 +299,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for 'John' Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘John’ Select team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members"
 
       html.select(H2).text() shouldBe "Showing 4 team members for ‘John’"
@@ -566,7 +566,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
   s"POST ${ctrlRoute.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId).url}" should {
 
-    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None)}' page with answer 'false'" in {
+    s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None)}’ page with answer ‘false'" in {
 
       val endpoint = s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}"
       implicit val request = FakeRequest("POST", endpoint)
@@ -587,7 +587,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
     }
 
-    s"redirect to '${ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None)}' page with answer 'true'" in {
+    s"redirect to ‘${ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None)}’ page with answer ‘true'" in {
 
       implicit val request = FakeRequest("POST",
         s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
@@ -628,7 +628,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    s"redirect to '${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url}' when no SELECTED_TEAM_MEMBERS in session" in {
+    s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url}’ when no SELECTED_TEAM_MEMBERS in session" in {
 
       implicit val request =
         FakeRequest(
@@ -685,7 +685,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
   s"POST confirm remove team member at:${ctrlRoute.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE).url}" should {
 
-    " remove from group and redirect to group team members list when 'yes' selected" in {
+    " remove from group and redirect to group team members list when ‘yes’ selected" in {
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
@@ -704,7 +704,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
     }
 
-    "redirects to group members list when  'no' selected " in {
+    "redirects to group members list when  ‘no’ selected " in {
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
@@ -798,7 +798,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   //  expected GroupService.getCustomSummary(2230467a-02f7-4863-b8cc-79ae1a539527, *, *)
   s"POST submitConfirmRemoveFromTeamMembersToAdd ${ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id).url}" should {
 
-    "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
+    "confirm remove client ‘yes’ removes  from group and redirect to group clients list" in {
 
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
@@ -819,7 +819,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
     }
 
-    "confirm remove client 'no' redirects to group clients list" in {
+    "confirm remove client ‘no’ redirects to group clients list" in {
 
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))

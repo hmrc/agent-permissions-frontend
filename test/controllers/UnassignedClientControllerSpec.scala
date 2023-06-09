@@ -119,7 +119,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Filter results for 'friendly1' Clients who are not in any groups - Agent services account - GOV.UK"
+        html.title() shouldBe "Filter results for ‘friendly1’ Clients who are not in any groups - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Clients who are not in any groups"
 
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
@@ -145,7 +145,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Filter results for 'nothing' Clients who are not in any groups - Agent services account - GOV.UK"
+        html.title() shouldBe "Filter results for ‘nothing’ Clients who are not in any groups - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Clients who are not in any groups"
 
         // no table
@@ -720,7 +720,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   s"POST Remove a selected client ${ctrlRoutes.submitConfirmRemoveClient().url}" should {
 
-    s"redirect to '${ctrlRoutes.showSelectedUnassignedClients(None, None).url}' page with answer 'true'" in {
+    s"redirect to ‘${ctrlRoutes.showSelectedUnassignedClients(None, None).url}’ page with answer ‘true'" in {
 
       val clientToRemove = displayClients.head
 
@@ -743,7 +743,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       redirectLocation(result).get shouldBe ctrlRoutes.showSelectedUnassignedClients(None, None).url
     }
 
-    s"redirect to '${ctrlRoutes.showSelectedUnassignedClients(None, None).url}' page with answer 'false'" in {
+    s"redirect to ‘${ctrlRoutes.showSelectedUnassignedClients(None, None).url}’ page with answer ‘false'" in {
 
       val clientToRemove = displayClients.head
 

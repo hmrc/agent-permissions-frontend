@@ -193,7 +193,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'friendly1' and 'VAT' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘friendly1’ and ‘VAT’ Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
       html.select(H2).text shouldBe "Showing 1 client for ‘friendly1’ and ‘VAT’ in this group"
@@ -233,7 +233,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'friendly1' and 'Capital Gains Tax on UK Property account' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘friendly1’ and ‘Capital Gains Tax on UK Property account’ Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
@@ -729,7 +729,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST submitReviewSelectedClients on url${ctrlRoute.submitReviewSelectedClients(grpId).url}" should {
 
-    s"redirect to existing group clients on url when page is submitted with answer 'NO'/'false'" in {
+    s"redirect to existing group clients on url when page is submitted with answer ‘NO'/'false'" in {
 
       expectAuthOkOptedInReady()
 
@@ -752,8 +752,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
     }
 
-    s"redirect to showSearchClientsToAdd on url '${ctrlRoute.showSearchClientsToAdd(grpId)}' " +
-      s"when page is submitted with answer 'YES'/'true'" in {
+    s"redirect to showSearchClientsToAdd on url ‘${ctrlRoute.showSearchClientsToAdd(grpId)}’ " +
+      s"when page is submitted with answer ‘YES'/'true'" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients(grpId)}")
@@ -831,7 +831,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST ${ctrlRoute.submitConfirmRemoveClient(grpId).url}" should {
 
-    "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
+    "confirm remove client ‘yes’ removes  from group and redirect to group clients list" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -851,7 +851,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(grpId, None, None).url
     }
 
-    "confirm remove client 'no' redirects to group clients list" in {
+    "confirm remove client ‘no’ redirects to group clients list" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -944,7 +944,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST submitConfirmRemoveFromSelectedClients ${ctrlRoute.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey).url}" should {
 
-    "confirm remove client 'yes' removes  from group and redirect to REVIEW SELECTED CLIENTS page" in {
+    "confirm remove client ‘yes’ removes  from group and redirect to REVIEW SELECTED CLIENTS page" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -987,7 +987,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showAddClients(grpId, None, None).url
     }
 
-    "confirm remove client 'no' redirects to group clients list" in {
+    "confirm remove client ‘no’ redirects to group clients list" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -1082,7 +1082,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST submit confirm remove from UPDATE clients ${ctrlRoute.showConfirmRemoveFromUpdateClients(grpId, clientToRemove.enrolmentKey).url}" should {
 
-    "confirm remove client 'yes' removes  from group and redirect to clients to add page" in {
+    "confirm remove client ‘yes’ removes  from group and redirect to clients to add page" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -1103,7 +1103,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
 
 
-    "confirm remove client 'no' redirects to group clients list" in {
+    "confirm remove client ‘no’ redirects to group clients list" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))

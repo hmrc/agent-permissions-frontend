@@ -184,7 +184,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'friendly1' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘friendly1’ Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
@@ -235,7 +235,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for 'nothing' Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘nothing’ Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
@@ -341,7 +341,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
     s"POST ${ctrlRoute.submitConfirmRemoveClient(taxGroupId).url}" should {
 
-      "confirm remove client 'yes' removes  from group and redirect to group clients list" in {
+      "confirm remove client ‘yes’ removes  from group and redirect to group clients list" in {
 
         val updatePayload = UpdateTaxServiceGroupRequest(excludedClients = Some(Set(DisplayClient.toClient(clientToRemove))))
         expectAuthOkOptedInReady()
@@ -362,7 +362,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         redirectLocation(result).get shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
       }
 
-      "confirm remove client 'no' redirects to group clients list" in {
+      "confirm remove client ‘no’ redirects to group clients list" in {
 
         expectAuthOkOptedInReady()
         expectGetTaxGroupById(taxGroupId, Some(taxGroup))
@@ -537,7 +537,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Filter results for 'john a' Removed clients - Agent services account - GOV.UK"
+        html.title() shouldBe "Filter results for ‘john a’ Removed clients - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients"
         html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
 

@@ -179,10 +179,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'John' Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘John’ Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 
-      html.select(H2).text() shouldBe "Filter results for 'John'"
+      html.select(H2).text() shouldBe "Filter results for ‘John’"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -227,7 +227,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       trs.size() shouldBe 0
 
       // Not found content
-      html.select(Css.H2).text() shouldBe "No filter results for ''"
+      html.select(Css.H2).text() shouldBe "No filter results for ‘’"
       html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
 
     }
@@ -531,7 +531,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   s"POST ${routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers().url}" should {
 
-    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showTaxGroupCreated().url}' page with answer 'false'" in {
+    s"redirect to ‘${routes.CreateGroupSelectTeamMembersController.showTaxGroupCreated().url}’ page with answer ‘false’" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
@@ -555,7 +555,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showTaxGroupCreated().url
     }
 
-    s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' page with answer 'true'" in {
+    s"redirect to ‘${ctrlRoute.showSelectTeamMembers(None, None).url}’ page with answer ‘true’" in {
 
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
@@ -573,7 +573,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
     }
 
-    s"redirect to '${ctrlRoute.showSelectTeamMembers(None, None).url}' with no SELECTED in session" in {
+    s"redirect to ‘${ctrlRoute.showSelectTeamMembers(None, None).url}’ with no SELECTED in session" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
@@ -619,7 +619,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    s"render errors when answer 'false' and 0 selected team members in session" in {
+    s"render errors when answer ‘false’ and 0 selected team members in session" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest(
@@ -747,7 +747,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   s"POST Remove a selected team member ${ctrlRoute.submitConfirmRemoveTeamMember().url}" should {
 
-    s"redirect to '${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}' page with answer 'true'" in {
+    s"redirect to ‘${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}’ page with answer ‘true’" in {
 
       val teamMemberToRemove = teamMembers.head
 
@@ -770,7 +770,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(None, None).url
     }
 
-    s"redirect to '${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}' page with answer 'false'" in {
+    s"redirect to ‘${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}’ page with answer ‘false’" in {
 
       //given
       val memberToRemove = teamMembers.head

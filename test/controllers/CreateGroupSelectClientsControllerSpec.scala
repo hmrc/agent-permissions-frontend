@@ -43,7 +43,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
-  implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService] // TODO move to a 'real' (in-memory store) session cache service and you won't have to mock either SessionCacheService or SessionCacheServiceOperations!
+  implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService] // TODO move to a ‘real’ (in-memory store) session cache service and you won't have to mock either SessionCacheService or SessionCacheServiceOperations!
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
   private val groupName = "XYZ"
@@ -221,11 +221,11 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for 'John' Select clients - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘John’ Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
 
       //TODO check if we need to add a h2 with filter/search terms
-      //html.select(H2).text() shouldBe "Filter results for 'John'"
+      //html.select(H2).text() shouldBe "Filter results for ‘John'"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -556,7 +556,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   s"POST ${routes.CreateGroupSelectClientsController.submitReviewSelectedClients().url}" should {
 
-    s"redirect to '${routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url}' page with answer 'false'" in {
+    s"redirect to ‘${routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url}’ page with answer ‘false'" in {
 
       implicit val request =
         FakeRequest(
@@ -574,7 +574,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url
     }
 
-    s"redirect to '${ctrlRoute.showSearchClients().url}' page with answer 'true'" in {
+    s"redirect to ‘${ctrlRoute.showSearchClients().url}’ page with answer ‘true'" in {
 
       implicit val request =
         FakeRequest(
@@ -593,7 +593,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showSearchClients().url
     }
 
-    s"redirect to '${ctrlRoute.showSearchClients().url}' with no SELECTED in session" in {
+    s"redirect to ‘${ctrlRoute.showSearchClients().url}’ with no SELECTED in session" in {
 
       implicit val request =
         FakeRequest(
@@ -682,7 +682,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   s"POST Remove a selected client ${routes.CreateGroupSelectClientsController.submitConfirmRemoveClient().url}" should {
 
-    s"redirect to '${ctrlRoute.showReviewSelectedClients(None, None).url}' page with answer 'true'" in {
+    s"redirect to ‘${ctrlRoute.showReviewSelectedClients(None, None).url}’ page with answer ‘true'" in {
 
       val clientToRemove = displayClients.head
 
@@ -702,7 +702,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(None, None).url
     }
 
-    s"redirect to '${ctrlRoute.showReviewSelectedClients(None, None).url}' page with answer 'false'" in {
+    s"redirect to ‘${ctrlRoute.showReviewSelectedClients(None, None).url}’ page with answer ‘false'" in {
 
       val clientToRemove = displayClients.head
 
@@ -722,7 +722,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(None, None).url
     }
 
-    s"redirect to '${ctrlRoute.showSearchClients().url}' with no CLIENT_TO_REMOVE in session" in {
+    s"redirect to ‘${ctrlRoute.showSearchClients().url}’ with no CLIENT_TO_REMOVE in session" in {
 
       implicit val request =
         FakeRequest(

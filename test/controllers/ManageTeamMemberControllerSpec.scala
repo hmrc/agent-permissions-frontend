@@ -103,12 +103,12 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe s"Filter results for '$searchTerm' Manage team members’ access groups - Agent services account - GOV.UK"
+      html.title() shouldBe s"Filter results for ‘$searchTerm’ Manage team members’ access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members’ access groups"
 
       html.select(Css.inputTextWithId("search")).attr("value") shouldBe searchTerm
 
-      html.select("#filter-button").text() shouldBe "Apply filter" // 'filter' (singular) not 'filters' - APB-7104
+      html.select("#filter-button").text() shouldBe "Apply filter" // ‘filter’ (singular) not ‘filters’ - APB-7104
       html.select("#clear-button").text() shouldBe "Clear filter"
 
       val th = html.select(Css.tableWithId("members")).select("thead th")

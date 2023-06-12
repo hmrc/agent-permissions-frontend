@@ -136,7 +136,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Other clients you can manage - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Other clients you can manage"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
       html.select(paragraphs).get(0).text() shouldBe "You can manage these clients’ tax as they are not in any access groups."
       html.select("main p#pagination-showing").text() shouldBe "Showing 1 to 20 of 31 clients"
       val th = html.select(Css.tableWithId("clients")).select("thead th")
@@ -162,7 +162,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Filter results for ‘friendly1’ Other clients you can manage - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Other clients you can manage"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       html.select(H2).text shouldBe "Filter results for ‘friendly1’"
 
@@ -190,7 +190,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Filter results for ‘friendly1’ and ‘Capital Gains Tax on UK Property account’ Other clients you can manage - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Other clients you can manage"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       html.select(H2).text shouldBe "No clients found"
 
@@ -272,7 +272,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.title() shouldBe s"${accessGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${accessGroup.groupName}"
       html.select("main p#pagination-showing").text() shouldBe "Showing 1 to 20 of 31 clients"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       th.size() shouldBe 3
@@ -297,7 +297,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Filter results for ‘friendly1’ ${accessGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${accessGroup.groupName}"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       html.select(H2).text shouldBe "Filter results for ‘friendly1’"
 
@@ -434,7 +434,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.title() shouldBe s"${taxGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${taxGroup.groupName}"
 
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       html.select(H2).size shouldBe 0
 
@@ -472,7 +472,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // title should not mention tax service filter
       html.title() shouldBe s"Filter results for ‘friendly1’ ${taxGroup.groupName} clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe s"${taxGroup.groupName}"
-      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
+      html.select(backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/your-account"
 
       html.select(H2).text shouldBe "Filter results for ‘friendly1’"
 

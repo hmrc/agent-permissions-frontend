@@ -164,7 +164,7 @@ group.manage.delete=Delete group
 group.manage.h1=Manage access groups
 group.manage.members=Manage team members
 group.manage.members.h1=Manage team members’ access groups
-group.manage.members.p=You can view team members’ details here and see what access groups they are in. You can also <a href="{0}">start adding team members to your agent services account</a>.
+group.manage.members.p=You can view team members’ details here and see what access groups they are in.
 group.manage.no.groups.button=Create new access group
 group.manage.no.groups.h3=No groups found
 group.manage.no.groups.p=Update your filters and try again or clear your filters to see all your groups

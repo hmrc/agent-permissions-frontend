@@ -308,3 +308,4 @@ you-have-opted-in.p2.ready.true=Clients and team members can be in more than one
 you-have-opted-out.h1=You have turned off access groups
 you-have-opted-out.p1=You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients.
 you-have-opted-out.p2=Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account’ page.
+success.header=Success

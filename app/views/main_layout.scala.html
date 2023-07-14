@@ -60,6 +60,7 @@
         @govukNotificationBanner(
             NotificationBanner(
                 content = HtmlContent(request.flash.get("success").get),
+                title =  HtmlContent(msgs("success.header")),
                 bannerType = Some("success")
             )
         )

@@ -3,15 +3,15 @@ import sbt._
 object AppDependencies {
 
   private val mongoVer: String = "1.1.0"
-  private val bootstrapVer: String = "7.15.0"
+  private val bootstrapVer: String = "7.19.0"
 
   val compile = Seq(
     "uk.gov.hmrc"        %% "bootstrap-frontend-play-28"     % bootstrapVer,
     "uk.gov.hmrc.mongo"  %% "hmrc-mongo-play-28"             % mongoVer,
     "uk.gov.hmrc"        %% "play-frontend-hmrc"             % "7.7.0-play-28",
     "uk.gov.hmrc"        %% "play-conditional-form-mapping"  % "1.12.0-play-28",
-    "uk.gov.hmrc"        %% "agent-mtd-identifiers"          % "1.2.0",
-    "uk.gov.hmrc"        %% "agent-kenshoo-monitoring"       % "5.3.0",
+    "uk.gov.hmrc"        %% "agent-mtd-identifiers"          % "1.13.0",
+    "uk.gov.hmrc"        %% "agent-kenshoo-monitoring"       % "5.5.0",
   )
 
   val test = Seq(

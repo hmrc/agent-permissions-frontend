@@ -22,7 +22,7 @@ import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, SessionCacheService}
@@ -69,7 +69,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       expectDeleteSessionItems(sessionKeys)
 
-      implicit val request = FakeRequest("GET",
+      implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -102,7 +102,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //given
       expectAuthOkArnAllowedOptedInReady()
 
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
@@ -125,7 +125,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //given
       expectAuthOkArnAllowedOptedInReady()
 
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "true")
@@ -144,7 +144,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //given
       expectAuthOkArnAllowedOptedInReady()
 
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitSelectGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "false")
@@ -170,7 +170,47 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         ctrlRoute.showSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108, 5))
+
+      //when
+      val result = controller.showSelectTaxServiceGroupType()(request)
+
+      //then
+      status(result) shouldBe OK
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Group based on tax service - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Group based on tax service"
+
+      val form = html.select("form")
+      form.attr("method") shouldBe "POST"
+      form.attr("action") shouldBe ctrlRoute.submitSelectTaxServiceGroupType().url
+
+      form.select("label[for=taxType]").text() shouldBe "Select clients by tax service"
+      val taxTypeOptions = form.select("select#taxType option")
+      taxTypeOptions.get(0).text() shouldBe "Select tax service"
+      taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
+      taxTypeOptions.get(2).text() shouldBe "Country-by-country reports (5)"
+      taxTypeOptions.get(3).text() shouldBe "Making Tax Digital for Income Tax (13)"
+      taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax (22)"
+      taxTypeOptions.get(5).text() shouldBe "Trusts and estates (108)"
+      taxTypeOptions.get(6).text() shouldBe "VAT (85)"
+
+      html.select("#tsg-inset").text() shouldBe "We will add new clients to this group automatically. We’ll do this when they authorise you for the selected tax service. You can manually remove specific clients later, using the ‘Manage access groups’ section."
+
+      html.select(Css.submitButton).text() shouldBe "Save and continue"
+    }
+
+    "render select_group_tax_type without services with no clients" in {
+      //given
+      expectAuthOkArnAllowedOptedInReady()
+      expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+
+      implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
+        ctrlRoute.showSelectTaxServiceGroupType().url)
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      // No PPT or CBC clients means either in tax group already or no clients for the agent
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 0, 108, 0))
 
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
@@ -190,9 +230,10 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       taxTypeOptions.get(0).text() shouldBe "Select tax service"
       taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
       taxTypeOptions.get(2).text() shouldBe "Making Tax Digital for Income Tax (13)"
-      taxTypeOptions.get(3).text() shouldBe "Plastic Packaging Tax (22)"
-      taxTypeOptions.get(4).text() shouldBe "Trusts and estates (108)"
-      taxTypeOptions.get(5).text() shouldBe "VAT (85)"
+      taxTypeOptions.get(3).text() shouldBe "Trusts and estates (108)"
+      taxTypeOptions.get(4).text() shouldBe "VAT (85)"
+      taxTypeOptions.toString.contains("Plastic Packaging Tax") shouldBe false
+      taxTypeOptions.toString.contains("Country-by-country reports") shouldBe false
 
       html.select("#tsg-inset").text() shouldBe "We will add new clients to this group automatically. We’ll do this when they authorise you for the selected tax service. You can manually remove specific clients later, using the ‘Manage access groups’ section."
 
@@ -204,11 +245,11 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
-      implicit val request = FakeRequest("GET",
+      implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetAvailableTaxServiceClientCount(arn)(List(0,0,0,0,0))
+      expectGetAvailableTaxServiceClientCount(arn)(List(0,0,0,0,0,0))
 
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
@@ -230,9 +271,9 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //given
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
-      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108, 5))
 
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("taxType" -> "")
@@ -253,7 +294,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
     "redirect to review tax service group type page" in {
 
       //given
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("taxType" -> VAT)
@@ -284,7 +325,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
       expectGetSessionItem(GROUP_SERVICE_TYPE, "HMRC-CGT-PD")
 
-      implicit val request = FakeRequest("GET",
+      implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -319,7 +360,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
       expectGetSessionItem(GROUP_SERVICE_TYPE, VAT)
 
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("POST",
         ctrlRoute.submitReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -342,7 +383,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "true"
@@ -361,7 +402,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
 
-      implicit val request = FakeRequest("POST",
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitReviewTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("answer" -> "false")

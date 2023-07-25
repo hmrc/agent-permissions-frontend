@@ -16,21 +16,27 @@
 
 package utils
 
+import config.AppConfig
 import play.api.i18n.Messages
 
 object ViewUtils {
 
-  def getFiltersByTaxService()(implicit mgs: Messages): Seq[(String, String)] =
-    Seq(
+  def getFiltersByTaxService()(implicit mgs: Messages, appConfig: AppConfig): Seq[(String, String)] = {
+    val filters = Seq(
       ("HMRC-MTD-IT", mgs("tax-service.mdt-it")),
       ("HMRC-MTD-VAT", mgs("tax-service.vat")),
       ("HMRC-CGT-PD", mgs("tax-service.cgt")),
       ("HMRC-PPT-ORG", mgs("tax-service.ppt")),
-      ("TRUST", mgs("tax-service.trusts"))
+      ("TRUST", mgs("tax-service.trusts")) // TODO update to HMRC-TERS
     )
 
+    if(appConfig.cbcEnabled) {
+      filters ++ Seq(("HMRC-CBC", mgs("tax-service.cbc")))
+    } else filters
+  }
+
   def getFiltersTaxServiceListWithClientCount(data: Map[String, Int])
-                                             (implicit mgs: Messages): Seq[(String, String)] ={
+                                             (implicit mgs: Messages): Seq[(String, String)] = {
     data
       .map(entry => (entry._1, displayTaxServiceFromServiceKey(entry._1) + s" (${entry._2})" ))
       .toSeq
@@ -38,16 +44,17 @@ object ViewUtils {
   }
 
 
-  def displayTaxServiceFromServiceKey(serviceKey: String)(
-      implicit mgs: Messages): String = {
+  def displayTaxServiceFromServiceKey(serviceKey: String)(implicit mgs: Messages): String = {
     serviceKey match {
       case "HMRC-MTD-IT"     => mgs("tax-service.mdt-it")
       case "HMRC-MTD-VAT"    => mgs("tax-service.vat")
       case "HMRC-CGT-PD"     => mgs("tax-service.cgt")
       case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
       // TRUST not a service key but value for filter
-      case s                 => if(s.contains("HMRC-TERS") || s == "TRUST") mgs("tax-service.trusts") else
-        throw new Exception(s"str: '$s' is not a value for a tax service")
+      case s if s.contains("HMRC-TERS") || s == "TRUST" => mgs("tax-service.trusts")
+      // We treat UK and NONUK variants as the same service
+      case s if s.contains("HMRC-CBC") => mgs("tax-service.cbc")
+      case s => throw new Exception(s"str: '$s' is not a value for a tax service")
     }
   }
 

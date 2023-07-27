@@ -59,31 +59,35 @@ case class DisplayClient(
                           hmrcRef: String,
                           name: String,
                           taxService: String,
-                          identifierKey: String,
+                          enrolmentKeyMiddle: String, // not used for display - very hacky!!
                           selected: Boolean = false,
                           alreadyInGroup: Boolean = false
                         ) extends Selectable {
-  val enrolmentKey = s"$taxService~$identifierKey~$hmrcRef"
-  val id: String = EncryptionUtil.encryptEnrolmentKey(enrolmentKey).toString
+  val enrolmentKey = s"$taxService~$enrolmentKeyMiddle~$hmrcRef"
+  val id: String = EncryptionUtil.encryptEnrolmentKey(enrolmentKey)
 }
 
 case object DisplayClient {
 
   implicit val format: OFormat[DisplayClient] = Json.format[DisplayClient]
 
-
+  //TODO problematic?
   def fromClient(client: Client, selected: Boolean = false): DisplayClient = {
     val keyElements = client.enrolmentKey.split('~')
     val taxService = keyElements.head
-    val identifierKey = keyElements(1)
+    //very hacky!!
+    val enrolmentKeyMiddle = if(keyElements.head.contains("HMRC-CBC-ORG")) {
+      s"${keyElements(1)}~${keyElements(2)}~${keyElements(3)}"
+    } else keyElements(1)
     val hmrcRef = keyElements.last
 
     DisplayClient(hmrcRef,
       Option(client.friendlyName).getOrElse(""), //to avoid null pointers and avoid getOrElse constantly !!
       taxService,
-      identifierKey,
+      enrolmentKeyMiddle,
       selected)
   }
 
-  def toClient(dc: DisplayClient): Client = Client(s"${dc.taxService}~${dc.identifierKey}~${dc.hmrcRef}", dc.name)
+  //TODO problematic
+  def toClient(dc: DisplayClient): Client = Client(s"${dc.taxService}~${dc.enrolmentKeyMiddle}~${dc.hmrcRef}", dc.name)
 }

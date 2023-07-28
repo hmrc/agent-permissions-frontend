@@ -71,7 +71,7 @@ case object DisplayClient {
 
   implicit val format: OFormat[DisplayClient] = Json.format[DisplayClient]
 
-  //TODO problematic?
+  //TODO problematic assumption about where the 'key' identifier (hmrcRef) is in an enrolmentKey
   def fromClient(client: Client, selected: Boolean = false): DisplayClient = {
     val keyElements = client.enrolmentKey.split('~')
     val taxService = keyElements.head
@@ -88,6 +88,6 @@ case object DisplayClient {
       selected)
   }
 
-  //TODO problematic
+  //TODO problematic assumption about where the 'key' identifier (hmrcRef) is in an enrolmentKey
   def toClient(dc: DisplayClient): Client = Client(s"${dc.taxService}~${dc.enrolmentKeyMiddle}~${dc.hmrcRef}", dc.name)
 }

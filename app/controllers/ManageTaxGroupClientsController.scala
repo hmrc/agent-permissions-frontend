@@ -281,7 +281,7 @@ class ManageTaxGroupClientsController @Inject()
   private def updateExcludedClients(groupId: GroupId, maybeSelected: Option[Seq[DisplayClient]], currentPageClients: Option[Seq[DisplayClient]], formData: AddClientsToGroup, excludedClients: Set[Client])
                                    (implicit request: Request[_], hc: HeaderCarrier): Future[Int] = {
     val clientsToUnexclude = clientsSelectedIncludingCurrentPage(maybeSelected, currentPageClients, formData)
-    val clients: Set[Client] = excludedClients -- clientsToUnexclude.map(toClient(_))
+    val clients: Set[Client] = excludedClients -- clientsToUnexclude.map(toClient)
     val updateRequest = UpdateTaxServiceGroupRequest(excludedClients = Option(clients))
     for {
       _ <- taxGroupService.updateGroup(groupId, updateRequest)
@@ -304,7 +304,7 @@ class ManageTaxGroupClientsController @Inject()
         sortedExcludedClients
           .filter(dc => dc.name.toLowerCase.contains(lowerCaseSearch) || dc.hmrcRef.toLowerCase.contains(lowerCaseSearch))
     }
-    if (!maybeSelected.getOrElse(Seq.empty[DisplayClient]).isEmpty) {
+    if (maybeSelected.getOrElse(Seq.empty[DisplayClient]).nonEmpty) {
       sortedExcludedClients = sortedExcludedClients.map(dc => dc.copy(selected = maybeSelected.get.map(_.id).contains(dc.id)))
     }
     val pagination = PaginatedListBuilder.build(pge, pgSize, sortedExcludedClients)

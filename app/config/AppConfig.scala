@@ -40,6 +40,7 @@ trait AppConfig {
   def agentServicesAccountYourAssistantAccountUrl: String
   def agentPermissionsBaseUrl: String
   def agentUserClientDetailsBaseUrl: String
+  def agentClientAuthBaseUrl: String
   def sessionCacheExpiryDuration: Duration
   def userTimeoutCountdown: Int
   def userTimeout: Int
@@ -60,15 +61,16 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: E
   lazy val basGatewayUrl: String = servicesConfig.getString("microservice.services.bas-gateway.external-url")
   lazy val loginContinueUrl: String = servicesConfig.getString("microservice.services.bas-gateway.login-continue")
 
-  lazy val agentServicesAccountExternalUrl: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.external-url")
-  lazy val agentServicesAccountManageAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.manage-account-path")
-  lazy val agentServicesAccountYourAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.your-account-path")
-  lazy val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
-  lazy val agentServicesAccountYourAssistantAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountYourAccountPath
-  lazy val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
-  lazy val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
+  val agentServicesAccountExternalUrl: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.external-url")
+  val agentServicesAccountManageAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.manage-account-path")
+  val agentServicesAccountYourAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.your-account-path")
+  val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
+  val agentServicesAccountYourAssistantAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountYourAccountPath
+  val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
+  val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
+  val agentClientAuthBaseUrl: String = servicesConfig.baseUrl("agent-client-authorisation")
 
-  lazy val sessionCacheExpiryDuration: Duration = servicesConfig.getDuration("mongodb.cache.expiry")
+  val sessionCacheExpiryDuration: Duration = servicesConfig.getDuration("mongodb.cache.expiry")
 
   lazy val userTimeout: Int = servicesConfig.getInt("timeout.duration")
   lazy val userTimeoutCountdown: Int = servicesConfig.getInt("timeout.countDown")

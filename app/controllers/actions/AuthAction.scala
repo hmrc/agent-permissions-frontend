@@ -17,11 +17,14 @@
 package controllers.actions
 
 import config.AppConfig
-import connectors.AgentPermissionsConnector
+import controllers._
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector}
+import play.api.libs.json.Reads
 import play.api.mvc.Results.{Forbidden, Redirect}
-import play.api.mvc.{RequestHeader, Result}
+import play.api.mvc.{Request, RequestHeader, Result}
 import play.api.{Configuration, Environment, Logging}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import services.SessionCacheService
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, SuspensionDetails}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
@@ -37,7 +40,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthAction @Inject()(val authConnector: AuthConnector,
                            val env: Environment,
                            val config: Configuration,
-                           agentPermissionsConnector: AgentPermissionsConnector)
+                           agentPermissionsConnector: AgentPermissionsConnector,
+                           agentClientAuthorisationConnector: AgentClientAuthorisationConnector,
+                           sessionCacheService: SessionCacheService)
     extends AuthRedirects
     with AuthorisedFunctions
     with Logging {
@@ -46,7 +51,7 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
 
   def isAuthorisedAgent(body: Arn => Future[Result])
-                       (implicit ec: ExecutionContext, request: RequestHeader, appConfig: AppConfig): Future[Result] = {
+                       (implicit ec: ExecutionContext, request: Request[_], appConfig: AppConfig): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
@@ -55,19 +60,21 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
         case enrols ~ credRole =>
           getArn(enrols) match {
             case Some(arn) =>
-              credRole match {
-                case Some(User) | Some(Admin) =>
-                  agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
-                    if (isArnAllowed) {
-                      body(arn)
-                    } else {
-                      logger.warn("ARN is not on allowed list")
-                      Future.successful(Forbidden)
+              withSuspendedCheck { _ =>
+                credRole match {
+                  case Some(User) | Some(Admin) =>
+                    agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
+                      if (isArnAllowed) {
+                        body(arn)
+                      } else {
+                        logger.warn("ARN is not on allowed list")
+                        Future.successful(Forbidden)
+                      }
                     }
-                  }
-                case _ =>
-                  logger.warn(s"Invalid credential role $credRole")
-                  Future.successful(Forbidden)
+                  case _ =>
+                    logger.warn(s"Invalid credential role $credRole")
+                    Future.successful(Forbidden)
+                }
               }
             case None =>
               logger.warn(s"No $agentReferenceNumberIdentifier in enrolment")
@@ -79,7 +86,7 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
 
   def isAuthorisedAssistant(body: Arn => Future[Result])(
     implicit ec: ExecutionContext,
-    request: RequestHeader,
+    request: Request[_],
     appConfig: AppConfig): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
@@ -89,19 +96,21 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
         case enrols ~ credRole =>
           getArn(enrols) match {
             case Some(arn) =>
-              credRole match {
-                case Some(Assistant) =>
-                  agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
-                    if (isArnAllowed) {
-                      body(arn)
-                    } else {
-                      logger.warn("ARN is not on allowed list")
-                      Future.successful(Forbidden)
+              withSuspendedCheck { _ =>
+                credRole match {
+                  case Some(Assistant) =>
+                    agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
+                      if (isArnAllowed) {
+                        body(arn)
+                      } else {
+                        logger.warn("ARN is not on allowed list")
+                        Future.successful(Forbidden)
+                      }
                     }
-                  }
-                case _ =>
-                  logger.warn(s"Invalid credential role $credRole - assistant only")
-                  Future.successful(Forbidden)
+                  case _ =>
+                    logger.warn(s"Invalid credential role $credRole - assistant only")
+                    Future.successful(Forbidden)
+                }
               }
             case None =>
               logger.warn(s"No $agentReferenceNumberIdentifier in enrolment")
@@ -121,10 +130,9 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
           "continue_url" -> Seq(s"${appConfig.loginContinueUrl}${request.uri}"),
           "origin" -> Seq(appConfig.appName))
       )
-    case _: InsufficientEnrolments => {
+    case _: InsufficientEnrolments =>
       logger.warn(s"user does not have ASA agent enrolment")
       Forbidden
-    }
     case _: UnsupportedAuthProvider =>
       logger.warn(s"user has an unsupported auth provider")
       Forbidden
@@ -136,4 +144,23 @@ class AuthAction @Inject()(val authConnector: AuthConnector,
       .flatMap(_.getIdentifier(agentReferenceNumberIdentifier))
       .map(e => Arn(e.value))
   }
+
+  private def withSuspendedCheck(body: Option[Boolean] => Future[Result])
+                         (implicit reads: Reads[Boolean], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext, appConfig: AppConfig): Future[Result] = {
+    sessionCacheService.get[Boolean](SUSPENSION_STATUS).flatMap {
+      case Some(status) if !status =>
+        body(None)
+      case _ =>
+        agentClientAuthorisationConnector.getSuspensionDetails()
+          .flatMap {
+            case suspensionDetails: SuspensionDetails if !suspensionDetails.suspensionStatus =>
+              sessionCacheService.put[Boolean](SUSPENSION_STATUS, suspensionDetails.suspensionStatus)
+                .flatMap(_ => body(None))
+            case _ =>
+              logger.info("Suspended agent - redirecting to ASA")
+              Redirect(s"${appConfig.agentServicesAccountExternalUrl}/agent-services-account/account-limited").toFuture
+          }
+    }
+  }
+
 }

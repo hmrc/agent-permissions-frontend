@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import models.AgencyDetails
@@ -27,6 +27,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
+import services.InMemorySessionCacheService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core._
@@ -40,6 +41,8 @@ class OptInControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
   implicit lazy val mockAgentUserClientDetailsConnector
     : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
   lazy val sessionCacheRepo: SessionCacheRepository =
@@ -49,7 +52,7 @@ class OptInControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, mockSessionService))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
@@ -70,6 +73,7 @@ class OptInControllerSpec extends BaseSpec {
     "display content for start" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectGetSuspensionDetails()
       expectIsArnAllowed(allowed = true)
       expectOptInStatusOk(arn)(OptedOutEligible)
 
@@ -80,7 +84,7 @@ class OptInControllerSpec extends BaseSpec {
       html.title() shouldBe "Turn on access groups - Agent services account - GOV.UK"
 
       val phaseBanner = html.select("div.govuk-phase-banner")
-      phaseBanner.isEmpty() shouldBe false
+      phaseBanner.isEmpty shouldBe false
       phaseBanner.select("a").text shouldBe "feedback"
       phaseBanner.select("a").attr("href") shouldBe "http://localhost:9250/contact/beta-feedback?service=AOSS"
 

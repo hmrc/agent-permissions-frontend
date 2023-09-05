@@ -18,12 +18,10 @@ package controllers.actions
 
 import controllers._
 import config.AppConfig
-import connectors.AgentPermissionsConnector
 import models.TeamMember
 import play.api.mvc.Results.Ok
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
-import repository.SessionCacheRepository
 import services.{SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core._
@@ -39,10 +37,8 @@ class TeamMemberAction @Inject()(val authConnector: AuthConnector,
                                  val config: Configuration,
                                  authAction: AuthAction,
                                  optInStatusAction: OptInStatusAction,
-                                 val agentPermissionsConnector: AgentPermissionsConnector,
                                  val teamMemberService: TeamMemberService,
-                                 val sessionCacheRepository: SessionCacheRepository,
-                                 val sessionCacheService: SessionCacheService,
+                                 val sessionCacheService: SessionCacheService, // indirectly used
                                  team_member_not_found: team_member_not_found,
                             ) extends Logging  {
 

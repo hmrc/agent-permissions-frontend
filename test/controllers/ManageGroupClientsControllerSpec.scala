@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
@@ -47,6 +47,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService]
   implicit lazy val mockGroupService: GroupService = mock[GroupService]
@@ -71,7 +72,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector,mockAgentClientAuthConnector,mockSessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
@@ -109,6 +110,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 
@@ -813,7 +815,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove friendly0 from this access group? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
-      html.select(Css.paragraphs).isEmpty() shouldBe  true
+      html.select(Css.paragraphs).isEmpty shouldBe  true
       html
         .select(Css.backLink)
         .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
@@ -913,7 +915,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
-      html.select(Css.paragraphs).isEmpty() shouldBe true
+      html.select(Css.paragraphs).isEmpty shouldBe true
       html
         .select(Css.backLink)
         .attr("href") shouldBe routes.ManageGroupClientsController.showReviewSelectedClients(grpId, None, None).url
@@ -1051,7 +1053,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove friendly0 from this access group? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
-      html.select(Css.paragraphs).isEmpty() shouldBe true
+      html.select(Css.paragraphs).isEmpty shouldBe true
       html
         .select(Css.backLink)
         .attr("href") shouldBe routes.ManageGroupClientsController.showAddClients(grpId, None, None).url

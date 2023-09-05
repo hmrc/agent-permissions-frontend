@@ -17,13 +17,14 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.AgentPermissionsConnector
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.BaseSpec
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
+import services.InMemorySessionCacheService
 import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.UpstreamErrorResponse
@@ -32,12 +33,14 @@ class RootControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
   lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  override def moduleWithOverrides = new AbstractModule() {
+  override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, mockSessionService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessioncacheRepo)
     }
@@ -45,14 +48,18 @@ class RootControllerSpec extends BaseSpec {
 
   override implicit lazy val fakeApplication: Application = appBuilder.build()
 
-  val controller = fakeApplication.injector.instanceOf[RootController]
+  val controller: RootController = fakeApplication.injector.instanceOf[RootController]
+
+  def expectAuthOk(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+  }
 
   "root controller" when {
     "no session is available" should {
       "retrieve opt-in status from backend and redirect to self if status available" in {
-
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectAuthOk()
+        expectGetSuspensionDetails()
         expectOptInStatusOk(arn)(OptedOutEligible)
 
         val result = controller.start()(request)
@@ -63,9 +70,7 @@ class RootControllerSpec extends BaseSpec {
       }
 
       "throw an exception if there was no response from the backend" in {
-
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectAuthOk()
         expectOptInStatusError(arn)
 
         intercept[UpstreamErrorResponse] {
@@ -76,9 +81,7 @@ class RootControllerSpec extends BaseSpec {
 
     "a session is available" should {
       "redirect to opt-in journey if the optin status is eligible to opt-in" in {
-
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectAuthOk()
         await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
 
         val result = controller.start()(request)
@@ -89,9 +92,7 @@ class RootControllerSpec extends BaseSpec {
       }
 
       "redirect to opt-out journey if the optin status is eligible to opt-out" in {
-
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectAuthOk()
         await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
 
         val result = controller.start()(request)
@@ -102,9 +103,7 @@ class RootControllerSpec extends BaseSpec {
       }
 
       "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {
-
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(true)
+        expectAuthOk()
         await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedOutSingleUser))
 
         val result = controller.start()(request)

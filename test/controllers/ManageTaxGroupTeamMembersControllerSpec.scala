@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToTaxServiceGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToTaxServiceGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.TAX_SERVICE
 import controllers.actions.AuthAction
 import helpers.Css._
@@ -45,6 +45,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val authConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
@@ -71,7 +72,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(authConnector, env, conf, agentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(authConnector, env, conf, agentPermissionsConnector, mockAgentClientAuthConnector, sessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(agentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(agentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(groupService)
@@ -108,6 +109,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 
@@ -689,7 +691,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
-      expectRemoveTeamMemberFromGroup(groupId, memberToRemove, false)
+      expectRemoveTeamMemberFromGroup(groupId, memberToRemove, isCustom = false)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE)}")
@@ -765,7 +767,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
-      html.select(Css.paragraphs).isEmpty() shouldBe true
+      html.select(Css.paragraphs).isEmpty shouldBe true
       html
         .select(Css.backLink)
         .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url

@@ -43,6 +43,7 @@ abstract class BaseSpec
     with Matchers
     with GuiceOneAppPerSuite
     with AuthMocks
+    with AgentClientAuthorisationConnectorMocks
     with ScalaFutures
     with GroupServiceMocks
     with TaxGroupServiceMocks

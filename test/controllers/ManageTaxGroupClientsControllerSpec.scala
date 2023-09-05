@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
@@ -50,6 +50,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
@@ -66,7 +67,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
@@ -109,6 +110,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 

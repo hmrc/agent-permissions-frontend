@@ -57,6 +57,7 @@ package object controllers {
   val isOptedInComplete: OptinStatus => Boolean = status => status == OptedInReady
 
   val OPT_IN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
+  val SUSPENSION_STATUS: DataKey[Boolean] = DataKey("SUSPENSION_STATUS")
 
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")

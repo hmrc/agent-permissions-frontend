@@ -16,9 +16,13 @@
 
 package helpers
 
+import config.AppConfig
 import connectors.AgentPermissionsConnector
-import org.scalamock.handlers.CallHandler2
+import controllers.actions.AuthAction
+import org.scalamock.handlers.{CallHandler2, CallHandler4}
 import org.scalamock.scalatest.MockFactory
+import play.api.mvc.{Request, Result}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core.{AuthConnector, CredentialRole, Enrolments}
@@ -51,4 +55,10 @@ trait AuthMocks extends MockFactory {
     (agentPermissionsConnector.isArnAllowed(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)
       .returning(Future successful allowed)
+
+  def expectIsAuthorisedAgent(futureResult: Future[Result])(implicit authAction:AuthAction): CallHandler4[Arn => Future[Result], ExecutionContext, Request[_], AppConfig, Future[Result]] =
+    (authAction.isAuthorisedAgent(_: Arn => Future[Result])(_: ExecutionContext, _: Request[_], _: AppConfig))
+      .expects(*, *, *, *)
+      .returning(futureResult)
+
 }

@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.AgentPermissionsConnector
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
@@ -34,6 +34,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit lazy val mockSessionCacheService : SessionCacheService = mock[SessionCacheService]
   implicit lazy val mockOptinService : OptinService = mock[OptinService]
 
@@ -41,7 +42,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[OptinService]).toInstance(mockOptinService)
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
     }
@@ -51,12 +52,16 @@ class OptOutControllerSpec extends BaseSpec {
 
   val controller: OptOutController = fakeApplication.injector.instanceOf[OptOutController]
 
+  def authOk(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
+  }
+
   s"GET ${routes.OptOutController.start().url}" should {
 
     "display content for start" in {
-
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      authOk()
       expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
 
       val result = controller.start()(request)
@@ -86,9 +91,7 @@ class OptOutControllerSpec extends BaseSpec {
   s"GET showDoYouWantToOptOut on url ${routes.OptOutController.showDoYouWantToOptOut().url}" should {
 
     "display expected content" in {
-
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      authOk()
       expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
 
       val result = controller.showDoYouWantToOptOut()(request)
@@ -111,9 +114,7 @@ class OptOutControllerSpec extends BaseSpec {
   s"POST to submitDoYouWantToOptOut on url ${routes.OptOutController.submitDoYouWantToOptOut().url}" should {
 
     s"redirect to ${routes.OptOutController.showYouHaveOptedOut} page with answer 'true'" in {
-
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      authOk()
       expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
       expectOptOut(arn)
 
@@ -129,9 +130,7 @@ class OptOutControllerSpec extends BaseSpec {
     }
 
     "redirect to 'manage dashboard' page when user decides not to opt out" in {
-
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      authOk()
       expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -152,8 +151,7 @@ class OptOutControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      authOk()
       expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
 
       val result = controller.submitDoYouWantToOptOut()(request)
@@ -173,9 +171,7 @@ class OptOutControllerSpec extends BaseSpec {
   s"GET showYouHaveOptedOut on url: ${routes.OptOutController.showYouHaveOptedOut().url}" should {
 
     "display expected content" in {
-
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      authOk()
       expectGetSessionItem(OPT_IN_STATUS, OptedOutEligible)
       expectDeleteSessionItems(sessionKeys)
 

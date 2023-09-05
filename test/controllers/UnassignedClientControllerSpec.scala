@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.{AuthAction, SessionAction}
 import helpers.Css._
 import helpers.{BaseSpec, Css}
@@ -40,8 +40,10 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
-  implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
+  implicit val mockSessionService: InMemorySessionCacheService =
+    new InMemorySessionCacheService(Map("optinStatus" -> OptedInReady))
   implicit val mockClientService: ClientService = mock[ClientService]
 
   private val ctrlRoutes: ReverseUnassignedClientController = routes.UnassignedClientController
@@ -53,7 +55,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionService)
@@ -77,13 +79,18 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
 
+  def expectAuthOkOptedInReady(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectGetSuspensionDetails()
+    expectIsArnAllowed(allowed = true)
+    expectOptInStatusOk(arn)(OptedInReady)
+  }
+
   s"GET ${ctrlRoutes.showUnassignedClients().url}" should {
     "render correct content" when {
       "no search on unassigned clients list" in {
         // given
-        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(allowed = true)
+        expectAuthOkOptedInReady()
         expectGetUnassignedClients(arn)(displayClients)
         //when
         val result = controller.showUnassignedClients()(request)
@@ -106,9 +113,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       "unassigned clients list has search results" in {
         // given
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(allowed = true)
-        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+        expectAuthOkOptedInReady()
+        
         await(mockSessionService.put(CLIENT_SEARCH_INPUT, "friendly1"))
         expectGetUnassignedClients(arn)(displayClients, search = Some("friendly1"))
 
@@ -132,9 +138,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       "unassigned clients list has NO search results" in {
         // given
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(allowed = true)
-        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+        expectAuthOkOptedInReady()
+        
         await(mockSessionService.put(CLIENT_SEARCH_INPUT, "nothing"))
         expectGetUnassignedClients(arn)(Seq.empty, search = Some("nothing"))
 
@@ -163,9 +168,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       "no unassigned clients (all assigned to groups)" in {
         // given
-        expectAuthorisationGrantsAccess(mockedAuthResponse)
-        expectIsArnAllowed(allowed = true)
-        await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+        expectAuthOkOptedInReady()
+        
         expectGetUnassignedClients(arn)(Seq.empty)
 
         //when
@@ -205,9 +209,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(CURRENT_PAGE_CLIENTS, displayClients))
 
       val result = controller.submitAddUnassignedClients()(request)
@@ -234,9 +237,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(CURRENT_PAGE_CLIENTS, displayClients))
 
       val result = controller.submitAddUnassignedClients()(request)
@@ -260,10 +262,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetUnassignedClients(arn)(displayClients)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -276,10 +277,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "redirect if NO CLIENTS SELECTED are in session" in {
       //given
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.delete(SELECTED_CLIENTS))
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       //when
       val result = controller.showSelectedUnassignedClients()(request)
@@ -291,10 +291,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "render review selected clients" in {
       //given
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
 
       //when
       val result = controller.showSelectedUnassignedClients()(request)
@@ -325,10 +324,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   s"POST ${ctrlRoutes.submitSelectedUnassignedClients().url}" should {
 
     "redirect if no selected clients in session" in {
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
       await(mockSessionService.delete(SELECTED_CLIENTS)) // <-- we are testing this
 
       //when
@@ -346,10 +343,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
@@ -366,10 +362,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
@@ -387,12 +382,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-
-
 
       //when
       val result = controller.submitSelectedUnassignedClients(request)
@@ -419,10 +411,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val groupSummaries = (1 to 3).map(i =>
         GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      
       expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
@@ -468,10 +458,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         GroupSummary(id1, s"custom group", Some(3), 4),
         GroupSummary(id2, s"tax service group", Some(3), 4, Some("VAT")))
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      
       expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
@@ -502,10 +490,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val groupSummaries = List(
         GroupSummary(id1, s"tax service group", Some(3), 4, Some("VAT")))
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
@@ -533,10 +520,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //given
       val groupSummaries = Seq.empty
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      
       expectGetGroupsForArn(arn)(groupSummaries)
 
       //when
@@ -569,10 +554,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody("createNew" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      
 
       //when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
@@ -593,10 +576,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId.toString)
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetGroupsForArn(arn)(groupSummaries)
       expectAddMembersToGroup(
         expectedGroupAddedTo.groupId,
@@ -621,10 +603,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
-
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
+      
       expectGetGroupsForArn(arn)(groupSummaries)
 
 
@@ -649,10 +629,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     "render correctly the select groups for unassigned clients page" in {
       //given
       val groups = Seq("South West", "London")
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groups))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
 
       //when
       val result = controller.showConfirmClientsAddedToGroups(request)
@@ -675,11 +654,10 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "redirect when no group names in session" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.delete(GROUPS_FOR_UNASSIGNED_CLIENTS))
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      
 
       //when
       val result = controller.showConfirmClientsAddedToGroups(request)
@@ -695,9 +673,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "render with selected clients" in {
       val clientToRemove = displayClients.head
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(2)))
       await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
 
@@ -729,9 +706,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         .withFormUrlEncodedBody("answer" -> "true")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
 
       val remainingClients = displayClients.diff(Seq(clientToRemove))
@@ -752,9 +728,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(2)))
       await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
 
@@ -775,9 +750,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      await(mockSessionService.put(OPT_IN_STATUS, OptedInReady))
+      expectAuthOkOptedInReady()
+      
       await(mockSessionService.put(CLIENT_TO_REMOVE, displayClients.head))
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(10)))
 

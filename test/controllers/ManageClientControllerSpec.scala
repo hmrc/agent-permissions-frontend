@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css.{H1, checkYourAnswersListRows}
 import helpers.{BaseSpec, Css}
@@ -38,6 +38,7 @@ class ManageClientControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
@@ -46,7 +47,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, sessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[ClientService]).toInstance(mockClientService)
       bind(classOf[SessionCacheService]).toInstance(sessionCacheService)
@@ -89,13 +90,18 @@ class ManageClientControllerSpec extends BaseSpec {
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
   private val ctrlRoute: ReverseManageClientController = routes.ManageClientController
 
+  def expectAuthOkOptedInReady(): Unit = {
+    expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
+    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+  }
+
   s"GET ${ctrlRoute.showPageOfClients(None).url}" should {
 
     "render the manage clients list with no search " in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetPageOfClients(arn, 1, 10)(displayClients)
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
@@ -133,9 +139,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render the 'Showing...' text correctly when search and filter are defined" in {
       //given
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetPageOfClients(arn, 1, 10)(displayClients)
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "friendly")
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
@@ -156,9 +160,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render the manage clients list with search term posted" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
       expectPutSessionItem(CLIENT_FILTER_INPUT, "")
 
@@ -178,9 +180,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
       expectDeleteSessionItem(CLIENT_FILTER_INPUT)
       
@@ -201,9 +201,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "redirect  when form is empty" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
 
       //and we have CLEAR filter in query params
       implicit val fakeRequest =
@@ -225,10 +223,8 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render not found for invalid id" in {
       //given
+      expectAuthOkOptedInReady()
       val invalidClientId = "invalid id"
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetClientNotFound(arn)(invalidClientId)
 
       //when
@@ -245,10 +241,8 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render the clients details page with NO GROUPS" in {
       //given
+      expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
       expectGetClient(arn)(expectedClient)
 
@@ -276,10 +270,8 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render the clients details page with list of groups" in {
       //given
+      expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetClient(arn)(expectedClient)
       expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
 
@@ -311,10 +303,8 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render update_client_reference with existing client reference" in {
       //given
+      expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetClient(arn)(expectedClient)
       //when
       val result = controller.showUpdateClientReference(expectedClient.id)(request)
@@ -331,9 +321,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render update_client_reference for invalid id" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetClientNotFound(arn)("invalid")
 
       //when
@@ -346,10 +334,8 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render update_client_reference without a client reference" in {
       //given
+      expectAuthOkOptedInReady()
       val expectedClient = displayClients.head.copy(name = "")
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetClient(arn)(expectedClient)
 
       //when
@@ -371,11 +357,9 @@ class ManageClientControllerSpec extends BaseSpec {
 
     s"redirect to ${ctrlRoute.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
       //given
+      expectAuthOkOptedInReady()
       val newClientReference = "whatever"
       val expectedClient = displayClients.head
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectLookupClient(arn)(expectedClient)
       expectPutSessionItem(CLIENT_REFERENCE, newClientReference)
       expectUpdateClientReference(arn, expectedClient, newClientReference)
@@ -396,9 +380,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "display errors for update_client_details" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
       expectLookupClient(arn)(expectedClient)
 
@@ -418,9 +400,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     "render client_details_complete with new client reference" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(CLIENT_REFERENCE, "The New Name")
       val expectedClient = displayClients.head
       expectLookupClient(arn)(expectedClient)
@@ -442,9 +422,7 @@ class ManageClientControllerSpec extends BaseSpec {
 
     s"GET showClientReferenceUpdatedComplete for invalid client id" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       val invalidClientId = "not found id"
       expectLookupClientNotFound(arn)(invalidClientId)
 

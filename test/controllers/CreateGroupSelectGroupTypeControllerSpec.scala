@@ -58,6 +58,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
   def expectAuthOkArnAllowedOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 

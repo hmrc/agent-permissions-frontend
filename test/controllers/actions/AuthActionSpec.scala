@@ -18,25 +18,30 @@ package controllers.actions
 
 import com.google.inject.AbstractModule
 import config.AppConfig
-import connectors.AgentPermissionsConnector
-import helpers.BaseSpec
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector}
+import helpers.{AgentClientAuthorisationConnectorMocks, BaseSpec}
 import play.api.Application
-import play.api.http.Status.{FORBIDDEN, SEE_OTHER}
+import play.api.http.Status.{FORBIDDEN, OK, SEE_OTHER}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation}
+import services.{InMemorySessionCacheService, SessionCacheService}
 import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBearerToken, UnsupportedAuthProvider}
 
 import scala.concurrent.Future
 
-class AuthActionSpec extends BaseSpec {
+class AuthActionSpec extends BaseSpec with AgentClientAuthorisationConnectorMocks {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
     override def configure(): Unit = {
       bind(classOf[AuthConnector]).toInstance(mockAuthConnector)
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
+      bind(classOf[AgentClientAuthorisationConnector]).toInstance(mockAgentClientAuthConnector)
+      bind(classOf[SessionCacheService]).toInstance(mockSessionService)
     }
   }
 
@@ -58,6 +63,28 @@ class AuthActionSpec extends BaseSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2F&origin=agent-permissions-frontend"
+      }
+    }
+
+    "the user has suspension details" should {
+      "redirect to ASA if suspended" in {
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetSuspensionDetails(suspensionStatus = true)
+
+        val result =  authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result).get shouldBe
+          "http://localhost:9401/agent-services-account/account-limited"
+
+      }
+
+      "save to session if not suspended" in {
+        expectAuthorisationGrantsAccess(mockedAuthResponse)
+        expectGetSuspensionDetails()
+        expectIsArnAllowed(allowed = true)
+
+        val result =  authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
+        status(result) shouldBe OK
       }
     }
 

@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css.{H1, H2, paragraphs}
 import helpers.{BaseSpec, Css}
@@ -39,16 +39,17 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockTaxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockTeamService: TeamMemberService = mock[TeamMemberService]
-  implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
+ implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, mockSessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[ClientService]).toInstance(mockClientService)
@@ -86,6 +87,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
   def expectAuthOkOptedInReadyWithGroupType(groupType :String = CUSTOM_GROUP): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
     expectGetSessionItem(GROUP_TYPE, groupType)
   }
@@ -246,6 +248,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItemNone(GROUP_TYPE) // <- NO GROUP TYPE IN SESSION
 
       val result = controller.showSelectTeamMembers()(request)
@@ -437,6 +440,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItemNone(GROUP_TYPE)
 
       // when
@@ -656,6 +660,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
 
       val result = controller.showGroupCreated(request)
@@ -687,6 +692,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
 
       val result = controller.showTaxGroupCreated(request)

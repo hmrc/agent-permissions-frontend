@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.CUSTOM
 import controllers.actions.AuthAction
 import helpers.Css._
@@ -44,6 +44,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
@@ -65,7 +66,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, mockSessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(mockGroupService)
@@ -100,6 +101,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 
@@ -107,9 +109,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage EXISTING TEAM MEMBERS page with no filters set" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
@@ -143,9 +143,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
@@ -177,9 +175,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(teamMembers)
 
@@ -210,9 +206,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
@@ -241,9 +235,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       ).withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = agentUsers)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
 
@@ -260,10 +252,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page when no team members are in the group" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetGroupById(groupId, Some(customGroup.copy(teamMembers = Set.empty)))
       expectGetTeamMembersFromGroup(arn)(Seq.empty)
       expectGetPageOfTeamMembers(arn)(teamMembers)
@@ -292,9 +282,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page filtered results exist" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, "John")
       expectGetGroupById(groupId, Some(customGroup))
       val membersInGroup = teamMembers.take(4)
@@ -328,9 +316,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage TEAM MEMBERS LIST page" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItemNone(TEAM_MEMBER_SEARCH_INPUT)
       expectGetGroupById(groupId, Some(customGroup))
       expectGetPageOfTeamMembers(arn)(teamMembers)
@@ -373,9 +359,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
@@ -402,9 +386,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
       expectGetPageOfTeamMembers(arn)(teamMembers)
@@ -433,9 +415,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(None, None, FILTER_BUTTON)
@@ -459,9 +439,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(None, None, s"${PAGINATION_BUTTON}_2")
@@ -486,9 +464,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(Some("1"), None, FILTER_BUTTON)
@@ -506,9 +482,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "redirect if no team members selected in session" in {
       //given
-      expectIsArnAllowed(allowed = true)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
@@ -522,10 +496,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly the manage group REVIEW SELECTED page" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers ++ teamMembers2)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
       //when
@@ -563,10 +535,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render correctly when only 1 team member selected (you can't remove the last member)" in {
       //given
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
       //when
@@ -643,10 +613,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
+      expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
 
       val result = controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)(request)
@@ -669,9 +637,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
-      expectAuthorisationGrantsAccess(mockedAuthResponse)
-      expectIsArnAllowed(allowed = true)
+      expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
 
@@ -724,7 +690,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
-      expectRemoveTeamMemberFromGroup(groupId, memberToRemove, true)
+      expectRemoveTeamMemberFromGroup(groupId, memberToRemove, isCustom = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)}")
@@ -801,7 +767,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
-      html.select(Css.paragraphs).isEmpty() shouldBe true
+      html.select(Css.paragraphs).isEmpty shouldBe true
       html
         .select(Css.backLink)
         .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url

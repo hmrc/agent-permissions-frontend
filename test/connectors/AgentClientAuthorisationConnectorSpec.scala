@@ -40,16 +40,25 @@ class AgentClientAuthorisationConnectorSpec extends BaseSpec with HttpClientMock
 
   val connector: AgentClientAuthorisationConnector = fakeApplication.injector.instanceOf[AgentClientAuthorisationConnectorImpl]
 
-  val suspensionDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = false, None)
-
   "getSuspensionDetails" should {
     "return SuspensionDetails when OK with valid JSON response received" in {
-      expectHttpClientGET[HttpResponse](
-        HttpResponse.apply(200, suspensionDetails.toString()))
+      val suspendedDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = true, Some(Set("ALL")))
 
-      connector.getSuspensionDetails().futureValue shouldBe suspensionDetails
+      val jsonString = s"""{
+                          |    "suspensionStatus": true,
+                          |    "regimes": [
+                          |        "ALL"
+                          |    ]
+                          |}""".stripMargin
+
+      expectHttpClientGET[HttpResponse](
+        HttpResponse.apply(200, jsonString))
+
+      connector.getSuspensionDetails().futureValue shouldBe suspendedDetails
     }
     "return SuspensionDetails when NO_CONTENT received" in {
+      val suspensionDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = false, None)
+
       expectHttpClientGET[HttpResponse](HttpResponse.apply(204, s""" "" """))
 
       connector.getSuspensionDetails().futureValue shouldBe suspensionDetails

@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddOneTeamMemberToGroupRequest, AgentPermissionsConnector}
+import connectors.{AddOneTeamMemberToGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import models.{GroupId, TeamMember}
@@ -38,6 +38,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
@@ -46,7 +47,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[TaxGroupService]).toInstance(taxGroupService)
       bind(classOf[GroupService]).toInstance(groupService)
@@ -76,6 +77,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   def AuthOkWithTeamMember(teamMember: TeamMember = teamMember): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
     expectIsArnAllowed(allowed = true)
     expectLookupTeamMember(arn)(teamMember)

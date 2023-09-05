@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
@@ -45,6 +45,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector
     : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val clientService: ClientService = mock[ClientService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
@@ -57,7 +58,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector))
+        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector,mockAgentClientAuthConnector,sessionCacheService))
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
@@ -117,6 +118,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
   def AssistantAuthOk(): Unit = {
     expectAuthorisationGrantsAccess(mockedAssistantAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSessionItem(SUSPENSION_STATUS, false)
     expectOptInStatusOk(arn)(OptedInReady)
   }
 

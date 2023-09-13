@@ -28,6 +28,7 @@
         summaryErrors: SummaryErrors,
         table: table,
         paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
+
 )
 
 @(
@@ -79,6 +80,9 @@
         <div class="govuk-!-width-two-thirds">
 TEST
         </div>
+
+        @p(html = Some(Html(msgs("group.client.search.p", groupName))))
+
     }
 } else {
     @layout(

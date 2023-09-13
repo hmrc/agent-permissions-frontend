@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import views.html.main_layout
 
+
 @this(
     layout: main_layout,
     p: p, h1: h1, caption: caption,
@@ -28,6 +29,7 @@
     textbox: textbox,
     input_select: input_select,
     submit_button: submit_button,
+    client_search_fields: client_search_fields,
     formWithCSRF: FormWithCSRF
 )
 
@@ -38,29 +40,15 @@
     formAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@fieldsetHtml = {
-    @p(html = Some(Html(msgs("group.client.search.p", groupName))))
 
-    @textbox(
-        field = form("search"),
-        label = msgs("client-filter.text.label"),
-        labelClasses = "govuk-label--s",
-        classes = "govuk-input--width-30"
-    )
-
-    @input_select(
-        field = form("filter"),
-        label = msgs("client-filter.select.label"),
-        emptyOptionText = msgs("client-filter.select.label.empty-option"),
-        options = getFiltersByTaxService()
-    )
-}
 
 @layout(
     title = msgs("group.client.search.h1"),
     formErrors = form.errors,
     backLinkHref = backUrl,
 ) {
+    @p(html = Some(Html(msgs("group.client.search.p", groupName))))
+
     @formWithCSRF(action = formAction) {
         @caption(groupName)
         @govukFieldset(Fieldset(
@@ -68,7 +56,7 @@
             content = Text(msgs("group.client.search.h1")),
             classes = "govuk-fieldset__legend--l",
             isPageHeading = true)),
-        html = fieldsetHtml
+        html = client_search_fields(form)
         ))
 
         @submit_button("group.client.search.h1")

@@ -93,7 +93,7 @@
 @maybeBackLink = @{
     (backLinkHref, backLinkTextKey) match {
         case (None, _) => None
-        case (Some(href), None) => Some(BackLink(href = href))
+        case (Some(href), None) => Some(BackLink.withDefaultText(href = href))
         case (Some(href), Some(textKey)) => Some(BackLink(href = href, content = Text(msgs(textKey))))
     }
 }

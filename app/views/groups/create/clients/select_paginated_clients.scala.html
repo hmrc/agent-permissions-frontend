@@ -61,26 +61,46 @@
         msgs("common.showing.results.many", paginationMetaData.get.totalSize, txt)
     }
 }
-@layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
-    backLinkHref = backUrl,
-    backLinkTextKey = Some(msgs("client.select.back.search")),
-    formErrors = Seq.empty,
-    fullWidth = true) {
 
-    @summaryErrors(form.errors, Some(errorHref))
-
-    <div class="govuk-!-width-two-thirds">
-        @caption(groupName)
-        @h1(msgs("group.client.list.h1", groupName))
-        @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
-            @h2(searchParamMsg)
-        }
-        @p("common.group.max.clients")
-    </div>
-
-    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData, submitButtonKey = "save.and.continue.button")
-
+@isFilterApplied = @{
+    form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)
 }
 
+@if(isFilterApplied && clients.isEmpty) {
+    @layout(
+        title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+        backLinkHref = backUrl,
+        backLinkTextKey = Some(msgs("client.select.back.search")),
+        formErrors = Seq.empty,
+        fullWidth = true) {
+
+        @summaryErrors(form.errors, Some(errorHref))
+
+        <div class="govuk-!-width-two-thirds">
+TEST
+        </div>
+    }
+} else {
+    @layout(
+        title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+        backLinkHref = backUrl,
+        backLinkTextKey = Some(msgs("client.select.back.search")),
+        formErrors = Seq.empty,
+        fullWidth = true) {
+
+        @summaryErrors(form.errors, Some(errorHref))
+
+        <div class="govuk-!-width-two-thirds">
+            @caption(groupName)
+            @h1(msgs("group.client.list.h1", groupName))
+            @if(isFilterApplied) {
+                @h2(searchParamMsg)
+            }
+            @p("common.group.max.clients")
+        </div>
+
+        @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData, submitButtonKey = "save.and.continue.button")
+
+    }
+}
 

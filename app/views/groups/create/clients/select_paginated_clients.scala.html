@@ -21,14 +21,18 @@
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import utils.ViewUtils.displayTaxServiceFromServiceKey
+@import forms.SearchAndFilterForm
 
 @this(
         layout: main_layout,
         p: p, h1: h1, h2: h2, span: span, caption: caption,
         summaryErrors: SummaryErrors,
         table: table,
+        govukFieldset: GovukFieldset,
+        client_search_fields: client_search_fields,
+        submit_button: submit_button,
+        formWithCSRF: FormWithCSRF,
         paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
-
 )
 
 @(
@@ -36,6 +40,7 @@
         groupName: String,
         form: Form[AddClientsToGroup],
         formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
+        searchFormAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients,
         backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSearchClients().url),
         paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -67,26 +72,45 @@
     form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)
 }
 
+@totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
+
 @if(isFilterApplied && clients.isEmpty) {
+    @* There are NO results to show *@
     @layout(
-        title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+        title = msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)),
         backLinkHref = backUrl,
         backLinkTextKey = Some(msgs("client.select.back.search")),
         formErrors = Seq.empty,
         fullWidth = true) {
 
-        @summaryErrors(form.errors, Some(errorHref))
-
         <div class="govuk-!-width-two-thirds">
-TEST
+            @caption(groupName)
+            @h1(msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)))
         </div>
 
-        @p(html = Some(Html(msgs("group.client.search.p", groupName))))
+        <div class="govuk-!-width-two-thirds">
+            @formWithCSRF(action = searchFormAction) {
+                @govukFieldset(Fieldset(
+                    legend = Some(Legend(
+                        content = Text(msgs("common.search-again")),
+                        classes = "govuk-fieldset__legend--l",
+                        isPageHeading = true)),
+                    html = client_search_fields(SearchAndFilterForm.form())
+                ))
+                @submit_button("group.client.search.h1")
+            }
+            @if(totalSelected != 0) {
+                @formWithCSRF(action = formAction) {
+                    @submit_button("common.continue")
+                }
+            }
+        </div>
 
     }
 } else {
+    @* There are results to show *@
     @layout(
-        title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+        title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
         backLinkHref = backUrl,
         backLinkTextKey = Some(msgs("client.select.back.search")),
         formErrors = Seq.empty,

@@ -21,11 +21,16 @@
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.html.partials.existing_group_paginated_selectable_clients_table_form
+@import forms.SearchAndFilterForm
 
 @this(
     layout: main_layout,
     p: p, h1: h1, caption: caption,
     summaryErrors: SummaryErrors,
+    govukFieldset: GovukFieldset,
+    client_search_fields: client_search_fields,
+    submit_button: submit_button,
+    formWithCSRF: FormWithCSRF,
     existing_group_paginated_selectable_clients_table_form: existing_group_paginated_selectable_clients_table_form
 )
 
@@ -48,29 +53,62 @@ withSearchAndErrorPrefix(form.errors.nonEmpty,
                         form("search").value)
 }
 
-@layout(
-    title = pageTitle,
-    backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
-    formErrors = Seq.empty,
-    fullWidth = true
-) {
+@isFilterApplied = @{
+    form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)
+}
 
-    @summaryErrors(form.errors, Some(errorHref))
-
-    <div class="govuk-!-width-two-thirds">
-        @caption(group.groupName)
-        @h1("group.client.list.h1")
-        @p("common.group.max.clients")
-    </div>
-
-    @existing_group_paginated_selectable_clients_table_form(
-        clients,
-        form,
-        paginationMetaData = paginationMetaData,
+@if(isFilterApplied && clients.isEmpty) {
+    @* There are NO results to show *@
+    @layout(
+        title = msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)),
         backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
-        group = group
-    )
+        backLinkTextKey = Some(msgs("client.select.back.search")),
+        formErrors = Seq.empty,
+        fullWidth = true) {
 
+        <div class="govuk-!-width-two-thirds">
+            @caption(group.groupName)
+            @h1(msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)))
+        </div>
+
+        <div class="govuk-!-width-two-thirds">
+            @formWithCSRF(action = routes.ManageGroupClientsController.submitSearchClientsToAdd(group.groupId)) {
+                @govukFieldset(Fieldset(
+                    legend = Some(Legend(
+                        content = Text(msgs("common.search-again")),
+                        classes = "govuk-fieldset__legend--l",
+                        isPageHeading = true)),
+                    html = client_search_fields(SearchAndFilterForm.form())
+                ))
+                @submit_button("group.client.search.h1")
+            }
+        </div>
+    }
+} else {
+    @* There are results to show *@
+    @layout(
+        title = pageTitle,
+        backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
+        formErrors = Seq.empty,
+        fullWidth = true
+    ) {
+
+        @summaryErrors(form.errors, Some(errorHref))
+
+        <div class="govuk-!-width-two-thirds">
+            @caption(group.groupName)
+            @h1("group.client.list.h1")
+            @p("common.group.max.clients")
+        </div>
+
+        @existing_group_paginated_selectable_clients_table_form(
+            clients,
+            form,
+            paginationMetaData = paginationMetaData,
+            backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
+            group = group
+        )
+    }
 }
 
 

@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukFieldset
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
+@import play.twirl.api.HtmlFormat
 @import views.html.main_layout
 
 
@@ -47,18 +48,20 @@
     formErrors = form.errors,
     backLinkHref = backUrl,
 ) {
-    @p(html = Some(Html(msgs("group.client.search.p", groupName))))
+
 
     @formWithCSRF(action = formAction) {
         @caption(groupName)
         @govukFieldset(Fieldset(
-        legend = Some(Legend(
-            content = Text(msgs("group.client.search.h1")),
-            classes = "govuk-fieldset__legend--l",
-            isPageHeading = true)),
-        html = client_search_fields(form)
+            legend = Some(Legend(
+                content = Text(msgs("group.client.search.h1")),
+                classes = "govuk-fieldset__legend--l",
+                isPageHeading = true)),
+            html = HtmlFormat.fill(Seq(
+                p(html = Some(Html(msgs("group.client.search.p", groupName)))),
+                client_search_fields(form)
+            ))
         ))
-
         @submit_button("group.client.search.h1")
     }
 }

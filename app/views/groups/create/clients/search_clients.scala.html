@@ -19,7 +19,9 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukFieldset
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
+@import play.twirl.api.HtmlFormat
 @import views.html.main_layout
+
 
 @this(
     layout: main_layout,
@@ -35,12 +37,12 @@
     form: Form[SearchFilter],
     groupName: String,
     backUrl: Option[String] = Some(routes.CreateGroupSelectNameController.showConfirmGroupName().url),
-    formAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients
+    isFailedSearch: Boolean = false, // Setting this flag displays the page in 'failed search mode' i.e. after a search was already attempted which returned no results.
+    searchAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients,
+    continueAction: Option[Call] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @fieldsetHtml = {
-    @p(html = Some(Html(msgs("group.client.search.p", groupName))))
-
     @textbox(
         field = form("search"),
         label = msgs("client-filter.text.label"),
@@ -56,21 +58,46 @@
     )
 }
 
+@title=@{
+    if (isFailedSearch) {
+        msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value))
+    } else {
+        msgs("group.client.search.h1")
+    }
+}
+
 @layout(
-    title = msgs("group.client.search.h1"),
+    title = title,
     formErrors = form.errors,
     backLinkHref = backUrl,
 ) {
-    @formWithCSRF(action = formAction) {
+    @if(isFailedSearch) {
         @caption(groupName)
+        @h1(msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)))
+    }
+    @* 'Continue' form (continue with selected clients without searching) - (shown optionally) - button is defined inside other form for design reasons (APB-7378) *@
+    @if(continueAction.isDefined) {
+        @formWithCSRF(action = continueAction.get, Symbol("id") -> "continueForm")(Html(""))
+    }
+    @* Search form *@
+    @formWithCSRF(action = searchAction) {
+        @if(!isFailedSearch) { @caption(groupName) }
         @govukFieldset(Fieldset(
-        legend = Some(Legend(
-            content = Text(msgs("group.client.search.h1")),
-            classes = "govuk-fieldset__legend--l",
-            isPageHeading = true)),
-        html = fieldsetHtml
+            legend = Some(Legend(
+                content = if (isFailedSearch) Text(msgs("common.search-again")) else Text(msgs("group.client.search.h1")),
+                classes = "govuk-fieldset__legend--l",
+                isPageHeading = true)),
+            html = HtmlFormat.fill(Seq(
+                if (isFailedSearch) Html("") /* APB-7378 */ else p(html = Some(Html(msgs("group.client.search.p", groupName)))),
+                fieldsetHtml
+            ))
         ))
-
-        @submit_button("group.client.search.h1")
+        <div class="govuk-button-group">
+            @submit_button("group.client.search.h1")
+            @if(continueAction.isDefined) {
+                @* This button is defined outside of the form to which it belongs for design reasons (APB-7378) *@
+                @submit_button("common.continue", classes = Some("govuk-button--secondary"), additionalAttributes = Map("form" -> "continueForm"))
+            }
+        </div>
     }
 }

@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
-import helpers.Css.{H1, paragraphs}
+import helpers.Css.H1
 import helpers.{BaseSpec, Css}
 import models.{AddClientsToGroup, DisplayClient}
 import org.jsoup.Jsoup
@@ -248,10 +248,11 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(19).select("td").get(3).text() shouldBe "VAT"
     }
 
-    "render with NO Clients" in {
+    "render with NO Clients after a search returns no results" in {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
-      expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
+      expectGetSessionItem(CLIENT_SEARCH_INPUT, "foo")
+      expectGetSessionItemNone(SELECTED_CLIENTS) // There are no selected clients
       expectGetPageOfClients(arn)(Seq.empty) // <- nothing returned from session
 
       val result = controller.showSelectClients()(request)
@@ -260,8 +261,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
+      html.title() should include ("No results")
+      html.select(Css.H1).text() should include ("Search again")
 
       // No table
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
@@ -270,10 +271,30 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
         html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
       trs.size() shouldBe 0
 
-      // Not found content
-      html.select(Css.H2).text() shouldBe "No clients found"
-      html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your clients"
+      val buttons = html.select("button")
+      buttons.size() shouldBe 1
+      html.select("button").get(0).text() shouldBe "Search for clients"
+      // there should not be a 'continue' button as there are NO clients currently selected (APB-7378)
+    }
 
+    "render with NO Clients after a search returns no results (but some previously selected clients)" in {
+      expectAuthOkArnAllowedOptedInReadyWithGroupName()
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+      expectGetSessionItem(CLIENT_SEARCH_INPUT, "foo")
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(1)) // There are some selected clients
+      expectGetPageOfClients(arn)(Seq.empty) // <- nothing returned from session
+
+      val result = controller.showSelectClients()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      val buttons = html.select("button")
+      buttons.size() shouldBe 2
+      html.select("button").get(0).text() shouldBe "Search for clients"
+      html.select("button").get(1).text() shouldBe "Continue"
+      // there SHOULD be a 'continue' button as there are SOME clients currently selected (APB-7378)
     }
 
     "redirect when no group name is in session" in {

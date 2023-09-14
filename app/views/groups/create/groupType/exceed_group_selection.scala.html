@@ -24,7 +24,8 @@
 
 @layout(
     title = msgs("All access groups have been created"),
-    backLinkHref = Some(routes.CreateGroupSelectNameController.showConfirmGroupName().url)) {
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
+) {
 
     @h1(msgs("access-group-name-exceed-groups.title"))
 

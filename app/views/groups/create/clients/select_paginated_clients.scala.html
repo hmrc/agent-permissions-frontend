@@ -35,7 +35,6 @@
         groupName: String,
         form: Form[AddClientsToGroup],
         formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
-        backUrl: Option[String] = Some(routes.CreateGroupSelectClientsController.showSearchClients().url),
         paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -63,8 +62,7 @@
 }
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
-    backLinkHref = backUrl,
-    backLinkTextKey = Some(msgs("client.select.back.search")),
+    backLink = Some(BackLink(href = routes.CreateGroupSelectClientsController.showSearchClients().url, content = Text(msgs("client.select.back.search")))),
     formErrors = Seq.empty,
     fullWidth = true) {
 

@@ -98,9 +98,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Search for clients"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
 
@@ -121,9 +120,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Search for clients"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
       html.select("#search").attr("value") shouldBe "Harry"
@@ -176,7 +174,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
-      expectGetPageOfClients(arn)(displayClients)
+      expectGetPageOfClients(arn)(displayClients.take(20))
 
       val result = controller.showSelectClients()(request)
 
@@ -186,9 +184,9 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showSearchClients().url
+
+      html.select(Css.backLink).text() shouldBe "Back to search"
+      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupSelectClientsController.showSearchClients().url
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -197,8 +195,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       th.get(3).text() shouldBe "Tax service"
       val trs =
         html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
-      // TODO something is up here - should be 20 a page
-      trs.size() shouldBe 25
+      trs.size() shouldBe 20
       // first row
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
       trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
@@ -476,7 +473,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Review selected clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 5 clients"
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectClients(None, None).url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       val table = html.select(Css.tableWithId("selected-clients"))
       val th = table.select("thead th")
@@ -521,7 +519,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Review selected clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 0 clients"
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectClients(None, None).url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       val table = html.select("table")
       table.size() shouldBe 0
@@ -677,8 +676,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Remove friendly0 from selected clients? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Remove friendly0 from selected clients?"
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showReviewSelectedClients(None, None).url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios.select("label[for=answer]").text() shouldBe "Yes"
       answerRadios.select("label[for=answer-no]").text() shouldBe "No"

@@ -44,7 +44,6 @@ import java.util.Base64
 
 class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
-
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
@@ -315,9 +314,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.title() shouldBe "Remove friendly0 from this access group? - Agent services account - GOV.UK"
         html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
         html.select(Css.hintTextField("answer")).text() shouldBe "If you remove friendly0 from this tax group, only team members in their remaining groups can manage their tax."
-        html.select(backLink)
-          .attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
-
+        html.select(Css.backLink).attr("href") shouldBe "#"
+        html.select(Css.backLink).text() shouldBe "Back"
 
         html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveClient(taxGroupId).url
         html.select("label[for=answer]").text() shouldBe "Yes"
@@ -452,7 +450,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients"
         html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
-        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(Css.backLink).attr("href") shouldBe "#"
+        html.select(Css.backLink).text() shouldBe "Back"
         html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
       }
 
@@ -473,7 +472,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients"
         html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
-        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(Css.backLink).attr("href") shouldBe "#"
+        html.select(Css.backLink).text() shouldBe "Back"
         html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
       }
 
@@ -495,8 +495,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
         html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients"
-        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
-
+        html.select(Css.backLink).attr("href") shouldBe "#"
+        html.select(Css.backLink).text() shouldBe "Back"
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         ths.size() shouldBe 3
         ths.get(0).text shouldBe ""
@@ -541,8 +541,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
         html.title() shouldBe "Filter results for ‘john a’ Removed clients - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients"
-        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupWithExcludedId, None, None).url
-
+        html.select(Css.backLink).attr("href") shouldBe "#"
+        html.select(Css.backLink).text() shouldBe "Back"
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         ths.size() shouldBe 3
         ths.get(0).text shouldBe ""
@@ -764,7 +764,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients"
         html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
-        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(Css.backLink).attr("href") shouldBe "#"
+        html.select(Css.backLink).text() shouldBe "Back"
         html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
 
       }
@@ -795,7 +796,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients"
         html.select(paragraphs).text() shouldBe "There are no excluded clients for this group"
-        html.select(backLink).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
+        html.select(Css.backLink).attr("href") shouldBe "#"
+        html.select(Css.backLink).text() shouldBe "Back"
         html.select(linkStyledAsButtonWithId("button-link")).attr("href") shouldBe ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url
 
       }

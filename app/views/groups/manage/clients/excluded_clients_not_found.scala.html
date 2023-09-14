@@ -24,7 +24,7 @@
 
 @layout(
  title = msgs("tax-group.manage.removed.clients.h1"),
- backLinkHref = Some(routes.ManageTaxGroupClientsController.showExistingGroupClients(group.id, None, None).url)
+ backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
 
   @h1("tax-group.manage.removed.clients.h1")

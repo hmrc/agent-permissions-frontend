@@ -32,7 +32,7 @@
 @layout(
     title = msgs("do-you-want-to-opt-out.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.OptOutController.start().url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @formWithCSRF(action = routes.OptOutController.submitDoYouWantToOptOut) {
         @radioButtons(

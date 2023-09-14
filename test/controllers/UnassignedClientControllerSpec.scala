@@ -101,14 +101,11 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         val html = Jsoup.parse(contentAsString(result))
         html.title() shouldBe "Clients who are not in any groups - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Clients who are not in any groups"
-        html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
 
         val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         th.size() shouldBe 4
         val tr = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
         tr.size() shouldBe 3
-
-
       }
 
       "unassigned clients list has search results" in {
@@ -292,7 +289,6 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     "render review selected clients" in {
       //given
       expectAuthOkOptedInReady()
-      
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
 
       //when
@@ -305,9 +301,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       html.select(caption).text() shouldBe "Clients who are not in any groups"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("selected-clients")).select("tbody tr").size() shouldBe 3
-      //and the back link should go to unassigned clients
-      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/unassigned-clients"
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios
@@ -423,8 +418,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Which custom access groups would you like to add the selected clients to? - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Which custom access groups would you like to add the selected clients to?"
-      //and the back link should go to unassigned clients
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       //checkboxes
 
@@ -504,8 +499,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val pageHeading = "You do not have any custom access groups"
       html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe pageHeading
-      //and the back link should go to unassigned clients
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(paragraphs).get(0).text() shouldBe "You cannot manually add clients to tax service access groups here. You can only manually add clients to custom access groups."
 
@@ -533,9 +528,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val pageHeading = "You do not have any access groups"
       html.title() shouldBe s"$pageHeading - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe pageHeading
-      //and the back link should go to unassigned clients
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients().url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
       html.select(paragraphs).text() shouldBe "Create access groups if you want to restrict which team members can manage each client. Select ‘Create an access group’ and follow the instructions."
 
       val form = html.select("main form")
@@ -687,8 +681,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       html.title() shouldBe s"Remove friendly0 from selected clients? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Remove friendly0 from selected clients?"
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoutes.showSelectedUnassignedClients(None, None).url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios.select("label[for=answer]").text() shouldBe "Yes"
       answerRadios.select("label[for=answer-no]").text() shouldBe "No"

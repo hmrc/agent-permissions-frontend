@@ -54,13 +54,8 @@ class CreateGroupSelectNameController @Inject()(
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
     withGroupTypeAndAuthorised { (groupType, _) =>
       withSessionItem[String](GROUP_NAME) { maybeName =>
-        val backLink = if (groupType == CUSTOM_GROUP) {
-          Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
-        } else Some(routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType().url)
-
         Ok(choose_name(
-          GroupNameForm.form().fill(maybeName.getOrElse("")),
-          backLink
+          GroupNameForm.form().fill(maybeName.getOrElse(""))
         )).toFuture
       }
     }

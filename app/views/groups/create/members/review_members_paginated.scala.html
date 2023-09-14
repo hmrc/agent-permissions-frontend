@@ -39,7 +39,6 @@
     teamMembers: Seq[TeamMember],
     groupName: String,
     form: Form[Boolean],
-    backUrl: Option[String] = Some(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url),
     formAction: Call =  routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers,
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
     )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
@@ -62,7 +61,7 @@
 
 @layout(
     title = msgs("group.teamMembers.review.title", groupName),
-    backLinkHref = backUrl,
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     fullWidth = true,
     formErrors = form.errors
 ) {

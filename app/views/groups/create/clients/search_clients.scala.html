@@ -34,7 +34,6 @@
 @(
     form: Form[SearchFilter],
     groupName: String,
-    backUrl: Option[String] = Some(routes.CreateGroupSelectNameController.showConfirmGroupName().url),
     formAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -59,7 +58,7 @@
 @layout(
     title = msgs("group.client.search.h1"),
     formErrors = form.errors,
-    backLinkHref = backUrl,
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @formWithCSRF(action = formAction) {
         @caption(groupName)

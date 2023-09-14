@@ -66,8 +66,7 @@ class CreateGroupSelectClientsController @Inject()
             Ok(
               search_clients(
                 form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
-                groupName = groupName,
-                backUrl = Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName().url)
+                groupName = groupName
               )
           ).toFuture
         }
@@ -85,8 +84,7 @@ class CreateGroupSelectClientsController @Inject()
               Ok(
                 search_clients(
                   formWithErrors,
-                  groupName,
-                  Some(controllers.routes.CreateGroupSelectNameController.showConfirmGroupName().url)
+                  groupName
                 ),
               ).toFuture
           }, formData => {
@@ -106,7 +104,6 @@ class CreateGroupSelectClientsController @Inject()
               select_paginated_clients(
                 paginatedClients.pageContent,
                 groupName,
-                backUrl = Some(controller.showSearchClients().url),
                 form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
                 paginationMetaData = Some(paginatedClients.paginationMetaData))
             )

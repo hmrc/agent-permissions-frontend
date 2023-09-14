@@ -29,7 +29,7 @@
 
 @layout(
     title = msgs("unassigned.client.no.groups.h1"),
-    backLinkHref = Some(routes.UnassignedClientController.showSelectedUnassignedClients().url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @h1("unassigned.client.no.groups.h1")
     @p("unassigned.client.no.groups.p")

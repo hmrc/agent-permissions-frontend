@@ -66,11 +66,8 @@ class CreateGroupSelectTeamMembersController @Inject()
   private val PAGE_SIZE = 10
 
   def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, groupType, arn) =>
+    withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
-        val backUrl = if (groupType == CUSTOM_GROUP) {
-          Some(selectClientsController.showReviewSelectedClients(None, None).url)
-        } else Some(selectNameController.showConfirmGroupName().url)
         teamMemberService
           .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(PAGE_SIZE))
           .map { paginatedList =>
@@ -78,7 +75,6 @@ class CreateGroupSelectTeamMembersController @Inject()
               select_paginated_team_members(
                 paginatedList.pageContent,
                 groupName,
-                backUrl = backUrl,
                 form = AddTeamMembersToGroupForm.form().fill(
                   AddTeamMembersToGroup(
                     search = teamMemberSearchTerm
@@ -108,7 +104,6 @@ class CreateGroupSelectTeamMembersController @Inject()
                     select_paginated_team_members(
                       paginatedList.pageContent,
                       groupName,
-                      backUrl = Some(selectClientsController.showReviewSelectedClients(None, None).url),
                       form = formWithErrors,
                       paginationMetaData = Some(paginatedList.paginationMetaData)
                     )
@@ -132,7 +127,6 @@ class CreateGroupSelectTeamMembersController @Inject()
                             select_paginated_team_members(
                               paginatedList.pageContent,
                               groupName,
-                              backUrl = Some(selectClientsController.showReviewSelectedClients(None, None).url),
                               form = AddTeamMembersToGroupForm
                                 .form()
                                 .fill(AddTeamMembersToGroup(search = formData.search))
@@ -170,7 +164,6 @@ class CreateGroupSelectTeamMembersController @Inject()
               teamMembers = list.pageContent,
               groupName = groupName,
               form = YesNoForm.form(),
-              backUrl = Some(controller.showSelectTeamMembers(None, None).url),
               formAction = controller.submitReviewSelectedTeamMembers(),
               paginationMetaData = Some(list.paginationMetaData)
             )
@@ -199,7 +192,6 @@ class CreateGroupSelectTeamMembersController @Inject()
                       teamMembers = list.pageContent,
                       groupName = groupName,
                       form = formWithErrors,
-                      backUrl = Some(controller.showSelectTeamMembers(None, None).url),
                       formAction = controller.submitReviewSelectedTeamMembers(),
                       paginationMetaData = Some(list.paginationMetaData)
                     )
@@ -214,7 +206,6 @@ class CreateGroupSelectTeamMembersController @Inject()
                           teamMembers = list.pageContent,
                           groupName = groupName,
                           form =  YesNoForm.form("group.teamMembers.review.error").withError("answer", "group.teamMembers.review.error.no-members"),
-                          backUrl = Some(controller.showSelectTeamMembers(None, None).url),
                           formAction = controller.submitReviewSelectedTeamMembers(),
                           paginationMetaData = Some(list.paginationMetaData)
                         )
@@ -254,7 +245,6 @@ class CreateGroupSelectTeamMembersController @Inject()
                 .put(MEMBER_TO_REMOVE, member)
                 .flatMap(_ =>
                   Ok(confirm_deselect_member(YesNoForm.form(), groupName, member,
-                    backLink = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None),
                     formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember)
                   ).toFuture
                 )
@@ -278,9 +268,8 @@ class CreateGroupSelectTeamMembersController @Inject()
               .fold(
                 formWithErrors => {
                   Ok(confirm_deselect_member(formWithErrors, groupName, maybeTeamMember.get,
-                    backLink = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None),
-                    formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember)
-                  ).toFuture
+                    formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
+                  )).toFuture
                 }, (yes: Boolean) => {
                   if (yes) {
                     val clientsMinusRemoved = maybeSelectedTeamMembers.get.filterNot(_ == maybeTeamMember.get)

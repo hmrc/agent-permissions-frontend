@@ -58,7 +58,7 @@
 }
 
 @layout(title = pageTitle,
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     fullWidth = true) {
 
     @h1("unassigned-clients.h1")

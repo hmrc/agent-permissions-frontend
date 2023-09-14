@@ -121,9 +121,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None).url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(paragraphs).get(0).text() shouldBe "Select team members for this access groups by ticking the boxes."
 
@@ -161,10 +160,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.CreateGroupSelectNameController.showConfirmGroupName().url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
     }
 
     "render with filtered team members held in session when a filter was applied" in {
@@ -479,7 +476,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Review selected team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"You have selected 5 team members to add to the group"
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
       val th = table.select("thead th")
@@ -743,7 +741,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Remove John from selected team members? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe s"Remove John from selected team members?"
-      html.select(Css.backLink).attr("href") shouldBe ctrlRoute.showReviewSelectedTeamMembers(None, None).url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       val answerRadios = html.select(Css.radioButtonsField("answer-radios"))
       answerRadios.select("label[for=answer]").text() shouldBe "Yes"

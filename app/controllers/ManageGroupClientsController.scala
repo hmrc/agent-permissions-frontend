@@ -35,7 +35,7 @@ import views.html.groups.create.clients.{confirm_remove_client, search_clients}
 import views.html.groups.manage.clients._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageGroupClientsController @Inject()
@@ -183,7 +183,7 @@ class ManageGroupClientsController @Inject()
               form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
               groupName = groupSummary.groupName,
               backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
-              formAction = controller.submitSearchClientsToAdd(groupId)
+              searchAction = controller.submitSearchClientsToAdd(groupId)
             )
           ).toFuture
         }
@@ -203,7 +203,7 @@ class ManageGroupClientsController @Inject()
                 formWithErrors,
                 groupSummary.groupName,
                 backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
-                formAction = controller.submitSearchClientsToAdd(groupId)
+                searchAction = controller.submitSearchClientsToAdd(groupId)
               )
             ).toFuture
           }, formData => {
@@ -220,10 +220,24 @@ class ManageGroupClientsController @Inject()
         withSessionItem[String](CLIENT_SEARCH_INPUT) { search =>
           clientService
             .getPaginatedClientsToAddToGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20), search, filter)
-            .map(paginatedClients => {
-              val form = AddClientsToGroupForm.form().fill(AddClientsToGroup(search, filter, None))
-              renderUpdateClientsPaginated(groupSummary, form, paginatedClients._2)
-            })
+            .flatMap { case (groupSummary, paginatedClients) =>
+              if (paginatedClients.pageContent.isEmpty) {// if the search failed (no results) (APB-7378)
+                withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+                  val canContinue = selectedClients.exists(_.nonEmpty)
+                  Future.successful(Ok(search_clients(
+                    form = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+                    groupName = groupSummary.groupName,
+                    backUrl = Some(controller.showSearchClientsToAdd(groupId).url),
+                    isFailedSearch = true,
+                    searchAction = controller.submitSearchClientsToAdd(groupId),
+                    continueAction = if (canContinue) Some(controller.submitAddClients(groupId)) else None
+                  )))
+                }
+              } else {
+                val form = AddClientsToGroupForm.form().fill(AddClientsToGroup(search, filter, None))
+                Future.successful(renderUpdateClientsPaginated(groupSummary, form, paginatedClients))
+              }
+            }
         }
       }
     }

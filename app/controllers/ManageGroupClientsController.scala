@@ -223,7 +223,6 @@ class ManageGroupClientsController @Inject()
                   Future.successful(Ok(search_clients(
                     form = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
                     groupName = groupSummary.groupName,
-                    backUrl = Some(controller.showSearchClientsToAdd(groupId).url),
                     isFailedSearch = true,
                     searchAction = controller.submitSearchClientsToAdd(groupId),
                     continueAction = if (canContinue) Some(controller.submitAddClients(groupId)) else None

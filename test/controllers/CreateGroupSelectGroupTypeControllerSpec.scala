@@ -108,6 +108,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
 
       expectDeleteSessionItems(sessionKeys)
+      expectGetSessionItemNone(GROUP_TYPE)
 
       implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectGroupType().url)

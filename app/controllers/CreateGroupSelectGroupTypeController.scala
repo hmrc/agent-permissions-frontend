@@ -26,7 +26,7 @@ import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import utils.ViewUtils
-import views.html.groups.create.groupType.{review_group_type, select_group_tax_type, select_group_type, exceed_group_selection}
+import views.html.groups.create.groupType.{exceed_group_selection, review_group_type, select_group_tax_type, select_group_type}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -54,16 +54,20 @@ class CreateGroupSelectGroupTypeController @Inject()
   val ctrlRoutes: ReverseCreateGroupSelectGroupTypeController = controllers.routes.CreateGroupSelectGroupTypeController
 
   import authAction.isAuthorisedAgent
+  import groupAction.withGroupTypeAndAuthorised
   import optInStatusAction.isOptedIn
   import sessionAction.withSessionItem
-  import groupAction.withGroupTypeAndAuthorised
 
   def showSelectGroupType(origin: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        sessionCacheService.deleteAll(sessionKeys).map(_ =>
-          Ok(select_group_type(YesNoForm.form(), origin))
-        )
+        for {
+          _               <- sessionCacheService.deleteAll(sessionKeys)
+          mGroupTypeStr   <- sessionCacheService.get(GROUP_TYPE)
+          mGroupTypeBool  = mGroupTypeStr.map(_ == CUSTOM_GROUP)
+        } yield {
+          Ok(select_group_type(formWithFilledValue(YesNoForm.form(), mGroupTypeBool), origin))
+        }
       }
     }
   }
@@ -96,13 +100,15 @@ class CreateGroupSelectGroupTypeController @Inject()
   def showSelectTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
     withGroupTypeAndAuthorised { (_, arn) =>
 
-      clientService.getAvailableTaxServiceClientCount(arn).map(info =>
-
+      for {
+        info <- clientService.getAvailableTaxServiceClientCount(arn)
+        sel <- sessionCacheService.get(GROUP_SERVICE_TYPE)
+      } yield
         if(info.isEmpty)
           Ok(exceed_group_selection())
-        else
-          Ok(select_group_tax_type(TaxServiceGroupTypeForm.form, info))
-      )
+        else {
+          Ok(select_group_tax_type(formWithFilledValue(TaxServiceGroupTypeForm.form, sel.map(TaxServiceGroupType)), info))
+        }
     }
   }
 
@@ -125,7 +131,6 @@ class CreateGroupSelectGroupTypeController @Inject()
                         if (nameAvailable)
                           for {
                             _ <- sessionCacheService.put[String](GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
-                            _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, false) // could change to true and skip name group page
                           } yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType())
                         else {
                           Redirect(ctrlRoutes.showReviewTaxServiceGroupType()).toFuture
@@ -158,7 +163,6 @@ class CreateGroupSelectGroupTypeController @Inject()
         },
           (continue: Boolean) => {
             if (continue) {
-              // could add skip to name tax group here
               Redirect(routes.CreateGroupSelectNameController.showGroupName())
             } else {
               Redirect(ctrlRoutes.showSelectGroupType())

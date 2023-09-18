@@ -692,6 +692,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetCustomSummaryById(grpId, Some(GroupSummary.of(accessGroup)))
+        expectGetSessionItemNone(CONFIRM_CLIENTS_SELECTED)
 
         //when
         val result = controller.showReviewSelectedClients(grpId, None, None)(request)
@@ -719,6 +720,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
         expectGetSessionItem(SELECTED_CLIENTS, displayClients)
         expectGetCustomSummaryById(grpId, Some(GroupSummary.of(accessGroup)))
+        expectGetSessionItemNone(CONFIRM_CLIENTS_SELECTED)
 
         //when
         val result = controller.showReviewSelectedClients(grpId, Some(2), Some(1))(request)

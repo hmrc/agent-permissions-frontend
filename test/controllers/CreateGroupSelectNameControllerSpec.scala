@@ -116,7 +116,6 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectPutSessionItem(GROUP_NAME, groupName)
-      expectPutSessionItem(GROUP_NAME_CONFIRMED, false)
 
       val result = controller.submitGroupName()(request)
 
@@ -177,6 +176,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     "have correct layout and content" in {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
+      expectGetSessionItemNone(GROUP_NAME_CONFIRMED)
 
       val result = controller.showConfirmGroupName()(request)
 

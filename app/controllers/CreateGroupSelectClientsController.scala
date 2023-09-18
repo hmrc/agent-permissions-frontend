@@ -194,14 +194,15 @@ class CreateGroupSelectClientsController @Inject()
             maybePageSize.getOrElse(REVIEW_SELECTED_PAGE_SIZE),
             clients
           )
+          sessionCacheService.get(CONFIRM_CLIENTS_SELECTED).map(mData =>
           Ok(
             review_selected(
               paginatedList.pageContent,
               groupName,
-              YesNoForm.form(),
+              formWithFilledValue(YesNoForm.form(), mData),
               paginationMetaData = Some(paginatedList.paginationMetaData)
             )
-          ).toFuture
+          ))
         }
         )
       }
@@ -283,24 +284,27 @@ class CreateGroupSelectClientsController @Inject()
                       )
                     ).toFuture
                   }, (yes: Boolean) => {
-                    if (yes) {
-                      sessionCacheService
-                        .deleteAll(clientFilteringKeys)
-                        .map(_ => Redirect(controller.showSearchClients()))
-                    } else {
-                      if (clients.nonEmpty) {
-                        Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
-                      } else { // throw empty client error (would prefer redirect to showSearchClients)
-                        Ok(
-                          review_selected(
-                            paginatedList.pageContent,
-                            groupName,
-                            YesNoForm.form("group.clients.review.error").withError("answer", "group.clients.review.error.no-clients"),
-                            paginationMetaData = Some(paginatedList.paginationMetaData)
-                          )
-                        ).toFuture
+                    sessionCacheService.put(CONFIRM_CLIENTS_SELECTED, yes)
+                      .flatMap { _ =>
+                        if (yes) {
+                          sessionCacheService
+                            .deleteAll(clientFilteringKeys)
+                            .map(_ => Redirect(controller.showSearchClients()))
+                        } else {
+                          if (clients.nonEmpty) {
+                            Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
+                          } else { // throw empty client error (would prefer redirect to showSearchClients)
+                            Ok(
+                              review_selected(
+                                paginatedList.pageContent,
+                                groupName,
+                                YesNoForm.form("group.clients.review.error").withError("answer", "group.clients.review.error.no-clients"),
+                                paginationMetaData = Some(paginatedList.paginationMetaData)
+                              )
+                            ).toFuture
+                          }
+                        }
                       }
-                    }
                   }
                 )
             }

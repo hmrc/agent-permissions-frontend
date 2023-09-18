@@ -485,6 +485,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     "render with selected clients" in {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(5))
+      expectGetSessionItemNone(CONFIRM_CLIENTS_SELECTED)
 
       val result = controller.showReviewSelectedClients(None, None)(request)
 
@@ -531,6 +532,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     "render with 0 selected clients in session" in {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
+      expectGetSessionItemNone(CONFIRM_CLIENTS_SELECTED)
 
       val result = controller.showReviewSelectedClients(None, None)(request)
 
@@ -592,6 +594,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
+      expectPutSessionItem(CONFIRM_CLIENTS_SELECTED, false)
 
       val result = controller.submitReviewSelectedClients()(request)
 
@@ -611,6 +614,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectDeleteSessionItems(clientFilteringKeys)
+      expectPutSessionItem(CONFIRM_CLIENTS_SELECTED, true)
 
       val result = controller.submitReviewSelectedClients()(request)
 
@@ -669,6 +673,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
+      expectPutSessionItem(CONFIRM_CLIENTS_SELECTED, false)
 
       val result = controller.submitReviewSelectedClients()(request)
 

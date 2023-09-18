@@ -30,7 +30,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.members.{confirm_deselect_member, review_members_paginated, select_paginated_team_members}
-import views.html.groups.create.{tax_group_created, group_created}
+import views.html.groups.create.{group_created, tax_group_created}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -159,15 +159,17 @@ class CreateGroupSelectTeamMembersController @Inject()
           val pageSize = maybePageSize.getOrElse(PAGE_SIZE)
           val page = maybePage.getOrElse(1)
           val list = PaginatedListBuilder.build[TeamMember](page, pageSize, members)
+          sessionCacheService.get(CONFIRM_TEAM_MEMBERS_SELECTED).map(mData =>
           Ok(
             review_members_paginated(
               teamMembers = list.pageContent,
               groupName = groupName,
-              form = YesNoForm.form(),
+              form = formWithFilledValue(YesNoForm.form(), mData),
               formAction = controller.submitReviewSelectedTeamMembers(),
               paginationMetaData = Some(list.paginationMetaData)
             )
-          ).toFuture
+          )
+          )
         }
         )
       }
@@ -197,27 +199,29 @@ class CreateGroupSelectTeamMembersController @Inject()
                     )
                   ).toFuture
                 }, (yes: Boolean) => {
-                  if (yes)
-                    Redirect(controller.showSelectTeamMembers(None, None)).toFuture
-                  else {
-                    if(members.isEmpty) { // throw empty error (would prefer redirect to showSelectTeamMembers)
-                      Ok(
-                        review_members_paginated(
-                          teamMembers = list.pageContent,
-                          groupName = groupName,
-                          form =  YesNoForm.form("group.teamMembers.review.error").withError("answer", "group.teamMembers.review.error.no-members"),
-                          formAction = controller.submitReviewSelectedTeamMembers(),
-                          paginationMetaData = Some(list.paginationMetaData)
-                        )
-                      ).toFuture
-                    } else {
-                      groupType match {
-                        case TAX_SERVICE_GROUP =>
-                          submitTaxServiceGroup(arn, members, groupName)
-                        case CUSTOM_GROUP =>
-                          groupService
-                            .createGroup(arn, groupName)
-                            .map(_ => Redirect(controller.showGroupCreated()))
+                  sessionCacheService.put(CONFIRM_TEAM_MEMBERS_SELECTED, yes).flatMap { _ =>
+                    if (yes)
+                      Redirect(controller.showSelectTeamMembers(None, None)).toFuture
+                    else {
+                      if (members.isEmpty) { // throw empty error (would prefer redirect to showSelectTeamMembers)
+                        Ok(
+                          review_members_paginated(
+                            teamMembers = list.pageContent,
+                            groupName = groupName,
+                            form = YesNoForm.form("group.teamMembers.review.error").withError("answer", "group.teamMembers.review.error.no-members"),
+                            formAction = controller.submitReviewSelectedTeamMembers(),
+                            paginationMetaData = Some(list.paginationMetaData)
+                          )
+                        ).toFuture
+                      } else {
+                        groupType match {
+                          case TAX_SERVICE_GROUP =>
+                            submitTaxServiceGroup(arn, members, groupName)
+                          case CUSTOM_GROUP =>
+                            groupService
+                              .createGroup(arn, groupName)
+                              .map(_ => Redirect(controller.showGroupCreated()))
+                        }
                       }
                     }
                   }
@@ -302,6 +306,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               for {
                 _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
                 _ <- sessionCacheService.deleteAll(creatingGroupKeys)
+                _ <- sessionCacheService.delete(GROUP_TYPE)
               } yield Redirect(controller.showTaxGroupCreated())
             )
         }
@@ -313,7 +318,8 @@ class CreateGroupSelectTeamMembersController @Inject()
   def showGroupCreated: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) { maybeGroupName =>
-        Ok(group_created(maybeGroupName.getOrElse(""))).toFuture
+        sessionCacheService.delete(GROUP_TYPE).map(_ =>
+        Ok(group_created(maybeGroupName.getOrElse(""))))
       }
     }
   }

@@ -55,7 +55,7 @@ class CreateGroupSelectNameController @Inject()(
     withGroupTypeAndAuthorised { (groupType, _) =>
       withSessionItem[String](GROUP_NAME) { maybeName =>
         Ok(choose_name(
-          GroupNameForm.form().fill(maybeName.getOrElse(""))
+          formWithFilledValue(GroupNameForm.form(), maybeName)
         )).toFuture
       }
     }
@@ -68,12 +68,9 @@ class CreateGroupSelectNameController @Inject()(
           .bindFromRequest()
           .fold(
             formWithErrors => Ok(choose_name(formWithErrors)).toFuture,
-            (name: String) =>{
-              val saved = for {
-                _ <- sessionCacheService.put[String](GROUP_NAME, name)
-                _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, false)
-              } yield ()
-              saved.map(_=> Redirect(controller.showConfirmGroupName()))
+            (name: String) => {
+            sessionCacheService.put[String](GROUP_NAME, name)
+              .map(_=> Redirect(controller.showConfirmGroupName()))
             }
           )
     }
@@ -81,8 +78,9 @@ class CreateGroupSelectNameController @Inject()(
 
   def showConfirmGroupName: Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName,_, _) =>
-      val form = YesNoForm.form("group.name.confirm.required.error")
-      Ok(confirm_name(form, groupName)).toFuture
+      sessionCacheService.get(GROUP_NAME_CONFIRMED).map( mConfirmed =>
+      Ok(confirm_name(formWithFilledValue(YesNoForm.form("group.name.confirm.required.error"), mConfirmed), groupName))
+      )
     }
   }
 

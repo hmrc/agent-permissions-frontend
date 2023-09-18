@@ -467,6 +467,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, selectedTeamMembers)
+      expectGetSessionItemNone(CONFIRM_TEAM_MEMBERS_SELECTED)
 
       val result = controller.showReviewSelectedTeamMembers(None, None)(request)
 
@@ -548,6 +549,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectCreateTaxGroup(arn)
       expectPutSessionItem(NAME_OF_GROUP_CREATED, "VAT")
       expectDeleteSessionItems(creatingGroupKeys)
+      expectPutSessionItem(CONFIRM_TEAM_MEMBERS_SELECTED, false)
+      expectDeleteSessionItem(GROUP_TYPE)
 
       //when
       val result = controller.submitReviewSelectedTeamMembers()(request)
@@ -562,6 +565,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectPutSessionItem(CONFIRM_TEAM_MEMBERS_SELECTED, true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
@@ -634,6 +638,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty[TeamMember])
       expectGetSessionItem(GROUP_NAME, groupName)
+      expectPutSessionItem(CONFIRM_TEAM_MEMBERS_SELECTED, false)
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
@@ -660,6 +665,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
       expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
+      expectDeleteSessionItem(GROUP_TYPE)
 
       val result = controller.showGroupCreated(request)
 

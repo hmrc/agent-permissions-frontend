@@ -63,7 +63,7 @@
     <div class="govuk-!-margin-bottom-5">
         @govukSkipLink(
             SkipLink(
-                href = "#summary-list-results",
+                href = "#results",
                 content = Text(msgs("common.skip-to-results"))
             )
         )
@@ -90,8 +90,8 @@
         color: #c6c6c6;
         background-color: #c6c6c6">
 
+    <div id="results">
     @if(summaries.nonEmpty) {
-
         @summaries.map { summary =>
 
             @h2(msgs(summary.groupName) + " " + groupTypeTag(summary.taxService.isEmpty).toString)
@@ -122,7 +122,8 @@
                         linkClasses = Some("govuk-!-width-one-half"),
                         hiddenText = Some(msgs("details.link-hidden", summary.groupName))
                     ),
-                )
+                ),
+                htmlId = s"group-summary-${summary.groupId}"
             )
 
             @a(key = msgs("group.manage.rename") + span(classes = Some("govuk-visually-hidden"), key = summary.groupName).toString,
@@ -158,6 +159,7 @@
         @h2("group.manage.no.groups.h3", classes = Some("govuk-!-margin-top-5"))
         @p("group.manage.no.groups.p", classes = Some("govuk-!-margin-bottom-8"))
     }
+    </div>
 
     @a_button(
         key = "group.manage.no.groups.button",

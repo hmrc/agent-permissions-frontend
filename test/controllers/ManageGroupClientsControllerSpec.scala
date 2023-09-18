@@ -498,6 +498,25 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //TODO - this is wrong right?
       html.select("p#member-count-text").text() shouldBe "0 clients selected across all searches"
     }
+
+    "render with NO clients after a search returns no results" in { // Render a different view if no results (APB-7378)
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(accessGroup.id, Some(GroupSummary.of(accessGroup)))
+      expectGetSessionItemNone(CLIENT_FILTER_INPUT)
+      expectGetSessionItem(CLIENT_SEARCH_INPUT, "foo")
+      expectGetSessionItemNone(SELECTED_CLIENTS) // There are no selected clients
+      expectGetPaginatedClientsToAddToGroup(grpId, search = Some("foo"))(GroupSummary.of(accessGroup), Seq.empty)
+
+      val result = controller.showAddClients(accessGroup.id)(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+
+      val buttons = html.select("button")
+      buttons.size() shouldBe 1
+      html.select("button").get(0).text() shouldBe "Search for clients"
+    }
   }
 
   s"POST ${ctrlRoute.submitAddClients(grpId).url}" should {

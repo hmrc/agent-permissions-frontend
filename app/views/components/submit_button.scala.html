@@ -23,13 +23,14 @@
         id: String = "continue",
         name: String = "submit",
         value: String = "continue",
-        classes: Option[String] = None
+        classes: Option[String] = None,
+        additionalAttributes: Map[String, String] = Map.empty
 )(implicit msgs: Messages)
 
 
     @button(
         Button(
-            attributes = Map("id" -> s"$id", "name" -> s"$name", "value" -> s"$value"),
+            attributes = Map("id" -> s"$id", "name" -> s"$name", "value" -> s"$value") ++ additionalAttributes,
             classes = s"${classes.getOrElse("")}",
             inputType = Some("submit"),
             content = Text(msgs(messageKey))

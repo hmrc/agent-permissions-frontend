@@ -99,14 +99,25 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(CLIENT_PAGE_SIZE)).map { paginatedClients =>
-            Ok(
-              select_paginated_clients(
-                paginatedClients.pageContent,
-                groupName,
-                form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
-                paginationMetaData = Some(paginatedClients.paginationMetaData))
-            )
+          clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(CLIENT_PAGE_SIZE)).flatMap { paginatedClients =>
+            if (paginatedClients.pageContent.isEmpty) {// if the search failed (no results) (APB-7378)
+              withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+                Future.successful(Ok(search_clients(
+                  form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+                  groupName = groupName,
+                  isFailedSearch = true,
+                  continueAction = if (selectedClients.exists(_.nonEmpty)) Some(routes.CreateGroupSelectClientsController.submitSelectedClients) else None
+                )))
+              }
+            } else {
+              Future.successful(Ok(
+                select_paginated_clients(
+                  paginatedClients.pageContent,
+                  groupName,
+                  form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
+                  paginationMetaData = Some(paginatedClients.paginationMetaData))
+              ))
+            }
           }
         }
       }

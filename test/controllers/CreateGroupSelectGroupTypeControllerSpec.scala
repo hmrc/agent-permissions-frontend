@@ -69,6 +69,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReady()
 
       expectDeleteSessionItems(sessionKeys)
+      expectGetSessionItemNone(GROUP_TYPE)
 
       implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectGroupType().url)
@@ -97,6 +98,9 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       html.select(Css.submitButton).text() shouldBe "Continue"
     }
+  }
+
+  "submitSelectGroupType" should {
 
     "render errors when no radio selected" in {
 
@@ -160,12 +164,14 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
     }
   }
 
+
   "showSelectTaxServiceGroupType" should {
 
     "render select_group_tax_type correctly" in {
       //given
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+      expectGetSessionItemNone(GROUP_SERVICE_TYPE)
 
       implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectTaxServiceGroupType().url)
@@ -205,6 +211,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //given
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+      expectGetSessionItemNone(GROUP_SERVICE_TYPE)
 
       implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectTaxServiceGroupType().url)
@@ -245,6 +252,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
 
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
+      expectGetSessionItemNone(GROUP_SERVICE_TYPE)
 
       implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
         ctrlRoute.showSelectTaxServiceGroupType().url)
@@ -305,7 +313,6 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       expectPutSessionItem(GROUP_SERVICE_TYPE, VAT)
       expectGroupNameCheckOK(arn, "VAT")
       expectPutSessionItem(GROUP_NAME, "VAT")
-      expectPutSessionItem(GROUP_NAME_CONFIRMED, false)
 
 
       //when

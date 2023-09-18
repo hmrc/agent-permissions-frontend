@@ -131,14 +131,15 @@ class UnassignedClientController @Inject()(
               Redirect(controller.showUnassignedClients()).toFuture
             } { clients =>
               val paginatedClients = PaginatedListBuilder.build(page = page.getOrElse(1), pageSize = pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE), fullList = clients)
-
+              sessionCacheService.get(CONFIRM_CLIENTS_SELECTED).map( mData =>
               Ok(
                 review_selected_clients(
                   clients = paginatedClients.pageContent,
-                  form = YesNoForm.form(),
+                  form = formWithFilledValue(YesNoForm.form(), mData),
                   paginationMetaData = Some(paginatedClients.paginationMetaData)
                 )
-              ).toFuture
+              )
+              )
             }
         }
       }
@@ -232,11 +233,13 @@ class UnassignedClientController @Inject()(
                       )
                     ).toFuture
                   }, (yes: Boolean) => {
-                    if (yes) {
-                      Redirect(controller.showUnassignedClients()).toFuture
-                    } else {
-                      Redirect(controller.showSelectGroupsForSelectedUnassignedClients()).toFuture
-                    }
+                    sessionCacheService.put(CONFIRM_CLIENTS_SELECTED, yes).map(_ =>
+                      if (yes) {
+                        Redirect(controller.showUnassignedClients())
+                      } else {
+                        Redirect(controller.showSelectGroupsForSelectedUnassignedClients())
+                      }
+                    )
                   }
                 )
             }

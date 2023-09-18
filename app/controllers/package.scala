@@ -34,6 +34,9 @@ package object controllers {
     def foldAny(l: Any)(r: Any => Any): Any = if(boolean) r(l) else l
   }
 
+  def formWithFilledValue[A](form: Form[A], mChoice: Option[A]): Form[A] =
+    mChoice.fold(form)(form.fill)
+
   object GroupType {
     val CUSTOM = "custom"
     val TAX_SERVICE = "tax"
@@ -97,6 +100,9 @@ package object controllers {
   val CLIENT_REFERENCE: DataKey[String] = DataKey("clientRef")
   val GROUP_IDS_ADDED_TO: DataKey[Seq[GroupId]] = DataKey("groupIdsAddedTo")
 
+  val CONFIRM_CLIENTS_SELECTED: DataKey[Boolean] = DataKey("confirmClientsSelected")
+  val CONFIRM_TEAM_MEMBERS_SELECTED: DataKey[Boolean] = DataKey("confirmTeamMembersSelected")
+
   val clientFilteringKeys =
     List(
       FILTERED_CLIENTS,
@@ -115,7 +121,9 @@ package object controllers {
       GROUP_NAME,
       GROUP_NAME_CONFIRMED,
       SELECTED_CLIENTS,
+      CONFIRM_CLIENTS_SELECTED,
       SELECTED_TEAM_MEMBERS,
+      CONFIRM_TEAM_MEMBERS_SELECTED,
       GROUP_SERVICE_TYPE,
       RETURN_URL,
     )

@@ -100,6 +100,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
         val html = Jsoup.parse(contentAsString(result))
         html.title() shouldBe "Clients who are not in any groups - Agent services account - GOV.UK"
+        html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+        html.select(Css.backLink).text() shouldBe "Return to manage account"
         html.select(H1).text() shouldBe "Clients who are not in any groups"
 
         val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")

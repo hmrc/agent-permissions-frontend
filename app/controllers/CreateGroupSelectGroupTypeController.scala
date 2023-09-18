@@ -58,11 +58,11 @@ class CreateGroupSelectGroupTypeController @Inject()
   import sessionAction.withSessionItem
   import groupAction.withGroupTypeAndAuthorised
 
-  def showSelectGroupType: Action[AnyContent] = Action.async { implicit request =>
+  def showSelectGroupType(origin: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         sessionCacheService.deleteAll(sessionKeys).map(_ =>
-          Ok(select_group_type(YesNoForm.form()))
+          Ok(select_group_type(YesNoForm.form(), origin))
         )
       }
     }
@@ -76,7 +76,7 @@ class CreateGroupSelectGroupTypeController @Inject()
           .bindFromRequest()
           .fold(
             formWithErrors =>
-              Ok(select_group_type(formWithErrors)).toFuture,
+              Ok(select_group_type(formWithErrors, None)).toFuture,
             (isCustomGroupType: Boolean) => {
               if (isCustomGroupType) {
                 sessionCacheService

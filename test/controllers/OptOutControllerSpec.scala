@@ -70,6 +70,8 @@ class OptOutControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Turn off access groups - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Return to manage account"
       html.select(Css.H1).text() shouldBe "Turn off access groups"
       html.select(Css.insetText)
         .text() shouldBe "If you turn off this feature any access groups you have created will be disabled. The groups can be turned on again at any time."

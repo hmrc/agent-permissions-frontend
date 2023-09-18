@@ -51,7 +51,7 @@
 
 @layout(
     title = msgs("group.manage.h1"), fullWidth = true,
-    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
+    backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account"))))
 ) {
 
     @h1("group.manage.h1")

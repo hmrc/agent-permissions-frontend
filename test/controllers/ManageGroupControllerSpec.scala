@@ -132,6 +132,8 @@ class ManageGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Return to manage account"
       html.select(H1).text() shouldBe "Manage access groups"
       html
         .select("p#info")

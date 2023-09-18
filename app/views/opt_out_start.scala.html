@@ -24,7 +24,7 @@
 
 @layout(
     title = msgs("opt-out-info.h1"),
-    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
+    backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
 ) {
     @h1("opt-out-info.h1")
     @inset_text("opt-out-info.inset")

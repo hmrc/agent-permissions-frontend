@@ -75,13 +75,14 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
 
       //when
-      val result = controller.showSelectGroupType()(request)
+      val result = controller.showSelectGroupType(None)(request)
 
       //then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Create an access group - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.H1).text() shouldBe "Create an access group"
 
       val form = html.select("form")
@@ -96,6 +97,25 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       radios.select("label[for=answer-no]").text() shouldBe "Access group based on tax service"
 
       html.select(Css.submitButton).text() shouldBe "Continue"
+    }
+
+    "link back to manage accounts when parameter given" in {
+      //given
+      expectAuthOkArnAllowedOptedInReady()
+
+      expectDeleteSessionItems(sessionKeys)
+
+      implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET",
+        ctrlRoute.showSelectGroupType().url)
+        .withSession(SessionKeys.sessionId -> "session-x")
+
+      //when
+      val result = controller.showSelectGroupType(Option("manage-account"))(request)
+
+      //then
+      val html = Jsoup.parse(contentAsString(result))
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Return to manage account"
     }
 
     "render errors when no radio selected" in {

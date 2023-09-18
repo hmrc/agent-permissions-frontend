@@ -4,7 +4,7 @@ resolvers += Resolver.typesafeRepo("releases")
 
 addSbtPlugin("uk.gov.hmrc"          % "sbt-auto-build"        % "3.13.0")
 addSbtPlugin("uk.gov.hmrc"          % "sbt-distributables"    % "2.2.0")
-addSbtPlugin("com.typesafe.play"    % "sbt-plugin"            % "2.8.19")
+addSbtPlugin("com.typesafe.play"    % "sbt-plugin"            % "2.8.20")
 addSbtPlugin("com.typesafe.sbt"     % "sbt-gzip"              % "1.0.2")
 addSbtPlugin("com.timushev.sbt"     % "sbt-updates"           % "0.3.4")  // provides sbt command "dependencyUpdates"
 addSbtPlugin("io.github.irundaia"   % "sbt-sassify"           % "1.5.2")

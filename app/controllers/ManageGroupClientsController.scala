@@ -455,12 +455,13 @@ class ManageGroupClientsController @Inject()
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
         selectedClients
           .fold {
-            Redirect(controller.showSearchClientsToAdd(groupId))
+            Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
           } { clients =>
             val paginatedList = PaginatedListBuilder.build[DisplayClient](page.getOrElse(1), pageSize.getOrElse(20), clients)
-            val form = YesNoForm.form()
-            renderReviewUpdateClients(groupSummary, paginatedList, form)
-          }.toFuture
+            sessionCacheService.get(CONFIRM_CLIENTS_SELECTED)
+              .map( mData =>
+            renderReviewUpdateClients(groupSummary, paginatedList, formWithFilledValue(YesNoForm.form(), mData)))
+          }
       }
     }
   }

@@ -31,7 +31,6 @@
     form: Form[Boolean],
     groupName: String,
     teamMember: TeamMember,
-    backLink: Call = routes.CreateGroupSelectTeamMembersController.showReviewSelectedTeamMembers(None,None),
     formAction: Call = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -40,7 +39,7 @@
 @layout(
     title = title,
     formErrors = form.errors,
-    backLinkHref = Some(backLink.url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @caption(groupName)
 

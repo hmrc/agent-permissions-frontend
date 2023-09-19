@@ -32,7 +32,6 @@
     paginatedList: PaginatedList[DisplayClient],
     form: Form[SearchFilter],
     formAction: Call = routes.ManageClientController.submitPageOfClients,
-    backUrl: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 
@@ -41,8 +40,7 @@
                                      msgs("group.manage.clients"),
                                      form("filter").value,
                                      form("search").value),
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
-    backLinkTextKey = Some("common.return.manage-account"),
+    backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
     fullWidth = true
 ) {
 

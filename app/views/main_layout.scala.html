@@ -37,8 +37,7 @@
     formErrors: Seq[FormError] = Seq.empty,
     customError: Option[String] = None,
     hasTimeout: Boolean = true,
-    backLinkHref: Option[String] = None,
-    backLinkTextKey: Option[String] = None,
+    backLink: Option[BackLink] = None,
     fullWidth: Boolean = false,
 )(mainContent: Html)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -90,14 +89,6 @@
     } src='@controllers.routes.Assets.versioned("javascripts/agent-permissions.js")'> </script>
 }
 
-@maybeBackLink = @{
-    (backLinkHref, backLinkTextKey) match {
-        case (None, _) => None
-        case (Some(href), None) => Some(BackLink.withDefaultText(href = href))
-        case (Some(href), Some(textKey)) => Some(BackLink(href = href, content = Text(msgs(textKey))))
-    }
-}
-
 @hmrcStandardPage(HmrcStandardPageParams(
     pageTitle = pageTitle,
     serviceName = Some(msgs("service.name")),
@@ -108,7 +99,7 @@
     banners = Banners(
         phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
     ),
-    backLink = maybeBackLink,
+    backLink = backLink,
     isWelshTranslationAvailable = true,
     templateOverrides = TemplateOverrides(
         additionalHeadBlock = Some(head(hasTimeout)),

@@ -39,8 +39,10 @@
 
 @formErrorsClasses = @{if(form.errors) "govuk-form-group--error" else ""}
 
-@layout(title = msgs(heading),
-    backLinkHref = Some(routes.UnassignedClientController.showSelectedUnassignedClients().url)) {
+@layout(
+title = msgs(heading),
+backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
+) {
 
     @if(form.errors && groups.nonEmpty) {
         @govukErrorSummary(

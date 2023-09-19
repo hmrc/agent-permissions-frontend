@@ -38,9 +38,7 @@
     )
 }
 
-@backLink = @{Some(appConfig.agentServicesAccountYourAssistantAccountUrl)}
-
-@layout(title = title, backLinkHref = backLink, fullWidth = true) {
+@layout(title = title, backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)), fullWidth = true) {
 
     <div class="govuk-!-width-two-thirds">
         @h1("assistant.clients.unassigned.h1")

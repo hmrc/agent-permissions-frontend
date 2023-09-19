@@ -670,10 +670,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove John 1 name from this access group? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove John 1 name from this access group?"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveTeamMember(groupId, TAX_SERVICE).url
       html.select("label[for=answer]").text() shouldBe "Yes"
@@ -768,10 +766,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
       html.select(Css.paragraphs).isEmpty shouldBe true
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id).url
       html.select("label[for=answer]").text() shouldBe "Yes"

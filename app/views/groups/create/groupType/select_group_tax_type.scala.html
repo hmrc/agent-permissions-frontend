@@ -34,7 +34,7 @@
 @layout(
     title = msgs("group.tax-service.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @h1("group.tax-service.h1")
 

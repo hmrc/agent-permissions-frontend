@@ -78,7 +78,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "What do you want to call this group? - Agent services account - GOV.UK"
-      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/create-group/select-group-type"
+      html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
       html.select(Css.H1).text() shouldBe "What do you want to call this group?"
       html.select(Css.form).attr("action") shouldBe ctrlRoute.showGroupName().url
@@ -97,7 +97,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
-      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/create-group/select-tax-service"
+      html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
     }
 

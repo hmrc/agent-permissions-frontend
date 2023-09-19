@@ -32,7 +32,7 @@
 @layout(
     title = msgs("do-you-want-to-opt-in.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.OptInController.start().url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @formWithCSRF(action = routes.OptInController.submitDoYouWantToOptIn) {
         @radioButtons(

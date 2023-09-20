@@ -447,7 +447,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.select(H2).size shouldBe 0
 
       // no filter by tax service on the form
-      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
       html.select(Css.labelFor("filter")).size() shouldBe 0
 
       // table without tax service column
@@ -486,7 +486,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.select(H2).text shouldBe "Filter results for ‘friendly1’"
 
       // no filter by tax service on the form
-      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
       html.select("#search").attr("value") shouldBe "friendly1"
       html.select(Css.labelFor("filter")).size() shouldBe 0
 
@@ -521,7 +521,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       html.select(H2).text shouldBe "No clients found"
 
       // no filter by tax service on the form
-      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
       html.select(Css.labelFor("filter")).size() shouldBe 0
 
       // no table

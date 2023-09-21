@@ -68,6 +68,7 @@ common.results-for1=Filter results for ‘{0}’
 common.results-for2=Filter results for ‘{0}’ and ‘{1}’
 common.return.manage-account=Return to manage account
 common.return.manage-clients=Return to manage clients
+common.return.manage-groups=Return to manage access groups
 common.return.manage-team-members=Return to manage team members
 common.return.to.dashboard=Return to manage access groups
 common.return.to.unassigned.clients=Return to clients who are not in any groups

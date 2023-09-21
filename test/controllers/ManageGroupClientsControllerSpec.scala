@@ -356,9 +356,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
 
-      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
 
-      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service (optional)"
 
     }
 
@@ -380,9 +380,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
 
-      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
       html.select("#search").attr("value") shouldBe "Harry"
-      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service (optional)"
       //TODO this isn't working
       //html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
 

@@ -135,7 +135,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
-      html.select(Css.backLink).text() shouldBe "Return to manage groups"
+      html.select(Css.backLink).text() shouldBe "Return to manage access groups"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 

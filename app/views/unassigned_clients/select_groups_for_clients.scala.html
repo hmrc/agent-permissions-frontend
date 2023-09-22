@@ -20,6 +20,7 @@
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.components.models.CheckboxData
 @import views.html.main_layout
+@import forms.SelectGroupsForm
 
 @this(
         layout: main_layout,
@@ -86,17 +87,24 @@ backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
                         field = form("groups[]"),
                         name = "groups[]",
                         id = Some("available-groups"),
-                        items = groups.zipWithIndex.map { case (groupSummary, idx) => {
+                        items = groups.zipWithIndex.map { case (groupSummary, idx) =>
                             val id = groupSummary.groupId
                             CheckboxData(
                                 id = id.toString,
                                 name = "groups[]",
                                 label = groupSummary.groupName,
                                 value = id.toString,
-                                checked = form.data.get(s"groups[${idx}]").isDefined
+                                checked = form.data.exists { case (k, v) => k.contains("groups") && v == groupSummary.groupId.toString }
                             )
-                        }
-                        },
+                        } :+ CheckboxData( /* none of the above */
+                            id = SelectGroupsForm.NoneValue,
+                            name = "groups[]",
+                            label = msgs("unassigned.client.assign.none-of-the-above"),
+                            hint = Some(msgs("unassigned.client.assign.none-of-the-above.hint")),
+                            value = SelectGroupsForm.NoneValue,
+                            checked = form.data.exists { case (k, v) => k.contains("groups") && v == SelectGroupsForm.NoneValue },
+                            exclusive = true
+                        ),
                         hint = Some(msgs("unassigned.client.assign.hint"))
                     )
                 </div>

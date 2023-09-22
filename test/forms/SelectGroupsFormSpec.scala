@@ -16,10 +16,11 @@
 
 package forms
 
-import org.apache.commons.lang3.RandomStringUtils
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+
+import java.util.UUID
 
 class SelectGroupsFormSpec extends AnyWordSpec
   with Matchers
@@ -31,24 +32,39 @@ class SelectGroupsFormSpec extends AnyWordSpec
 
     "be successful for createNew group option" in {
       val params = Map(createNewField -> "true")
-      SelectGroupsForm.form().bind(params).get.createNew shouldBe Some(true)
+      SelectGroupsForm.form().bind(params).get shouldBe SelectGroups.CreateNew
     }
     "be successful for selected existing group option" in {
-      val groupId = RandomStringUtils.randomAlphanumeric(10)
+      val groupId = UUID.randomUUID().toString
       val params = Map("groups[0]" -> groupId)
-      SelectGroupsForm.form().bind(params).get.groups shouldBe Some(List(groupId))
+      SelectGroupsForm.form().bind(params).get shouldBe SelectGroups.SelectedGroups(List(groupId))
     }
-
-    "fails when both groups and createNew selected" in {
-      val groupId = RandomStringUtils.randomAlphanumeric(10)
+    "be successful when only 'none of the above' is selected option" in {
+      val params = Map("groups[0]" -> SelectGroupsForm.NoneValue)
+      SelectGroupsForm.form().bind(params).get shouldBe SelectGroups.NoneOfTheAbove
+    }
+    "fail when both groups and createNew selected" in {
+      val groupId = UUID.randomUUID().toString
       val params = Map(createNewField -> "true", "groups[0]" -> groupId)
       SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.existing.or.new.error"
     }
 
-    "fails when no checkboxes are selected" in {
+    "fail when no checkboxes are selected" in {
       val params = Map.empty[String, String]
-      SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.nothing.selected.error"
+      SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.invalid-selection.error"
     }
+    "fail when both groups and 'none of the above' are selected" in {
+      val groupId = UUID.randomUUID().toString
+      val params = Map("groups[0]" -> groupId, "groups[1]" -> SelectGroupsForm.NoneValue)
+      SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.invalid-selection.error"
+    }
+    "populate form based on result value correctly" in {
+      val groupId = UUID.randomUUID().toString
+      SelectGroupsForm.form().fill(SelectGroups.CreateNew).data shouldBe Map(createNewField -> "true")
+      SelectGroupsForm.form().fill(SelectGroups.NoneOfTheAbove).data shouldBe Map("groups[0]" -> SelectGroupsForm.NoneValue)
+      SelectGroupsForm.form().fill(SelectGroups.SelectedGroups(List(groupId))).data shouldBe Map("groups[0]" -> groupId)
+    }
+
   }
 
 }

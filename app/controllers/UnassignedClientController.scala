@@ -255,7 +255,7 @@ class UnassignedClientController @Inject()(
           } else {
             Ok(
               select_groups_for_clients(
-                SelectGroupsForm.form().fill(SelectGroups(None, None)),
+                SelectGroupsForm.form(),
                 groups.filter(_.isCustomGroup)
               )
             )
@@ -277,12 +277,13 @@ class UnassignedClientController @Inject()(
               Ok(select_groups_for_clients(clonedForm, groups))
             }
             )
-          }, validForm => {
-            if (validForm.createNew.isDefined) Redirect(routes.CreateGroupSelectNameController.showGroupName()).toFuture
-            else {
+          }, {
+            case SelectGroups.CreateNew => Redirect(routes.CreateGroupSelectNameController.showGroupName()).toFuture
+            case SelectGroups.NoneOfTheAbove => Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+            case SelectGroups.SelectedGroups(groups) =>
               for {
                 allGroups <- groupService.getGroupSummaries(arn)
-                groupsToAddTo = allGroups.filter(groupSummary => validForm.groups.get.contains(groupSummary.groupId.toString))
+                groupsToAddTo = allGroups.filter(groupSummary => groups.contains(groupSummary.groupId.toString))
                 _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                 selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
                 result <- selectedClients.fold(
@@ -298,9 +299,7 @@ class UnassignedClientController @Inject()(
                   }
                 }
               } yield result
-
-            }
-          }
+         }
         )
       }
     }

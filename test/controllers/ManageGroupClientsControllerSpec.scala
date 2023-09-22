@@ -393,19 +393,6 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   }
 
   s"POST ${ctrlRoute.submitSearchClientsToAdd(grpId).url}" should {
-    // TODO - using fully optional form atm, clarify expected error behaviour
-    //    "render errors on client search page" in {
-    //      expectAuthOkArnAllowedOptedInReadyWithGroupName()
-    //      expectSaveSearch()
-    //      implicit val request =
-    //        FakeRequest(
-    //          "POST",
-    //          s"${controller.submitSearchClients()}")
-    //          .withSession(SessionKeys.sessionId -> "session-x")
-    //
-    //      val result = controller.submitSearchClients()(request)
-    //      status(result) shouldBe OK
-    //    }
 
     "save search terms and redirect" in {
       val summary = GroupSummary.of(accessGroup)
@@ -457,6 +444,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
       th.size() shouldBe 5
+      th.get(0).text() shouldBe "Select client"
       th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
@@ -482,6 +470,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       val row4Cells = trs.get(3).select("td")
       row4Cells.get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
+      row4Cells.get(0).text() shouldBe "Client reference friendly5, Tax reference ending in 6785, Tax service VAT"
       row4Cells.get(1).text() shouldBe "friendly5"
       row4Cells.get(2).text() shouldBe "ending in 6785"
       row4Cells.get(3).text() shouldBe "VAT"
@@ -490,14 +479,13 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       //this is not in group so should  have checkbox to add
       val row7Cells = trs.get(6).select("td")
       row7Cells.get(0).select("input[type=checkbox]").attr("name") shouldBe "clients[]"
+      row7Cells.get(0).text() shouldBe "Client reference friendly8, Tax reference ending in 6788, Tax service VAT"
       row7Cells.get(1).text() shouldBe "friendly8"
       row7Cells.get(2).text() shouldBe "ending in 6788"
       //this is not in group so should not have "Remove" link
       row7Cells.get(3).text() shouldBe "VAT"
       row7Cells.get(4).text() shouldBe ""
 
-
-      //TODO - this is wrong right?
       html.select("p#member-count-text").text() shouldBe "0 clients selected across all searches"
     }
 

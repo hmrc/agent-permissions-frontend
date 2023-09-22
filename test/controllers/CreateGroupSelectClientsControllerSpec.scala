@@ -190,13 +190,17 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
+      th.get(0).text() shouldBe "Select client"
       th.get(1).text() shouldBe "Client reference"
       th.get(2).text() shouldBe "Tax reference"
       th.get(3).text() shouldBe "Tax service"
       val trs =
         html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+
       trs.size() shouldBe 20
+
       // first row
+      trs.get(0).select("td").get(0).select("label").text() shouldBe "Client reference friendly0, Tax reference ending in 6780, Tax service VAT"
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
       trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(3).text() shouldBe "VAT"

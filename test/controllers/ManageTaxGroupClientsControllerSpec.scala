@@ -499,7 +499,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(Css.backLink).text() shouldBe "Back"
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         ths.size() shouldBe 3
-        ths.get(0).text shouldBe ""
+        ths.get(0).text shouldBe "Select client"
         ths.get(1).text shouldBe "Client reference"
         ths.get(2).text shouldBe "Tax reference"
         val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
@@ -545,7 +545,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(Css.backLink).text() shouldBe "Back"
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         ths.size() shouldBe 3
-        ths.get(0).text shouldBe ""
+        ths.get(0).text shouldBe "Select client"
         ths.get(1).text shouldBe "Client reference"
         ths.get(2).text shouldBe "Tax reference"
         val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
@@ -554,9 +554,10 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         val row1Cells = trs.get(0).select("td")
         val row1Checkbox = row1Cells.get(0).select("input")
         row1Checkbox.attr("name") shouldBe "clients[]"
-        row1Checkbox.attr("value") shouldBe currentPageOfClients(0).id
+        row1Checkbox.attr("value") shouldBe currentPageOfClients.head.id
+        row1Cells.get(0).select("label").text() shouldBe "Client reference John a, Tax reference ending in 678a, Tax service VAT"
         row1Cells.get(1).text shouldBe "John a"
-        row1Cells.get(1).text shouldBe currentPageOfClients(0).name
+        row1Cells.get(1).text shouldBe currentPageOfClients.head.name
         row1Cells.get(2).text shouldBe "ending in 678a"
 
       }

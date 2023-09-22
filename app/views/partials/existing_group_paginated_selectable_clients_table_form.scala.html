@@ -57,7 +57,7 @@
 @hasClientsAlreadyInGroup = @{clients.exists(_.alreadyInGroup)}
     @tableHeadings = @{
         var ths = Seq[(Html, Map[String, String])](
-            (span(""),Map("id" -> "select-all")),
+            (span("group.client.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty),
             (Html(msgs("group.client.list.table.th1")), Map.empty),
             (Html(msgs("group.client.list.table.th2")), Map.empty),
             (Html(msgs("group.client.list.table.th3")), Map.empty),
@@ -81,7 +81,7 @@
                     checkbox(
                         name = Some("clients[]"),
                         id = Some(s"add-client-${idx}"),
-                        label = displayNameOrFullReference(client.name, client.hmrcRef),
+                        label = clientCheckboxLabel(client.name, client.hmrcRef, client.taxService),
                         value = Some(client.id),
                         checked = client.selected
                     ).toString
@@ -127,13 +127,12 @@
                 <p id="clients-error" class="govuk-error-message">
                     <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
                 </p>
-                }
+        }
 
-        <fieldset class="govuk-fieldset">
+        <fieldset class="govuk-fieldset" data-module="moj-multi-select" data-multi-select-checkbox="#select-all" data-i18n.multi-select-checkbox=@msgs("error.select-clients.empty")>
             <legend class="govuk-fieldset__legend govuk-visually-hidden">
                 @msgs("group.client.list.h1")
             </legend>
-            @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
 
             @if(form.data.contains("search") || form.data.contains("filter")) {
                 @h2({
@@ -144,17 +143,16 @@
                     else
                         msgs("group.manage.clients.showing.results.many", clients.length, filterReminder)
                 })
+            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
             }
 
-            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
             <div id="clients" tabindex="0">
+                <div id="select-all"></div>
 
             @table(
                 caption = Some("common.clients"),
                 captionClasses = "govuk-visually-hidden",
                 id = Some("multi-select-table"),
-                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = tableHeadings,
                 rows = tableRows,
             )

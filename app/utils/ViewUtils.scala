@@ -63,6 +63,21 @@ object ViewUtils {
     if(name.isEmpty) taxId else msgs("ending.in", taxId.substring(taxId.length - 4))
   }
 
+  def clientCheckboxLabel(name: String, taxId: String, serviceKey: String)(implicit msgs: Messages):String = {
+    if(name.isEmpty) {
+      msgs("group.client.list.table.checkbox.label-missing-reference",
+        taxId,
+        displayTaxServiceFromServiceKey(serviceKey)
+      )
+    } else {
+      msgs("group.client.list.table.checkbox.label",
+        name,
+        msgs("ending.in", taxId.substring(taxId.length - 4)),
+        displayTaxServiceFromServiceKey(serviceKey)
+      )
+    }
+  }
+
   // for hidden labels, name is preferred
   def displayNameOrFullReference(name: String, taxId: String): String = {
     if(name.isEmpty) {

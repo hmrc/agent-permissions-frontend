@@ -57,7 +57,7 @@
                         name = Some("members[]"),
                         id = Some(s"add-member-$idx"),
                         value = Some(member.id),
-                        label = member.name,
+                        label = msgs("group.members.list.table.checkbox.label", member.name, member.email),
                         checked = member.selected
                     ).toString
                 }
@@ -89,14 +89,15 @@
                 <p id="teamMembers-error" class="govuk-error-message">
                     <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-teamMembers.empty")
                 </p>
-                }
+         }
 
-        <fieldset class="govuk-fieldset">
+        <fieldset class="govuk-fieldset" data-module="moj-multi-select" data-multi-select-checkbox="#select-all">
             <legend class="govuk-fieldset__legend govuk-visually-hidden">
             @msgs("select.members.list.h1")
             </legend>
-            @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
+
             <div id="teamMembers" tabindex="0">
+                <div id="select-all"></div>
 
             @resultsSummary.map { summary =>
                 @h2(summary)
@@ -107,9 +108,8 @@
                 caption = Some("common.teamMembers"),
                 captionClasses = "govuk-visually-hidden",
                 id = Some("multi-select-table"),
-                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
-                    (span(""), Map("id" -> "select-all")),
+                    (span("group.members.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty),
                     (Html(msgs("group.members.list.table.th1")), Map.empty),
                     (Html(msgs("group.members.list.table.th2")), Map.empty)
                 ),

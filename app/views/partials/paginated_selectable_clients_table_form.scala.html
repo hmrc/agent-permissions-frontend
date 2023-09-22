@@ -64,7 +64,7 @@
                     checkbox(
                         name = Some("clients[]"),
                         id = Some(s"add-client-${client._2}"),
-                        label = displayNameOrFullReference(client._1.name, client._1.hmrcRef),
+                        label = clientCheckboxLabel(client._1.name, client._1.hmrcRef, client._1.taxService),
                         value = Some(client._1.id),
                         checked = client._1.selected
                     ).toString
@@ -102,14 +102,15 @@
                 <p id="clients-error" class="govuk-error-message">
                     <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
                 </p>
-                }
+         }
 
-        <fieldset class="govuk-fieldset">
+        <fieldset class="govuk-fieldset" data-module="moj-multi-select" data-multi-select-checkbox="#select-all">
             <legend class="govuk-fieldset__legend govuk-visually-hidden">
                 @msgs("group.client.list.h1")
             </legend>
-            @* removed class="govuk-!-margin-bottom-8 scrollable-table-container" *@
+
             <div id="clients" tabindex="0">
+                <div id="select-all"></div>
 
             @resultsSummary.map { summary =>
                 @h2(summary)
@@ -120,9 +121,8 @@
                 caption = Some("common.clients"),
                 captionClasses = "govuk-visually-hidden",
                 id = Some("multi-select-table"),
-                attrs = Map("data-module" -> "moj-multi-select", "data-multi-select-checkbox" -> "#select-all"),
                 headings = Seq(
-                    (span(""),Map("id" -> "select-all")),
+                    (span("group.client.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty[String, String]),
                     (Html(msgs("group.client.list.table.th1")), Map.empty[String, String]),
                     (Html(msgs("group.client.list.table.th2")), Map.empty[String, String])
                 ) ++ Seq((Html(msgs("group.client.list.table.th3")), Map.empty[String, String])).filter(_ => displayTaxService),

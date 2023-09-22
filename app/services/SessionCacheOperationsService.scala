@@ -16,7 +16,7 @@
 
 package services
 
-import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CONTINUE_BUTTON, CURRENT_PAGE_CLIENTS, SELECTED_CLIENTS, clientFilteringKeys}
+import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, SELECTED_CLIENTS}
 import models.{AddClientsToGroup, DisplayClient}
 import play.api.mvc.Request
 
@@ -43,7 +43,7 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
   def savePageOfClientsForCreateGroup(formData: AddClientsToGroup)
                                      (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 
-    val clientsInSession = for {
+    for {
       _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
       _ <- formData.filter.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
       existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
@@ -57,21 +57,14 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
         .filterNot(cl => idsToRemove.contains(cl.id))
         .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
-    } yield (newSelectedClients)
-    clientsInSession.flatMap(_ =>
-      formData.submit.trim match {
-        case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_ => clientsInSession) // TODO Should this call be in this function? This function mentions nothing (and should know nothing) about filtering
-        case _ => clientsInSession
-      }
-    )
-
+    } yield newSelectedClients
   }
 
   /** This is only used for CREATING groups and adding clients as you can't unselect from an existing group */
   def saveClientsToAddToExistingGroup(formData: AddClientsToGroup)
                                      (implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] = {
 
-    val clientsInSession = for {
+   for {
       _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
       _ <- formData.filter.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
       existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
@@ -86,13 +79,6 @@ class SessionCacheOperationsService @Inject()(val sessionCacheService: SessionCa
         .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
     } yield newSelectedClients
-    clientsInSession.flatMap(_ =>
-      formData.submit.trim match {
-        case CONTINUE_BUTTON => sessionCacheService.deleteAll(clientFilteringKeys).flatMap(_ => clientsInSession) // TODO Should this call be in this function? This function mentions nothing (and should know nothing) about filtering
-        case _ => clientsInSession
-      }
-    )
-
   }
 
 }

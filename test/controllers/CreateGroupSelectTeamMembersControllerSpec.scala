@@ -568,7 +568,6 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
-      expectPutSessionItem(CONFIRM_TEAM_MEMBERS_SELECTED, true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")

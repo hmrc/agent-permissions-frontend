@@ -199,10 +199,10 @@ class CreateGroupSelectTeamMembersController @Inject()
                     )
                   ).toFuture
                 }, (yes: Boolean) => {
-                  sessionCacheService.put(CONFIRM_TEAM_MEMBERS_SELECTED, yes).flatMap { _ =>
                     if (yes)
                       Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                     else {
+                      sessionCacheService.put(CONFIRM_TEAM_MEMBERS_SELECTED, yes).flatMap { _ =>
                       if (members.isEmpty) { // throw empty error (would prefer redirect to showSelectTeamMembers)
                         Ok(
                           review_members_paginated(

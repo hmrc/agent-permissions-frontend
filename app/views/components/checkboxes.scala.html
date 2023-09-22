@@ -52,7 +52,8 @@
                         )
                     })
                 )),
-            items = items.map { (cbd: CheckboxData) =>
+            items = items.flatMap { (cbd: CheckboxData) =>
+                (if (cbd.exclusive) Seq(CheckboxItem(divider = Some(msgs("common.or")))) else Seq.empty) :+
                 CheckboxItem(
                     content = HtmlContent(msgs(cbd.label)),
                     value = cbd.value,
@@ -60,7 +61,10 @@
                     checked = cbd.checked,
                     hint = cbd.hint.map(h => {
                         Hint(content = HtmlContent(msgs(h)))
-                    })
+                    }),
+                    behaviour = if (cbd.exclusive) Some(ExclusiveCheckbox) else None,
+                    attributes = cbd.extraAttributes
                 )
+
             }).withFormField(field)
     )

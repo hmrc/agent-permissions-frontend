@@ -19,6 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AddMembersToAccessGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.{AuthAction, SessionAction}
+import forms.SelectGroupsForm
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, GroupId}
@@ -431,7 +432,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val checkboxInputs = checkboxes.select("input[type='checkbox']")
 
       form.attr("action") shouldBe ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url
-      checkboxes.size shouldBe 3
+      checkboxes.size shouldBe (groupSummaries.size + 1 /* (none of the above) */)
       checkboxLabels.get(0).text shouldBe "name 1"
       checkboxLabels.get(1).text shouldBe "name 2"
       checkboxLabels.get(2).text shouldBe "name 3"
@@ -442,6 +443,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       checkboxInputs.get(1).attr("value") shouldBe groupSummaries(1).groupId.toString
       checkboxInputs.get(2).attr("name") shouldBe "groups[]"
       checkboxInputs.get(2).attr("value") shouldBe groupSummaries(2).groupId.toString
+      checkboxInputs.last.attr("name") shouldBe "groups[]"
+      checkboxInputs.last.attr("value") shouldBe SelectGroupsForm.NoneValue
 
       form.select("button#continue[type=submit]").text shouldBe "Save and continue"
 
@@ -451,10 +454,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //given
       val id1 = GroupId.random()
       val id2 = GroupId.random()
-      val groupSummaries = List(
-        GroupSummary(id1, s"custom group", Some(3), 4),
-        GroupSummary(id2, s"tax service group", Some(3), 4, Some("VAT")))
-
+      val customGroupSummaries = List(GroupSummary(id1, s"custom group", Some(3), 4))
+      val taxGroupSummaries = List(GroupSummary(id2, s"tax service group", Some(3), 4, Some("VAT")))
+      val groupSummaries = customGroupSummaries ++ taxGroupSummaries
       expectAuthOkOptedInReady()
       
       expectGetGroupsForArn(arn)(groupSummaries)
@@ -474,7 +476,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val checkboxInputs = checkboxes.select("input[type='checkbox']")
 
 
-      checkboxes.size shouldBe 1
+      checkboxes.size shouldBe (customGroupSummaries.size + 1 /* (none of the above) */)
       checkboxLabels.get(0).text shouldBe "custom group"
 
       checkboxInputs.get(0).attr("name") shouldBe "groups[]"
@@ -562,6 +564,25 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     }
 
+    "redirect to manage account if 'none of the above' is selected" in {
+      //given
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
+          .withFormUrlEncodedBody("groups[0]" -> SelectGroupsForm.NoneValue)
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      expectAuthOkOptedInReady()
+
+
+      //when
+      val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
+
+      //then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe controller.appConfig.agentServicesAccountManageAccountUrl
+
+    }
+
     "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
       //given
       val groupSummaries = (1 to 2).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
@@ -612,8 +633,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       //and should show errors
       val html = Jsoup.parse(contentAsString(result))
       html.select(Css.errorSummaryForField(groupSummaries(0).groupId.toString))
-        .text() shouldBe "You must select an access group"
-      html.select(Css.errorForField("field-wrapper")).text() shouldBe "You must select an access group"
+        .text() shouldBe "Select at least one access group or No access groups"
+      html.select(Css.errorForField("field-wrapper")).text() shouldBe "Select at least one access group or No access groups"
 
 
     }

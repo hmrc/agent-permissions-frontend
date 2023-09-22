@@ -17,21 +17,47 @@
 package forms
 
 import play.api.data.Form
-import play.api.data.Forms.{boolean, list, mapping, optional, text}
+import play.api.data.Forms.{boolean, default, list, text, tuple, optional}
+import play.api.data.validation.{Constraint, Invalid, Valid}
 
-case class SelectGroups(groups: Option[List[String]], createNew: Option[Boolean] )
+sealed trait SelectGroups
+
+object SelectGroups {
+  case class SelectedGroups(groups: List[String]) extends SelectGroups
+  case object NoneOfTheAbove extends SelectGroups
+  case object CreateNew extends SelectGroups
+}
 
 object SelectGroupsForm {
-
+  val NoneValue: String = "__none__"
+  /* A valid form will contain ONE of the following:
+    - the single "createNew" boolean set to true, OR
+    - a list of groups excluding the special 'none' value OR
+    - a list of groups containing ONLY the special 'none' value
+   */
   def form(): Form[SelectGroups] = Form(
-      mapping(
-        "groups" -> optional(list(text)),
+      tuple[List[String], Option[Boolean]](
+        "groups" -> default(list(text), List.empty[String]),
         "createNew" -> optional(boolean)
-      )(SelectGroups.apply)(SelectGroups.unapply)
-        .verifying("unassigned.client.assign.existing.or.new.error", selectGroups => {
-        !(selectGroups.groups.isDefined && selectGroups.createNew.isDefined)
-      }).verifying("unassigned.client.assign.nothing.selected.error", selectGroups => {
-        !(selectGroups.groups.isEmpty && selectGroups.createNew.isEmpty)
+      ).verifying(Constraint((tpl: (List[String], Option[Boolean])) => tpl match {
+        // Nothing selected
+        case (Nil, None | Some(false)) => Invalid("unassigned.client.assign.invalid-selection.error")
+        // Selected 'none of the above' AND one or more groups (can happen with JS disabled)
+        case (groups, None | Some(false)) if groups.contains(NoneValue) && groups.length > 1 => Invalid("unassigned.client.assign.invalid-selection.error")
+        // Selected groups AND 'create a new group' (cannot really happen unless the user manipulates the HTML!)
+        case (groups, Some(true)) if groups.nonEmpty => Invalid("unassigned.client.assign.existing.or.new.error")
+        case _ => Valid
+      })).transform[SelectGroups]({
+        case (Nil, Some(true)) => SelectGroups.CreateNew
+        case (List(NoneValue), None | Some(false)) => SelectGroups.NoneOfTheAbove
+        case (groups, None | Some(false)) if !groups.contains(NoneValue) => SelectGroups.SelectedGroups(groups)
+        case _ => throw new RuntimeException("SelectGroupsForm") /* should never happen, thanks to the validation above */
+      }, {
+        case SelectGroups.CreateNew => (Nil, Some(true))
+        case SelectGroups.NoneOfTheAbove => (List(NoneValue), None)
+        case SelectGroups.SelectedGroups(groups) => (groups, None)
       })
   )
+
+
 }

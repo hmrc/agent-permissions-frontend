@@ -24,7 +24,6 @@
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
     caption: caption,
-    govukSkipLink: GovukSkipLink,
     table: table, textbox: textbox,
     filter_buttons: filter_buttons,
     search_and_filter: search_and_filter,
@@ -66,11 +65,6 @@
         )).filter(_ => showRemoveLink)
     )
 }
-
-@govukSkipLink(SkipLink(
-    href = "#members",
-    content = Text(msgs("common.skip-to-team-members"))
-))
 
 @views.html.helper.form(action = formAction) {
 

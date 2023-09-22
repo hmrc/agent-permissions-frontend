@@ -25,6 +25,7 @@
     p: p, h1: h1, span: span, caption: caption,
     summaryErrors: SummaryErrors,
     table: table,
+    govukSkipLink: GovukSkipLink,
     paginated_selectable_team_members_table_form: paginated_selectable_team_members_table_form
 )
 
@@ -59,6 +60,7 @@
     <div class="govuk-!-width-two-thirds">
         @caption(groupName)
         @h1(msgs(s"select.members.list.h1", groupName))
+        @govukSkipLink(SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-team-members"))))
         @p("group.member.p")
     </div>
 

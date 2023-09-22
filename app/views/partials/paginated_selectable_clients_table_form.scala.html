@@ -36,7 +36,6 @@
     input_select: input_select,
     checkbox: checkbox,
     summaryErrors: SummaryErrors,
-    govukSkipLink: GovukSkipLink,
     formWithCSRF: FormWithCSRF,
     govukWarningText: GovukWarningText
 )
@@ -81,13 +80,6 @@
 @* Values used by JS selected client counter to enable counting selections on other pages. *@
 @totalResults = @{paginationMetaData.fold(clients.length)(_.totalSize)}
 @totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
-
-    @govukSkipLink(
-        SkipLink(
-            href = "#clients",
-            content = Text(msgs("common.skip-to-clients"))
-        )
-    )
 
 @formWithCSRF(action = formAction) {
 

@@ -107,7 +107,8 @@ package object controllers {
     List(
       FILTERED_CLIENTS,
       CLIENT_FILTER_INPUT,
-      CLIENT_SEARCH_INPUT
+      CLIENT_SEARCH_INPUT,
+      CONFIRM_CLIENTS_SELECTED
     )
 
   val teamMemberFilteringKeys =

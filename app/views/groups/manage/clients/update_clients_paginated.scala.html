@@ -50,7 +50,7 @@ withSearchAndErrorPrefix(form.errors.nonEmpty,
 
 @layout(
     title = pageTitle,
-    backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true
 ) {

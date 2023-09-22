@@ -17,6 +17,7 @@
 @import config.AppConfig
 @import controllers.GroupType._
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
 @import views.components.models.SummaryListData
 @import views.html.components.pagination.GET_pagination
@@ -50,7 +51,7 @@
 
 @layout(
     title = msgs("group.manage.h1"), fullWidth = true,
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl)
+    backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account"))))
 ) {
 
     @h1("group.manage.h1")

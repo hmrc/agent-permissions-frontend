@@ -41,7 +41,7 @@
 
 @layout(
     title = msgs("update-client-reference"),
-    backLinkHref = Some(routes.ManageClientController.showClientDetails(client.id).url),
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = form.errors
 ) {
 

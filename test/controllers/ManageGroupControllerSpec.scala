@@ -113,7 +113,6 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showManageGroups(None, None).url}" should {
 
     "render correctly the manage groups page" in {
-
       //given
       expectAuthOkOptedInReady()
       expectDeleteSessionItems(managingGroupKeys)
@@ -133,6 +132,8 @@ class ManageGroupControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Return to manage account"
       html.select(H1).text() shouldBe "Manage access groups"
       html
         .select("p#info")
@@ -167,12 +168,6 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Manage team members for name 1"
       membersRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe s"/agent-permissions/manage-group/custom/${groupSummaries(0).groupId}/team-members"
-
-      val backlink = html.select(backLink)
-      backlink.size() shouldBe 1
-      backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
-      backlink.text() shouldBe "Back"
-
     }
 
     "render correctly the manage groups page when nothing returned" in {
@@ -205,11 +200,6 @@ class ManageGroupControllerSpec extends BaseSpec {
         .attr("href")
         .shouldBe(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
       buttonLink.hasClass("govuk-button") shouldBe true
-
-      val backlink = html.select(backLink)
-      backlink.size() shouldBe 1
-      backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
-      backlink.text() shouldBe "Back"
     }
 
     "render content when filtered access groups" in {
@@ -266,11 +256,6 @@ class ManageGroupControllerSpec extends BaseSpec {
         .text() shouldBe "Manage team members for GroupName1"
       membersRow.select(".govuk-summary-list__actions a")
         .attr("href") shouldBe s"/agent-permissions/manage-group/custom/${expectedGroupSummaries(0).groupId}/team-members"
-
-      val backlink = html.select(backLink)
-      backlink.size() shouldBe 1
-      backlink.attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
-      backlink.text() shouldBe "Back"
     }
   }
 

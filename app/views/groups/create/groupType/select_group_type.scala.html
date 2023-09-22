@@ -27,12 +27,20 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[Boolean])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(form: Form[Boolean], origin: Option[String])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@backLinkSelector = @{
+    if(origin.getOrElse() == "manage-account") {
+        Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account"))))
+    } else {
+        Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
+    }
+}
 
 @layout(
     title = msgs("group.type.h1"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.ManageGroupController.showManageGroups(None, None).url)
+    backLink = backLinkSelector
 ) {
     @h1("group.type.h1")
 

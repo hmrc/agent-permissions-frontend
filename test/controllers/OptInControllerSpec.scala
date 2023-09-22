@@ -88,6 +88,8 @@ class OptInControllerSpec extends BaseSpec {
       phaseBanner.select("a").text shouldBe "feedback"
       phaseBanner.select("a").attr("href") shouldBe "http://localhost:9250/contact/beta-feedback?service=AOSS"
 
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Return to manage account"
       html.select(Css.H1).text() shouldBe "Turn on access groups"
       html
         .select(Css.insetText)

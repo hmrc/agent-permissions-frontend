@@ -170,7 +170,6 @@ class ManageTaxGroupClientsController @Inject()
         formWithErrors,
         group.groupName,
         clientToRemove,
-        backLink = controller.showExistingGroupClients(groupId, None, None),
         formAction = controller.submitConfirmRemoveClient(groupId),
         hintKey = Some(request.messages("tax-group.clients.confirm.p1", clientToRemove.name)),
         legendKey = "common.group.remove.client"

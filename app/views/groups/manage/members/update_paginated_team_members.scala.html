@@ -60,7 +60,7 @@
 
 @layout(
     title = pageTitle,
-    backLinkHref = Some(controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(group.groupId, group.groupType, None).url),
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true,
 ) {

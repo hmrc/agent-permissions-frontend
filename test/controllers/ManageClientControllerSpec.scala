@@ -115,6 +115,8 @@ class ManageClientControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Manage clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage clients"
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Return to manage account"
 
       val th = html.select(Css.tableWithId("manage-clients-list")).select("thead th")
       th.size() shouldBe 4

@@ -43,7 +43,7 @@
 @layout(
     title = msgs("group.manage.rename"),
     formErrors = form.errors,
-    backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
 
     @caption(group.groupName)

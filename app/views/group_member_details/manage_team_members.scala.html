@@ -30,7 +30,6 @@
 @(
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
-    backUrl: Option[String] = None,
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -39,8 +38,7 @@
                                      msgs("group.manage.members.h1"),
                                      None,
                                      form("search").value),
-    backLinkHref = Some(appConfig.agentServicesAccountManageAccountUrl),
-    backLinkTextKey = Some("common.return.manage-account"),
+    backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
     fullWidth = true
 ) {
 

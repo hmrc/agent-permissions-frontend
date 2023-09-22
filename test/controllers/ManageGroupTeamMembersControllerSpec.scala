@@ -686,10 +686,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Remove John 1 name from this access group? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove John 1 name from this access group?"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url
-
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveTeamMember(groupId, CUSTOM).url
       html.select("label[for=answer]").text() shouldBe "Yes"
@@ -786,10 +782,6 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Remove John 1 name from selected team members? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove John 1 name from selected team members?"
       html.select(Css.paragraphs).isEmpty shouldBe true
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
-
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id).url
       html.select("label[for=answer]").text() shouldBe "Yes"

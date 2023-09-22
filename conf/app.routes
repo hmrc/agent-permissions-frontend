@@ -18,7 +18,7 @@ POST    /confirm-turn-off                           controllers.OptOutController
 GET     /access-groups-turned-off                   controllers.OptOutController.showYouHaveOptedOut()
 
 # 1000+ create group journey
-GET     /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.showSelectGroupType()
+GET     /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.showSelectGroupType(origin: Option[String]?=None)
 POST    /create-group/select-group-type             controllers.CreateGroupSelectGroupTypeController.submitSelectGroupType()
 GET     /create-group/select-tax-service            controllers.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType()
 POST    /create-group/select-tax-service            controllers.CreateGroupSelectGroupTypeController.submitSelectTaxServiceGroupType()

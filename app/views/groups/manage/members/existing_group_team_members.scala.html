@@ -40,7 +40,7 @@
 
     @layout(
         title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.team-members.h1", group.groupName), None, form("search").value),
-        backLinkHref = Some(routes.ManageGroupController.showManageGroups(None,None).url),
+        backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
         fullWidth = true) {
 
         <div class="govuk-!-width-two-thirds">

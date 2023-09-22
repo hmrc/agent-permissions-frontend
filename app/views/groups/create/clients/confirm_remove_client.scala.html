@@ -32,7 +32,6 @@
     form: Form[Boolean],
     groupName: String,
     clientToRemove: DisplayClient,
-    backLink: Call = routes.CreateGroupSelectClientsController.showReviewSelectedClients(None, None),
     formAction: Call = routes.CreateGroupSelectClientsController.submitConfirmRemoveClient,
     legendKey: String = "common.remove.client",
     hintKey: Option[String] = None,
@@ -40,7 +39,7 @@
 
     @title = @{msgs(legendKey, clientToRemove.name)}
 
-    @layout(title = title, formErrors = form.errors, backLinkHref = Some(backLink.url)) {
+    @layout(title = title, formErrors = form.errors, backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))) {
 
         @caption(groupName)
 

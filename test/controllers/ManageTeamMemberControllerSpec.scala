@@ -111,6 +111,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
       html.title() shouldBe s"Filter results for ‘$searchTerm’ Manage team members’ access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members’ access groups"
+      html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html.select(Css.backLink).text() shouldBe "Return to manage account"
 
       html.select(Css.inputTextWithId("search")).attr("value") shouldBe searchTerm
 

@@ -68,6 +68,7 @@ common.results-for1=Hidlo’r canlyniadau ar gyfer ‘{0}’
 common.results-for2=Hidlo’r canlyniadau ar gyfer ‘{0}’ a ‘{1}’
 common.return.manage-account=Yn ôl i reoli’r cyfrif
 common.return.manage-clients=Yn ôl i reoli cleientiaid
+common.return.manage-groups=Yn ôl i reoli grwpiau mynediad
 common.return.manage-team-members=Yn ôl i reoli aelodau o’r tîm
 common.return.to.dashboard=Yn ôl i reoli grwpiau mynediad
 common.return.to.unassigned.clients=Dychwelyd i Gleientiaid nad ydynt mewn unrhyw grwpiau

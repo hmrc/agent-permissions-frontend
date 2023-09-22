@@ -29,13 +29,12 @@
 
 @(
     form: Form[String],
-    backLink: Option[String] = Some(routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("group.create.name.h1"),
     formErrors = form.errors,
-    backLinkHref = backLink
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
 
     @h1("group.create.name.h1")

@@ -162,7 +162,6 @@ class UnassignedClientController @Inject()(
                       YesNoForm.form(),
                       "",
                       client,
-                      backLink = controller.showSelectedUnassignedClients(None, None),
                       formAction = controller.submitConfirmRemoveClient()
                     )
                   ).toFuture
@@ -192,7 +191,6 @@ class UnassignedClientController @Inject()(
                         formWithErrors,
                         "",
                         maybeClient.get,
-                        backLink = controller.showSelectedUnassignedClients(None, None),
                         formAction = controller.submitConfirmRemoveClient()
                       )
                     ).toFuture

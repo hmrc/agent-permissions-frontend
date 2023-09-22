@@ -20,15 +20,18 @@
 
 @(accessGroupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-  @layout(
-  title = msgs("access-group-name-exists.title"),
-  backLinkHref = Some(routes.CreateGroupSelectNameController.showConfirmGroupName().url)){
+@layout(
+    title = msgs("access-group-name-exists.title"),
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
+){
 
-  @h1(msgs("access-group-name-exists.title"))
+    @h1(msgs("access-group-name-exists.title"))
 
-  @p(msgs("access-group-name-exists.p", accessGroupName))
+    @p(msgs("access-group-name-exists.p", accessGroupName))
 
-  @button(key = msgs("access-group-name-exists.button"),
-      href = routes.CreateGroupSelectNameController.showGroupName().url)
+    @button(
+        key = msgs("access-group-name-exists.button"),
+        href = routes.CreateGroupSelectNameController.showGroupName().url
+    )
 
 }

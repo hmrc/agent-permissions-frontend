@@ -81,7 +81,7 @@
                     checkbox(
                         name = Some("clients[]"),
                         id = Some(s"add-client-${idx}"),
-                        label = displayNameOrFullReference(client.name, client.hmrcRef),
+                        label = clientCheckboxLabel(client.name, client.hmrcRef, client.taxService),
                         value = Some(client.id),
                         checked = client.selected
                     ).toString

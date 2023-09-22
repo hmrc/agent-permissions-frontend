@@ -267,13 +267,22 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members"
 
-      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+      val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
+      val th = tableOfClients.select("thead th")
+      th.size() shouldBe 3
+      th.get(0).text() shouldBe "Select team member"
+      th.get(1).text() shouldBe "Name"
+      th.get(2).text() shouldBe "Email"
+
+      val trs = tableOfClients.select("tbody tr")
 
       trs.size() shouldBe 5
 
+      trs.get(0).select("td").get(0).text() shouldBe "Name John 1 name, Email john1@abc.com"
       trs.get(0).select("td").get(1).text() shouldBe "John 1 name"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
 
+      trs.get(4).select("td").get(0).text() shouldBe "Name John 5 name, Email john5@abc.com"
       trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
 
@@ -332,13 +341,22 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members"
 
-      val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
+      val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
+      val th = tableOfClients.select("thead th")
+      th.size() shouldBe 3
+      th.get(0).text() shouldBe "Select team member"
+      th.get(1).text() shouldBe "Name"
+      th.get(2).text() shouldBe "Email"
+
+      val trs = tableOfClients.select("tbody tr")
 
       trs.size() shouldBe 5
 
+      trs.get(0).select("td").get(0).text() shouldBe "i Info Already in this group" // no checkbox
       trs.get(0).select("td").get(1).text() shouldBe "John 1 name"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
 
+      trs.get(4).select("td").get(0).text() shouldBe "Name John 5 name, Email john5@abc.com" // checkbox label
       trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
       html.select(Css.submitButton).text() shouldBe "Save and continue"

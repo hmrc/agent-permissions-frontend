@@ -129,6 +129,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
+      th.get(0).text() shouldBe "Select team member"
       th.get(1).text() shouldBe "Name"
       th.get(2).text() shouldBe "Email"
       th.get(3).text() shouldBe "Role"
@@ -136,11 +137,13 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
       trs.size() shouldBe 10
       // first row
+      trs.get(0).select("td").get(0).select("label").text() shouldBe "Name John, Email john1@abc.com"
       trs.get(0).select("td").get(1).text() shouldBe "John"
       trs.get(0).select("td").get(2).text() shouldBe "john1@abc.com"
       trs.get(0).select("td").get(3).text() shouldBe "Administrator"
 
       // last row
+      trs.get(9).select("td").get(0).select("label").text() shouldBe "Name John, Email john10@abc.com"
       trs.get(9).select("td").get(1).text() shouldBe "John"
       trs.get(9).select("td").get(2).text() shouldBe "john10@abc.com"
       trs.get(9).select("td").get(3).text() shouldBe "Administrator"

@@ -32,7 +32,7 @@
 @layout(
     title = msgs("group.tax-service.review.h1", displayTaxServiceFromServiceKey(taxServiceGroupType)),
     formErrors = form.errors,
-    backLinkHref = Some(routes.CreateGroupSelectGroupTypeController.showSelectTaxServiceGroupType().url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @h1(msgs("group.tax-service.review.h1", displayTaxServiceFromServiceKey(taxServiceGroupType)))
 

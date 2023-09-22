@@ -30,7 +30,6 @@
     form: Form[Boolean],
     groupName: String,
     teamMember: TeamMember,
-    backLink: Call,
     formAction: Call
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
@@ -39,7 +38,7 @@
 @layout(
     title = title,
     formErrors = form.errors,
-    backLinkHref = Some(backLink.url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @caption(groupName)
 

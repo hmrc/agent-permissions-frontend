@@ -111,7 +111,6 @@ class ManageGroupTeamMembersController @Inject()
                     YesNoForm.form(),
                     summary.groupName,
                     teamMember,
-                    backLink = controller.showExistingGroupTeamMembers(groupId, groupType, None),
                     formAction = controller.submitConfirmRemoveTeamMember(groupId, groupType)
                   )
                 )
@@ -138,7 +137,6 @@ class ManageGroupTeamMembersController @Inject()
                     formWithErrors,
                     group.groupName,
                     teamMemberToRemove,
-                    backLink = controller.showExistingGroupTeamMembers(groupId, groupType, None),
                     formAction = controller.submitConfirmRemoveTeamMember(groupId, groupType)
                   )
                 ).toFuture
@@ -265,7 +263,6 @@ class ManageGroupTeamMembersController @Inject()
               YesNoForm.form(),
               group.groupName,
               teamMemberToRemove,
-              backLink = controller.showReviewTeamMembersToAdd(group.groupType, group.groupId, None, None),
               formAction = controller.submitConfirmRemoveFromTeamMembersToAdd(groupType, groupId, memberId)
             )
           ).toFuture
@@ -292,7 +289,6 @@ class ManageGroupTeamMembersController @Inject()
                       formWithErrors,
                       group.groupName,
                       teamMemberToRemove,
-                      backLink = controller.showReviewTeamMembersToAdd(groupType, groupId, None, None),
                       formAction = controller.submitConfirmRemoveFromTeamMembersToAdd(groupType, groupId, memberId)
                     )
                   ).toFuture

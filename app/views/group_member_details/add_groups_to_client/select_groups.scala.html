@@ -46,7 +46,9 @@
 }
 
 @layout(title = withErrorPrefix(form.hasErrors, h1Text),
-        fullWidth = true, backLinkHref = backLink) {
+        fullWidth = true,
+        backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
+) {
 
     @if(form.errors && availableGroups.nonEmpty) {
         @govukErrorSummary(

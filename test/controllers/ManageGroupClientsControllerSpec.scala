@@ -134,6 +134,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
+      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
+      html.select(Css.backLink).text() shouldBe "Return to manage access groups"
       html.select(Css.PRE_H1).text shouldBe "Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
@@ -353,13 +355,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Search for clients"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
-      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
 
-      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service (optional)"
 
     }
 
@@ -378,13 +379,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Search for clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Search for clients"
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
-      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference"
+      html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
       html.select("#search").attr("value") shouldBe "Harry"
-      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service"
+      html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service (optional)"
       //TODO this isn't working
       //html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
 
@@ -825,10 +825,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Remove friendly0 from this access group? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
       html.select(Css.paragraphs).isEmpty shouldBe  true
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.ManageGroupClientsController.showExistingGroupClients(grpId, None, None).url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveClient(grpId).url
       html.select("label[for=answer]").text() shouldBe "Yes"
@@ -925,10 +923,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Remove friendly0 from selected clients? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove friendly0 from selected clients?"
       html.select(Css.paragraphs).isEmpty shouldBe true
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.ManageGroupClientsController.showReviewSelectedClients(grpId, None, None).url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.id).url
       html.select("label[for=answer]").text() shouldBe "Yes"
@@ -1063,10 +1059,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Remove friendly0 from this access group? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Remove friendly0 from this access group?"
       html.select(Css.paragraphs).isEmpty shouldBe true
-      html
-        .select(Css.backLink)
-        .attr("href") shouldBe routes.ManageGroupClientsController.showAddClients(grpId, None, None).url
-
+      html.select(Css.backLink).attr("href") shouldBe "#"
+      html.select(Css.backLink).text() shouldBe "Back"
 
       html.select(Css.form).attr("action") shouldBe ctrlRoute.submitConfirmRemoveFromUpdateClients(grpId, clientToRemove.id).url
       html.select("label[for=answer]").text() shouldBe "Yes"

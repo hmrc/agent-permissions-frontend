@@ -38,7 +38,7 @@
 
 @layout(
     title = msgs("details.team-members"),
-    backLinkHref = Some(routes.ManageTeamMemberController.showPageOfTeamMembers(None).url)
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
 
     @h1("details.team-members")

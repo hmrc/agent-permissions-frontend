@@ -58,7 +58,7 @@ class CreateGroupSelectGroupTypeController @Inject()
   import optInStatusAction.isOptedIn
   import sessionAction.withSessionItem
 
-  def showSelectGroupType: Action[AnyContent] = Action.async { implicit request =>
+  def showSelectGroupType(origin: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         for {
@@ -66,7 +66,7 @@ class CreateGroupSelectGroupTypeController @Inject()
           mGroupTypeStr   <- sessionCacheService.get(GROUP_TYPE)
           mGroupTypeBool  = mGroupTypeStr.map(_ == CUSTOM_GROUP)
         } yield {
-          Ok(select_group_type(formWithFilledValue(YesNoForm.form(), mGroupTypeBool)))
+          Ok(select_group_type(formWithFilledValue(YesNoForm.form(), mGroupTypeBool), origin))
         }
       }
     }
@@ -80,7 +80,7 @@ class CreateGroupSelectGroupTypeController @Inject()
           .bindFromRequest()
           .fold(
             formWithErrors =>
-              Ok(select_group_type(formWithErrors)).toFuture,
+              Ok(select_group_type(formWithErrors, None)).toFuture,
             (isCustomGroupType: Boolean) => {
               if (isCustomGroupType) {
                 sessionCacheService
@@ -163,7 +163,6 @@ class CreateGroupSelectGroupTypeController @Inject()
         },
           (continue: Boolean) => {
             if (continue) {
-              // could add skip to name tax group here
               Redirect(routes.CreateGroupSelectNameController.showGroupName())
             } else {
               Redirect(ctrlRoutes.showSelectGroupType())

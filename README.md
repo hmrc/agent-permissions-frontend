@@ -55,8 +55,8 @@ POST pagination is used when we want to persist selections/deselection between p
 
 ### Running the app locally
 
-    sm --start AGENT_AUTHORISATION -r
-    sm --stop AGENT_PERMISSIONS_FRONTEND
+    sm2 --start AGENT_GRAN_PERMS
+    sm2 --stop AGENT_PERMISSIONS_FRONTEND
     sbt run
 
 It should then be listening on port 9452

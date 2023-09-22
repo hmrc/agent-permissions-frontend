@@ -123,7 +123,6 @@ class ManageGroupClientsController @Inject()
                     YesNoForm.form(),
                     groupSummary.groupName,
                     client,
-                    backLink = controller.showExistingGroupClients(groupId, None, None),
                     formAction = controller.submitConfirmRemoveClient(groupId),
                     legendKey = "common.group.remove.client"
                   )
@@ -152,7 +151,6 @@ class ManageGroupClientsController @Inject()
                     formWithErrors,
                     group.groupName,
                     clientToRemove,
-                    backLink = redirectLink,
                     formAction = controller.submitConfirmRemoveClient(groupId)
                   )
                 ).toFuture
@@ -182,7 +180,6 @@ class ManageGroupClientsController @Inject()
             search_clients(
               form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
               groupName = groupSummary.groupName,
-              backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
               searchAction = controller.submitSearchClientsToAdd(groupId)
             )
           ).toFuture
@@ -202,7 +199,6 @@ class ManageGroupClientsController @Inject()
               search_clients(
                 formWithErrors,
                 groupSummary.groupName,
-                backUrl = Some(controller.showExistingGroupClients(groupId, None, None).url),
                 searchAction = controller.submitSearchClientsToAdd(groupId)
               )
             ).toFuture
@@ -227,7 +223,6 @@ class ManageGroupClientsController @Inject()
                   Future.successful(Ok(search_clients(
                     form = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
                     groupName = groupSummary.groupName,
-                    backUrl = Some(controller.showSearchClientsToAdd(groupId).url),
                     isFailedSearch = true,
                     searchAction = controller.submitSearchClientsToAdd(groupId),
                     continueAction = if (canContinue) Some(controller.submitAddClients(groupId)) else None
@@ -314,7 +309,6 @@ class ManageGroupClientsController @Inject()
                     YesNoForm.form(),
                     groupSummary.groupName,
                     client,
-                    backLink = controller.showAddClients(groupId, None, None),
                     formAction = controller.submitConfirmRemoveFromUpdateClients(groupId, client.id),
                     legendKey = "common.group.remove.client"
                   )
@@ -343,7 +337,6 @@ class ManageGroupClientsController @Inject()
                     formWithErrors,
                     group.groupName,
                     clientToRemove,
-                    backLink = redirectLink,
                     formAction = controller.submitConfirmRemoveFromUpdateClients(groupId, clientToRemove.id),
                     legendKey = "common.group.remove.client"
                   )
@@ -380,7 +373,6 @@ class ManageGroupClientsController @Inject()
                     YesNoForm.form(),
                     groupSummary.groupName,
                     client,
-                    backLink = controller.showReviewSelectedClients(groupId, None, None),
                     formAction = controller.submitConfirmRemoveFromSelectedClients(groupId, client.id)
                   )
                 )
@@ -409,7 +401,6 @@ class ManageGroupClientsController @Inject()
                       formWithErrors,
                       group.groupName,
                       clientToRemove,
-                      backLink = redirectLink,
                       formAction = controller.submitConfirmRemoveFromSelectedClients(groupId, clientToRemove.id)
                     )
                   ).toFuture

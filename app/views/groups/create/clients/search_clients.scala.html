@@ -36,7 +36,6 @@
 @(
     form: Form[SearchFilter],
     groupName: String,
-    backUrl: Option[String] = Some(routes.CreateGroupSelectNameController.showConfirmGroupName().url),
     isFailedSearch: Boolean = false, // Setting this flag displays the page in 'failed search mode' i.e. after a search was already attempted which returned no results.
     searchAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients,
     continueAction: Option[Call] = None
@@ -69,7 +68,7 @@
 @layout(
     title = title,
     formErrors = form.errors,
-    backLinkHref = backUrl,
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @if(isFailedSearch) {
         @caption(groupName)

@@ -100,7 +100,10 @@ class ClientServiceImpl @Inject()(
         .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
       clientsMarkedAsSelected = tuple._2.pageContent.map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
-      x = (tuple._1, PaginatedList[DisplayClient] (pageContent = clientsMarkedAsSelected, paginationMetaData = tuple._2.paginationMetaData))
+      x = (tuple._1, PaginatedList[DisplayClient] (
+        pageContent = clientsMarkedAsSelected,
+        paginationMetaData = tuple._2.paginationMetaData.copy(extra = Some(Map("totalSelected" -> JsNumber(maybeSelectedClients.getOrElse(Seq.empty).length))))
+      ))
     } yield x
   }
 

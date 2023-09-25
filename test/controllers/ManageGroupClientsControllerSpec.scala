@@ -440,6 +440,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "Carrots"
       html.select(Css.H1).text shouldBe "Select clients"
+      html.select("#member-count-text strong").text shouldBe "2"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
@@ -486,7 +487,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       row7Cells.get(3).text() shouldBe "VAT"
       row7Cells.get(4).text() shouldBe ""
 
-      html.select("p#member-count-text").text() shouldBe "0 clients selected across all searches"
+      html.select("p#member-count-text").text() shouldBe "2 clients selected across all searches"
     }
 
     "render with NO clients after a search returns no results" in { // Render a different view if no results (APB-7378)

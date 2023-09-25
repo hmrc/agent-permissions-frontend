@@ -516,7 +516,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
       val removeClient1 = trs.get(0).select("td").get(3).select("a")
-      removeClient1.text() shouldBe "Remove"
+      removeClient1.text() shouldBe "Remove friendly0"
       removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(Some(displayClientsIds(0))).url
 
       // last row
@@ -524,7 +524,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(1).text() shouldBe "ending in 6784"
       trs.get(4).select("td").get(2).text() shouldBe "VAT"
       val removeClient4 = trs.get(4).select("td").get(3).select("a")
-      removeClient4.text() shouldBe "Remove"
+      removeClient4.text() shouldBe "Remove friendly4"
       removeClient4.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(Some(displayClientsIds(4))).url
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more clients?"

@@ -23,7 +23,7 @@
 
 @this(
         layout: main_layout,
-        p: p, h1: h1, a: a,
+        p: p, h1: h1, span: span, a: a,
         caption: caption,
         link_as_button: link_as_button,
         table: table,
@@ -50,7 +50,10 @@
             Html(displayTaxServiceFromServiceKey(client.taxService)),
             Html(
                 a(
-                    key = msgs("common.remove"),
+                    key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
+                        html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
+                    ).toString
+                    ).toString,
                     href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
                 ).toString
             )

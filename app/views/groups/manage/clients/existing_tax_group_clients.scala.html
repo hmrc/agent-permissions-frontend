@@ -57,7 +57,10 @@
                     msgs("tax-group.client.excluded")
                 } else {
                     a(
-                        key = msgs("common.remove"),
+                        key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
+                            html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
+                        ).toString
+                        ).toString,
                         href = routes.ManageTaxGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
                     ).toString
                 }

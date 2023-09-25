@@ -23,7 +23,7 @@
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, a: a,
+    p: p, h1: h1, span: span, a: a,
     caption: caption,
     link_as_button: link_as_button,
     table: table,
@@ -51,8 +51,10 @@
             Html(displayTeamMemberRole(teamMember.credentialRole.getOrElse(""))),
             Html(
                 a(
-                    key = msgs("common.remove"),
-                    href = routes.CreateGroupSelectTeamMembersController.showConfirmRemoveTeamMember(Some(teamMember.id)).url
+                    key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
+                        html = Some(Html(msgs(teamMember.name))),
+                        )).toString,
+                        href = routes.CreateGroupSelectTeamMembersController.showConfirmRemoveTeamMember(Some(teamMember.id)).url
                 ).toString
             )
         )

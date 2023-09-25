@@ -211,7 +211,7 @@ class ManageGroupClientsController @Inject()
   }
 
   def showAddClients(groupId: GroupId, page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (_: GroupSummary, _: Arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { filter =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { search =>
           clientService
@@ -264,10 +264,7 @@ class ManageGroupClientsController @Inject()
                       if (formData.submit == CONTINUE_BUTTON) {
                         // checks selected clients from session cache AFTER saving (removed de-selections)
                         if (nowSelectedClients.nonEmpty) {
-                          sessionCacheService
-                            .deleteAll(clientFilteringKeys)
-                            .map(_ => Redirect(controller.showReviewSelectedClients(groupId, None, None))
-                            )
+                          Redirect(controller.showReviewSelectedClients(groupId, None, None)).toFuture
                         } else { // display empty error
                           for {
                             paginatedClients <- clientService
@@ -486,9 +483,9 @@ class ManageGroupClientsController @Inject()
               .fold(
                 formWithErrors => {
                   renderReviewUpdateClients(groupSummary, paginatedList, formWithErrors).toFuture
-                }, (yes: Boolean) => {
-                  if (yes)
-                    Redirect(controller.showSearchClientsToAdd(groupId)).toFuture
+                }, (selectMoreClients: Boolean) => {
+                  if (selectMoreClients) sessionCacheService.deleteAll(clientFilteringKeys)
+                    .map(_ => Redirect(controller.showSearchClientsToAdd(groupId)))
                   else {
                     val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
                     val x = for {

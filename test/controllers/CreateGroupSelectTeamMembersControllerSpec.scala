@@ -497,7 +497,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(1).text() shouldBe "x1@xyz.com"
       trs.get(0).select("td").get(2).text() shouldBe "Administrator"
       val removeMember1 = trs.get(0).select("td").get(3).select("a")
-      removeMember1.text() shouldBe "Remove"
+      removeMember1.text() shouldBe "Remove team member 1"
       removeMember1.attr("href") shouldBe ctrlRoute.showConfirmRemoveTeamMember(Some(selectedTeamMembers(0).id)).url
 
       // last row

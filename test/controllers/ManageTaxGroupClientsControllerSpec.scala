@@ -154,7 +154,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       row3Cells.get(0).text() shouldBe "friendly2"
       row3Cells.get(1).text() shouldBe "ending in 6782"
       row3Cells.get(2).select("a").attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(taxGroupId, displayClients(2).id).url
-      row3Cells.get(2).text() shouldBe "Remove"
+      row3Cells.get(2).text() shouldBe "Remove friendly2"
 
       //and view removed clients button should be present
       val viewRemovedClientsButton = html.select(linkStyledAsButtonWithId("view-excluded-clients"))
@@ -198,7 +198,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       val johnV = pageOfClients(0)
       johnV.name shouldBe "John v"
       row1Cells.get(0).text() shouldBe johnV.name
-      row1Cells.get(2).text() shouldBe "Remove"
+      row1Cells.get(2).text() shouldBe "Remove John v"
 
       val row2Cells = trs.get(2).select("td")
       val johnX = pageOfClients(2)

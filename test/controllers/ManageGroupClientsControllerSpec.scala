@@ -154,7 +154,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(1).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
       val removeClient1 = trs.get(0).select("td").get(3).select("a")
-      removeClient1.text() shouldBe "Remove"
+      removeClient1.text() shouldBe "Remove friendly0"
       removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(grpId,displayClients(0).id).url
 
       //last row
@@ -162,7 +162,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(2).select("td").get(1).text() shouldBe "ending in 6782"
       trs.get(2).select("td").get(2).text() shouldBe "VAT"
       val removeClient2 = trs.get(2).select("td").get(3).select("a")
-      removeClient2.text() shouldBe "Remove"
+      removeClient2.text() shouldBe "Remove friendly2"
       removeClient2.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(grpId,displayClients(2).id).url
 
       html.select("a#update-clients").text() shouldBe "Add more clients"

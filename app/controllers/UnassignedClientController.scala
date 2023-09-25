@@ -230,9 +230,9 @@ class UnassignedClientController @Inject()(
                         formWithErrors
                       )
                     ).toFuture
-                  }, (yes: Boolean) => {
-                    sessionCacheService.put(CONFIRM_CLIENTS_SELECTED, yes).map(_ =>
-                      if (yes) {
+                  }, (selectMoreClients: Boolean) => {
+                    sessionCacheService.put(CONFIRM_CLIENTS_SELECTED, selectMoreClients).map(_ =>
+                      if (selectMoreClients) {
                         Redirect(controller.showUnassignedClients())
                       } else {
                         Redirect(controller.showSelectGroupsForSelectedUnassignedClients())

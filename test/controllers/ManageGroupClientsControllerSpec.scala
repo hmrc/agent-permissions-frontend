@@ -537,10 +537,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           submit = CONTINUE_BUTTON
         )
         expectSaveClientsToAddToExistingGroup(formData, displayClients)
-        //        expectGetPaginatedClientsToAddToGroup(grpId)(groupSummary, existingClients ++ availableClients)
         expectGetSessionItem(CLIENT_SEARCH_INPUT, "Harry")
         expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
-        expectDeleteSessionItems(clientFilteringKeys)
 
         //when
         val result = controller.submitAddClients(grpId)(request)
@@ -774,6 +772,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectGetCustomSummaryById(grpId, Some(GroupSummary.of(accessGroup)))
+      expectDeleteSessionItems(clientFilteringKeys)
 
       val result = controller.submitReviewSelectedClients(grpId)(request)
 

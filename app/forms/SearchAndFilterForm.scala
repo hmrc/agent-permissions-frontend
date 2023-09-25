@@ -24,8 +24,8 @@ object SearchAndFilterForm {
 
   def form(): Form[SearchFilter] = Form(
     mapping(
-      "search" -> optional(text),
-      "filter" -> optional(text),
+      "search" -> optional(text.transform[String](_.trim, x => x)),
+      "filter" -> optional(text.transform[String](_.trim, x => x)),
       "submit" -> optional(text),
     )(SearchFilter.apply)(SearchFilter.unapply)
   )

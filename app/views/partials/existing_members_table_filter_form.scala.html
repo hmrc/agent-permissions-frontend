@@ -59,7 +59,9 @@
         Seq(Html(displayTeamMemberRole(member.credentialRole.getOrElse("")))).filter(_ => displayRole) ++
         Seq(Html(
             a(
-                key = msgs("common.remove"),
+                key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
+                    html = Some(Html(msgs(member.name))),
+                )).toString,
                 href = routes.ManageGroupTeamMembersController.showConfirmRemoveTeamMember(group.groupId, group.groupType, member.id).url
             ).toString
         )).filter(_ => showRemoveLink)

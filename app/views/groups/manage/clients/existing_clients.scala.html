@@ -25,7 +25,7 @@
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, h2: h2, a: a,
+    p: p, h1: h1, h2: h2, span: span, a: a,
     caption: caption, table: table,
     govukSkipLink: GovukSkipLink,
     link_as_button: link_as_button,
@@ -67,7 +67,10 @@
             row = row.:+(
                 Html(
                     a(
-                        key = msgs("common.remove"),
+                        key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
+                            html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
+                        ).toString
+                        ).toString,
                         href = routes.ManageGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
                     ).toString
                 )

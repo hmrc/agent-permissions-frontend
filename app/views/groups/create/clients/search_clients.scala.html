@@ -85,7 +85,7 @@
             legend = Some(Legend(
                 content = if (isFailedSearch) Text(msgs("common.search-again")) else Text(msgs("group.client.search.h1")),
                 classes = "govuk-fieldset__legend--l",
-                isPageHeading = true)),
+                isPageHeading = !isFailedSearch)),
             html = HtmlFormat.fill(Seq(
                 if (isFailedSearch) Html("") /* APB-7378 */ else p(html = Some(Html(msgs("group.client.search.p", groupName)))),
                 fieldsetHtml

@@ -262,8 +262,9 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() should include ("No results")
-      html.select(Css.H1).text() should include ("Search again")
+      html.title() shouldBe "No results for ‘foo’ - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "No results for ‘foo’"
+      html.select(Css.legend).text() shouldBe "Search again"
 
       // No table
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")

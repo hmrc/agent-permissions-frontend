@@ -225,7 +225,6 @@ group.type.h1=Create an access group
 group.type.label=How would you like to create this group?
 group.type.tax.service.hint=Select all clients for one tax service. <br>These groups update automatically when you get new clients.
 group.type.tax.service.label=Access group based on tax service
-group.view.clients=View clients
 member.added.to.groups.h1={0} added to access groups
 member.added.to.groups.p2={0} can now view and manage the tax affairs of the clients in these access groups.
 member.added.to.groups.title=Team member {0} added to access groups {1}

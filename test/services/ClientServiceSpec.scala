@@ -101,7 +101,8 @@ class ClientServiceSpec extends BaseSpec {
         pageSize = 20,
         totalPages = 1,
         currentPageNumber = 1,
-        currentPageSize = 10
+        currentPageSize = 10,
+        extra = Some(Map("totalSelected" -> JsNumber(0)))
       )
 
       //when

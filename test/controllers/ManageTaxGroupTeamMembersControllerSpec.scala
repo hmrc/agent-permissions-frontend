@@ -304,8 +304,6 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for ‘John’ Select team members - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members"
 
-      html.select(H2).text() shouldBe "Showing 4 team members for ‘John’"
-
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
       trs.size() shouldBe 4

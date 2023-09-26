@@ -84,10 +84,10 @@
     <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
     @if(teamMembers.nonEmpty) {
 
-        @if(form.errors.map(error => error.message).contains("error.select-teamMembers.empty")) {
+        @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
             <div class="govuk-form-group govuk-form-group--error">
                 <p id="teamMembers-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-teamMembers.empty")
+                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-members.empty")
                 </p>
          }
 
@@ -96,13 +96,8 @@
             @msgs("select.members.list.h1")
             </legend>
 
-            <div id="teamMembers" tabindex="0">
+            <div id="members" tabindex="0">
                 <div id="select-all"></div>
-
-            @resultsSummary.map { summary =>
-                @h2(summary)
-                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-            }
 
             @table(
                 caption = Some("common.teamMembers"),

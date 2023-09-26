@@ -19,6 +19,7 @@ package helpers
 import akka.Done
 import models.{DisplayClient, GroupId}
 import org.scalamock.scalatest.MockFactory
+import play.api.libs.json.{JsNumber, JsValue}
 import play.api.mvc.Request
 import services.ClientService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
@@ -128,7 +129,8 @@ trait ClientServiceMocks extends MockFactory {
                                            (groupSummary: GroupSummary, clients: Seq[DisplayClient])
                                            (implicit clientService: ClientService): Unit = {
     val paginatedList = PaginatedList(pageContent = clients,
-      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length))
+      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, totalSize = 40, totalPages = 40 / pageSize, pageSize = pageSize,
+        currentPageNumber = page, currentPageSize = clients.length, extra = Some(Map[String, JsValue]("totalSelected" -> JsNumber(2)))))
     (clientService
       .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(_: Request[_], _: HeaderCarrier,
         _: ExecutionContext))

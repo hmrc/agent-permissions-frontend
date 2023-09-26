@@ -19,6 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AddOneTeamMemberToGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
+import forms.AddGroupsToClientForm
 import helpers.{BaseSpec, Css}
 import models.{GroupId, TeamMember}
 import org.jsoup.Jsoup
@@ -111,16 +112,17 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val form = html.select(Css.form)
       form.attr("action").shouldBe(submitUrl)
 
-      val fieldset = form.select("fieldset.govuk-fieldset")
-      fieldset.isEmpty shouldBe false // <-- fieldset needed for a11y
-
-      html.select("#groups-hint").text() shouldBe "Select all that apply"
+      val fieldset = form.select("fieldset.govuk-fieldset") // fieldset must exist and have a legend
+      fieldset.select(Css.legend).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
+      fieldset.select("#groups-hint").text() shouldBe "Select all that apply"
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
-      checkboxes.size() shouldBe 3
+      checkboxes.size() shouldBe 4
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
       checkboxLabels.get(0).text() shouldBe "Group 3"
       checkboxLabels.get(1).text() shouldBe "Group 4"
       checkboxLabels.get(2).text() shouldBe "Group 5"
+      checkboxLabels.get(3).text() shouldBe "No access groups"
+      form.select("#__none__-item-hint").get(0).text() shouldBe "This will return you to the Manage account page"
       html.select(Css.linkStyledAsButton).text() shouldBe "Cancel"
       html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
       html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")
@@ -142,7 +144,6 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
-
       //when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
 
@@ -154,12 +155,14 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       val form = html.select(Css.form)
       form.attr("action").shouldBe(submitUrl)
       val checkboxes = form.select(".govuk-checkboxes#groups input[name=groups[]]")
-      checkboxes.size() shouldBe 5
+      checkboxes.size() shouldBe 6
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
       checkboxLabels.get(0).text() shouldBe "Group 1"
       checkboxLabels.get(1).text() shouldBe "Group 2"
       checkboxLabels.get(2).text() shouldBe "Group 3"
       checkboxLabels.get(4).text() shouldBe "Group 5"
+      checkboxLabels.get(5).text() shouldBe "No access groups"
+      form.select("#__none__-item-hint").get(0).text() shouldBe "This will return you to the Manage account page"
       html.select(Css.linkStyledAsButton).text() shouldBe "Cancel"
       html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
       html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")
@@ -227,6 +230,24 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
           .shouldBe(ctrlRoute.showConfirmTeamMemberAddedToGroups(teamMember.id).url)
 
       }
+    }
+
+    "redirect to manage account if 'none of the above' is selected" in {
+      //given
+      AuthOkWithTeamMember()
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", submitUrl)
+          .withFormUrlEncodedBody(
+            "groups[0]" -> s"${AddGroupsToClientForm.NoneValue}",
+            "submit" -> CONTINUE_BUTTON
+          )
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      val result = controller.submitSelectGroupsForTeamMember(teamMember.id)(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe controller.appConfig.agentServicesAccountManageAccountUrl
     }
 
     "display error when no groups are selected" in {

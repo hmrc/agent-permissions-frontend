@@ -24,7 +24,7 @@ class AddGroupsToClientFormSpec extends AnyWordSpec
   with Matchers
   with GuiceOneAppPerSuite {
 
-  "Add Groups to Client form binding" should {
+  "AddGroupsToClientForm binding" should {
 
     "have have no errors when groups are present" in {
       val params = Map("groups[]" -> Seq("id1", "id2"))
@@ -35,6 +35,13 @@ class AddGroupsToClientFormSpec extends AnyWordSpec
       boundForm.value shouldBe Some(Seq("id1", "id2"))
     }
 
+    "be successful when only 'none of the above' is selected option" in {
+      val params = Map("groups[0]" -> AddGroupsToClientForm.NoneValue)
+      val boundForm = AddGroupsToClientForm.form().bind(params)
+      boundForm.hasErrors shouldBe false
+      boundForm.value shouldBe Some(Seq(AddGroupsToClientForm.NoneValue))
+    }
+
     "have errors when no groups selected" in {
       val params = Map("groups" -> List.empty)
       val boundForm = AddGroupsToClientForm
@@ -42,6 +49,15 @@ class AddGroupsToClientFormSpec extends AnyWordSpec
         .bindFromRequest(params)
       boundForm.hasErrors shouldBe true
       boundForm.errors.head.messages shouldBe Seq("error.select.groups.empty")
+    }
+
+    "have errors when groups and 'none of the above' are selected" in {
+      val params = Map("groups[]" -> Seq("id1", "id2", AddGroupsToClientForm.NoneValue))
+      val boundForm = AddGroupsToClientForm
+        .form()
+        .bindFromRequest(params)
+      boundForm.hasErrors shouldBe true
+      boundForm.errors.head.messages shouldBe Seq("unassigned.client.assign.invalid-selection.error")
     }
   }
 

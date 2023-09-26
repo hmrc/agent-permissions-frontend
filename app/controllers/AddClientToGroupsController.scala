@@ -84,16 +84,20 @@ class AddClientToGroupsController @Inject()(
             )
           }
         }
-      }, { groupIdsStr =>
-        val groupIds: Seq[GroupId] = groupIdsStr.map(GroupId.fromString)
-        val client = Client(displayClient.enrolmentKey, displayClient.name)
-        Future.sequence(groupIds.map { grp =>
-          groupService.addMembersToGroup(
-            grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))
-            ))
-        }).map { _ =>
-          sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupIds)
-          Redirect(routes.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId))
+      }, { validForm =>
+        if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
+          Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+        } else {
+          val groupIds: Seq[GroupId] = validForm.map(GroupId.fromString)
+          val client = Client(displayClient.enrolmentKey, displayClient.name)
+          Future.sequence(groupIds.map { grp =>
+            groupService.addMembersToGroup(
+              grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))
+              ))
+          }).map { _ =>
+            sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupIds)
+            Redirect(routes.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId))
+          }
         }
       }
       )

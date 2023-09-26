@@ -19,12 +19,24 @@ package forms
 import play.api.data.Form
 import play.api.data.Forms._
 
+// TODO rename? also used for team members
 object AddGroupsToClientForm {
+  val NoneValue: String = "__none__"
+  /* A valid form will contain ONE of the following:
+    - a list of groups excluding the special 'none' value OR
+    - a list of groups containing ONLY the special 'none' value
+   */
 
   def form(): Form[List[String]] = {
     Form(
       single(
-        "groups" -> list(text).verifying("error.select.groups.empty", groups => groups.nonEmpty)
+        "groups" -> list(text)
+          // empty error
+          .verifying("error.select.groups.empty",
+            groups => groups.nonEmpty)
+          // Selected 'none of the above' AND one or more groups (can happen with JS disabled)
+          .verifying("unassigned.client.assign.invalid-selection.error",
+            groups => if(groups.contains(NoneValue)) groups.length == 1 else groups.length > 1)
       )
     )
   }

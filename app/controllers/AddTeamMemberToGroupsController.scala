@@ -85,23 +85,27 @@ class AddTeamMemberToGroupsController @Inject()
             )
           }
         }
-      }, { groupIds =>
-        val agentUser = TeamMember.toAgentUser(tm)
-        var groupsAddedTo: Seq[GroupId] = Seq[GroupId]()
-        Future.sequence(groupIds.map { encoded => {
-          val typeAndGroupId = encoded.split("_")
-          val groupType = typeAndGroupId(0)
-          val groupId: GroupId = GroupId.fromString(typeAndGroupId(1))
-          groupsAddedTo = groupsAddedTo :+ groupId
-          if (GroupType.CUSTOM == groupType) {
-            groupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
-          } else {
-            taxGroupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
+      }, { validForm =>
+        if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
+          Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+        } else {
+          val agentUser = TeamMember.toAgentUser(tm)
+          var groupsAddedTo: Seq[GroupId] = Seq[GroupId]()
+          Future.sequence(validForm.map { encoded => {
+            val typeAndGroupId = encoded.split("_")
+            val groupType = typeAndGroupId(0)
+            val groupId: GroupId = GroupId.fromString(typeAndGroupId(1))
+            groupsAddedTo = groupsAddedTo :+ groupId
+            if (GroupType.CUSTOM == groupType) {
+              groupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
+            } else {
+              taxGroupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
+            }
           }
-        }
-        }).map { _ =>
-          sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupsAddedTo.toSeq)
-          Redirect(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id))
+          }).map { _ =>
+            sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupsAddedTo)
+            Redirect(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id))
+          }
         }
       }
       )

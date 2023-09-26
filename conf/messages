@@ -122,6 +122,7 @@ filter.clear.singular=Clear filter
 filter.legend=Filters
 generic.title={0} - {1} - GOV.UK
 group-name-filter.text.label=Filter by group name
+group.caption.hidden=This access group is
 group.client.list.2.h2=Showing {0} results for ‘{1}’ and ‘{2}’
 group.client.list.h1=Select clients
 group.client.list.table.checkbox=Checkboxes

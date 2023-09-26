@@ -20,4 +20,4 @@
 
 @cls = @{if(classes.isDefined) classes.get.concat(" govuk-caption-l") else "govuk-caption-l"}
 
-<span class="@cls" @id.map(i=> { s"id =${i}"})>@msgs(key)</span>
+ <h2 class="@cls" @id.map(i=> { s"id =${i}"})><span class="govuk-visually-hidden">@msgs("group.caption.hidden") </span>@msgs(key)</h2>

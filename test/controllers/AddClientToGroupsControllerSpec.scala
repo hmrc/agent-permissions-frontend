@@ -19,6 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AddMembersToAccessGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
+import forms.AddGroupsToClientForm
 import helpers.{BaseSpec, Css}
 import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
@@ -219,6 +220,24 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
           .shouldBe(routes.AddClientToGroupsController.showConfirmClientAddedToGroups(client.id).url)
 
       }
+    }
+
+    "redirect to manage account if 'none of the above' is selected" in {
+      //given
+      AuthOkWithClient()
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", submitUrl)
+          .withFormUrlEncodedBody(
+            "groups[0]" -> s"${AddGroupsToClientForm.NoneValue}",
+            "submit" -> CONTINUE_BUTTON
+          )
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      val result = controller.submitSelectGroupsForClient(client.id)(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe controller.appConfig.agentServicesAccountManageAccountUrl
     }
 
     "display error when no groups are selected" in {

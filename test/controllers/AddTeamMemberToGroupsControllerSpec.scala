@@ -19,6 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AddOneTeamMemberToGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
+import forms.AddGroupsToClientForm
 import helpers.{BaseSpec, Css}
 import models.{GroupId, TeamMember}
 import org.jsoup.Jsoup
@@ -229,6 +230,24 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
           .shouldBe(ctrlRoute.showConfirmTeamMemberAddedToGroups(teamMember.id).url)
 
       }
+    }
+
+    "redirect to manage account if 'none of the above' is selected" in {
+      //given
+      AuthOkWithTeamMember()
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", submitUrl)
+          .withFormUrlEncodedBody(
+            "groups[0]" -> s"${AddGroupsToClientForm.NoneValue}",
+            "submit" -> CONTINUE_BUTTON
+          )
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      val result = controller.submitSelectGroupsForTeamMember(teamMember.id)(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe controller.appConfig.agentServicesAccountManageAccountUrl
     }
 
     "display error when no groups are selected" in {

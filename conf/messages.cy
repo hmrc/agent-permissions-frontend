@@ -184,6 +184,7 @@ group.member.p=Dewiswch aelodau tîm ar gyfer y grŵp mynediad hwn drwy dicio’
 group.member.remove.error=Dewiswch ie os oes angen i chi dynnu'r aelod tîm hwn o'r grŵp mynediad
 group.member.selected.remove.error=Dewiswch ‘Iawn’ os nad ydych am ychwanegu’r aelod hwn o’r tîm at y grŵp mynediad mwyach
 group.members.list.filter.label=Hidlo yn ôl enw neu e-bost
+group.members.list.table.checkbox.label=Enw {0}, E-bost {1}
 group.members.list.table.th=Dewiswch aelodau tîm
 group.members.list.table.th1=Enw
 group.members.list.table.th2=E-bost

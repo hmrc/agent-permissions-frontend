@@ -100,16 +100,17 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       val form = html.select(Css.form)
       form.attr("action").shouldBe(submitUrl)
 
-      val fieldset = form.select("fieldset.govuk-fieldset")
-      fieldset.isEmpty shouldBe false // <-- fieldset needed for a11y
-
-      html.select("#groups-hint").text() shouldBe "You can only add clients to custom groups manually. Select all that apply."
+      val fieldset = form.select("fieldset.govuk-fieldset") // fieldset must exist and have a legend
+      fieldset.select(Css.legend).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
+      fieldset.select("#groups-hint").text() shouldBe "You can only add clients to custom groups manually. Select all that apply."
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
-      checkboxes.size() shouldBe 3
+      checkboxes.size() shouldBe 4
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
       checkboxLabels.get(0).text() shouldBe "Group 3"
       checkboxLabels.get(1).text() shouldBe "Group 4"
       checkboxLabels.get(2).text() shouldBe "Group 5"
+      checkboxLabels.get(3).text() shouldBe "No access groups"
+      form.select("#__none__-item-hint").get(0).text() shouldBe "This will return you to the Manage account page"
       html.select(Css.linkStyledAsButton).text() shouldBe "Cancel"
       html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
       html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")
@@ -137,12 +138,18 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       html.select(Css.li("already-in-groups")).isEmpty shouldBe true
       val form = html.select(Css.form)
       form.attr("action").shouldBe(submitUrl)
-      val checkboxes = form.select(".govuk-checkboxes#groups input[name=groups[]]")
-      checkboxes.size() shouldBe 5
+
+      val fieldset = form.select("fieldset.govuk-fieldset") // fieldset must exist and have a legend
+      fieldset.size() shouldBe 1
+      fieldset.select(Css.legend).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
+      val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
+      checkboxes.size() shouldBe 6
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
       checkboxLabels.get(0).text() shouldBe "Group 1"
       checkboxLabels.get(1).text() shouldBe "Group 2"
       checkboxLabels.get(2).text() shouldBe "Group 3"
+      checkboxLabels.get(5).text() shouldBe "No access groups"
+      form.select("#__none__-item-hint").get(0).text() shouldBe "This will return you to the Manage account page"
       html.select(Css.linkStyledAsButton).text() shouldBe "Cancel"
       html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
       html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")

@@ -16,9 +16,9 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import views.components.models.CheckboxData
+@import forms.AddGroupsToClientForm
+@import views.components.models.{CheckboxData, LegendData}
 @import views.html.main_layout
-@import views.components.models.LegendData
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
 
 @this(
@@ -48,11 +48,11 @@
 
     @if(form.errors && availableGroups.nonEmpty) {
         @govukErrorSummary(
-            ErrorSummary(errorList = Seq(
-                ErrorLink(Some("#" + availableGroups(0).groupId),
-                    Text(msgs("error.select.groups.empty"))
-                )
-            )
+            ErrorSummary(
+                errorList = Seq(
+                    ErrorLink(Some("#" + availableGroups(0).groupId), Text(msgs("error.select.groups.empty")))
+                ),
+                title = Text(msgs("common.errorSummary.heading"))
             )
         )
     }
@@ -74,7 +74,6 @@
         @if(!availableGroups.isEmpty) {
 
             @formWithCSRF(action = routes.AddTeamMemberToGroupsController.submitSelectGroupsForTeamMember(teamMember.id)) {
-                <fieldset class="govuk-fieldset">
                     @checkboxes(
                         id = Some("groups"),
                         hint = Some(msgs("unassigned.client.assign.hint")),
@@ -86,7 +85,15 @@
                                 label = g.groupName,
                                 value = s"${g.groupType}_${g.groupId}"
                             )
-                        },
+                        } :+ CheckboxData( /* none of the above */
+                            id = AddGroupsToClientForm.NoneValue,
+                            name = "groups[]",
+                            label = msgs("unassigned.client.assign.none-of-the-above"),
+                            hint = Some(msgs("unassigned.client.assign.none-of-the-above.hint")),
+                            value = AddGroupsToClientForm.NoneValue,
+                            checked = form.data.exists { case (k, v) => k.contains("groups") && v == AddGroupsToClientForm.NoneValue },
+                            exclusive = true
+                        ),
                         legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden")))
                     )
 
@@ -96,7 +103,6 @@
                         classes = Some("govuk-button--secondary govuk-!-margin-right-3")
                     )
                     @submit_button(messageKey = "save.and.continue.button")
-                </fieldset>
             }
         } else {
             <div class="govuk-!-margin-top-8">

@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
-import helpers.Css.{H1, H2, paragraphs}
+import helpers.Css.{H1, paragraphs}
 import helpers.{BaseSpec, Css}
 import models.{AddTeamMembersToGroup, TeamMember}
 import org.jsoup.Jsoup
@@ -184,7 +184,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for ‘John’ Select team members - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select team members"
 
-      html.select(H2).text() shouldBe "Filter results for ‘John’"
+      html.select("#filter-description").text() shouldBe "Filter results for ‘John’"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4

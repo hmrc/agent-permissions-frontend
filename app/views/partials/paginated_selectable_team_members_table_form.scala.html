@@ -78,7 +78,7 @@
     @if(teamMembers.nonEmpty) {
 
         @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "") {
-            @h2(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value))
+            @h2(key = withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value), id = Some("filter-description"))
         }
 
         @if(form.errors.map(error => error.message).contains("error.select-teamMembers.empty")) {

@@ -16,8 +16,10 @@
 
 @this()
 
-@(key: String = "", id: Option[String] = None, classes: Option[String] = None)(implicit msgs: Messages)
+@(key: String = "", hiddenKey: Option[String] = Some("group.caption.hidden"), id: Option[String] = None, classes: Option[String] = None)(implicit msgs: Messages)
 
 @cls = @{if(classes.isDefined) classes.get.concat(" govuk-caption-l") else "govuk-caption-l"}
 
- <h2 class="@cls" @id.map(i=> { s"id =${i}"})><span class="govuk-visually-hidden">@msgs("group.caption.hidden") </span>@msgs(key)</h2>
+ @defining(if(hiddenKey.isEmpty) {""} else {" "}) { space: String =>
+  <h2 class="@cls" @id.map(i=> { s"id =${i}"})><span class="govuk-visually-hidden">@msgs(hiddenKey.getOrElse(""))@space</span>@msgs(key)</h2>
+ }

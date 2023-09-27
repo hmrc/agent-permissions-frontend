@@ -26,13 +26,22 @@ class AddGroupsToClientFormSpec extends AnyWordSpec
 
   "AddGroupsToClientForm binding" should {
 
-    "have have no errors when groups are present" in {
+    "have no errors when groups are present" in {
       val params = Map("groups[]" -> Seq("id1", "id2"))
       val boundForm = AddGroupsToClientForm
         .form()
         .bindFromRequest(params)
       boundForm.hasErrors shouldBe false
       boundForm.value shouldBe Some(Seq("id1", "id2"))
+    }
+
+    "have no errors when only 1 group is present" in {
+      val params = Map("groups[]" -> Seq("id3"))
+      val boundForm = AddGroupsToClientForm
+        .form()
+        .bindFromRequest(params)
+      boundForm.hasErrors shouldBe false
+      boundForm.value shouldBe Some(Seq("id3"))
     }
 
     "be successful when only 'none of the above' is selected option" in {

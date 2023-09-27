@@ -45,7 +45,7 @@
     formErrors = form.errors
 ) {
 
-    @caption(key = msgs("update-client-reference.caption", displayTaxReference), hiddenKey = None)
+    @caption(key = msgs("update-client-reference.caption", displayTaxReference))
     @h1("update-client-reference")
 
     @formWithCSRF(action = routes.ManageClientController.submitUpdateClientReference(client.id)) {

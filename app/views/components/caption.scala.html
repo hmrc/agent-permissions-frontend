@@ -16,7 +16,7 @@
 
 @this()
 
-@(key: String = "", hiddenKey: Option[String] = Some("group.caption.hidden"), id: Option[String] = None, classes: Option[String] = None)(implicit msgs: Messages)
+@(key: String = "", hiddenKey: Option[String] = None, id: Option[String] = None, classes: Option[String] = None)(implicit msgs: Messages)
 
 @cls = @{if(classes.isDefined) classes.get.concat(" govuk-caption-l") else "govuk-caption-l"}
 

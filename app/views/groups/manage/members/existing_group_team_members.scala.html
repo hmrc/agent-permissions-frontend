@@ -44,7 +44,7 @@
         fullWidth = true) {
 
         <div class="govuk-!-width-two-thirds">
-            @caption(group.groupName)
+            @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
             @h1(msgs("tax-group.manage.team-members.h1"))
         </div>
 

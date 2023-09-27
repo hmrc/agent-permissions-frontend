@@ -58,7 +58,7 @@
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(groupName)
+        @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(msgs(s"select.members.list.h1", groupName))
         @govukSkipLink(SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-team-members"))))
         @p("group.member.p")

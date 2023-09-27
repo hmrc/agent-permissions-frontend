@@ -58,7 +58,7 @@ withSearchAndErrorPrefix(form.errors.nonEmpty,
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(group.groupName)
+        @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
         @h1("group.client.list.h1")
         @p("common.group.max.clients")
     </div>

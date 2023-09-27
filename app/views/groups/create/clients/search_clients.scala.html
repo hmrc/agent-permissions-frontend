@@ -71,7 +71,7 @@
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @if(isFailedSearch) {
-        @caption(groupName)
+        @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)))
     }
     @* 'Continue' form (continue with selected clients without searching) - (shown optionally) - button is defined inside other form for design reasons (APB-7378) *@
@@ -80,7 +80,7 @@
     }
     @* Search form *@
     @formWithCSRF(action = searchAction) {
-        @if(!isFailedSearch) { @caption(groupName) }
+        @if(!isFailedSearch) { @caption(key = groupName, hiddenKey = Some("group.caption.access-group")) }
         @govukFieldset(Fieldset(
             legend = Some(Legend(
                 content = if (isFailedSearch) Text(msgs("common.search-again")) else Text(msgs("group.client.search.h1")),

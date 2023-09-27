@@ -71,7 +71,7 @@
 
         <div class="govuk-!-width-two-thirds">
             @if(group.groupName != ""){
-                @caption(group.groupName)
+                @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
             }
             @h1(msgs("group.clients.add.review.h1", paginationMetaData.totalSize))
         </div>

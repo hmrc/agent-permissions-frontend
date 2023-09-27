@@ -20,6 +20,6 @@
 
 @cls = @{if(classes.isDefined) classes.get.concat(" govuk-caption-l") else "govuk-caption-l"}
 
- @defining(if(hiddenKey.isEmpty) {""} else {" "}) { space: String =>
-  <h2 class="@cls" @id.map(i=> { s"id =${i}"})><span class="govuk-visually-hidden">@msgs(hiddenKey.getOrElse(""))@space</span>@msgs(key)</h2>
- }
+<h2 class="@cls" @id.map(i=> { s"id =${i}"})>
+  @if(hiddenKey.isDefined) {<span class="govuk-visually-hidden">@msgs(hiddenKey.getOrElse("")) </span>}
+@msgs(key)</h2>

@@ -200,7 +200,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title shouldBe "Filter results for ‘friendly1’ and ‘VAT’ Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
-      html.select(H2).text shouldBe "Showing 1 client for ‘friendly1’ and ‘VAT’ in this group"
+      html.select("#filter-description").text shouldBe "Showing 1 client for ‘friendly1’ and ‘VAT’ in this group"
 
       val clientsTable = html.select(Css.tableWithId("clients"))
       val th = clientsTable.select("thead th")

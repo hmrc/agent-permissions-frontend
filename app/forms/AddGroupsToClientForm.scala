@@ -36,7 +36,7 @@ object AddGroupsToClientForm {
             groups => groups.nonEmpty)
           // Selected 'none of the above' AND one or more groups (can happen with JS disabled)
           .verifying("unassigned.client.assign.invalid-selection.error",
-            groups => if(groups.contains(NoneValue)) groups.length == 1 else groups.length > 1)
+            groups => if(groups.contains(NoneValue)) groups.length == 1 else true)
       )
     )
   }

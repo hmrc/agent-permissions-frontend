@@ -16,8 +16,10 @@
 
 @this()
 
-@(key: String = "", id: Option[String] = None, classes: Option[String] = None)(implicit msgs: Messages)
+@(key: String = "", hiddenKey: Option[String] = None, id: Option[String] = None, classes: Option[String] = None)(implicit msgs: Messages)
 
 @cls = @{if(classes.isDefined) classes.get.concat(" govuk-caption-l") else "govuk-caption-l"}
 
-<span class="@cls" @id.map(i=> { s"id =${i}"})>@msgs(key)</span>
+<h2 class="@cls" @id.map(i=> { s"id =${i}"})>
+  @if(hiddenKey.isDefined) {<span class="govuk-visually-hidden">@msgs(hiddenKey.getOrElse("")) </span>}
+@msgs(key)</h2>

@@ -69,7 +69,7 @@
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(groupName)
+        @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(msgs("group.client.list.h1", groupName))
         @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
             @h2(searchParamMsg)

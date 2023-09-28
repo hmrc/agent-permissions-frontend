@@ -68,7 +68,7 @@
     @summaryErrors(form.errors, Some(errorHref))
 
     <div class="govuk-!-width-two-thirds">
-        @caption(group.groupName)
+        @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(msgs(s"select.members.list.h1", group.groupName))
         @p(s"common.group.max.clients")
     </div>

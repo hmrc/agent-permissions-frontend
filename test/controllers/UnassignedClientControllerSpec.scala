@@ -301,7 +301,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
-      html.select(caption).text() shouldBe "Clients who are not in any groups"
+      html.select(Css.PRE_H1).text() shouldBe "Clients who are not in any groups"
       html.select(H1).text() shouldBe "You have selected 3 clients"
       html.select(Css.tableWithId("selected-clients")).select("tbody tr").size() shouldBe 3
       html.select(Css.backLink).attr("href") shouldBe "#"

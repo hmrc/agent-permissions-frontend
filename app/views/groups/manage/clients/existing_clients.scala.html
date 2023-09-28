@@ -88,7 +88,7 @@
 ) {
 
     <div class="govuk-!-width-two-thirds">
-        @caption(group.groupName)
+        @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
         @h1("group.existing.clients.h1")
     </div>
 
@@ -103,7 +103,7 @@
 
         @if(groupClients.nonEmpty) {
 
-            @h2({
+            @h2(key = {
                 // display logic specified in APB-7104
                 val filterTerms = Seq(
                     form.data.get("search").filter(_.nonEmpty).toSeq,
@@ -116,7 +116,7 @@
                   msgs("group.manage.clients.showing.one", filterReminder)
                 else
                   msgs("group.manage.clients.showing.many", groupClients.length, filterReminder)
-            })
+            }, id = Some("filter-description"))
 
             <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible" style="height: 3px;
                 border-width: 0;

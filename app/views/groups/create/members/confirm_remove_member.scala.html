@@ -41,7 +41,7 @@
     formErrors = form.errors,
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
-    @caption(groupName)
+    @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
 
     @formWithCSRF(action = formAction) {
         @radioButtons(

@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.AbstractModule
 import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
-import helpers.Css.{H1, H2, paragraphs}
+import helpers.Css.{H1, paragraphs}
 import helpers.{BaseSpec, Css}
 import models.{AddTeamMembersToGroup, TeamMember}
 import org.jsoup.Jsoup
@@ -120,6 +120,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members"
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
@@ -182,9 +183,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Filter results for ‘John’ Select team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members"
 
-      html.select(H2).text() shouldBe "Filter results for ‘John’"
+      html.select("#filter-description").text() shouldBe "Filter results for ‘John’"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -219,6 +221,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members"
 
       // No table
@@ -229,7 +232,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       trs.size() shouldBe 0
 
       // Not found content
-      html.select(Css.H2).text() shouldBe "No filter results for ‘’"
+      html.select("#filter-description").text() shouldBe "No filter results for ‘’"
       html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
 
     }
@@ -344,6 +347,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       // then
       html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members"
       html.select(Css.errorSummaryLinkWithHref("#members")).text() shouldBe "You must select at least one team member"
 
@@ -379,6 +383,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       //and
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members"
       html.select(Css.errorSummaryLinkWithHref("#members")).text() shouldBe "You must select at least one team member"
 
@@ -479,6 +484,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe s"Review selected team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe s"You have selected 5 team members to add to the group"
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
@@ -616,6 +622,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(H1).text() shouldBe "You have selected 11 team members to add to the group"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
@@ -647,6 +654,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(H1).text() shouldBe "You have selected 0 team members to add to the group"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
@@ -748,6 +756,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe s"Remove John from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe s"Remove John from selected team members?"
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
@@ -847,6 +856,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Remove John from selected team members? - Agent services account - GOV.UK"
+      html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(H1).text() shouldBe "Remove John from selected team members?"
       html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this team member from the access group"
       html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this team member from the access group"

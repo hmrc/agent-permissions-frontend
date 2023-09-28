@@ -46,7 +46,7 @@
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
 
-    @caption(group.groupName)
+    @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
     @h1("group.manage.rename")
 
     @formWithCSRF(action = formAction) {

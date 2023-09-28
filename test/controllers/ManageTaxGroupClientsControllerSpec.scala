@@ -130,7 +130,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas"
+      html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val ths = html.select(Css.tableWithId("clients")).select("thead th")
@@ -186,7 +186,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Filter results for ‘friendly1’ Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas"
+      html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
@@ -237,7 +237,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Filter results for ‘nothing’ Manage clients - Bananas - Agent services account - GOV.UK"
-      html.select(Css.PRE_H1).text shouldBe "Bananas"
+      html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
       val tableOfClients = html.select(Css.tableWithId("clients"))

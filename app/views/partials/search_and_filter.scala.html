@@ -29,15 +29,17 @@
 @searchGridClass = @{if(withFilter) "govuk-grid-column-one-third" else "govuk-grid-column-one-half"}
 @paddingTopType = @{if(withFilter && msgs(searchLabelKey).length > 38) "pad-top-2" else "pad-top-1" }
 
-@applyButtonKey = @{if (withFilter) "filter.apply" else "filter.apply.singular" /* APB-7104 */}
-@clearButtonKey = @{if (withFilter) "filter.clear" else "filter.clear.singular" /* APB-7104 */}
+@applyButtonKey = @{if (withFilter) "filter.apply" else "filter.apply.singular" }
+@clearButtonKey = @{if (withFilter) "filter.clear" else "filter.clear.singular" }
 
 <div class="govuk-grid-row" role="search" id="search-filter-wrapper">
 
+    @if(withFilter){
     <fieldset class="govuk-fieldset" id="search-and-filter">
         <legend class="govuk-fieldset__legend govuk-visually-hidden">
             @msgs("filter.legend")
         </legend>
+    }
 
         <div class="@searchGridClass" id="search-box-wrapper">
         @textbox(
@@ -62,5 +64,6 @@
         <div class="govuk-grid-column-one-third @paddingTopType" id="button-wrapper">
             @filter_buttons(additionalClasses = "", applyKey = Some(applyButtonKey), clearKey = Some(clearButtonKey))
         </div>
-    </fieldset>
+
+    @if(withFilter){ </fieldset> }
 </div>

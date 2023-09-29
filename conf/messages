@@ -3,7 +3,6 @@ access-group-name-exceed-groups.title=You have already created all the tax servi
 access-group-name-exists.button=Enter a new access group name
 access-group-name-exists.p=You already have an access group called ’{0}’. Please enter a new access group name.
 access-group-name-exists.title=Access group name already exists
-already.selected.members.nonjs=You currently have <strong>{0}</strong> team members in your group
 assistant.clients.group.h1={0} clients
 assistant.clients.group.p=You can manage these clients’ tax as you are in this access group.
 assistant.clients.unassigned.h1=Other clients you can manage

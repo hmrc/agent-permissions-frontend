@@ -163,15 +163,12 @@
         }
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
-        @* the following 2 paragraphs are dependent on whether js enabled or not*@
+        @* this paragraph is only shown when js enabled*@
         @p( html = Some(Html(s"<strong>$totalSelected</strong> " + msgs("common.total.clients.selected"))),
             id = Some("member-count-text"),
             attrs = Map("role" -> "status")
         )
 
-        @p(key = msgs("already.selected.clients.nonjs", totalSelected),
-            id = Some("member-count-text-non-js"),
-        )
         @submit_button(submitButtonKey)
 
     } else {

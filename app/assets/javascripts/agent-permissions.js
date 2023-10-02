@@ -55,8 +55,10 @@ $(document).ready(function () {
 
     if (table != null) {
         $('#'+table.id+' input[type=checkbox]').on("change", () => {
-            $('#member-count-text strong')[0].innerHTML = selectedOnOtherPages + countSelectedOnCurrentPage();
+           $('#member-count-text')[0].innerHTML =
+           $('#member-count-text')[0].innerHTML.replace($('#member-count-text strong')[0].innerHTML, selectedOnOtherPages + countSelectedOnCurrentPage());
         });
+
     }
 
 });

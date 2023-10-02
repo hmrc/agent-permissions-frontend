@@ -164,11 +164,10 @@
         @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
         @* this paragraph is only shown when js enabled*@
-        @p( html = Some(Html(s"<strong>$totalSelected</strong> " + msgs("common.total.clients.selected"))),
+        @p(html = Some(Html(s"<strong>$totalSelected</strong> " + msgs("common.total.clients.selected"))),
             id = Some("member-count-text"),
             attrs = Map("role" -> "status")
         )
-
         @submit_button(submitButtonKey)
 
     } else {

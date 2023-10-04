@@ -71,7 +71,7 @@
 
 @layout(
     title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("group.existing.clients.title", group.groupName), None, form("search").value),
-    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
+    backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.return.manage-groups")))),
     fullWidth = true
 ) {
 

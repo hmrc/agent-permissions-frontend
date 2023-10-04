@@ -106,7 +106,7 @@ class CreateGroupSelectClientsController @Inject()
                   form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
                   groupName = groupName,
                   isFailedSearch = true,
-                  continueAction = if (selectedClients.exists(_.nonEmpty)) Some(routes.CreateGroupSelectClientsController.submitSelectedClients) else None
+                  continueAction = if (selectedClients.exists(_.nonEmpty)) Some(routes.CreateGroupSelectClientsController.submitSelectedClients()) else None
                 )))
               }
             } else {
@@ -220,7 +220,7 @@ class CreateGroupSelectClientsController @Inject()
             case Some(cid) => Future.successful(Some(cid))
           }
           result <- maybeClientId.flatMap(id => selectedClients.getOrElse(Seq.empty).find(_.id == id)) match {
-            case None => Future.successful(Redirect(controller.showSelectClients(None, None)))
+            case None => Future.successful(Redirect(controller.showSearchClients()))
             case Some(client) =>
               sessionCacheService
                 .put(CLIENT_TO_REMOVE, client)

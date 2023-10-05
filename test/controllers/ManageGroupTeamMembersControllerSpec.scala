@@ -121,6 +121,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
+      html.select(Css.backLink).text() shouldBe "Back to manage groups page"
+      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 

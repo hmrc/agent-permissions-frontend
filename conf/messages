@@ -36,6 +36,7 @@ clients.not-found.heading=No clients found
 clients.not-found.p=Update your filters and try again or clear your filters to see all your clients
 common.actions=Actions
 common.add=Add
+common.back.manage-groups=Back to manage groups page
 common.search-again=Search again
 common.no-results-for=No results {0}
 common.cancel=Cancel
@@ -192,7 +193,6 @@ group.name.confirm.required.error=Select yes if the access group name is correct
 group.name.invalid=Access group name must only include letters a to z, numbers, spaces and these characters: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 group.name.max.length=Access group name must be 50 characters or fewer
 group.name.required=Enter an access group name
-group.not.found.error.a=Back to manage groups page
 group.not.found.error.h1=Access group not found
 group.not.found.error.standard.a=Back to your account
 group.not.found.error.standard.p=Please check the url or return to Your account

@@ -40,7 +40,7 @@
 
 @layout(
     title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.team-members.h1", group.groupName), None, form("search").value),
-    backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.return.manage-groups")))),
+    backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.back.manage-groups")))),
     fullWidth = true
 ) {
 

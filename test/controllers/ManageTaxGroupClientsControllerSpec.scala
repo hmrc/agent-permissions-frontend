@@ -132,6 +132,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
+      html.select(Css.backLink).text() shouldBe "Back to manage groups page"
+      html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
 
       val ths = html.select(Css.tableWithId("clients")).select("thead th")
       ths.size() shouldBe 3

@@ -185,8 +185,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
 
-      html.select(Css.backLink).text() shouldBe "Back to search"
-      html.select(Css.backLink).attr("href") shouldBe routes.CreateGroupSelectClientsController.showSearchClients().url
+      html.select(Css.backLink).text() shouldBe "Back"
+      html.select(Css.backLink).attr("href") shouldBe "#"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4

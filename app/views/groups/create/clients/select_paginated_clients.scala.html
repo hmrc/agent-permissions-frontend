@@ -62,7 +62,7 @@
 }
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
-    backLink = Some(BackLink(href = routes.CreateGroupSelectClientsController.showSearchClients().url, content = Text(msgs("client.select.back.search")))),
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true) {
 

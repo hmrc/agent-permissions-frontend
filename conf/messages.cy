@@ -36,6 +36,7 @@ clients.not-found.heading=Ni chanfuwyd unrhyw gleientiaid
 clients.not-found.p=Diweddarwch eich hidlyddion a rhowch gynnig arall arni. Fel arall, cliriwch eich hidlyddion i weld pob un o’ch cleientiaid
 common.actions=Camau gweithredu
 common.add=Ychwanegu
+common.back.manage-groups=Yn ôl i’r dudalen rheoli grwpiau
 common.search-again=Chwilio eto
 common.no-results-for=Dim canlyniad {0}
 common.cancel=Canslo
@@ -192,7 +193,6 @@ group.name.confirm.required.error=Dewiswch ‘Iawn’ os yw enw’r grŵp mynedi
 group.name.invalid=Mae’n rhaid i enw’r grŵp mynediad gynnwys y llythrennau a i z, rhifau, bylchau a’r cymeriadau hyn yn unig: ! % * ^ ( ) _ + - = '{' '}' : ; @ ~ # , . ? [ ] /
 group.name.max.length=Mae’n rhaid i enw’r grŵp mynediad fod yn 32 o gymeriadau neu lai
 group.name.required=Nodwch enw ar gyfer y grŵp mynediad
-group.not.found.error.a=Yn ôl i’r dudalen rheoli grwpiau
 group.not.found.error.h1=Heb ddod o hyd i grŵp mynediad
 group.not.found.error.standard.a=Yn ôl i’r eich cyfrif
 group.not.found.error.standard.p=Gwiriwch yr URL neu ewch yn ôl i’r dudalen ‘Eich cyfrif’

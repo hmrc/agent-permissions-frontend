@@ -134,8 +134,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
+      html.select(Css.backLink).text() shouldBe "Back to manage groups page"
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
-      html.select(Css.backLink).text() shouldBe "Return to manage access groups"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
 
@@ -155,7 +155,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       trs.get(0).select("td").get(2).text() shouldBe "VAT"
       val removeClient1 = trs.get(0).select("td").get(3).select("a")
       removeClient1.text() shouldBe "Remove friendly0"
-      removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(grpId,displayClients(0).id).url
+      removeClient1.attr("href") shouldBe ctrlRoute.showConfirmRemoveClient(grpId,displayClients.head.id).url
 
       //last row
       trs.get(2).select("td").get(0).text() shouldBe "friendly2"

@@ -38,23 +38,23 @@
     group: GroupSummary
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @layout(
-        title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.team-members.h1", group.groupName), None, form("search").value),
-        backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
-        fullWidth = true) {
+@layout(
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.team-members.h1", group.groupName), None, form("search").value),
+    backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.back.manage-groups")))),
+    fullWidth = true
+) {
 
-        <div class="govuk-!-width-two-thirds">
-            @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-            @h1(msgs("tax-group.manage.team-members.h1"))
-        </div>
+    <div class="govuk-!-width-two-thirds">
+        @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
+        @h1(msgs("tax-group.manage.team-members.h1"))
+    </div>
 
-        @govukSkipLink(
-            SkipLink(
-                href = "#members",
-                content = Text(msgs("common.skip-to-team-members"))
-            )
+    @govukSkipLink(
+        SkipLink(
+            href = "#members",
+            content = Text(msgs("common.skip-to-team-members"))
         )
-
+    )
 
     @if(paginatedMembers.pageContent.nonEmpty) {
         @existing_members_table_filter_form(
@@ -66,15 +66,16 @@
             displayRole = false
         )
 
-        @link_as_button(
-            key = "group.selected.teamMembers.change",
-            href = routes.ManageGroupTeamMembersController.showAddTeamMembers( group.groupType,group.groupId, None).url,
-            id = "update-team-members-button")
-
     } else {
         <div id="members">
             @h2("team-members.not-found.heading")
             @p("team-members.not-found.p")
         </div>
     }
+
+    @link_as_button(
+        key = "group.selected.teamMembers.change",
+        href = routes.ManageGroupTeamMembersController.showAddTeamMembers( group.groupType,group.groupId, None).url,
+        id = "update-team-members-button"
+    )
 }

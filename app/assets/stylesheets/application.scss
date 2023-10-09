@@ -21,6 +21,10 @@ main.govuk-main-wrapper {
   margin-top: 0px;
 }
 
+.govuk-table__cell {
+  word-break: break-word;
+}
+
 #multi-select-table .govuk-table__cell div.govuk-checkboxes {
   margin-top: -7px;
 }
@@ -30,7 +34,6 @@ main.govuk-main-wrapper {
 }
 
 .govuk-panel__bodys {
-
   overflow-wrap: break-word;
 }
 
@@ -56,7 +59,6 @@ div.scrollable-table-container {
     }
 
     thead {
-
       tr {
         border-top: 3px solid lightgray;
         border-bottom: 3px solid lightgray;
@@ -64,16 +66,13 @@ div.scrollable-table-container {
     }
 
     width: 100%;
-
   }
 }
 
 nav#pagination-nav {
-
   .govuk-pagination__item, .govuk-pagination__next, .govuk-pagination__prev {
     padding: 10px !important;
   }
-
   .govuk-pagination__next {
     padding-right: 0 !important;
   }

@@ -358,10 +358,11 @@ class ManageGroupClientsController @Inject()
 
   def showConfirmRemoveFromSelectedClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
-      clientService
-        .lookupClient(arn)(clientId)
-        .flatMap(maybeClient =>
-          maybeClient.fold(Redirect(controller.showAddClients(groupId, None, None)).toFuture)(client =>
+      withSessionItem(SELECTED_CLIENTS) { selectedClients =>
+        selectedClients.getOrElse(Seq.empty).find(_.id == clientId) match {
+          // if the user tries to go back after removing the selected client, take them to search clients instead
+          case None => Future.successful(Redirect(controller.showSearchClientsToAdd(groupId)))
+          case Some(client) =>
             sessionCacheService
               .put(CLIENT_TO_REMOVE, client)
               .map(_ =>
@@ -374,8 +375,8 @@ class ManageGroupClientsController @Inject()
                   )
                 )
               )
-          )
-        )
+          }
+      }
     }
     }
   }
@@ -386,7 +387,7 @@ class ManageGroupClientsController @Inject()
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
           val redirectLink: Call = controller.showReviewSelectedClients(groupId, None, None)
           maybeClient.fold(
-            Redirect(controller.showAddClients(group.groupId, None, None)).toFuture
+            Redirect(controller.showSearchClientsToAdd(group.groupId)).toFuture
           )(clientToRemove =>
             YesNoForm
               .form("group.client.review.remove.error")
@@ -408,7 +409,7 @@ class ManageGroupClientsController @Inject()
                       .put(SELECTED_CLIENTS, remainingClients)
                       .map(_ => {
                         remainingClients.size match {
-                          case 0 => Redirect(controller.showAddClients(group.groupId, None, None))
+                          case 0 => Redirect(controller.showSearchClientsToAdd(group.groupId))
                           case _ => Redirect(redirectLink)
                         }
                       }

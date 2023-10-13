@@ -911,7 +911,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
-      expectLookupClient(arn)(clientToRemove)
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
 
       val result = controller.showConfirmRemoveFromSelectedClients(grpId, clientToRemove.id)(request)
@@ -938,12 +938,12 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
-      expectLookupClientNone(arn)
+      expectGetSessionItem(SELECTED_CLIENTS, displayClients.filterNot(c => c.id == clientToRemove.id)) // clientToRemove is not present
 
       val result = controller.showConfirmRemoveFromSelectedClients(grpId, clientToRemove.id)(request)
       // then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.ManageGroupClientsController.showAddClients(grpId, None, None).url
+      redirectLocation(result).get shouldBe routes.ManageGroupClientsController.showSearchClientsToAdd(grpId).url
 
     }
 
@@ -972,7 +972,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedClients(grpId, None, None).url
     }
 
-    "confirm remove LAST selected client removes  from group and REDIRECTS TO SHOW EXISTING CLIENTS PAGE" in {
+    "confirm remove LAST selected client is removed and REDIRECTS to search clients to add" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
@@ -991,7 +991,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
       status(result) shouldBe SEE_OTHER
 
-      redirectLocation(result).get shouldBe ctrlRoute.showAddClients(grpId, None, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showSearchClientsToAdd(grpId).url
     }
 
     "confirm remove client ‘no’ redirects to group clients list" in {

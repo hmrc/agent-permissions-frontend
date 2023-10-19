@@ -25,7 +25,7 @@ class SelectableSpec extends AnyWordSpec with Matchers {
   "DisplayClient" should {
     "be converted from Client" when {
       "client is cbc uk" in {
-        val cbcUkClient = Client("HMRC-CBC-ORG~UTR~1234567890~cbcId~XACBC123456789012", "Jelly Incorporated")
+        val cbcUkClient = Client("HMRC-CBC-ORG~cbcId~XACBC123456789012~UTR~1234567890", "Jelly Incorporated")
 
         //when
         val dc = DisplayClient.fromClient(cbcUkClient)
@@ -34,7 +34,7 @@ class SelectableSpec extends AnyWordSpec with Matchers {
           "XACBC123456789012",
           "Jelly Incorporated",
           "HMRC-CBC-ORG",
-          "UTR~1234567890~cbcId")
+          "UTR~1234567890")
 
         //then
         dc shouldBe expectedDc
@@ -64,12 +64,12 @@ class SelectableSpec extends AnyWordSpec with Matchers {
           "XACBC123456789012",
           "Jelly Incorporated",
           "HMRC-CBC-ORG",
-          "UTR~1234567890~cbcId")
+          "UTR~1234567890")
 
         //when
         val client = DisplayClient.toClient(cbcUkDisplayClient)
 
-        val expectedCbcUkClient = Client("HMRC-CBC-ORG~UTR~1234567890~cbcId~XACBC123456789012", "Jelly Incorporated")
+        val expectedCbcUkClient = Client("HMRC-CBC-ORG~cbcId~XACBC123456789012~UTR~1234567890", "Jelly Incorporated")
 
         //then
         client shouldBe expectedCbcUkClient

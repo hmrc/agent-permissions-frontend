@@ -56,24 +56,19 @@
 
 @hasClientsAlreadyInGroup = @{clients.exists(_.alreadyInGroup)}
     @tableHeadings = @{
-        var ths = Seq[(Html, Map[String, String])](
+        Seq[(Html, Map[String, String])](
             (span("group.client.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty),
             (Html(msgs("group.client.list.table.th1")), Map.empty),
             (Html(msgs("group.client.list.table.th2")), Map.empty),
             (Html(msgs("group.client.list.table.th3")), Map.empty),
-
         )
-        if(hasClientsAlreadyInGroup){
-            ths = ths :+ (Html(msgs("common.actions")), Map.empty[String, String])
-        }
-        ths
     }
 
 @tableRows = @{
     clients.zipWithIndex.map(clientWithIndex =>{
         val client = clientWithIndex._1
         val idx = clientWithIndex._2
-        var rows: Seq[Html] = Seq(
+        Seq(
             Html(
                 if(client.alreadyInGroup){
                     info_text("common.group.already.in").toString
@@ -86,24 +81,12 @@
                         checked = client.selected
                     ).toString
                 }
-
             ),
             Html(client.name),
             Html(displayObfuscatedReference(client.name, client.hmrcRef)),
             Html(displayTaxServiceFromServiceKey(client.taxService))
         )
-        if(hasClientsAlreadyInGroup) {
-            rows = rows :+ Html(
-                if(client.alreadyInGroup) {
-                    val removeLink = routes.ManageGroupClientsController.showConfirmRemoveFromUpdateClients(group.groupId, client.id).url
-                    a(key = msgs("common.remove"), href = removeLink).toString
-                } else ""
-                )
-        }
-        rows
-    }
-
-    )
+    })
 }
 
 @* Values used by JS selected client counter to enable counting selections on other pages. *@

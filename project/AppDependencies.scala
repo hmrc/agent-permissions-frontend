@@ -8,9 +8,9 @@ object AppDependencies {
   val compile = Seq(
     "uk.gov.hmrc"        %% "bootstrap-frontend-play-28"     % bootstrapVer,
     "uk.gov.hmrc.mongo"  %% "hmrc-mongo-play-28"             % mongoVer,
-    "uk.gov.hmrc"        %% "play-frontend-hmrc"             % "7.19.0-play-28",
+    "uk.gov.hmrc"        %% "play-frontend-hmrc"             % "7.23.0-play-28",
     "uk.gov.hmrc"        %% "play-conditional-form-mapping"  % "1.13.0-play-28",
-    "uk.gov.hmrc"        %% "agent-mtd-identifiers"          % "1.13.0",
+    "uk.gov.hmrc"        %% "agent-mtd-identifiers"          % "1.14.0",
     "uk.gov.hmrc"        %% "agent-kenshoo-monitoring"       % "5.5.0",
   )
 

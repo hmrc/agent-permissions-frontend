@@ -405,15 +405,13 @@ class ManageGroupClientsController @Inject()
                 }, (yes: Boolean) => {
                   if (yes) {
                     val remainingClients = maybeSelectedClients.getOrElse(Nil).filterNot(dc => clientToRemove.id == dc.id)
-                    sessionCacheService
-                      .put(SELECTED_CLIENTS, remainingClients)
-                      .map(_ => {
-                        remainingClients.size match {
+                    for {
+                      _ <- sessionCacheService.put(SELECTED_CLIENTS, remainingClients)
+                      _ <- sessionCacheService.delete(CLIENT_TO_REMOVE)
+                    } yield remainingClients.size match {
                           case 0 => Redirect(controller.showSearchClientsToAdd(group.groupId))
                           case _ => Redirect(redirectLink)
-                        }
-                      }
-                      )
+                    }
                   }
                   else Redirect(redirectLink).toFuture
                 }

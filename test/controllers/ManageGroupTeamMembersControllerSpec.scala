@@ -705,6 +705,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
       expectRemoveTeamMemberFromGroup(groupId, memberToRemove, isCustom = true)
+      expectDeleteSessionItem(MEMBER_TO_REMOVE)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember(groupId, CUSTOM)}")
@@ -806,17 +807,16 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
   }
 
-//  actual GroupService.getCustomSummary(09ddd6b7-390b-4361-981c-51fe04d452c3, HeaderCarrier(None,None,Some(SessionId(session-x)),None,RequestChain(ee9c),783259514121333,List(),None,None,None,None,None,None,List((Host,localhost), (path,Action(parser=<function1>))))
-//  expected GroupService.getCustomSummary(2230467a-02f7-4863-b8cc-79ae1a539527, *, *)
   s"POST submitConfirmRemoveFromTeamMembersToAdd ${ctrlRoute.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id).url}" should {
 
-    "confirm remove client ‘yes’ removes  from group and redirect to group clients list" in {
+    "confirm remove team member ‘yes’ removes from selected then redirect to review team members to add" in {
       val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.filterNot(_.id == memberToRemove.id))
+      expectDeleteSessionItem(MEMBER_TO_REMOVE)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)}")
@@ -831,7 +831,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
     }
 
-    "confirm remove client ‘no’ redirects to group clients list" in {
+    "confirm remove team member ‘no’ redirects to review team members to add" in {
       val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))

@@ -766,13 +766,14 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET show confirm remove from team members to add ${ctrlRoute.showConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id).url}" should {
+  s"GET ${ctrlRoute.showConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id).url}" should {
 
     "render the confirm remove team member page" in {
       val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
-      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
 
       val result = controller.showConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)(request)
       // then
@@ -792,16 +793,16 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    "redirect when no team member found" in {
+    "redirect when team member is not in 'team members to add' (selected)" in {
       val summary = GroupSummary.of(customGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(summary))
-      expectGetSessionItemNone(MEMBER_TO_REMOVE)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.filterNot(member => member == memberToRemove))
 
       val result = controller.showConfirmRemoveFromTeamMembersToAdd(CUSTOM, groupId, memberToRemove.id)(request)
       // then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(CUSTOM, groupId, None, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showAddTeamMembers(CUSTOM, groupId, None).url
 
     }
 

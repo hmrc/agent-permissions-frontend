@@ -748,13 +748,14 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  s"GET show confirm remove from team members to add ${ctrlRoute.showConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id).url}" should {
+  s"GET ${ctrlRoute.showConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id).url}" should {
 
     "render the confirm remove team member page" in {
-
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
-      expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
+      expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
+
 
       val result = controller.showConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)(request)
       // then
@@ -776,16 +777,15 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     }
 
-    "redirect when no team member found" in {
-
+    "redirect when team member is not selected" in {
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
-      expectGetSessionItemNone(MEMBER_TO_REMOVE)
+      expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.filterNot(member => member == memberToRemove))
 
       val result = controller.showConfirmRemoveFromTeamMembersToAdd(TAX_SERVICE, groupId, memberToRemove.id)(request)
       // then
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe ctrlRoute.showReviewTeamMembersToAdd(TAX_SERVICE, groupId, None, None).url
+      redirectLocation(result).get shouldBe ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None).url
 
     }
 

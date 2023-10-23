@@ -34,7 +34,7 @@ import views.html.groups.create.members.{confirm_deselect_member, confirm_remove
 import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageGroupTeamMembersController @Inject()
@@ -255,22 +255,26 @@ class ManageGroupTeamMembersController @Inject()
 
   def showConfirmRemoveFromTeamMembersToAdd(groupType: String, groupId: models.GroupId, memberId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group: GroupSummary, _: Arn) => {
-      withSessionItem[TeamMember](MEMBER_TO_REMOVE) { maybeMember =>
-        maybeMember.fold(
-          Redirect(controller.showReviewTeamMembersToAdd(group.groupType, group.groupId, None, None)).toFuture
-        )(teamMemberToRemove =>
-          Ok(
-            confirm_deselect_member(
-              YesNoForm.form(),
-              group.groupName,
-              teamMemberToRemove,
-              formAction = controller.submitConfirmRemoveFromTeamMembersToAdd(groupType, groupId, memberId)
-            )
-          ).toFuture
-        )
+      withSessionItem(SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
+        selectedTeamMembers.getOrElse(Seq.empty).find(_.id == memberId) match {
+          // if the user tries to go back after removing, take them to add team members instead
+          case None => Future.successful(Redirect(controller.showAddTeamMembers(groupType, groupId, None)))
+          case Some(teamMemberToRemove) =>
+            sessionCacheService
+              .put(MEMBER_TO_REMOVE, teamMemberToRemove)
+              .map (_ =>
+                Ok(
+                  confirm_deselect_member(
+                    YesNoForm.form(),
+                    group.groupName,
+                    teamMemberToRemove,
+                    formAction = controller.submitConfirmRemoveFromTeamMembersToAdd(groupType, groupId, memberId)
+                  )
+                )
+              )
+        }
       }
-    }
-    }
+    }}
   }
 
   def submitConfirmRemoveFromTeamMembersToAdd(groupType: String, groupId: models.GroupId, memberId: String): Action[AnyContent] = Action.async { implicit request =>

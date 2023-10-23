@@ -112,7 +112,7 @@ class ManageGroupClientsController @Inject()
   def showConfirmRemoveClient(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) => {
       clientService
-        .lookupClient(arn)(clientId)
+        .lookupClient(arn)(clientId) // this just ensures client exists, not if it's still in the group
         .flatMap(maybeClient =>
           maybeClient.fold(Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture)(client =>
             sessionCacheService
@@ -156,12 +156,13 @@ class ManageGroupClientsController @Inject()
                 ).toFuture
               }, (yes: Boolean) => {
                 if (yes) {
-                  groupService
-                    .removeClientFromGroup(groupId, clientToRemove.enrolmentKey) // can currently remove the last client in a group!
-                    .map(_ =>
-                      Redirect(redirectLink)
-                        .flashing("success" -> request.messages("client.removed.confirm", clientToRemove.name))
-                    )
+                  for {
+                    // could remove the last client in a group! remove link is hidden, but route still valid
+                   _ <- groupService.removeClientFromGroup(groupId, clientToRemove.enrolmentKey)
+                   _ <- sessionCacheService.delete(CLIENT_TO_REMOVE)
+                } yield
+                    Redirect(redirectLink)
+                      .flashing("success" -> request.messages("client.removed.confirm", clientToRemove.name))
                 }
                 else Redirect(redirectLink).toFuture
               }

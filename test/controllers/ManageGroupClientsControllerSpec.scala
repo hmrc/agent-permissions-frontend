@@ -835,12 +835,13 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST ${ctrlRoute.submitConfirmRemoveClient(grpId).url}" should {
 
-    "confirm remove client ‘yes’ removes  from group and redirect to group clients list" in {
+    "confirm remove client ‘yes’ removes from group and redirect to group clients list" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
       expectRemoveClientFromGroup(grpId, clientToRemove)
+      expectDeleteSessionItem(CLIENT_TO_REMOVE)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveClient(grpId)}")
@@ -946,13 +947,14 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   s"POST ${ctrlRoute.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey).url}" should {
 
-    "confirm remove client ‘yes’ removes  from group and redirect to REVIEW SELECTED CLIENTS page" in {
+    "confirm remove client ‘yes’ removes from group and redirect to REVIEW SELECTED CLIENTS page" in {
       val summary = GroupSummary.of(accessGroup)
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(grpId, Some(summary))
       expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectPutSessionItem(SELECTED_CLIENTS, displayClients.filterNot(_.id == clientToRemove.id))
+      expectDeleteSessionItem(CLIENT_TO_REMOVE)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)}")
@@ -975,6 +977,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val only1SelectedClient = Seq(clientToRemove)
       expectGetSessionItem(SELECTED_CLIENTS, only1SelectedClient)
       expectPutSessionItem(SELECTED_CLIENTS, Seq.empty[DisplayClient])
+      expectDeleteSessionItem(CLIENT_TO_REMOVE)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveFromSelectedClients(grpId, clientToRemove.enrolmentKey)}")

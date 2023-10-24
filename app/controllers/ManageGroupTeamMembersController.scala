@@ -34,7 +34,7 @@ import views.html.groups.create.members.{confirm_deselect_member, confirm_remove
 import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, update_paginated_team_members}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ManageGroupTeamMembersController @Inject()
@@ -142,12 +142,13 @@ class ManageGroupTeamMembersController @Inject()
                 ).toFuture
               }, (yes: Boolean) => {
                 if (yes) {
-                  groupService
+                  for {
+                    _ <- groupService
                     .removeTeamMemberFromGroup(groupId, teamMemberToRemove.userId.get, isCustom(groupType))
-                    .map(_ =>
+                    _ <- sessionCacheService.delete(MEMBER_TO_REMOVE)
+                  } yield
                       Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
                         .flashing("success" -> request.messages("client.removed.confirm", teamMemberToRemove.name))
-                    )
                 }
                 else Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)).toFuture
               }
@@ -158,7 +159,7 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def showAddTeamMembers(groupType: String, groupId: models.GroupId, page: Option[Int]) = Action.async { implicit request =>
+  def showAddTeamMembers(groupType: String, groupId: models.GroupId, page: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
     withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
       val teamMembers = agentUsersInGroupAsTeamMembers(group)
       val result = for {
@@ -186,7 +187,7 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def submitAddTeamMembers(groupType: String, groupId: models.GroupId) = Action.async { implicit request =>
+  def submitAddTeamMembers(groupType: String, groupId: models.GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
         val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
@@ -252,27 +253,31 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def showConfirmRemoveFromTeamMembersToAdd(groupType: String, groupId: models.GroupId, memberId: String) = Action.async { implicit request =>
+  def showConfirmRemoveFromTeamMembersToAdd(groupType: String, groupId: models.GroupId, memberId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group: GroupSummary, _: Arn) => {
-      withSessionItem[TeamMember](MEMBER_TO_REMOVE) { maybeMember =>
-        maybeMember.fold(
-          Redirect(controller.showReviewTeamMembersToAdd(group.groupType, group.groupId, None, None)).toFuture
-        )(teamMemberToRemove =>
-          Ok(
-            confirm_deselect_member(
-              YesNoForm.form(),
-              group.groupName,
-              teamMemberToRemove,
-              formAction = controller.submitConfirmRemoveFromTeamMembersToAdd(groupType, groupId, memberId)
-            )
-          ).toFuture
-        )
+      withSessionItem(SELECTED_TEAM_MEMBERS) { selectedTeamMembers =>
+        selectedTeamMembers.getOrElse(Seq.empty).find(_.id == memberId) match {
+          // if the user tries to go back after removing, take them to add team members instead
+          case None => Future.successful(Redirect(controller.showAddTeamMembers(groupType, groupId, None)))
+          case Some(teamMemberToRemove) =>
+            sessionCacheService
+              .put(MEMBER_TO_REMOVE, teamMemberToRemove)
+              .map (_ =>
+                Ok(
+                  confirm_deselect_member(
+                    YesNoForm.form(),
+                    group.groupName,
+                    teamMemberToRemove,
+                    formAction = controller.submitConfirmRemoveFromTeamMembersToAdd(groupType, groupId, memberId)
+                  )
+                )
+              )
+        }
       }
-    }
-    }
+    }}
   }
 
-  def submitConfirmRemoveFromTeamMembersToAdd(groupType: String, groupId: models.GroupId, memberId: String) = Action.async { implicit request =>
+  def submitConfirmRemoveFromTeamMembersToAdd(groupType: String, groupId: models.GroupId, memberId: String): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group: GroupSummary, _: Arn) => {
       withSessionItem[TeamMember](MEMBER_TO_REMOVE) { maybeMember =>
         withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedMembers =>
@@ -294,9 +299,14 @@ class ManageGroupTeamMembersController @Inject()
                   ).toFuture
                 }, (yes: Boolean) => {
                   if (yes) {
-                    sessionCacheService
-                      .put(SELECTED_TEAM_MEMBERS, maybeSelectedMembers.getOrElse(Nil).filterNot(tm => tm.id == memberId))
-                      .map(_ => Redirect(controller.showReviewTeamMembersToAdd(groupType, groupId, None, None)))
+                    val remainingTeamMembers = maybeSelectedMembers.getOrElse(Nil).filterNot(tm => tm.id == memberId)
+                    for {
+                      _ <- sessionCacheService.put(SELECTED_TEAM_MEMBERS, remainingTeamMembers)
+                      _ <- sessionCacheService.delete(MEMBER_TO_REMOVE)
+                    } yield remainingTeamMembers.size match {
+                      case 0 => Redirect(controller.showAddTeamMembers(groupType, groupId, None))
+                      case _ => Redirect(controller.showReviewTeamMembersToAdd(groupType, groupId, None, None))
+                    }
                   }
                   else Redirect(controller.showReviewTeamMembersToAdd(groupType, groupId, None, None)).toFuture
                 }
@@ -308,7 +318,7 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def showReviewTeamMembersToAdd(groupType: String, groupId: models.GroupId, page: Option[Int], pageSize: Option[Int]) = Action.async { implicit request =>
+  def showReviewTeamMembersToAdd(groupType: String, groupId: models.GroupId, page: Option[Int], pageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { selectedMembers =>
         selectedMembers
@@ -327,7 +337,7 @@ class ManageGroupTeamMembersController @Inject()
     }
   }
 
-  def submitReviewTeamMembersToAdd(groupType: String, groupId: models.GroupId) = Action.async { implicit request =>
+  def submitReviewTeamMembersToAdd(groupType: String, groupId: models.GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
       withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
         maybeSelectedTeamMembers

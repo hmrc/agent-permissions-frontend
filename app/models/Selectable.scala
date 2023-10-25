@@ -55,6 +55,7 @@ case object TeamMember {
     AgentUser(tm.userId.get, tm.name)
 }
 
+// There's a copy of this in agent-permissions BE
 case class DisplayClient(
                           hmrcRef: String,
                           name: String,
@@ -70,6 +71,7 @@ case class DisplayClient(
   val id: String = EncryptionUtil.encryptEnrolmentKey(enrolmentKey)
 }
 
+// There's a copy of this in agent-permissions BE
 case object DisplayClient {
 
   implicit val format: OFormat[DisplayClient] = Json.format[DisplayClient]

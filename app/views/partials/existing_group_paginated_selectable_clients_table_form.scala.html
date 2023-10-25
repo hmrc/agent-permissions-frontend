@@ -55,14 +55,15 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @hasClientsAlreadyInGroup = @{clients.exists(_.alreadyInGroup)}
-    @tableHeadings = @{
-        Seq[(Html, Map[String, String])](
-            (span("group.client.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty),
-            (Html(msgs("group.client.list.table.th1")), Map.empty),
-            (Html(msgs("group.client.list.table.th2")), Map.empty),
-            (Html(msgs("group.client.list.table.th3")), Map.empty),
-        )
-    }
+
+@tableHeadings = @{
+    Seq[(Html, Map[String, String])](
+        (span("group.client.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty),
+        (Html(msgs("group.client.list.table.th1")), Map.empty),
+        (Html(msgs("group.client.list.table.th2")), Map.empty),
+        (Html(msgs("group.client.list.table.th3")), Map.empty),
+    )
+}
 
 @tableRows = @{
     clients.zipWithIndex.map(clientWithIndex =>{

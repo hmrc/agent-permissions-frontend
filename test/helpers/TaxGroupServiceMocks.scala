@@ -37,7 +37,8 @@ trait TaxGroupServiceMocks extends MockFactory {
       "HMRC-MTD-VAT" -> numberOfEachService(1),
       "HMRC-CGT-PD" -> numberOfEachService(2),
       "HMRC-PPT-ORG" -> numberOfEachService(3),
-      "HMRC-TERS" -> numberOfEachService(4)
+      "HMRC-TERS" -> numberOfEachService(4),
+      "HMRC-PILLAR2-ORG" -> numberOfEachService(5)
     )
     (taxGroupService
       .getTaxGroupClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))

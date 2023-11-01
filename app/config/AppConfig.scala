@@ -29,6 +29,7 @@ trait AppConfig {
   def appName: String
   def welshLanguageSupportEnabled: Boolean
   val cbcEnabled: Boolean
+  val pillar2Enabled: Boolean
   def contactFrontendBaseUrl: String
   def contactFrontendServiceId: String
   def betaFeedbackUrl: String
@@ -54,6 +55,7 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: E
   lazy val appName: String = servicesConfig.getString("appName")
   lazy val welshLanguageSupportEnabled: Boolean = servicesConfig.getBoolean("features.welsh-language-support")
   override val cbcEnabled: Boolean = servicesConfig.getBoolean("features.enable-cbc")
+  override val pillar2Enabled: Boolean = servicesConfig.getBoolean("features.enable-pillar2")
 
   lazy val contactFrontendBaseUrl: String = servicesConfig.getString("contact-frontend.external-url")
   lazy val contactFrontendServiceId: String = servicesConfig.getString("contact-frontend.serviceId")

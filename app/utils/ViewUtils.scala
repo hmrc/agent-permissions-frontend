@@ -27,12 +27,14 @@ object ViewUtils {
       ("HMRC-MTD-VAT", mgs("tax-service.vat")),
       ("HMRC-CGT-PD", mgs("tax-service.cgt")),
       ("HMRC-PPT-ORG", mgs("tax-service.ppt")),
-      ("TRUST", mgs("tax-service.trusts")) // TODO update to HMRC-TERS
+      ("TRUST", mgs("tax-service.trusts")), // TODO update to HMRC-TERS
     )
-
-    if(appConfig.cbcEnabled) {
-      filters ++ Seq(("HMRC-CBC", mgs("tax-service.cbc")))
-    } else filters
+    (appConfig.cbcEnabled,appConfig.pillar2Enabled)  match {
+      case (true, true) => filters ++ Seq(("HMRC-CBC", mgs("tax-service.cbc")), ("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2")))
+      case (true, false) => filters ++ Seq(("HMRC-CBC", mgs("tax-service.cbc")))
+      case (false, true) => filters ++ Seq(("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2")))
+      case _ => filters
+    }
   }
 
   def getFiltersTaxServiceListWithClientCount(data: Map[String, Int])
@@ -50,6 +52,7 @@ object ViewUtils {
       case "HMRC-MTD-VAT"    => mgs("tax-service.vat")
       case "HMRC-CGT-PD"     => mgs("tax-service.cgt")
       case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
+      case "HMRC-PILLAR2-ORG" => mgs("tax-service.pillar2")
       // TRUST not a service key but value for filter
       case s if s.contains("HMRC-TERS") || s == "TRUST" => mgs("tax-service.trusts")
       // We treat UK and NONUK variants as the same service

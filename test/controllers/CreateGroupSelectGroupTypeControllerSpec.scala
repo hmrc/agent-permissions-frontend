@@ -198,7 +198,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         ctrlRoute.showSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108, 5))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108, 5, 10))
 
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
@@ -219,9 +219,10 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
       taxTypeOptions.get(2).text() shouldBe "Country-by-country reports (5)"
       taxTypeOptions.get(3).text() shouldBe "Making Tax Digital for Income Tax (13)"
-      taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax (22)"
-      taxTypeOptions.get(5).text() shouldBe "Trusts and estates (108)"
-      taxTypeOptions.get(6).text() shouldBe "VAT (85)"
+      taxTypeOptions.get(4).text() shouldBe "Pillar2 (10)"
+      taxTypeOptions.get(5).text() shouldBe "Plastic Packaging Tax (22)"
+      taxTypeOptions.get(6).text() shouldBe "Trusts and estates (108)"
+      taxTypeOptions.get(7).text() shouldBe "VAT (85)"
 
       html.select("#tsg-inset").text() shouldBe "We will add new clients to this group automatically. We’ll do this when they authorise you for the selected tax service. You can manually remove specific clients later, using the ‘Manage access groups’ section."
 
@@ -239,7 +240,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
 
       // No PPT or CBC clients means either in tax group already or no clients for the agent
-      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 0, 108, 0))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 0, 108, 0, 10))
 
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
@@ -259,9 +260,10 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       taxTypeOptions.get(0).text() shouldBe "Select tax service"
       taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
       taxTypeOptions.get(2).text() shouldBe "Making Tax Digital for Income Tax (13)"
-      taxTypeOptions.get(3).text() shouldBe "Trusts and estates (108)"
-      taxTypeOptions.get(4).text() shouldBe "VAT (85)"
-      taxTypeOptions.toString.contains("Plastic Packaging Tax") shouldBe false
+      taxTypeOptions.get(3).text() shouldBe "Pillar2 (10)"
+      taxTypeOptions.get(4).text() shouldBe "Trusts and estates (108)"
+      taxTypeOptions.get(5).text() shouldBe "VAT (85)"
+        taxTypeOptions.toString.contains("Plastic Packaging Tax") shouldBe false
       taxTypeOptions.toString.contains("Country-by-country reports") shouldBe false
 
       html.select("#tsg-inset").text() shouldBe "We will add new clients to this group automatically. We’ll do this when they authorise you for the selected tax service. You can manually remove specific clients later, using the ‘Manage access groups’ section."
@@ -279,7 +281,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
         ctrlRoute.showSelectTaxServiceGroupType().url)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectGetAvailableTaxServiceClientCount(arn)(List(0,0,0,0,0,0))
+      expectGetAvailableTaxServiceClientCount(arn)(List(0,0,0,0,0,0,0))
 
       //when
       val result = controller.showSelectTaxServiceGroupType()(request)
@@ -301,7 +303,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       //given
       expectAuthOkArnAllowedOptedInReady()
       expectGetSessionItem(GROUP_TYPE, TAX_SERVICE_GROUP)
-      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108, 5))
+      expectGetAvailableTaxServiceClientCount(arn)(List(13, 85, 38, 22, 108, 5, 10))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST",
         ctrlRoute.submitSelectTaxServiceGroupType().url)

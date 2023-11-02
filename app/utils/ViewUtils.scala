@@ -27,14 +27,12 @@ object ViewUtils {
       ("HMRC-MTD-VAT", mgs("tax-service.vat")),
       ("HMRC-CGT-PD", mgs("tax-service.cgt")),
       ("HMRC-PPT-ORG", mgs("tax-service.ppt")),
-      ("TRUST", mgs("tax-service.trusts")), // TODO update to HMRC-TERS
-    )
-    (appConfig.cbcEnabled,appConfig.pillar2Enabled)  match {
-      case (true, true) => filters ++ Seq(("HMRC-CBC", mgs("tax-service.cbc")), ("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2")))
-      case (true, false) => filters ++ Seq(("HMRC-CBC", mgs("tax-service.cbc")))
-      case (false, true) => filters ++ Seq(("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2")))
-      case _ => filters
-    }
+      ("TRUST", mgs("tax-service.trusts")) // TODO update to HMRC-TERS
+    ) ++
+      (if (appConfig.cbcEnabled) Seq(("HMRC-CBC", mgs("tax-service.cbc"))) else Seq.empty) ++
+      (if (appConfig.pillar2Enabled) Seq(("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2"))) else Seq.empty)
+
+    filters.sortBy(x => (x._2))
   }
 
   def getFiltersTaxServiceListWithClientCount(data: Map[String, Int])

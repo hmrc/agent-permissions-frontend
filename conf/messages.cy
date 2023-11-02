@@ -281,6 +281,7 @@ tax-service.ppt=Treth Deunydd Pacio Plastig
 tax-service.trusts=Ymddiriedolaethau ac ystadau
 tax-service.vat=TAW
 tax-service.cbc=Adroddiadau gwlad wrth wlad
+tax-service.pillar2=Pillar2
 team-members.not-found.heading=Ni chanfuwyd unrhyw aelodau tîm
 team-members.filter.form.not-found.heading=Dim canlyniadau hidlo ar gyfer "{0}"
 team-members.not-found.p=Diweddarwch eich hidlyddion a rhowch gynnig arall arni. Fel arall, cliriwch eich hidlyddion i weld pob aelod o’ch tîm

@@ -41,7 +41,8 @@ trait ClientServiceMocks extends MockFactory {
       "HMRC-CGT-PD" -> numberOfEachService(2),
       "HMRC-PPT-ORG" -> numberOfEachService(3),
       "HMRC-TERS" -> numberOfEachService(4),
-      "HMRC-CBC" -> numberOfEachService(5)
+      "HMRC-CBC" -> numberOfEachService(5),
+      "HMRC-PILLAR2-ORG" -> numberOfEachService(6),
     ).filter { case (_, count) => count != 0 }
     (clientService
       .getAvailableTaxServiceClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))

@@ -20,13 +20,13 @@
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agents.accessgroups.GroupSummary
-@import views.html.partials.existing_group_paginated_selectable_clients_table_form
+@import views.html.partials.existing_group_selectable_clients_table_form
 
 @this(
     layout: main_layout,
     p: p, h1: h1, caption: caption,
     summaryErrors: SummaryErrors,
-    existing_group_paginated_selectable_clients_table_form: existing_group_paginated_selectable_clients_table_form
+    existing_group_selectable_clients_table_form: existing_group_selectable_clients_table_form
 )
 
 @(
@@ -63,7 +63,7 @@ withSearchAndErrorPrefix(form.errors.nonEmpty,
         @p("common.group.max.clients")
     </div>
 
-    @existing_group_paginated_selectable_clients_table_form(
+    @existing_group_selectable_clients_table_form(
         clients,
         form,
         paginationMetaData = paginationMetaData,

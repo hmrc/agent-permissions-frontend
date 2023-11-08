@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import models.AddClientsToGroup
-@import views.html.partials.paginated_selectable_clients_table_form
+@import views.html.partials.selectable_clients_table_form
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import uk.gov.hmrc.agents.accessgroups.TaxGroup
@@ -28,7 +28,7 @@
     p: p, h1: h1, h2: h2, span: span, caption: caption,
     summaryErrors: SummaryErrors,
     table: table,
-    paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
+    selectable_clients_table_form: selectable_clients_table_form
 )
 
 @(
@@ -64,7 +64,7 @@
         @h1("tax-group.manage.removed.clients.h1")
     </div>
 
-    @paginated_selectable_clients_table_form(
+    @selectable_clients_table_form(
         clients,
         form,
         routes.ManageTaxGroupClientsController.submitUnexcludeClients(group.id),

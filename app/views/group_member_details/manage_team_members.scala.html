@@ -16,7 +16,7 @@
 
 @import config.AppConfig
 @import views.html.main_layout
-@import views.html.partials.team_members_details_table_filter_form
+@import views.html.partials.details_team_members_table_filter_form
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 @this(
@@ -25,7 +25,7 @@
         table: table, caption:caption,
         summaryErrors: SummaryErrors,
         govukSkipLink: GovukSkipLink,
-        team_members_details_table_filter_form: team_members_details_table_filter_form
+        details_team_members_table_filter_form: details_team_members_table_filter_form
 )
 
 @(
@@ -51,6 +51,6 @@
         @p(html = Some(Html(msgs("group.manage.members.p", "/tax-and-scheme-management/users?origin=Agent"))))
     </div>
 
-    @team_members_details_table_filter_form(teamMembers, form, paginationMetaData)
+    @details_team_members_table_filter_form(teamMembers, form, paginationMetaData)
 
 }

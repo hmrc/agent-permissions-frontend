@@ -19,7 +19,7 @@
 @import views.html.partials.search_and_filter
 @import controllers.routes
 @import models.AddClientsToGroup
-@import views.html.partials.paginated_selectable_clients_table_form
+@import views.html.partials.selectable_clients_table_form
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 
 
@@ -31,7 +31,7 @@
     formWithCSRF: FormWithCSRF,
     search_and_filter: search_and_filter,
     summaryErrors: SummaryErrors,
-    paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
+    selectable_clients_table_form: selectable_clients_table_form
 )
 
 @(
@@ -69,7 +69,7 @@
     @summaryErrors(form.errors, Some(errorHref))
 
     @if(unassignedClients.nonEmpty) {
-        @paginated_selectable_clients_table_form(
+        @selectable_clients_table_form(
             unassignedClients,
             form,
             routes.UnassignedClientController.submitAddUnassignedClients,

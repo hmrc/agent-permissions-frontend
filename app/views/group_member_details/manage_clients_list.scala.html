@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import views.html.main_layout
-@import views.html.partials.clients_details_table_filter_form
+@import views.html.partials.details_clients_table_filter_form
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginatedList
 
 @this(
@@ -25,7 +25,7 @@
         p: p, h1: h1, a: a, span: span,
         table: table,
         summaryErrors: SummaryErrors,
-        clients_details_table_filter_form: clients_details_table_filter_form
+        details_clients_table_filter_form: details_clients_table_filter_form
 )
 
 @(
@@ -51,6 +51,6 @@
         @p("group.manage.clients.p")
     </div>
 
-    @clients_details_table_filter_form(paginatedList, form, formAction)
+    @details_clients_table_filter_form(paginatedList, form, formAction)
 
 }

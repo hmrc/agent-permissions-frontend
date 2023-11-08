@@ -17,7 +17,7 @@
 @import config.AppConfig
 @import controllers.routes
 @import models.AddClientsToGroup
-@import views.html.partials.paginated_selectable_clients_table_form
+@import views.html.partials.selectable_clients_table_form
 @import views.html.main_layout
 @import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 @import utils.ViewUtils.displayTaxServiceFromServiceKey
@@ -27,7 +27,7 @@
         p: p, h1: h1, h2: h2, span: span, caption: caption,
         summaryErrors: SummaryErrors,
         table: table,
-        paginated_selectable_clients_table_form: paginated_selectable_clients_table_form
+        selectable_clients_table_form: selectable_clients_table_form
 )
 
 @(
@@ -77,7 +77,7 @@
         @p("common.group.max.clients")
     </div>
 
-    @paginated_selectable_clients_table_form(clients, form, formAction, paginationMetaData, submitButtonKey = "save.and.continue.button")
+    @selectable_clients_table_form(clients, form, formAction, paginationMetaData, submitButtonKey = "save.and.continue.button")
 
 }
 

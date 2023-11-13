@@ -219,8 +219,8 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
       taxTypeOptions.get(2).text() shouldBe "Country-by-country reports (5)"
       taxTypeOptions.get(3).text() shouldBe "Making Tax Digital for Income Tax (13)"
-      taxTypeOptions.get(4).text() shouldBe "Pillar2 (10)"
-      taxTypeOptions.get(5).text() shouldBe "Plastic Packaging Tax (22)"
+      taxTypeOptions.get(4).text() shouldBe "Plastic Packaging Tax (22)"
+      taxTypeOptions.get(5).text() shouldBe "Report Pillar 2 top-up taxes (10)"
       taxTypeOptions.get(6).text() shouldBe "Trusts and estates (108)"
       taxTypeOptions.get(7).text() shouldBe "VAT (85)"
 
@@ -260,7 +260,7 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
       taxTypeOptions.get(0).text() shouldBe "Select tax service"
       taxTypeOptions.get(1).text() shouldBe "Capital Gains Tax on UK Property account (38)"
       taxTypeOptions.get(2).text() shouldBe "Making Tax Digital for Income Tax (13)"
-      taxTypeOptions.get(3).text() shouldBe "Pillar2 (10)"
+      taxTypeOptions.get(3).text() shouldBe "Report Pillar 2 top-up taxes (10)"
       taxTypeOptions.get(4).text() shouldBe "Trusts and estates (108)"
       taxTypeOptions.get(5).text() shouldBe "VAT (85)"
         taxTypeOptions.toString.contains("Plastic Packaging Tax") shouldBe false

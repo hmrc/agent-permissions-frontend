@@ -274,7 +274,7 @@ class UnassignedClientController @Inject()(
               val clonedForm = formWithErrors.copy(
                 errors = Seq(FormError("field-wrapper", formWithErrors.errors.head.message))
               )
-              Ok(select_groups_for_clients(clonedForm, groups))
+              Ok(select_groups_for_clients(clonedForm, groups.filter(_.isCustomGroup)))
             }
             )
           }, {

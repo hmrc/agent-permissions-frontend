@@ -25,12 +25,12 @@
 
 @(client: DisplayClient, clientRef: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@* note all panel content is inside h1 *@
 @panelContent = {
-    @caption(
-        key = msgs("update-client-reference.caption",
-            displayObfuscatedReference(clientRef, client.hmrcRef)),
-        classes=Some("govuk-panel--confirmation")
-    )
+    @* can't use caption as h2 can't be inside a h1 which results in browser rendering an empty h1 + content below *@
+    <span class="govuk-panel--confirmation govuk-caption-l">
+        @msgs("update-client-reference.caption", displayObfuscatedReference(clientRef, client.hmrcRef))
+    </span>
     <span class="govuk-!-font-size-36">@msgs("client-reference.updated.h1")</span>
 }
 

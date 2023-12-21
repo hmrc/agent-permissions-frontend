@@ -158,7 +158,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for ‘John 1’ Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
-      html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘John 1’ in this group"
+      html.select(H2).get(1).text shouldBe "Showing 1 team members for ‘John 1’ in this group"
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 
@@ -189,7 +189,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for ‘hn2@ab’ Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
-      html.select(paragraphs).get(0).text shouldBe "Showing 1 team members for ‘hn2@ab’ in this group"
+      html.select(H2).get(1).text shouldBe "Showing 1 team members for ‘hn2@ab’ in this group"
 
       val trs =
         html.select(Css.tableWithId("members")).select("tbody tr")

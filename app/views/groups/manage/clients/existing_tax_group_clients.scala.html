@@ -93,20 +93,17 @@
 
         @if(form.data.get("search").exists(_.trim.nonEmpty) /* if a filter was applied */) {
             @if(groupClients.length == 1) {
-                @span(
-                    msgs("group.manage.clients.showing.results.one", filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
-                    classes = Some("govuk-heading-m")
+                @h2(
+                    msgs("group.manage.clients.showing.results.one", filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
                 )
             } else {
-                @span(
-                    msgs("group.manage.clients.showing.results.many", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
-                    classes = Some("govuk-heading-m")
+                @h2(
+                    msgs("group.manage.clients.showing.results.many", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
                 )
             }
         } else {
-            @span(
-                msgs("paginated.clients.showing.tax-group.total", paginationMetaData.fold(groupClients.length)(_.totalSize), group.taxService.fold("")(displayTaxServiceFromServiceKey)),
-                classes = Some("govuk-heading-m")
+            @h2(
+                msgs("paginated.clients.showing.tax-group.total", paginationMetaData.fold(groupClients.length)(_.totalSize), group.taxService.fold("")(displayTaxServiceFromServiceKey))
             )
         }
 

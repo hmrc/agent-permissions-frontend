@@ -26,6 +26,7 @@ object Css {
   val caption = "main span.govuk-caption-l"
   val H1 = "main h1"
   val H2 = "main h2"
+  val H3 = "main h3"
   val li = (id: String) => s"main .govuk-list#${id} li"
   val PRE_H1 = "main .govuk-caption-l"
   val paragraphs = "main p"

@@ -81,12 +81,12 @@
         @paginationMetaData.fold {
             @p(msgs("common.total.team-members", teamMembers.length), id = Some("team-members-in-group"))
         }{ paginationMeta =>
-            <p class="govuk-body">
-                @span(
-                    msgs("paginated.team-members.showing.in-group", paginationMetaData.fold(teamMembers.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), None)),
-                    classes = Some("govuk-heading-m")
+                @h2(
+                    key = msgs("paginated.team-members.showing.in-group",
+                            paginationMetaData.fold(teamMembers.length)(_.totalSize),
+                            filterReminderSubstring(form.data.get("search"), None)
+                    ),
                 )
-            </p>
         }
 
 

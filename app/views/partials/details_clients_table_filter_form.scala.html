@@ -67,15 +67,13 @@
         @search_and_filter(form, true)
 
         @if(paginatedList.pageContent.nonEmpty) {
+            @h2(key = msgs("paginated.clients.showing.total",
+                            paginatedList.paginationMetaData.totalSize,
+                            filterReminderSubstring(form.data.get("search"), form.data.get("filter"))
+                            ),
+                id = Some("filter-results-info")
+            )
 
-            @defining((paginatedList.paginationMetaData.currentPageNumber - 1) * paginatedList.paginationMetaData.pageSize) { pageStart =>
-                <p class="govuk-body" id="filter-results-info">
-                    @span(
-                        msgs("paginated.clients.showing.total", paginatedList.paginationMetaData.totalSize, filterReminderSubstring(form.data.get("search"), form.data.get("filter"))),
-                        classes = Some("govuk-heading-m")
-                    )
-                </p>
-            }
             @table(
                 caption = Some("common.clients"),
                 captionClasses = "govuk-visually-hidden",

@@ -68,16 +68,18 @@
             @paginationMetaData.fold {
                 @p(msgs("common.total.team-members", teamMembers.length), id = Some("team-members-in-group"))
             } { paginationMeta =>
-                @defining((paginationMeta.currentPageNumber - 1) * paginationMeta.pageSize) { pageStart =>
-                    <p class="govuk-body">
-                        @span(
-                            msgs("paginated.team-members.showing.total", paginationMeta.totalSize),
-                            classes = Some("govuk-heading-m")
-                        )
-                        @if(form.data.nonEmpty && form.data.get("search").isDefined) {
-                            @span(msgs("paginated.team-members.for.search", form.data.get("search").get))
-                        }
-                    </p>
+
+                @if(form.data.nonEmpty && form.data.get("search").isDefined) {
+                    @h2(key = msgs("paginated.team-members.showing.total",
+                                    paginationMeta.totalSize,
+                                    filterReminderSubstring(form.data.get("search"), None)
+                                    ),
+                    id = Some("filter-results-info")
+                    )
+                } else {
+                    @h2(key = msgs("paginated.team-members.showing.total", paginationMeta.totalSize, filterReminderSubstring(None, None)),
+                    id = Some("filter-results-info")
+                    )
                 }
             }
 

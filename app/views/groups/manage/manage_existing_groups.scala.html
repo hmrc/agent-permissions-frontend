@@ -26,7 +26,7 @@
 
 @this(
     layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,
-    p: p, h1: h1, h2: h2, a: a, span: span,
+    p: p, h1: h1, h2: h2, h3: h3, a: a, span: span,
     table: table, textbox: textbox, summary_list: summary_list,
     a_button: link_as_button, search_and_filter: search_and_filter,
     GET_pagination: GET_pagination,
@@ -94,7 +94,7 @@
     @if(summaries.nonEmpty) {
         @summaries.map { summary =>
 
-            @h2(msgs(summary.groupName) + " " + groupTypeTag(summary.taxService.isEmpty).toString)
+            @h3(msgs(summary.groupName) + " " + groupTypeTag(summary.taxService.isEmpty).toString)
 
             @summary_list(
                 Seq(

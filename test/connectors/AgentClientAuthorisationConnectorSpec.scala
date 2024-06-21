@@ -16,7 +16,6 @@
 
 package connectors
 
-
 import com.google.inject.AbstractModule
 import helpers.{AgentClientAuthorisationConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
@@ -24,21 +23,21 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
+class AgentClientAuthorisationConnectorSpec
+    extends BaseSpec with HttpClientMocks with AgentClientAuthorisationConnectorMocks {
 
-class AgentClientAuthorisationConnectorSpec extends BaseSpec with HttpClientMocks with AgentClientAuthorisationConnectorMocks {
-  
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
-    override def configure(): Unit = {
+    override def configure(): Unit =
       bind(classOf[HttpClient]).toInstance(mockHttpClient)
-    }
   }
 
   override implicit lazy val fakeApplication: Application = appBuilder.build()
 
-  val connector: AgentClientAuthorisationConnector = fakeApplication.injector.instanceOf[AgentClientAuthorisationConnectorImpl]
+  val connector: AgentClientAuthorisationConnector =
+    fakeApplication.injector.instanceOf[AgentClientAuthorisationConnectorImpl]
 
   "getSuspensionDetails" should {
     "return SuspensionDetails when OK with valid JSON response received" in {
@@ -51,8 +50,7 @@ class AgentClientAuthorisationConnectorSpec extends BaseSpec with HttpClientMock
                           |    ]
                           |}""".stripMargin
 
-      expectHttpClientGET[HttpResponse](
-        HttpResponse.apply(200, jsonString))
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(200, jsonString))
 
       connector.getSuspensionDetails().futureValue shouldBe suspendedDetails
     }

@@ -32,8 +32,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CreateGroupSelectClientsController @Inject()
-(
+class CreateGroupSelectClientsController @Inject() (
   groupAction: GroupAction,
   sessionAction: SessionAction,
   mcc: MessagesControllerComponents,
@@ -49,8 +48,7 @@ class CreateGroupSelectClientsController @Inject()
   implicit val appConfig: AppConfig,
   ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi
-) extends FrontendController(mcc)
-  with I18nSupport with Logging {
+) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import groupAction._
   import sessionAction.withSessionItem
@@ -63,11 +61,11 @@ class CreateGroupSelectClientsController @Inject()
     withGroupNameAndAuthorised { (groupName, _, arn) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-            Ok(
-              search_clients(
-                form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
-                groupName = groupName
-              )
+          Ok(
+            search_clients(
+              form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+              groupName = groupName
+            )
           ).toFuture
         }
       }
@@ -80,48 +78,61 @@ class CreateGroupSelectClientsController @Inject()
         .form()
         .bindFromRequest()
         .fold(
-          formWithErrors => {
-              Ok(
-                search_clients(
-                  formWithErrors,
-                  groupName
-                ),
-              ).toFuture
-          }, formData => {
-            sessionCacheOps.saveSearch(formData.search, formData.filter).flatMap(_ => {
-              Redirect(controller.showSelectClients(Some(1), Some(CLIENT_PAGE_SIZE))).toFuture
-            })
-          })
+          formWithErrors =>
+            Ok(
+              search_clients(
+                formWithErrors,
+                groupName
+              )
+            ).toFuture,
+          formData =>
+            sessionCacheOps
+              .saveSearch(formData.search, formData.filter)
+              .flatMap(_ => Redirect(controller.showSelectClients(Some(1), Some(CLIENT_PAGE_SIZE))).toFuture)
+        )
     }
   }
 
-  def showSelectClients(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, arn) =>
-      withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
-        withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
-          clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(CLIENT_PAGE_SIZE)).flatMap { paginatedClients =>
-            if (paginatedClients.pageContent.isEmpty) {// if the search failed (no results) (APB-7378)
-              withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
-                Future.successful(Ok(search_clients(
-                  form = SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
-                  groupName = groupName,
-                  isFailedSearch = true,
-                  continueAction = if (selectedClients.exists(_.nonEmpty)) Some(routes.CreateGroupSelectClientsController.submitSelectedClients()) else None
-                )))
-              }
-            } else {
-              Future.successful(Ok(
-                select_paginated_clients(
-                  paginatedClients.pageContent,
-                  groupName,
-                  form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
-                  paginationMetaData = Some(paginatedClients.paginationMetaData))
-              ))
+  def showSelectClients(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async {
+    implicit request =>
+      withGroupNameAndAuthorised { (groupName, _, arn) =>
+        withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
+          withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
+            clientService.getPaginatedClients(arn)(page.getOrElse(1), pageSize.getOrElse(CLIENT_PAGE_SIZE)).flatMap {
+              paginatedClients =>
+                if (paginatedClients.pageContent.isEmpty) { // if the search failed (no results) (APB-7378)
+                  withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
+                    Future.successful(
+                      Ok(
+                        search_clients(
+                          form =
+                            SearchAndFilterForm.form().fill(SearchFilter(clientSearchTerm, clientFilterTerm, None)),
+                          groupName = groupName,
+                          isFailedSearch = true,
+                          continueAction =
+                            if (selectedClients.exists(_.nonEmpty))
+                              Some(routes.CreateGroupSelectClientsController.submitSelectedClients())
+                            else None
+                        )
+                      )
+                    )
+                  }
+                } else {
+                  Future.successful(
+                    Ok(
+                      select_paginated_clients(
+                        paginatedClients.pageContent,
+                        groupName,
+                        form = AddClientsToGroupForm.form().fill(AddClientsToGroup(clientSearchTerm, clientFilterTerm)),
+                        paginationMetaData = Some(paginatedClients.paginationMetaData)
+                      )
+                    )
+                  )
+                }
             }
           }
         }
       }
-    }
   }
 
   def submitSelectedClients: Action[AnyContent] = Action.async { implicit request =>
@@ -134,24 +145,22 @@ class CreateGroupSelectClientsController @Inject()
           .form(hasPreSelected)
           .bindFromRequest()
           .fold(
-            formWithErrors => {
+            formWithErrors =>
               for {
                 paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
-              } yield
-                Ok(
-                  select_paginated_clients(
-                    clients = paginatedClients.pageContent,
-                    groupName = groupName,
-                    form = formWithErrors,
-                    paginationMetaData = Some(paginatedClients.paginationMetaData)
-                  )
+              } yield Ok(
+                select_paginated_clients(
+                  clients = paginatedClients.pageContent,
+                  groupName = groupName,
+                  form = formWithErrors,
+                  paginationMetaData = Some(paginatedClients.paginationMetaData)
                 )
-            },
-            formData => {
+              ),
+            formData =>
               // don't savePageOfClients if "Select all button" eg forData.submit == "SELECT_ALL"
               sessionCacheOps
                 .savePageOfClientsForCreateGroup(formData)
-                .flatMap(nowSelectedClients => {
+                .flatMap { nowSelectedClients =>
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected clients from session cache AFTER saving (removed de-selections)
                     if (nowSelectedClients.nonEmpty) {
@@ -159,54 +168,54 @@ class CreateGroupSelectClientsController @Inject()
                     } else { // render page with empty client error
                       for {
                         paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
-                      } yield
-                        Ok(
-                          select_paginated_clients(
-                            paginatedClients.pageContent,
-                            groupName,
-                            form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
-                            paginationMetaData = Some(paginatedClients.paginationMetaData)
-                          )
+                      } yield Ok(
+                        select_paginated_clients(
+                          paginatedClients.pageContent,
+                          groupName,
+                          form = AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
+                          paginationMetaData = Some(paginatedClients.paginationMetaData)
                         )
+                      )
                     }
                   } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                     Redirect(controller.showSelectClients(Some(pageToShow), Some(CLIENT_PAGE_SIZE))).toFuture
-                  } else { //bad submit
+                  } else { // bad submit
                     Redirect(controller.showSearchClients()).toFuture
                   }
                 }
-                )
-            }
           )
       }
     }
   }
 
-  def showReviewSelectedClients(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, _) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
-        maybeClients.fold(
-          Redirect(controller.showSearchClients()).toFuture
-        )(clients => {
-          val paginatedList = PaginatedListBuilder.build[DisplayClient](
-            maybePage.getOrElse(1),
-            maybePageSize.getOrElse(REVIEW_SELECTED_PAGE_SIZE),
-            clients
-          )
-          sessionCacheService.get(CONFIRM_CLIENTS_SELECTED).map(mData =>
-          Ok(
-            review_selected(
-              paginatedList.pageContent,
-              groupName,
-              formWithFilledValue(YesNoForm.form(), mData),
-              paginationMetaData = Some(paginatedList.paginationMetaData)
+  def showReviewSelectedClients(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async {
+    implicit request =>
+      withGroupNameAndAuthorised { (groupName, _, _) =>
+        withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+          maybeClients.fold(
+            Redirect(controller.showSearchClients()).toFuture
+          ) { clients =>
+            val paginatedList = PaginatedListBuilder.build[DisplayClient](
+              maybePage.getOrElse(1),
+              maybePageSize.getOrElse(REVIEW_SELECTED_PAGE_SIZE),
+              clients
             )
-          ))
+            sessionCacheService
+              .get(CONFIRM_CLIENTS_SELECTED)
+              .map(mData =>
+                Ok(
+                  review_selected(
+                    paginatedList.pageContent,
+                    groupName,
+                    formWithFilledValue(YesNoForm.form(), mData),
+                    paginationMetaData = Some(paginatedList.paginationMetaData)
+                  )
+                )
+              )
+          }
         }
-        )
       }
-    }
   }
 
   def showConfirmRemoveClient(clientId: Option[String]): Action[AnyContent] = Action.async { implicit request =>
@@ -216,18 +225,16 @@ class CreateGroupSelectClientsController @Inject()
           // if clientId is not provided as a query parameter, check the CLIENT_TO_REMOVE session value.
           // This is to enable the welsh language switch to work correctly.
           maybeClientId: Option[String] <- clientId match {
-            case None => sessionCacheService.get(CLIENT_TO_REMOVE).map(_.map(_.id))
-            case Some(cid) => Future.successful(Some(cid))
-          }
+                                             case None => sessionCacheService.get(CLIENT_TO_REMOVE).map(_.map(_.id))
+                                             case Some(cid) => Future.successful(Some(cid))
+                                           }
           result <- maybeClientId.flatMap(id => selectedClients.getOrElse(Seq.empty).find(_.id == id)) match {
-            case None => Future.successful(Redirect(controller.showSearchClients()))
-            case Some(client) =>
-              sessionCacheService
-                .put(CLIENT_TO_REMOVE, client)
-                .flatMap(_ =>
-                  Ok(confirm_remove_client(YesNoForm.form(), groupName, client)).toFuture
-                )
-          }
+                      case None => Future.successful(Redirect(controller.showSearchClients()))
+                      case Some(client) =>
+                        sessionCacheService
+                          .put(CLIENT_TO_REMOVE, client)
+                          .flatMap(_ => Ok(confirm_remove_client(YesNoForm.form(), groupName, client)).toFuture)
+                    }
         } yield result
       }
     }
@@ -239,23 +246,19 @@ class CreateGroupSelectClientsController @Inject()
         withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
           if (maybeClient.isEmpty || maybeSelectedClients.isEmpty) {
             Redirect(controller.showSelectClients(None, None)).toFuture
-          }
-          else {
+          } else {
             YesNoForm
               .form("group.client.remove.error")
               .bindFromRequest()
               .fold(
-                formWithErrors => {
-                  Ok(confirm_remove_client(formWithErrors, groupName, maybeClient.get)).toFuture
-                }, (yes: Boolean) => {
+                formWithErrors => Ok(confirm_remove_client(formWithErrors, groupName, maybeClient.get)).toFuture,
+                (yes: Boolean) =>
                   if (yes) {
                     val clientsMinusRemoved = maybeSelectedClients.get.filterNot(_ == maybeClient.get)
                     sessionCacheService
                       .put(SELECTED_CLIENTS, clientsMinusRemoved)
                       .map(_ => Redirect(controller.showReviewSelectedClients(None, None)))
-                  }
-                  else Redirect(controller.showReviewSelectedClients(None, None)).toFuture
-                }
+                  } else Redirect(controller.showReviewSelectedClients(None, None)).toFuture
               )
           }
         }
@@ -265,49 +268,47 @@ class CreateGroupSelectClientsController @Inject()
 
   def submitReviewSelectedClients(): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, _, _) =>
-      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) {
-        maybeClients =>
-          maybeClients.fold(Redirect(controller.showSearchClients()).toFuture)(
-            clients => {
-              val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
-              YesNoForm
-                .form("group.clients.review.error")
-                .bindFromRequest()
-                .fold(
-                  formWithErrors => {
-                    Ok(
-                      review_selected(
-                        paginatedList.pageContent,
-                        groupName,
-                        formWithErrors,
-                        paginationMetaData = Some(paginatedList.paginationMetaData)
-                      )
-                    ).toFuture
-                  }, (yes: Boolean) => {
-                    sessionCacheService.put(CONFIRM_CLIENTS_SELECTED, yes).flatMap { _ =>
-                        if (yes) {
-                          sessionCacheService
-                            .deleteAll(clientFilteringKeys)
-                            .map(_ => Redirect(controller.showSearchClients()))
-                        } else {
-                            if (clients.nonEmpty) {
-                              Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
-                            } else { // throw empty client error (would prefer redirect to showSearchClients)
-                              Ok(
-                                review_selected(
-                                  paginatedList.pageContent,
-                                  groupName,
-                                  YesNoForm.form("group.clients.review.error").withError("answer", "group.clients.review.error.no-clients"),
-                                  paginationMetaData = Some(paginatedList.paginationMetaData)
-                                )
-                              ).toFuture
-                            }
-                        }
-                      }
+      withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeClients =>
+        maybeClients.fold(Redirect(controller.showSearchClients()).toFuture) { clients =>
+          val paginatedList = PaginatedListBuilder.build[DisplayClient](1, REVIEW_SELECTED_PAGE_SIZE, clients)
+          YesNoForm
+            .form("group.clients.review.error")
+            .bindFromRequest()
+            .fold(
+              formWithErrors =>
+                Ok(
+                  review_selected(
+                    paginatedList.pageContent,
+                    groupName,
+                    formWithErrors,
+                    paginationMetaData = Some(paginatedList.paginationMetaData)
+                  )
+                ).toFuture,
+              (yes: Boolean) =>
+                sessionCacheService.put(CONFIRM_CLIENTS_SELECTED, yes).flatMap { _ =>
+                  if (yes) {
+                    sessionCacheService
+                      .deleteAll(clientFilteringKeys)
+                      .map(_ => Redirect(controller.showSearchClients()))
+                  } else {
+                    if (clients.nonEmpty) {
+                      Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None)).toFuture
+                    } else { // throw empty client error (would prefer redirect to showSearchClients)
+                      Ok(
+                        review_selected(
+                          paginatedList.pageContent,
+                          groupName,
+                          YesNoForm
+                            .form("group.clients.review.error")
+                            .withError("answer", "group.clients.review.error.no-clients"),
+                          paginationMetaData = Some(paginatedList.paginationMetaData)
+                        )
+                      ).toFuture
+                    }
                   }
-                )
-            }
-          )
+                }
+            )
+        }
       }
     }
   }

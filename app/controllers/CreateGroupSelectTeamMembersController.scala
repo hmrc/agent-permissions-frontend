@@ -36,8 +36,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CreateGroupSelectTeamMembersController @Inject()
-(
+class CreateGroupSelectTeamMembersController @Inject() (
   groupAction: GroupAction,
   authAction: AuthAction,
   optInStatusAction: OptInStatusAction,
@@ -50,9 +49,9 @@ class CreateGroupSelectTeamMembersController @Inject()
   group_created: group_created,
   tax_group_created: tax_group_created,
   select_paginated_team_members: select_paginated_team_members,
-  review_members_paginated: review_members_paginated,
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with Logging {
+  review_members_paginated: review_members_paginated
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+    extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction.isAuthorisedAgent
   import groupAction._
@@ -60,32 +59,36 @@ class CreateGroupSelectTeamMembersController @Inject()
   import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
-  private val selectClientsController: ReverseCreateGroupSelectClientsController = routes.CreateGroupSelectClientsController
+  private val selectClientsController: ReverseCreateGroupSelectClientsController =
+    routes.CreateGroupSelectClientsController
   private val selectNameController: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
   private val PAGE_SIZE = 10
 
-  def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, arn) =>
-      withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
-        teamMemberService
-          .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(PAGE_SIZE))
-          .map { paginatedList =>
-            Ok(
-              select_paginated_team_members(
-                paginatedList.pageContent,
-                groupName,
-                form = AddTeamMembersToGroupForm.form().fill(
-                  AddTeamMembersToGroup(
-                    search = teamMemberSearchTerm
-                  )
-                ),
-                paginationMetaData = Some(paginatedList.paginationMetaData)
+  def showSelectTeamMembers(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async {
+    implicit request =>
+      withGroupNameAndAuthorised { (groupName, _, arn) =>
+        withSessionItem[String](TEAM_MEMBER_SEARCH_INPUT) { teamMemberSearchTerm =>
+          teamMemberService
+            .getPageOfTeamMembers(arn)(page.getOrElse(1), pageSize.getOrElse(PAGE_SIZE))
+            .map { paginatedList =>
+              Ok(
+                select_paginated_team_members(
+                  paginatedList.pageContent,
+                  groupName,
+                  form = AddTeamMembersToGroupForm
+                    .form()
+                    .fill(
+                      AddTeamMembersToGroup(
+                        search = teamMemberSearchTerm
+                      )
+                    ),
+                  paginationMetaData = Some(paginatedList.paginationMetaData)
+                )
               )
-            )
-          }
+            }
+        }
       }
-    }
   }
 
   def submitSelectedTeamMembers: Action[AnyContent] = Action.async { implicit request =>
@@ -96,7 +99,7 @@ class CreateGroupSelectTeamMembersController @Inject()
           .form(hasPreSelected)
           .bindFromRequest()
           .fold(
-            formWithErrors => {
+            formWithErrors =>
               teamMemberService
                 .getPageOfTeamMembers(arn)(1, PAGE_SIZE)
                 .map(paginatedList =>
@@ -108,12 +111,11 @@ class CreateGroupSelectTeamMembersController @Inject()
                       paginationMetaData = Some(paginatedList.paginationMetaData)
                     )
                   )
-                )
-            },
-            formData => {
+                ),
+            formData =>
               teamMemberService
                 .savePageOfTeamMembers(formData)
-                .flatMap(nowSelectedMembers => {
+                .flatMap { nowSelectedMembers =>
                   if (formData.submit == CONTINUE_BUTTON) {
                     // check selected there are still selections after saving
                     if (nowSelectedMembers.nonEmpty) {
@@ -143,38 +145,38 @@ class CreateGroupSelectTeamMembersController @Inject()
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                   }
                 }
-                )
-            }
           )
       }
     }
   }
 
-  def showReviewSelectedTeamMembers(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, _) =>
-      withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
-        maybeTeamMembers.fold(
-          Redirect(controller.showSelectTeamMembers(None, None)).toFuture
-        )(members => {
-          val pageSize = maybePageSize.getOrElse(PAGE_SIZE)
-          val page = maybePage.getOrElse(1)
-          val list = PaginatedListBuilder.build[TeamMember](page, pageSize, members)
-          sessionCacheService.get(CONFIRM_TEAM_MEMBERS_SELECTED).map(mData =>
-          Ok(
-            review_members_paginated(
-              teamMembers = list.pageContent,
-              groupName = groupName,
-              form = formWithFilledValue(YesNoForm.form(), mData),
-              formAction = controller.submitReviewSelectedTeamMembers(),
-              paginationMetaData = Some(list.paginationMetaData)
-            )
-          )
-          )
+  def showReviewSelectedTeamMembers(maybePage: Option[Int], maybePageSize: Option[Int]): Action[AnyContent] =
+    Action.async { implicit request =>
+      withGroupNameAndAuthorised { (groupName, _, _) =>
+        withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeTeamMembers =>
+          maybeTeamMembers.fold(
+            Redirect(controller.showSelectTeamMembers(None, None)).toFuture
+          ) { members =>
+            val pageSize = maybePageSize.getOrElse(PAGE_SIZE)
+            val page = maybePage.getOrElse(1)
+            val list = PaginatedListBuilder.build[TeamMember](page, pageSize, members)
+            sessionCacheService
+              .get(CONFIRM_TEAM_MEMBERS_SELECTED)
+              .map(mData =>
+                Ok(
+                  review_members_paginated(
+                    teamMembers = list.pageContent,
+                    groupName = groupName,
+                    form = formWithFilledValue(YesNoForm.form(), mData),
+                    formAction = controller.submitReviewSelectedTeamMembers(),
+                    paginationMetaData = Some(list.paginationMetaData)
+                  )
+                )
+              )
+          }
         }
-        )
       }
     }
-  }
 
   def submitReviewSelectedTeamMembers(): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, groupType, arn) =>
@@ -188,7 +190,7 @@ class CreateGroupSelectTeamMembersController @Inject()
               .form("group.teamMembers.review.error")
               .bindFromRequest()
               .fold(
-                formWithErrors => {
+                formWithErrors =>
                   Ok(
                     review_members_paginated(
                       teamMembers = list.pageContent,
@@ -197,18 +199,20 @@ class CreateGroupSelectTeamMembersController @Inject()
                       formAction = controller.submitReviewSelectedTeamMembers(),
                       paginationMetaData = Some(list.paginationMetaData)
                     )
-                  ).toFuture
-                }, (yes: Boolean) => {
-                    if (yes)
-                      Redirect(controller.showSelectTeamMembers(None, None)).toFuture
-                    else {
-                      sessionCacheService.put(CONFIRM_TEAM_MEMBERS_SELECTED, yes).flatMap { _ =>
+                  ).toFuture,
+                (yes: Boolean) =>
+                  if (yes)
+                    Redirect(controller.showSelectTeamMembers(None, None)).toFuture
+                  else {
+                    sessionCacheService.put(CONFIRM_TEAM_MEMBERS_SELECTED, yes).flatMap { _ =>
                       if (members.isEmpty) { // throw empty error (would prefer redirect to showSelectTeamMembers)
                         Ok(
                           review_members_paginated(
                             teamMembers = list.pageContent,
                             groupName = groupName,
-                            form = YesNoForm.form("group.teamMembers.review.error").withError("answer", "group.teamMembers.review.error.no-members"),
+                            form = YesNoForm
+                              .form("group.teamMembers.review.error")
+                              .withError("answer", "group.teamMembers.review.error.no-members"),
                             formAction = controller.submitReviewSelectedTeamMembers(),
                             paginationMetaData = Some(list.paginationMetaData)
                           )
@@ -225,7 +229,6 @@ class CreateGroupSelectTeamMembersController @Inject()
                       }
                     }
                   }
-                }
               )
           }
       }
@@ -239,20 +242,25 @@ class CreateGroupSelectTeamMembersController @Inject()
           // if clientId is not provided as a query parameter, check the CLIENT_TO_REMOVE session value.
           // This is to enable the welsh language switch to work correctly.
           maybeMemberId: Option[String] <- memberId match {
-            case None => sessionCacheService.get(MEMBER_TO_REMOVE).map(_.map(_.id))
-            case Some(cid) => Future.successful(Some(cid))
-          }
+                                             case None => sessionCacheService.get(MEMBER_TO_REMOVE).map(_.map(_.id))
+                                             case Some(cid) => Future.successful(Some(cid))
+                                           }
           result <- maybeMemberId.flatMap(id => selectedMembers.getOrElse(Seq.empty).find(_.id == id)) match {
-            case None => Future.successful(Redirect(controller.showSelectTeamMembers(None, None)))
-            case Some(member) =>
-              sessionCacheService
-                .put(MEMBER_TO_REMOVE, member)
-                .flatMap(_ =>
-                  Ok(confirm_deselect_member(YesNoForm.form(), groupName, member,
-                    formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember)
-                  ).toFuture
-                )
-          }
+                      case None => Future.successful(Redirect(controller.showSelectTeamMembers(None, None)))
+                      case Some(member) =>
+                        sessionCacheService
+                          .put(MEMBER_TO_REMOVE, member)
+                          .flatMap(_ =>
+                            Ok(
+                              confirm_deselect_member(
+                                YesNoForm.form(),
+                                groupName,
+                                member,
+                                formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
+                              )
+                            ).toFuture
+                          )
+                    }
         } yield result
       }
     }
@@ -264,25 +272,27 @@ class CreateGroupSelectTeamMembersController @Inject()
         withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
           if (maybeTeamMember.isEmpty || maybeSelectedTeamMembers.isEmpty) {
             Redirect(controller.showSelectTeamMembers(None, None)).toFuture
-          }
-          else {
+          } else {
             YesNoForm
               .form("group.member.remove.error")
               .bindFromRequest()
               .fold(
-                formWithErrors => {
-                  Ok(confirm_deselect_member(formWithErrors, groupName, maybeTeamMember.get,
-                    formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
-                  )).toFuture
-                }, (yes: Boolean) => {
+                formWithErrors =>
+                  Ok(
+                    confirm_deselect_member(
+                      formWithErrors,
+                      groupName,
+                      maybeTeamMember.get,
+                      formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
+                    )
+                  ).toFuture,
+                (yes: Boolean) =>
                   if (yes) {
                     val clientsMinusRemoved = maybeSelectedTeamMembers.get.filterNot(_ == maybeTeamMember.get)
                     sessionCacheService
                       .put(SELECTED_TEAM_MEMBERS, clientsMinusRemoved)
                       .map(_ => Redirect(controller.showReviewSelectedTeamMembers(None, None)))
-                  }
-                  else Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
-                }
+                  } else Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
               )
           }
         }
@@ -290,16 +300,23 @@ class CreateGroupSelectTeamMembersController @Inject()
     }
   }
 
-  private def submitTaxServiceGroup(arn: Arn, members: Seq[TeamMember], groupName: String)
-                                   (implicit request: MessagesRequest[AnyContent]): Future[Result] = {
+  private def submitTaxServiceGroup(arn: Arn, members: Seq[TeamMember], groupName: String)(implicit
+    request: MessagesRequest[AnyContent]
+  ): Future[Result] =
     sessionCacheService
       .get[String](GROUP_SERVICE_TYPE)
-      .flatMap(maybeService => {
+      .flatMap { maybeService =>
         val startAgainRoute = controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()
         maybeService.fold(
           Redirect(startAgainRoute).toFuture
-        )(service => {
-          val req = CreateTaxServiceGroupRequest(groupName, Some(members.map(toAgentUser).toSet), service, autoUpdate = true, None)
+        ) { service =>
+          val req = CreateTaxServiceGroupRequest(
+            groupName,
+            Some(members.map(toAgentUser).toSet),
+            service,
+            autoUpdate = true,
+            None
+          )
           taxGroupService
             .createGroup(arn, req)
             .flatMap(_ =>
@@ -310,16 +327,12 @@ class CreateGroupSelectTeamMembersController @Inject()
               } yield Redirect(controller.showTaxGroupCreated())
             )
         }
-        )
       }
-      )
-  }
 
   def showGroupCreated: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](NAME_OF_GROUP_CREATED)(arn) { maybeGroupName =>
-        sessionCacheService.delete(GROUP_TYPE).map(_ =>
-        Ok(group_created(maybeGroupName.getOrElse(""))))
+        sessionCacheService.delete(GROUP_TYPE).map(_ => Ok(group_created(maybeGroupName.getOrElse(""))))
       }
     }
   }
@@ -331,6 +344,5 @@ class CreateGroupSelectTeamMembersController @Inject()
       }
     }
   }
-
 
 }

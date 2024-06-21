@@ -16,19 +16,18 @@
 
 package connectors
 
-import com.codahale.metrics.MetricRegistry
 import com.google.inject.ImplementedBy
-import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import play.api.Logging
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
+import utils.HttpAPIMonitor
+
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-
 
 @ImplementedBy(classOf[AgentClientAuthorisationConnectorImpl])
 trait AgentClientAuthorisationConnector extends HttpAPIMonitor with Logging {
@@ -38,10 +37,11 @@ trait AgentClientAuthorisationConnector extends HttpAPIMonitor with Logging {
 }
 
 @Singleton
-class AgentClientAuthorisationConnectorImpl @Inject()(val http: HttpClient)(implicit val metrics: Metrics, appConfig: AppConfig)
-  extends AgentClientAuthorisationConnector {
-
-  override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
+class AgentClientAuthorisationConnectorImpl @Inject() (val http: HttpClient)(implicit
+  val metrics: Metrics,
+  appConfig: AppConfig,
+  val ec: ExecutionContext
+) extends AgentClientAuthorisationConnector {
 
   def getSuspensionDetails()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SuspensionDetails] =
     monitor("ConsumerAPI-Get-AgencySuspensionDetails-GET") {
@@ -49,11 +49,12 @@ class AgentClientAuthorisationConnectorImpl @Inject()(val http: HttpClient)(impl
         .GET[HttpResponse](s"${appConfig.agentClientAuthBaseUrl}/agent-client-authorisation/agent/suspension-details")
         .map(response =>
           response.status match {
-            case OK => Json.parse(response.body).as[SuspensionDetails]
+            case OK         => Json.parse(response.body).as[SuspensionDetails]
             case NO_CONTENT => SuspensionDetails(suspensionStatus = false, None)
-            case NOT_FOUND => throw SuspensionDetailsNotFound("No record found for this agent")
-            case e =>  throw UpstreamErrorResponse(s"Error $e unable to get suspension details", e)
-          })
+            case NOT_FOUND  => throw SuspensionDetailsNotFound("No record found for this agent")
+            case e          => throw UpstreamErrorResponse(s"Error $e unable to get suspension details", e)
+          }
+        )
     }
 
 }

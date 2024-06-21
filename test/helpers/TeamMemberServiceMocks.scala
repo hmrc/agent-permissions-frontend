@@ -18,6 +18,7 @@ package helpers
 
 import models.{AddTeamMembersToGroup, TeamMember}
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Request
 import services.TeamMemberService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
@@ -25,41 +26,49 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait TeamMemberServiceMocks extends MockFactory {
+trait TeamMemberServiceMocks extends AnyWordSpec with MockFactory {
 
-  def expectSavePageOfTeamMembers(formData: AddTeamMembersToGroup, teamMembers: Seq[TeamMember] = Seq.empty)
-                                 (implicit teamMemberService: TeamMemberService): Unit =
+  def expectSavePageOfTeamMembers(formData: AddTeamMembersToGroup, teamMembers: Seq[TeamMember] = Seq.empty)(implicit
+    teamMemberService: TeamMemberService
+  ): Unit =
     (teamMemberService
-      .savePageOfTeamMembers(_: AddTeamMembersToGroup)
-      (_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .savePageOfTeamMembers(_: AddTeamMembersToGroup)(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
       .expects(formData, *, *, *)
       .returning(Future successful teamMembers)
 
-  def expectGetPageOfTeamMembers(arn: Arn, page: Int = 1, pageSize: Int = 10)
-                                (teamMembers: Seq[TeamMember])
-                                (implicit teamMemberService: TeamMemberService): Unit = {
-    val paginatedList = PaginatedList(pageContent = teamMembers,
-      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, teamMembers.length))
+  def expectGetPageOfTeamMembers(arn: Arn, page: Int = 1, pageSize: Int = 10)(
+    teamMembers: Seq[TeamMember]
+  )(implicit teamMemberService: TeamMemberService): Unit = {
+    val paginatedList = PaginatedList(
+      pageContent = teamMembers,
+      paginationMetaData = PaginationMetaData(
+        lastPage = false,
+        firstPage = page == 1,
+        40,
+        40 / pageSize,
+        pageSize,
+        page,
+        teamMembers.length
+      )
+    )
     (teamMemberService
-      .getPageOfTeamMembers(_: Arn)(_: Int, _: Int)(_: HeaderCarrier,
-        _: ExecutionContext, _: Request[_]))
+      .getPageOfTeamMembers(_: Arn)(_: Int, _: Int)(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }
 
-  def expectLookupTeamMember(arn: Arn)
-                            (teamMember: TeamMember)
-                            (implicit teamMemberService: TeamMemberService): Unit =
+  def expectLookupTeamMember(arn: Arn)(teamMember: TeamMember)(implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
       .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, teamMember.id, *, *)
-      .returning(Future successful Some(teamMember)).once()
+      .returning(Future successful Some(teamMember))
+      .once()
 
-  def expectLookupTeamMemberNone(arn: Arn)
-                            (implicit teamMemberService: TeamMemberService): Unit =
+  def expectLookupTeamMemberNone(arn: Arn)(implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
       .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful None).once()
+      .returning(Future successful None)
+      .once()
 
 }

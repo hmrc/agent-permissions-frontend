@@ -23,7 +23,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
 class TaxServiceGroupTypeFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
-  "form binding" should{
+  "form binding" should {
     "work correctly" in {
       val params = Map("taxType" -> Seq("HMRC-MTD-VAT"))
       val boundForm = TaxServiceGroupTypeForm.form.bindFromRequest(params)
@@ -31,7 +31,7 @@ class TaxServiceGroupTypeFormSpec extends AnyWordSpec with Matchers with GuiceOn
     }
   }
 
-  "form unbinding" should{
+  "form unbinding" should {
     "work correctly" in {
       val form = TaxServiceGroupTypeForm.form
       val unboundForm = form.mapping.unbind(TaxServiceGroupType("HMRC-MTD-VAT"))

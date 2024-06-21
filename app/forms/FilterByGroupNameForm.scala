@@ -21,7 +21,7 @@ import play.api.data.Forms.{single, text}
 
 object FilterByGroupNameForm {
 
-  val form: Form[String] = {
+  val form: Form[String] =
     Form(
       single(
         "searchGroupByName" ->
@@ -31,7 +31,5 @@ object FilterByGroupNameForm {
             .verifying("error.group.filter.invalid", x => !(x.contains('<') || x.contains('>')))
       )
     )
-
-  }
 
 }

@@ -18,33 +18,35 @@ package helpers
 
 import models.{AddClientsToGroup, DisplayClient}
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Request
 import services.SessionCacheOperationsService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait SessionCacheOperationsMocks extends MockFactory {
+trait SessionCacheOperationsMocks extends AnyWordSpec with MockFactory {
 
-  def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
-                                 (implicit sessionCacheOps: SessionCacheOperationsService): Unit =
+  def expectSavePageOfClients(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)(implicit
+    sessionCacheOps: SessionCacheOperationsService
+  ): Unit =
     (sessionCacheOps
-      .savePageOfClientsForCreateGroup(_: AddClientsToGroup)
-      (_: ExecutionContext, _: Request[_]))
+      .savePageOfClientsForCreateGroup(_: AddClientsToGroup)(_: ExecutionContext, _: Request[_]))
       .expects(formData, *, *)
       .returning(Future successful members)
 
-  def expectSaveClientsToAddToExistingGroup(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)
-                                 (implicit sessionCacheOps: SessionCacheOperationsService): Unit =
+  def expectSaveClientsToAddToExistingGroup(formData: AddClientsToGroup, members: Seq[DisplayClient] = Seq.empty)(
+    implicit sessionCacheOps: SessionCacheOperationsService
+  ): Unit =
     (sessionCacheOps
-      .saveClientsToAddToExistingGroup(_: AddClientsToGroup)
-      (_: ExecutionContext, _: Request[_]))
+      .saveClientsToAddToExistingGroup(_: AddClientsToGroup)(_: ExecutionContext, _: Request[_]))
       .expects(formData, *, *)
       .returning(Future successful members)
 
-  def expectSaveSearch(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit sessionCacheOps: SessionCacheOperationsService): Unit =
+  def expectSaveSearch(searchTerm: Option[String] = None, filterTerm: Option[String] = None)(implicit
+    sessionCacheOps: SessionCacheOperationsService
+  ): Unit =
     (sessionCacheOps
-      .saveSearch(_: Option[String], _: Option[String])
-      (_: Request[_], _: ExecutionContext))
+      .saveSearch(_: Option[String], _: Option[String])(_: Request[_], _: ExecutionContext))
       .expects(searchTerm, filterTerm, *, *)
       .returning(Future.successful(()))
       .once()

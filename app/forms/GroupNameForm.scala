@@ -23,7 +23,7 @@ object GroupNameForm {
 
   val groupNameRegex = "^[!%*^()_+\\-={}:;@~#,.?\\[\\]A-Za-z0-9 ]{0,}$"
 
-  def form(): Form[String] = {
+  def form(): Form[String] =
     Form(
       single(
         "name" ->
@@ -34,5 +34,4 @@ object GroupNameForm {
       )
     )
 
-  }
 }

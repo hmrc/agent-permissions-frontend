@@ -24,7 +24,7 @@ class EncryptionUtilSpec extends AnyFlatSpec with should.Matchers {
   "Encrypt and decrypt" should "return to what I started with" in {
     val originalText = "hello world"
     val encrypted = EncryptionUtil.encryptEnrolmentKey(originalText)
-    EncryptionUtil.decryptEnrolmentKey(encrypted) should equal (originalText)
+    EncryptionUtil.decryptEnrolmentKey(encrypted) should equal(originalText)
   }
 
 }

@@ -19,9 +19,11 @@ package connectors
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client}
 
-case class GroupRequest(groupName: String,
-                        teamMembers: Option[Seq[AgentUser]] = None,
-                        clients: Option[Seq[Client]] = None)
+case class GroupRequest(
+  groupName: String,
+  teamMembers: Option[Seq[AgentUser]] = None,
+  clients: Option[Seq[Client]] = None
+)
 
 case object GroupRequest {
   implicit val formatCreateAccessGroupRequest: OFormat[GroupRequest] =
@@ -29,10 +31,10 @@ case object GroupRequest {
 }
 
 case class UpdateAccessGroupRequest(
-                                     groupName: Option[String] = None,
-                                     teamMembers: Option[Set[AgentUser]] = None,
-                                     clients: Option[Set[Client]] = None
-                                   )
+  groupName: Option[String] = None,
+  teamMembers: Option[Set[AgentUser]] = None,
+  clients: Option[Set[Client]] = None
+)
 
 object UpdateAccessGroupRequest {
   implicit val format: OFormat[UpdateAccessGroupRequest] =
@@ -40,28 +42,29 @@ object UpdateAccessGroupRequest {
 }
 
 case class AddMembersToAccessGroupRequest(
-                                           teamMembers: Option[Set[AgentUser]] = None,
-                                           clients: Option[Set[Client]] = None
-                                         )
+  teamMembers: Option[Set[AgentUser]] = None,
+  clients: Option[Set[Client]] = None
+)
 
 object AddMembersToAccessGroupRequest {
   implicit val format: OFormat[AddMembersToAccessGroupRequest] = Json.format[AddMembersToAccessGroupRequest]
 }
 
-case class AddMembersToTaxServiceGroupRequest(teamMembers: Option[Set[AgentUser]] = None,
-                                              excludedClients: Option[Set[Client]] = None)
+case class AddMembersToTaxServiceGroupRequest(
+  teamMembers: Option[Set[AgentUser]] = None,
+  excludedClients: Option[Set[Client]] = None
+)
 
 object AddMembersToTaxServiceGroupRequest {
   implicit val format: OFormat[AddMembersToTaxServiceGroupRequest] = Json.format[AddMembersToTaxServiceGroupRequest]
 }
 
-
 case class UpdateTaxServiceGroupRequest(
-                                         groupName: Option[String] = None,
-                                         teamMembers: Option[Set[AgentUser]] = None,
-                                         autoUpdate: Option[Boolean] = None,
-                                         excludedClients: Option[Set[Client]] = None
-                                       )
+  groupName: Option[String] = None,
+  teamMembers: Option[Set[AgentUser]] = None,
+  autoUpdate: Option[Boolean] = None,
+  excludedClients: Option[Set[Client]] = None
+)
 
 object UpdateTaxServiceGroupRequest {
   implicit val format: OFormat[UpdateTaxServiceGroupRequest] = Json.format[UpdateTaxServiceGroupRequest]

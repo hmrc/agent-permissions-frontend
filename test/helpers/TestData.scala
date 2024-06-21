@@ -16,6 +16,4 @@
 
 package helpers
 
-object TestData {
-
-}
+object TestData {}

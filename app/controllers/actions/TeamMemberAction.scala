@@ -32,37 +32,34 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TeamMemberAction @Inject()(val authConnector: AuthConnector,
-                                 val env: Environment,
-                                 val config: Configuration,
-                                 authAction: AuthAction,
-                                 optInStatusAction: OptInStatusAction,
-                                 val teamMemberService: TeamMemberService,
-                                 val sessionCacheService: SessionCacheService, // indirectly used
-                                 team_member_not_found: team_member_not_found,
-                            ) extends Logging  {
+class TeamMemberAction @Inject() (
+  val authConnector: AuthConnector,
+  val env: Environment,
+  val config: Configuration,
+  authAction: AuthAction,
+  optInStatusAction: OptInStatusAction,
+  val teamMemberService: TeamMemberService,
+  val sessionCacheService: SessionCacheService, // indirectly used
+  team_member_not_found: team_member_not_found
+) extends Logging {
 
   import optInStatusAction._
 
-  def withTeamMemberForAuthorisedOptedAgent(clientId: String)
-                                           (fn: (TeamMember, Arn) => Future[Result])
-                                           (implicit ec: ExecutionContext,
-                                        hc: HeaderCarrier,
-                                        request: MessagesRequest[AnyContent],
-                                        appConfig: AppConfig)
-  : Future[Result] = {
+  def withTeamMemberForAuthorisedOptedAgent(clientId: String)(fn: (TeamMember, Arn) => Future[Result])(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        teamMemberService.lookupTeamMember(arn)(clientId).flatMap(
-          _.fold(teamMemberNotFound)(client => {
-            fn(client, arn)
-          }))
+        teamMemberService
+          .lookupTeamMember(arn)(clientId)
+          .flatMap(_.fold(teamMemberNotFound)(client => fn(client, arn)))
       }
     }
-  }
 
-  def teamMemberNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+  def teamMemberNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] =
     Ok(team_member_not_found()).toFuture
-  }
 
 }

@@ -33,8 +33,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class GroupAction @Inject()
-(
+class GroupAction @Inject() (
   val authConnector: AuthConnector,
   val env: Environment,
   val config: Configuration,
@@ -48,30 +47,35 @@ class GroupAction @Inject()
 
   import optInStatusAction._
 
-  def withGroupAndPageOfClientsForAuthorisedOptedAgent(groupId: GroupId, page: Int = 1, pageSize: Int = 10)
-                                                      (body: (GroupSummary, PaginatedList[DisplayClient], Arn) => Future[Result])
-                                                      (implicit ec: ExecutionContext,
-                                                       hc: HeaderCarrier,
-                                                       request: MessagesRequest[AnyContent],
-                                                       appConfig: AppConfig): Future[Result] = {
+  def withGroupAndPageOfClientsForAuthorisedOptedAgent(groupId: GroupId, page: Int = 1, pageSize: Int = 10)(
+    body: (GroupSummary, PaginatedList[DisplayClient], Arn) => Future[Result]
+  )(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         groupService
           .getCustomSummary(groupId)
-          .flatMap(_.fold(groupNotFound())(summary => {
-            groupService.getPaginatedClientsForCustomGroup(groupId)(page, pageSize)
+          .flatMap(_.fold(groupNotFound()) { summary =>
+            groupService
+              .getPaginatedClientsForCustomGroup(groupId)(page, pageSize)
               .flatMap(p => body(summary, PaginatedList(p._1, p._2), arn))
           })
-          )
       }
     }
-  }
 
   // TODO stop usage for custom groups? - get page of team members
-  def withAccessGroupForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)
-                                            (callback: (AccessGroup, Arn) => Future[Result])
-                                            (implicit ec: ExecutionContext, hc: HeaderCarrier,
-                                             request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+  def withAccessGroupForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)(
+    callback: (AccessGroup, Arn) => Future[Result]
+  )(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         if (isCustom) {
@@ -85,14 +89,15 @@ class GroupAction @Inject()
         }
       }
     }
-  }
 
-  def withGroupSummaryForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)
-                                             (callback: (GroupSummary, Arn) => Future[Result])
-                                             (implicit ec: ExecutionContext,
-                                              hc: HeaderCarrier,
-                                              request: MessagesRequest[AnyContent],
-                                              appConfig: AppConfig): Future[Result] = {
+  def withGroupSummaryForAuthorisedOptedAgent(groupId: GroupId, isCustom: Boolean = true)(
+    callback: (GroupSummary, Arn) => Future[Result]
+  )(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         if (isCustom) {
@@ -106,15 +111,14 @@ class GroupAction @Inject()
         }
       }
     }
-  }
 
   // TODO use withGroupSummaryForAuthorisedOptedAgent or withAccessGroupForAuthorisedOptedAgent
-  def withTaxGroupForAuthorisedOptedAgent(groupId: GroupId)
-                                         (body: (TaxGroup, Arn) => Future[Result])
-                                         (implicit ec: ExecutionContext,
-                                          hc: HeaderCarrier,
-                                          request: MessagesRequest[AnyContent],
-                                          appConfig: AppConfig): Future[Result] = {
+  def withTaxGroupForAuthorisedOptedAgent(groupId: GroupId)(body: (TaxGroup, Arn) => Future[Result])(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         taxGroupService
@@ -124,12 +128,14 @@ class GroupAction @Inject()
           )
       }
     }
-  }
 
   @Deprecated // use withGroupTypeAndAuthorised for the new flow
-  def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])
-                                          (implicit ec: ExecutionContext, hc: HeaderCarrier,
-                                           request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+  def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_NAME)(arn) { maybeGroupName =>
         maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()).toFuture) {
@@ -137,44 +143,49 @@ class GroupAction @Inject()
         }
       }
     }
-  }
 
-  def withGroupTypeAndAuthorised(body: (String, Arn) => Future[Result])
-                                (implicit ec: ExecutionContext, hc: HeaderCarrier,
-                                 request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+  def withGroupTypeAndAuthorised(body: (String, Arn) => Future[Result])(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
-        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()).toFuture)(
-          groupType => body(groupType, arn)
+        maybeGroupType.fold(
+          Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()).toFuture
+        )(groupType => body(groupType, arn))
+      }
+    }
+
+  def withGroupNameAndAuthorised(body: (String, String, Arn) => Future[Result])(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
+    authAction.isAuthorisedAgent { arn =>
+      isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
+        maybeGroupType.fold(
+          Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()).toFuture
+        )(groupType =>
+          sessionAction.withSessionItem[String](GROUP_NAME) { maybeGroupName =>
+            maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()).toFuture) {
+              groupName => body(groupName, groupType, arn)
+            }
+          }
         )
       }
     }
-  }
 
-  def withGroupNameAndAuthorised(body: (String, String, Arn) => Future[Result])
-                                (implicit ec: ExecutionContext, hc: HeaderCarrier,
-                                 request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
-    authAction.isAuthorisedAgent { arn =>
-      isOptedInWithSessionItem[String](GROUP_TYPE)(arn) { maybeGroupType =>
-        maybeGroupType.fold(Redirect(controllers.routes.CreateGroupSelectGroupTypeController.showSelectGroupType()).toFuture)(
-          groupType =>
-            sessionAction.withSessionItem[String](GROUP_NAME) { maybeGroupName =>
-              maybeGroupName.fold(Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()).toFuture) {
-                groupName => body(groupName, groupType, arn)
-              }
-            })
-      }
-    }
-  }
-
-
-  def withGroupForAuthorisedAssistant(groupId: GroupId, isCustom: Boolean = true)
-                                     (callback: (AccessGroup, Arn) => Future[Result])
-                                     (implicit ec: ExecutionContext,
-                                      hc: HeaderCarrier,
-                                      request: MessagesRequest[AnyContent],
-                                      appConfig: AppConfig)
-  : Future[Result] = {
+  def withGroupForAuthorisedAssistant(groupId: GroupId, isCustom: Boolean = true)(
+    callback: (AccessGroup, Arn) => Future[Result]
+  )(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
         if (isCustom) {
@@ -188,9 +199,9 @@ class GroupAction @Inject()
         }
       }
     }
-  }
 
-  def groupNotFound(isAssistant: Boolean = false)(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+  def groupNotFound(
+    isAssistant: Boolean = false
+  )(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] =
     NotFound(group_not_found(isAssistant)).toFuture
-  }
 }

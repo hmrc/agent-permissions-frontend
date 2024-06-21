@@ -33,26 +33,20 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AddTeamMemberToGroupsController @Inject()
-(
+class AddTeamMemberToGroupsController @Inject() (
   teamMemberAction: TeamMemberAction,
   mcc: MessagesControllerComponents,
   groupService: GroupService,
   taxGroupService: TaxGroupService,
   select_groups: select_groups,
   confirm_added: confirm_added
-)(implicit val appConfig: AppConfig,
-  ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
-) extends FrontendController(mcc)
-
-  with I18nSupport
-  with Logging {
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+    extends FrontendController(mcc) with I18nSupport with Logging {
 
   import teamMemberAction._
 
   def showSelectGroupsForTeamMember(id: String): Action[AnyContent] = Action.async { implicit request =>
-    withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) => {
+    withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) =>
       sessionCacheService.delete(GROUP_IDS_ADDED_TO)
       groupService.getGroupSummaries(arn).flatMap { allGroups =>
         groupService.groupSummariesForTeamMember(arn, tm).map { membersGroups =>
@@ -67,54 +61,56 @@ class AddTeamMemberToGroupsController @Inject()
         }
       }
     }
-    }
   }
 
   def submitSelectGroupsForTeamMember(id: String): Action[AnyContent] = Action.async { implicit request =>
-    withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) => {
-      AddGroupsToClientForm.form().bindFromRequest().fold(formErrors => {
-        groupService.getGroupSummaries(arn).flatMap { allGroups =>
-          groupService.groupSummariesForTeamMember(arn, tm).map { membersGroups =>
-            Ok(
-              select_groups(
-                membersGroups,
-                allGroups.diff(membersGroups),
-                tm,
-                formErrors
-              )
-            )
-          }
-        }
-      }, { validForm =>
-        if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
-          Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
-        } else {
-          val agentUser = TeamMember.toAgentUser(tm)
-          var groupsAddedTo: Seq[GroupId] = Seq[GroupId]()
-          Future.sequence(validForm.map { encoded => {
-            val typeAndGroupId = encoded.split("_")
-            val groupType = typeAndGroupId(0)
-            val groupId: GroupId = GroupId.fromString(typeAndGroupId(1))
-            groupsAddedTo = groupsAddedTo :+ groupId
-            if (GroupType.CUSTOM == groupType) {
-              groupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
+    withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) =>
+      AddGroupsToClientForm
+        .form()
+        .bindFromRequest()
+        .fold(
+          formErrors =>
+            groupService.getGroupSummaries(arn).flatMap { allGroups =>
+              groupService.groupSummariesForTeamMember(arn, tm).map { membersGroups =>
+                Ok(
+                  select_groups(
+                    membersGroups,
+                    allGroups.diff(membersGroups),
+                    tm,
+                    formErrors
+                  )
+                )
+              }
+            },
+          validForm =>
+            if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
+              Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
             } else {
-              taxGroupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
+              val agentUser = TeamMember.toAgentUser(tm)
+              var groupsAddedTo: Seq[GroupId] = Seq[GroupId]()
+              Future
+                .sequence(validForm.map { encoded =>
+                  val typeAndGroupId = encoded.split("_")
+                  val groupType = typeAndGroupId(0)
+                  val groupId: GroupId = GroupId.fromString(typeAndGroupId(1))
+                  groupsAddedTo = groupsAddedTo :+ groupId
+                  if (GroupType.CUSTOM == groupType) {
+                    groupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
+                  } else {
+                    taxGroupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
+                  }
+                })
+                .map { _ =>
+                  sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupsAddedTo)
+                  Redirect(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id))
+                }
             }
-          }
-          }).map { _ =>
-            sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupsAddedTo)
-            Redirect(routes.AddTeamMemberToGroupsController.showConfirmTeamMemberAddedToGroups(id))
-          }
-        }
-      }
-      )
-    }
+        )
     }
   }
 
   def showConfirmTeamMemberAddedToGroups(id: String): Action[AnyContent] = Action.async { implicit request =>
-    withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) => {
+    withTeamMemberForAuthorisedOptedAgent(id) { (tm: TeamMember, arn: Arn) =>
       sessionCacheService.get[Seq[GroupId]](GROUP_IDS_ADDED_TO).flatMap { maybeGroupIds =>
         groupService.getGroupSummaries(arn).map { groups =>
           val groupsAddedTo = groups
@@ -122,7 +118,6 @@ class AddTeamMemberToGroupsController @Inject()
           Ok(confirm_added(tm, groupsAddedTo))
         }
       }
-    }
     }
   }
 

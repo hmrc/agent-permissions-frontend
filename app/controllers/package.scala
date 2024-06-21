@@ -29,9 +29,9 @@ package object controllers {
     def toFuture: Future[T] = Future successful t
   }
 
-  implicit class BooleanFold(boolean: Boolean){
-    def fold[B](l: B)(r: B => B): B = if(boolean) r(l) else l
-    def foldAny(l: Any)(r: Any => Any): Any = if(boolean) r(l) else l
+  implicit class BooleanFold(boolean: Boolean) {
+    def fold[B](l: B)(r: B => B): B = if (boolean) r(l) else l
+    def foldAny(l: Any)(r: Any => Any): Any = if (boolean) r(l) else l
   }
 
   def formWithFilledValue[A](form: Form[A], mChoice: Option[A]): Form[A] =
@@ -44,7 +44,7 @@ package object controllers {
   }
 
   final val CONTINUE_BUTTON: String = "continue"
-  final val  CLEAR_BUTTON: String = "clear"
+  final val CLEAR_BUTTON: String = "clear"
   final val FILTER_BUTTON: String = "filter"
   final val PAGINATION_BUTTON: String = "pagination"
   final val MAX_PAGES_WITHOUT_ELLIPSIS: Int = 16
@@ -56,7 +56,7 @@ package object controllers {
   val optedInStatii = Seq(OptedInReady, OptedInNotReady, OptedInSingleUser)
   val optedOutStatii = Seq(OptedOutEligible, OptedOutSingleUser, OptedOutWrongClientCount)
   val isOptedIn: OptinStatus => Boolean = status => optedInStatii.contains(status)
-  val isOptedOut: OptinStatus => Boolean =  status => optedOutStatii.contains(status)
+  val isOptedOut: OptinStatus => Boolean = status => optedOutStatii.contains(status)
   val isOptedInComplete: OptinStatus => Boolean = status => status == OptedInReady
 
   val OPT_IN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
@@ -75,9 +75,9 @@ package object controllers {
 
   val GROUP_SEARCH_INPUT: DataKey[String] = DataKey("GROUP_SEARCH_INPUT")
 
-  //TODO remove?
+  // TODO remove?
   val FILTERED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("filteredTeamMembers")
-  val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") //the filtered result
+  val FILTERED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("filteredClients") // the filtered result
 
   val CURRENT_PAGE_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("CURRENT_PAGE_TEAM_MEMBERS")
   val SELECTED_TEAM_MEMBERS: DataKey[Seq[TeamMember]] = DataKey("groupTeamMembersSelected")
@@ -126,37 +126,36 @@ package object controllers {
       SELECTED_TEAM_MEMBERS,
       CONFIRM_TEAM_MEMBERS_SELECTED,
       GROUP_SERVICE_TYPE,
-      RETURN_URL,
+      RETURN_URL
     )
 
   val managingGroupKeys = (
-      clientFilteringKeys ++
+    clientFilteringKeys ++
       teamMemberFilteringKeys ++
       List(
         SELECTED_CLIENTS,
         SELECTED_TEAM_MEMBERS
       )
-    ).distinct
+  ).distinct
 
-  val sessionKeys = (
-    clientFilteringKeys ++
-      teamMemberFilteringKeys ++
-      creatingGroupKeys ++
-      List(
-        OPT_IN_STATUS,
-        GROUP_NAME,
-        GROUP_NAME_CONFIRMED,
-        GROUP_CLIENTS,
-        NAME_OF_GROUP_CREATED,
-        GROUP_RENAMED_FROM,
-        GROUP_DELETED_NAME,
-        GROUPS_FOR_UNASSIGNED_CLIENTS,
-        FILTERED_GROUP_SUMMARIES,
-        CLIENT_REFERENCE,
-        CLIENT_FILTER_INPUT,
-        CLIENT_SEARCH_INPUT,
-        TEAM_MEMBER_SEARCH_INPUT,
-        RETURN_URL,
-      )).distinct
+  val sessionKeys = (clientFilteringKeys ++
+    teamMemberFilteringKeys ++
+    creatingGroupKeys ++
+    List(
+      OPT_IN_STATUS,
+      GROUP_NAME,
+      GROUP_NAME_CONFIRMED,
+      GROUP_CLIENTS,
+      NAME_OF_GROUP_CREATED,
+      GROUP_RENAMED_FROM,
+      GROUP_DELETED_NAME,
+      GROUPS_FOR_UNASSIGNED_CLIENTS,
+      FILTERED_GROUP_SUMMARIES,
+      CLIENT_REFERENCE,
+      CLIENT_FILTER_INPUT,
+      CLIENT_SEARCH_INPUT,
+      TEAM_MEMBER_SEARCH_INPUT,
+      RETURN_URL
+    )).distinct
 
 }

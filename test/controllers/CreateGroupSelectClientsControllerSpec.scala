@@ -39,12 +39,17 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
-  implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService] // TODO move to a ‘real’ (in-memory store) session cache service and you won't have to mock either SessionCacheService or SessionCacheServiceOperations!
+  implicit val mockSessionCacheOps: SessionCacheOperationsService =
+    mock[
+      SessionCacheOperationsService
+    ] // TODO move to a ‘real’ (in-memory store) session cache service and you won't have to mock either SessionCacheService or SessionCacheServiceOperations!
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
   private val groupName = "XYZ"
@@ -52,7 +57,16 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[ClientService]).toInstance(mockClientService)
@@ -65,7 +79,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
   override implicit lazy val fakeApplication: Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
-  val controller: CreateGroupSelectClientsController = fakeApplication.injector.instanceOf[CreateGroupSelectClientsController]
+  val controller: CreateGroupSelectClientsController =
+    fakeApplication.injector.instanceOf[CreateGroupSelectClientsController]
 
   val fakeClients: Seq[Client] = List.tabulate(25)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
 
@@ -126,8 +141,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.labelFor("search")).text() shouldBe "Search by tax reference or client reference (optional)"
       html.select("#search").attr("value") shouldBe "Harry"
       html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service (optional)"
-      //TODO this isn't working
-      //html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
+      // TODO this isn't working
+      // html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
 
     }
 
@@ -153,12 +168,9 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectSaveSearch(Some("Harry"), Some("HMRC-MTD-VAT"))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest(
-          "POST",
-          s"${controller.submitSearchClients()}")
+        FakeRequest("POST", s"${controller.submitSearchClients()}")
           .withFormUrlEncodedBody("search" -> "Harry", "filter" -> "HMRC-MTD-VAT")
           .withSession(SessionKeys.sessionId -> "session-x")
-
 
       val result = controller.submitSearchClients()(request)
       status(result) shouldBe SEE_OTHER
@@ -200,7 +212,12 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       trs.size() shouldBe 20
 
       // first row
-      trs.get(0).select("td").get(0).select("label").text() shouldBe "Client reference friendly0, Tax reference ending in 6780, Tax service VAT"
+      trs
+        .get(0)
+        .select("td")
+        .get(0)
+        .select("label")
+        .text() shouldBe "Client reference friendly0, Tax reference ending in 6780, Tax service VAT"
       trs.get(0).select("td").get(1).text() shouldBe "friendly0"
       trs.get(0).select("td").get(2).text() shouldBe "ending in 6780"
       trs.get(0).select("td").get(3).text() shouldBe "VAT"
@@ -227,8 +244,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for ‘John’ Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
 
-      //TODO check if we need to add a h2 with filter/search terms
-      //html.select(H2).text() shouldBe "Filter results for ‘John'"
+      // TODO check if we need to add a h2 with filter/search terms
+      // html.select(H2).text() shouldBe "Filter results for ‘John'"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -320,13 +337,12 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedClients(None, None).url}" in {
 
-        implicit val request = FakeRequest("POST",
-          ctrlRoute.submitSelectedClients().url)
+        implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
           .withSession(SessionKeys.sessionId -> "session-x")
           .withFormUrlEncodedBody(
             "clients[]" -> displayClientsIds.head,
             "clients[]" -> displayClientsIds.last,
-            "submit" -> CONTINUE_BUTTON
+            "submit"    -> CONTINUE_BUTTON
           )
         expectAuthOkArnAllowedOptedInReadyWithGroupName()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
@@ -345,13 +361,12 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       s"button is pagination_2 and redirect to ${ctrlRoute.showSelectClients(Some(2), Some(20)).url}" in {
 
         implicit val request =
-          FakeRequest("POST",
-            ctrlRoute.submitSelectedClients().url)
+          FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "clients[]" -> displayClientsIds.head,
               "clients[]" -> displayClientsIds.last,
-              "submit" -> PAGINATION_BUTTON.concat("_2")
+              "submit"    -> PAGINATION_BUTTON.concat("_2")
             )
 
         expectAuthOkArnAllowedOptedInReadyWithGroupName()
@@ -374,13 +389,12 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       s"bad submit (not continue or page number) redirect to ${ctrlRoute.showSearchClients().url}" in {
 
         implicit val request =
-          FakeRequest("POST",
-            ctrlRoute.submitSelectedClients().url)
+          FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
               "clients[]" -> displayClientsIds.head,
               "clients[]" -> displayClientsIds.last,
-              "submit" -> "tamperedWithOrMissing"
+              "submit"    -> "tamperedWithOrMissing"
             )
 
         expectAuthOkArnAllowedOptedInReadyWithGroupName()
@@ -399,7 +413,6 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
         redirectLocation(result).get shouldBe ctrlRoute.showSearchClients().url
       }
 
-
     }
 
     "display error when button is Continue, no clients were selected" in {
@@ -409,7 +422,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "clients[]" -> "",
-          "submit" -> CONTINUE_BUTTON
+          "submit"    -> CONTINUE_BUTTON
         )
 
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
@@ -435,14 +448,14 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody(
           "clients[]" -> "",
-          "submit" -> CONTINUE_BUTTON
+          "submit"    -> CONTINUE_BUTTON
         )
 
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
-      //this currently selected member will be unselected as part of the post
+      // this currently selected member will be unselected as part of the post
       expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(1))
       val emptyForm = AddClientsToGroup(submit = CONTINUE_BUTTON)
-      //now no selected members
+      // now no selected members
       expectSavePageOfClients(emptyForm, Seq.empty[DisplayClient])
       expectGetPageOfClients(arn)(displayClients)
 
@@ -452,7 +465,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients"
@@ -591,9 +604,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     s"redirect to ‘${routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url}’ page with answer ‘false'" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients()}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -604,15 +615,15 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val result = controller.submitReviewSelectedClients()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url
+      redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController
+        .showSelectTeamMembers(None, None)
+        .url
     }
 
     s"redirect to ‘${ctrlRoute.showSearchClients().url}’ page with answer ‘true'" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients()}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -630,9 +641,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     s"redirect to ‘${ctrlRoute.showSearchClients().url}’ with no SELECTED in session" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients()}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -648,9 +657,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     s"render errors when no radio button selected" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients()}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -670,9 +677,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     s"render errors when continuing with 0 selected clients in session" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients()}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -686,8 +691,12 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "You have selected 0 clients"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "You have removed all clients, select at least one to continue"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: You have removed all clients, select at least one to continue"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "You have removed all clients, select at least one to continue"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: You have removed all clients, select at least one to continue"
     }
   }
 
@@ -698,7 +707,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients.take(5))
       expectPutSessionItem(CLIENT_TO_REMOVE, clientToRemove)
-      //when
+      // when
       val result = controller.showConfirmRemoveClient(Some(clientToRemove.id))(request)
 
       status(result) shouldBe OK
@@ -750,7 +759,6 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
       expectGetSessionItem(CLIENT_TO_REMOVE, clientToRemove)
 
-
       val result = controller.submitConfirmRemoveClient()(request)
 
       status(result) shouldBe SEE_OTHER
@@ -760,9 +768,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     s"redirect to ‘${ctrlRoute.showSearchClients().url}’ with no CLIENT_TO_REMOVE in session" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedClients()}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -778,9 +784,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     s"render errors when no radio button selected" in {
 
       implicit val request =
-        FakeRequest(
-          "POST",
-          s"${controller.submitConfirmRemoveClient()}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -794,8 +798,12 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Remove friendly0 from selected clients? - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Remove friendly0 from selected clients?"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "Select yes if you need to remove this client from the access group"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: Select yes if you need to remove this client from the access group"
 
     }
   }

@@ -16,10 +16,10 @@
 
 package services
 
-import akka.Done
 import connectors._
 import helpers.BaseSpec
 import models.GroupId
+import org.apache.pekko.Done
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agents.accessgroups.{AgentUser, TaxGroup}
@@ -36,10 +36,10 @@ class TaxGroupServiceSpec extends BaseSpec {
 
   "getTaxGroupClientCount" should {
     "delegate to AP connector" in {
-      //expect
+      // expect
       expectGetTaxGroupClientCountFromConnector(arn)
 
-      //when
+      // when
       await(service.getTaxGroupClientCount(arn))
 
     }
@@ -48,7 +48,7 @@ class TaxGroupServiceSpec extends BaseSpec {
   "create group" should {
     "call createTaxGroup on agentPermissionsConnector" in {
 
-      //given
+      // given
       val payload = CreateTaxServiceGroupRequest("blah", None, "blah")
       (mockAgentPermissionsConnector
         .createTaxServiceGroup(_: Arn)(_: CreateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
@@ -56,12 +56,11 @@ class TaxGroupServiceSpec extends BaseSpec {
         .returning(Future successful "123456")
         .once()
 
-      //when
+      // when
       val response = await(service.createGroup(arn, payload))
 
-      //then
+      // then
       response shouldBe "123456"
-
 
     }
   }
@@ -69,10 +68,22 @@ class TaxGroupServiceSpec extends BaseSpec {
   "get group" should {
     "call get on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
       val agentUser = AgentUser("agent1", "Bob Smith")
-      val expectedGroup = TaxGroup(GroupId.random(), Arn("arn1"), "Bangers & Mash", MIN, MIN, agentUser, agentUser, Set.empty, "", automaticUpdates = true, Set.empty)
+      val expectedGroup = TaxGroup(
+        GroupId.random(),
+        Arn("arn1"),
+        "Bangers & Mash",
+        MIN,
+        MIN,
+        agentUser,
+        agentUser,
+        Set.empty,
+        "",
+        automaticUpdates = true,
+        Set.empty
+      )
 
       (mockAgentPermissionsConnector
         .getTaxServiceGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
@@ -80,12 +91,11 @@ class TaxGroupServiceSpec extends BaseSpec {
         .returning(Future successful Some(expectedGroup))
         .once()
 
-      //when
+      // when
       val response = await(service.getGroup(groupId))
 
-      //then
+      // then
       response shouldBe Some(expectedGroup)
-
 
     }
   }
@@ -93,7 +103,7 @@ class TaxGroupServiceSpec extends BaseSpec {
   "delete group" should {
     "call delete on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
 
       (mockAgentPermissionsConnector
@@ -102,10 +112,10 @@ class TaxGroupServiceSpec extends BaseSpec {
         .returning(Future successful Done)
         .once()
 
-      //when
+      // when
       val response = await(service.deleteGroup(groupId))
 
-      //then
+      // then
       response shouldBe Done
 
     }
@@ -114,7 +124,7 @@ class TaxGroupServiceSpec extends BaseSpec {
   "update group" should {
     "call patch/update on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
       val payload = UpdateTaxServiceGroupRequest(groupName = Some("Bangers & Mash"))
 
@@ -124,12 +134,11 @@ class TaxGroupServiceSpec extends BaseSpec {
         .returning(Future successful Done)
         .once()
 
-      //when
+      // when
       val response = await(service.updateGroup(groupId, payload))
 
-      //then
+      // then
       response shouldBe Done
-
 
     }
   }
@@ -137,23 +146,25 @@ class TaxGroupServiceSpec extends BaseSpec {
   "add team member to a group" should {
     "call patch/update on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val payload = AddOneTeamMemberToGroupRequest(agent)
 
       (mockAgentPermissionsConnector
-        .addOneTeamMemberToTaxGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .addOneTeamMemberToTaxGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(
+          _: HeaderCarrier,
+          _: ExecutionContext
+        ))
         .expects(groupId, payload, *, *)
         .returning(Future successful Done)
         .once()
 
-      //when
+      // when
       val response = service.addOneMemberToGroup(groupId, payload).futureValue
 
-      //then
+      // then
       response shouldBe Done
-
 
     }
   }
@@ -161,7 +172,7 @@ class TaxGroupServiceSpec extends BaseSpec {
   "add many members to a group" should {
     "call put/update on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
       val payload = AddMembersToTaxServiceGroupRequest(teamMembers = Some(Set(AgentUser("whatever", "Joseph Blogs"))))
 
@@ -171,12 +182,11 @@ class TaxGroupServiceSpec extends BaseSpec {
         .returning(Future successful Done)
         .once()
 
-      //when
+      // when
       val response = await(service.addMembersToGroup(groupId, payload))
 
-      //then
+      // then
       response shouldBe Done
-
 
     }
   }

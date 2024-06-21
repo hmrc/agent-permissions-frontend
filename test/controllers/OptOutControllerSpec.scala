@@ -34,15 +34,25 @@ class OptOutControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
-  implicit lazy val mockSessionCacheService : SessionCacheService = mock[SessionCacheService]
-  implicit lazy val mockOptinService : OptinService = mock[OptinService]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
+  implicit lazy val mockOptinService: OptinService = mock[OptinService]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
       bind(classOf[OptinService]).toInstance(mockOptinService)
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
     }
@@ -73,17 +83,23 @@ class OptOutControllerSpec extends BaseSpec {
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
       html.select(Css.backLink).text() shouldBe "Return to manage account"
       html.select(Css.H1).text() shouldBe "Turn off access groups"
-      html.select(Css.insetText)
+      html
+        .select(Css.insetText)
         .text() shouldBe "If you turn off this feature any access groups you have created will be disabled. The groups can be turned on again at any time."
-      //if adding a para please test it!
+      // if adding a para please test it!
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 2
-      paragraphs.get(0)
+      paragraphs
+        .get(0)
         .text() shouldBe "Turning off access groups will mean that all your team members can view and manage the tax affairs of all your clients. We recommend checking with your team before turning off access groups."
-      paragraphs.get(1)
+      paragraphs
+        .get(1)
         .text() shouldBe "If you turn access groups back on your groups will be restored. Team members will only be able to manage the clients in their access groups."
       html.select(Css.linkStyledAsButton).get(0).text() shouldBe "Cancel"
-      html.select(Css.linkStyledAsButton).get(0).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
+      html
+        .select(Css.linkStyledAsButton)
+        .get(0)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
       html.select(Css.linkStyledAsButton).get(1).text() shouldBe "Continue"
       html.select(Css.linkStyledAsButton).get(1).attr("href") shouldBe "/agent-permissions/confirm-turn-off"
     }
@@ -185,13 +201,21 @@ class OptOutControllerSpec extends BaseSpec {
       html.title() shouldBe "You have turned off access groups - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "You have turned off access groups"
       html.select(Css.H2).text() shouldBe "What happens next"
-      html.select(Css.paragraphs).get(0)
+      html
+        .select(Css.paragraphs)
+        .get(0)
         .text() shouldBe "You need to sign out and sign back in to see this change, after which all team members will be able to view and manage the tax affairs of all clients."
-      html.select(Css.paragraphs).get(1)
+      html
+        .select(Css.paragraphs)
+        .get(1)
         .text() shouldBe "Your account will show that you have chosen to turn off access groups. If you wish to turn this feature on again you can do so from your agent services ‘Manage account’ page."
-      html.select(Css.link).get(0)
+      html
+        .select(Css.link)
+        .get(0)
         .text() shouldBe "Return to manage account"
-      html.select(Css.link).get(0)
+      html
+        .select(Css.link)
+        .get(0)
         .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
   }

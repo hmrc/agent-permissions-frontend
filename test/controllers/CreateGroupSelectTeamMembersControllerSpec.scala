@@ -38,18 +38,29 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockTaxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockTeamService: TeamMemberService = mock[TeamMemberService]
- implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
+  implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, mockSessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[ClientService]).toInstance(mockClientService)
@@ -60,7 +71,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  val controller: CreateGroupSelectTeamMembersController = fakeApplication.injector.instanceOf[CreateGroupSelectTeamMembersController]
+  val controller: CreateGroupSelectTeamMembersController =
+    fakeApplication.injector.instanceOf[CreateGroupSelectTeamMembersController]
 
   override implicit lazy val fakeApplication: Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
@@ -84,7 +96,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
   private val ctrlRoute: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
 
-  def expectAuthOkOptedInReadyWithGroupType(groupType :String = CUSTOM_GROUP): Unit = {
+  def expectAuthOkOptedInReadyWithGroupType(groupType: String = CUSTOM_GROUP): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(SUSPENSION_STATUS, false)
@@ -233,7 +245,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       // Not found content
       html.select("#filter-description").text() shouldBe "No filter results for ‘’"
-      html.select(paragraphs).get(1).text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
+      html
+        .select(paragraphs)
+        .get(1)
+        .text() shouldBe "Update your filters and try again or clear your filters to see all your team members"
 
     }
 
@@ -269,12 +284,12 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
-          .withSession(SessionKeys.sessionId -> "session-x")
-          .withFormUrlEncodedBody(
-            "members[]" -> teamMembersIds.head,
-            "members[]" -> teamMembersIds.last,
-            "submit" -> CONTINUE_BUTTON
-          )
+            .withSession(SessionKeys.sessionId -> "session-x")
+            .withFormUrlEncodedBody(
+              "members[]" -> teamMembersIds.head,
+              "members[]" -> teamMembersIds.last,
+              "submit"    -> CONTINUE_BUTTON
+            )
         expectAuthOkOptedInReadyWithGroupType()
         expectGetSessionItem(GROUP_NAME, "XYZ")
         expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
@@ -298,8 +313,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
             .withFormUrlEncodedBody(
               "members[]" -> teamMembersIds.head,
               "members[]" -> teamMembersIds.last,
-              "search" -> "10",
-              "submit" -> FILTER_BUTTON
+              "search"    -> "10",
+              "submit"    -> FILTER_BUTTON
             )
 
         expectAuthOkOptedInReadyWithGroupType()
@@ -326,12 +341,12 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
-        .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "members" -> "",
-          "search" -> "",
-          "submit" -> CONTINUE_BUTTON
-        )
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "members" -> "",
+            "search"  -> "",
+            "submit"  -> CONTINUE_BUTTON
+          )
 
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, "XYZ")
@@ -357,20 +372,20 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
-        .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "members" -> "",
-          "search" -> "",
-          "submit" -> CONTINUE_BUTTON
-        )
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "members" -> "",
+            "search"  -> "",
+            "submit"  -> CONTINUE_BUTTON
+          )
 
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
-      //this currently selected team member will be unselected as part of the post
+      // this currently selected team member will be unselected as part of the post
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(1))
 
       val emptyForm = AddTeamMembersToGroup(submit = CONTINUE_BUTTON)
-      //now no selected members
+      // now no selected members
       expectSavePageOfTeamMembers(emptyForm, Seq.empty[TeamMember])
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
@@ -380,7 +395,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
@@ -392,13 +407,14 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "not show any errors when button is Filter and no filter term was provided" in {
 
       // given
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
-        .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "members" -> "",
-          "search" -> "",
-          "submit" -> FILTER_BUTTON
-        )
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "members" -> "",
+            "search"  -> "",
+            "submit"  -> FILTER_BUTTON
+          )
 
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(GROUP_NAME, groupName)
@@ -419,9 +435,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url
-      ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
-        .withSession(SessionKeys.sessionId -> "session-x")
+        FakeRequest("POST", ctrlRoute.submitSelectedTeamMembers().url)
+          .withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItemNone(GROUP_NAME)
@@ -561,10 +577,10 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectPutSessionItem(CONFIRM_TEAM_MEMBERS_SELECTED, false)
       expectDeleteSessionItem(GROUP_TYPE)
 
-      //when
+      // when
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.CreateGroupSelectTeamMembersController.showTaxGroupCreated().url
     }
@@ -579,7 +595,6 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
-
 
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
@@ -629,17 +644,19 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       table.select("thead th").size() shouldBe 4
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more team members?"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to select more team members"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to select more team members"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "Select yes if you need to select more team members"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: Select yes if you need to select more team members"
 
     }
 
     s"render errors when answer ‘false’ and 0 selected team members in session" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest(
-          "POST",
-          s"${controller.submitReviewSelectedTeamMembers()}")
+        FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -658,11 +675,15 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "You have selected 0 team members to add to the group"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
-      table.select("thead th").size() shouldBe 0  // no table rendered
+      table.select("thead th").size() shouldBe 0 // no table rendered
 
       html.select("form .govuk-fieldset__legend").text() shouldBe "Do you need to select more team members?"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "You have removed all team members, select at least one to continue"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: You have removed all team members, select at least one to continue"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "You have removed all team members, select at least one to continue"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: You have removed all team members, select at least one to continue"
 
     }
   }
@@ -693,7 +714,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
 
       html
-        .select(Css.paragraphs).get(0)
+        .select(Css.paragraphs)
+        .get(0)
         .text shouldBe "The team members you selected can now view and manage the tax affairs of all the clients in this access group"
 
     }
@@ -725,11 +747,13 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.backLink).size() shouldBe 0
 
       html
-        .select(Css.paragraphs).get(0)
+        .select(Css.paragraphs)
+        .get(0)
         .text shouldBe "The team members you selected can now view and manage the tax affairs of all the clients in this access group"
 
       html
-        .select(Css.paragraphs).get(1)
+        .select(Css.paragraphs)
+        .get(1)
         .text shouldBe "New clients for this tax service will be added to the group automatically."
 
     }
@@ -739,18 +763,17 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
   s"GET Confirm Remove a selected team member on ${ctrlRoute.showConfirmRemoveTeamMember(Some("id")).url}" should {
 
     "render with team member to confirm removal" in {
-      //given
+      // given
       val memberToRemove = teamMembers.head
       expectAuthOkOptedInReadyWithGroupType()
       expectPutSessionItem(MEMBER_TO_REMOVE, memberToRemove)
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers.take(5))
       expectGetSessionItem(GROUP_NAME, groupName)
 
-      //when
+      // when
       val result = controller.showConfirmRemoveTeamMember(Some(memberToRemove.id))(request)
 
-
-      //then
+      // then
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
@@ -775,8 +798,8 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember}")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReadyWithGroupType()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
@@ -794,7 +817,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showReviewSelectedTeamMembers(None, None).url}’ page with answer ‘false’" in {
 
-      //given
+      // given
       val memberToRemove = teamMembers.head
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -807,18 +830,17 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(MEMBER_TO_REMOVE, memberToRemove)
       expectGetSessionItem(GROUP_NAME, groupName)
 
-
-      //when
+      // when
       val result = controller.submitConfirmRemoveTeamMember()(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showReviewSelectedTeamMembers(None, None).url
     }
 
     s"redirect with no MEMBER_TO_REMOVE in session" in {
 
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedTeamMembers()}")
           .withFormUrlEncodedBody("answer" -> "true")
@@ -828,17 +850,17 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItemNone(SELECTED_TEAM_MEMBERS)
       expectGetSessionItem(GROUP_NAME, groupName)
 
-      //when
+      // when
       val result = controller.submitReviewSelectedTeamMembers()(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showSelectTeamMembers(None, None).url
     }
 
     s"render errors when no radio button selected" in {
 
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveTeamMember()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
@@ -849,17 +871,21 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       expectGetSessionItem(MEMBER_TO_REMOVE, teamMembers.head)
       expectGetSessionItem(GROUP_NAME, groupName)
 
-      //when
+      // when
       val result = controller.submitConfirmRemoveTeamMember()(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Remove John from selected team members? - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(H1).text() shouldBe "Remove John from selected team members?"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this team member from the access group"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this team member from the access group"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "Select yes if you need to remove this team member from the access group"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: Select yes if you need to remove this team member from the access group"
 
     }
   }

@@ -25,25 +25,23 @@ import views.html.timeout._
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class TimeoutController @Inject()(
-   mcc: MessagesControllerComponents,
-   you_have_been_timed_out: you_have_been_timed_out,
-   you_have_signed_out: you_have_signed_out
+class TimeoutController @Inject() (
+  mcc: MessagesControllerComponents,
+  you_have_been_timed_out: you_have_been_timed_out,
+  you_have_signed_out: you_have_signed_out
 )(implicit val appConfig: AppConfig, implicit override val messagesApi: MessagesApi)
-  extends FrontendController(mcc)
-    with I18nSupport {
-
+    extends FrontendController(mcc) with I18nSupport {
 
   def keepAlive: Action[AnyContent] = Action { _ =>
     Ok("Ok")
   }
 
   def timedOut: Action[AnyContent] = Action { implicit request =>
-      Ok(you_have_been_timed_out()).withNewSession
+    Ok(you_have_been_timed_out()).withNewSession
   }
 
   def signOut: Action[AnyContent] = Action { implicit request =>
-      Ok(you_have_signed_out()).withNewSession
+    Ok(you_have_signed_out()).withNewSession
   }
 
 }

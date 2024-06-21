@@ -21,11 +21,9 @@ import uk.gov.hmrc.crypto.{Crypted, PlainText, SymmetricCryptoFactory}
 object EncryptionUtil {
 
   val secret = "P5xsJ9MM+mxxcZzB4DeLfw=="
-  def encryptEnrolmentKey(str: String) = {
+  def encryptEnrolmentKey(str: String) =
     SymmetricCryptoFactory.aesCrypto(secret).encrypt(PlainText(str)).value
-  }
 
-  def decryptEnrolmentKey(encrypted: String) = {
+  def decryptEnrolmentKey(encrypted: String) =
     SymmetricCryptoFactory.aesCrypto(secret).decrypt(Crypted(encrypted)).value
-  }
 }

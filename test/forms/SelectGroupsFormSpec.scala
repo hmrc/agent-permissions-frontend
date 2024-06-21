@@ -22,9 +22,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
 import java.util.UUID
 
-class SelectGroupsFormSpec extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite {
+class SelectGroupsFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   val createNewField = "createNew"
 
@@ -51,17 +49,29 @@ class SelectGroupsFormSpec extends AnyWordSpec
 
     "fail when no checkboxes are selected" in {
       val params = Map.empty[String, String]
-      SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.invalid-selection.error"
+      SelectGroupsForm
+        .form()
+        .bind(params)
+        .errors
+        .head
+        .message shouldBe "unassigned.client.assign.invalid-selection.error"
     }
     "fail when both groups and 'none of the above' are selected" in {
       val groupId = UUID.randomUUID().toString
       val params = Map("groups[0]" -> groupId, "groups[1]" -> SelectGroupsForm.NoneValue)
-      SelectGroupsForm.form().bind(params).errors.head.message shouldBe "unassigned.client.assign.invalid-selection.error"
+      SelectGroupsForm
+        .form()
+        .bind(params)
+        .errors
+        .head
+        .message shouldBe "unassigned.client.assign.invalid-selection.error"
     }
     "populate form based on result value correctly" in {
       val groupId = UUID.randomUUID().toString
       SelectGroupsForm.form().fill(SelectGroups.CreateNew).data shouldBe Map(createNewField -> "true")
-      SelectGroupsForm.form().fill(SelectGroups.NoneOfTheAbove).data shouldBe Map("groups[0]" -> SelectGroupsForm.NoneValue)
+      SelectGroupsForm.form().fill(SelectGroups.NoneOfTheAbove).data shouldBe Map(
+        "groups[0]" -> SelectGroupsForm.NoneValue
+      )
       SelectGroupsForm.form().fill(SelectGroups.SelectedGroups(List(groupId))).data shouldBe Map("groups[0]" -> groupId)
     }
 

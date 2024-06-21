@@ -30,9 +30,8 @@ class SessionCacheServiceSpec extends BaseSpec {
 
   override def moduleWithOverrides = new AbstractModule() {
 
-    override def configure(): Unit = {
+    override def configure(): Unit =
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
-    }
   }
 
   override implicit lazy val fakeApplication: Application =

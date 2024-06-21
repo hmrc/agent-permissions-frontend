@@ -38,8 +38,10 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
@@ -47,7 +49,16 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(mockGroupService)
@@ -80,8 +91,10 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showSelectGroupsForClient(client.id).url}" should {
 
     "render correctly the html" in {
-      //given
-      val groupSummaries = (1 to 5).map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4)) ++ Seq(GroupSummary(GroupId.random(), "VAT", None, 8, Some("HMRC-MTD-VAT")))
+      // given
+      val groupSummaries = (1 to 5).map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4)) ++ Seq(
+        GroupSummary(GroupId.random(), "VAT", None, 8, Some("HMRC-MTD-VAT"))
+      )
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
 
       AuthOkWithClient()
@@ -89,7 +102,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
@@ -103,7 +116,9 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
 
       val fieldset = form.select("fieldset.govuk-fieldset") // fieldset must exist and have a legend
       fieldset.select(Css.legend).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
-      fieldset.select("#groups-hint").text() shouldBe "You can only add clients to custom groups manually. Select all that apply."
+      fieldset
+        .select("#groups-hint")
+        .text() shouldBe "You can only add clients to custom groups manually. Select all that apply."
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
       checkboxes.size() shouldBe 4
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
@@ -119,7 +134,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
 
     "render correctly when client not in any groups yet" in {
-      //given
+      // given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = Seq.empty
@@ -129,7 +144,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
@@ -158,7 +173,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
 
     "render correctly when no available groups" in {
-      //given
+      // given
       val groupSummaries = (1 to 2)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries
@@ -168,7 +183,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForClient(arn)(client)(groupsAlreadyAssociatedToClient)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForClient(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
@@ -191,14 +206,16 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     "add client to the selected groups and redirect" when {
 
       s"At least 1 checkbox is checked for the group to add to" in {
-        //given
+        // given
         val groupSummaries = (1 to 5)
           .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
 
-        val expectedAddRequest1 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
+        val expectedAddRequest1 =
+          AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         expectAddMembersToGroup(groupSummaries(3).groupId, expectedAddRequest1)
 
-        val expectedAddRequest2 = AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
+        val expectedAddRequest2 =
+          AddMembersToAccessGroupRequest(clients = Some(Set(Client(client.enrolmentKey, client.name))))
         expectAddMembersToGroup(groupSummaries(4).groupId, expectedAddRequest2)
 
         implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -206,12 +223,12 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
             .withFormUrlEncodedBody(
               "groups[0]" -> groupSummaries(3).groupId.toString,
               "groups[1]" -> groupSummaries(4).groupId.toString,
-              "submit" -> CONTINUE_BUTTON
+              "submit"    -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
         AuthOkWithClient()
-        expectPutSessionItem(GROUP_IDS_ADDED_TO, Seq(groupSummaries(3).groupId,groupSummaries(4).groupId))
+        expectPutSessionItem(GROUP_IDS_ADDED_TO, Seq(groupSummaries(3).groupId, groupSummaries(4).groupId))
 
         val result = controller.submitSelectGroupsForClient(client.id)(request)
 
@@ -223,14 +240,14 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
 
     "redirect to manage account if 'none of the above' is selected" in {
-      //given
+      // given
       AuthOkWithClient()
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", submitUrl)
           .withFormUrlEncodedBody(
             "groups[0]" -> s"${AddGroupsToClientForm.NoneValue}",
-            "submit" -> CONTINUE_BUTTON
+            "submit"    -> CONTINUE_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -241,7 +258,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
 
     "display error when no groups are selected" in {
-      //given
+      // given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToClient = groupSummaries.take(2)
@@ -264,8 +281,10 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       // then
       html.title() shouldBe "Error: Which custom access groups would you like to add Client 0 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which custom access groups would you like to add Client 0 to?"
-      //a11y: error should link to first group in the checkboxes
-      html.select(Css.errorSummaryForField(groupSummaries(2).groupId.toString)).text() shouldBe "You must select at least one group"
+      // a11y: error should link to first group in the checkboxes
+      html
+        .select(Css.errorSummaryForField(groupSummaries(2).groupId.toString))
+        .text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"
     }
   }
@@ -273,7 +292,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showConfirmClientAddedToGroups(client.id).url}" should {
 
     "render correctly the html" in {
-      //given
+      // given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
 
@@ -281,7 +300,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))
       expectGetGroupsForArn(arn)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showConfirmClientAddedToGroups(client.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
@@ -291,7 +310,10 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
       html.select(Css.li("groups-added-to")).get(0).text shouldBe "Group 1"
       html.select(Css.li("groups-added-to")).get(1).text shouldBe "Group 2"
       html.select(Css.paragraphs).get(0).text() shouldBe "You have added Client 0 to the following groups:"
-      html.select(Css.paragraphs).get(1).text() shouldBe "The team members in these access groups can now view and manage the tax affairs of the client you added."
+      html
+        .select(Css.paragraphs)
+        .get(1)
+        .text() shouldBe "The team members in these access groups can now view and manage the tax affairs of the client you added."
       html.select("a#back-to-manage").text() shouldBe "Back to manage clients page"
 
     }

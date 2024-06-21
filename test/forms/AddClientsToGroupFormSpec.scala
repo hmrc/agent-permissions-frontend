@@ -23,10 +23,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.data.FormError
 
-class AddClientsToGroupFormSpec
-  extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite {
+class AddClientsToGroupFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   val hasSelectedClients = "hasSelectedClients"
   val search = "search"
@@ -38,29 +35,20 @@ class AddClientsToGroupFormSpec
 
   "CreateGroupFrom binding" should {
 
-
     "be fillable with a AddClientsToGroup" in {
       val validatedForm = AddClientsToGroupForm
         .form()
-        .fill(
-          AddClientsToGroup(
-            None,
-            None,
-            Some(List(client1.id, client2.id)), "continue"))
+        .fill(AddClientsToGroup(None, None, Some(List(client1.id, client2.id)), "continue"))
       validatedForm.hasErrors shouldBe false
-      validatedForm.value shouldBe Option(
-        AddClientsToGroup(
-          None,
-          None,
-          Some(List(client1.id, client2.id)), "continue"))
+      validatedForm.value shouldBe Option(AddClientsToGroup(None, None, Some(List(client1.id, client2.id)), "continue"))
     }
 
     "be successful when button is Continue and clients are non-empty" in {
       val params = Map(
-        search -> List.empty,
-        filter -> List.empty,
-        clients -> List(client1.id, client2.id),
-        "submit" -> List("continue"),
+        search   -> List.empty,
+        filter   -> List.empty,
+        clients  -> List(client1.id, client2.id),
+        "submit" -> List("continue")
       )
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
       boundForm.value shouldBe Some(
@@ -68,30 +56,29 @@ class AddClientsToGroupFormSpec
           None,
           None,
           Some(List(client1.id, client2.id)),
-        "continue"
+          "continue"
         )
       )
     }
 
     "be successful when button is Clear and form is empty" in {
       val params = Map(
-        search -> List.empty,
-        filter -> List.empty,
-        clients -> List.empty,
-        "submit" -> List("clear"),
+        search   -> List.empty,
+        filter   -> List.empty,
+        clients  -> List.empty,
+        "submit" -> List("clear")
       )
       val boundForm =
         AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.value shouldBe Some(
-        AddClientsToGroup( None, None, None, "clear"))
+      boundForm.value shouldBe Some(AddClientsToGroup(None, None, None, "clear"))
     }
 
     "be successful when button is Filter and form is non-empty" in {
       val params = Map(
-        search -> List.empty,
-        filter -> List("abc"),
-        clients -> List(client1.id, client2.id),
-        "submit" -> List("filter"),
+        search   -> List.empty,
+        filter   -> List("abc"),
+        clients  -> List(client1.id, client2.id),
+        "submit" -> List("filter")
       )
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
 
@@ -108,10 +95,10 @@ class AddClientsToGroupFormSpec
     "be successful when button is Continue, clients is empty but hasPreSelected is true" in {
       val params =
         Map(
-          search -> List.empty,
-          filter -> List.empty,
-          clients -> List.empty,
-          "submit" -> List("continue"),
+          search   -> List.empty,
+          filter   -> List.empty,
+          clients  -> List.empty,
+          "submit" -> List("continue")
         )
 
       val boundForm = AddClientsToGroupForm.form(true).bindFromRequest(params)
@@ -130,10 +117,10 @@ class AddClientsToGroupFormSpec
     "have errors when button is Continue, clients is empty and hasPreSelected is false" in {
       val params =
         Map(
-          search -> List.empty,
-          filter -> List.empty,
-          clients -> List.empty,
-          "submit" -> List("continue"),
+          search   -> List.empty,
+          filter   -> List.empty,
+          clients  -> List.empty,
+          "submit" -> List("continue")
         )
 
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
@@ -143,9 +130,9 @@ class AddClientsToGroupFormSpec
 
     "have NOT have errors when button is Filter and search and filter fields are empty" in {
       val params = Map(
-        search -> List.empty,
-        filter -> List.empty,
-        clients -> List(client1.id, client2.id),
+        search   -> List.empty,
+        filter   -> List.empty,
+        clients  -> List(client1.id, client2.id),
         "submit" -> List("filter")
       )
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
@@ -155,15 +142,14 @@ class AddClientsToGroupFormSpec
 
     "have errors when button is Filter and search contains invalid characters" in {
       val params = Map(
-        search -> List("bad<search>"),
-        filter -> List.empty,
-        clients -> List(client1.id, client2.id),
-        "submit" -> List("filter"),
+        search   -> List("bad<search>"),
+        filter   -> List.empty,
+        clients  -> List(client1.id, client2.id),
+        "submit" -> List("filter")
       )
       val boundForm =
         AddClientsToGroupForm.form().bindFromRequest(params)
-      boundForm.errors shouldBe List(
-        FormError("search", List("error.search-filter.invalid")))
+      boundForm.errors shouldBe List(FormError("search", List("error.search-filter.invalid")))
     }
 
   }
@@ -171,27 +157,23 @@ class AddClientsToGroupFormSpec
   "Unbind form" should {
 
     "give expected Map of data Continue" in {
-      val model = AddClientsToGroup(
-        None,
-        None,
-        Some(List(client1.id, client2.id)),
-        submit = "continue")
+      val model = AddClientsToGroup(None, None, Some(List(client1.id, client2.id)), submit = "continue")
       AddClientsToGroupForm
         .form()
         .mapping
         .unbind(model) shouldBe Map(
         "clients[0]" -> client1.id,
         "clients[1]" -> client2.id,
-        "submit" -> CONTINUE_BUTTON,
+        "submit"     -> CONTINUE_BUTTON
       )
     }
 
     "have errors  when button is continue and no clients" in {
       val params = Map(
-        search -> List.empty,
-        filter -> List.empty,
-        clients -> List.empty,
-        "submit" -> List("continue"),
+        search   -> List.empty,
+        filter   -> List.empty,
+        clients  -> List.empty,
+        "submit" -> List("continue")
       )
       val boundForm = AddClientsToGroupForm.form().bindFromRequest(params)
       boundForm.hasErrors shouldBe true
@@ -199,29 +181,26 @@ class AddClientsToGroupFormSpec
     }
 
     "give expected Map of data Filter" in {
-      val model = AddClientsToGroup(
-        Option("Ab"),
-        Option("Bc"),
-        Some(List(client1.id)), "clear")
+      val model = AddClientsToGroup(Option("Ab"), Option("Bc"), Some(List(client1.id)), "clear")
       AddClientsToGroupForm
         .form()
         .mapping
         .unbind(model) shouldBe Map(
-        "filter" -> "Bc",
-        "search" -> "Ab",
+        "filter"     -> "Bc",
+        "search"     -> "Ab",
         "clients[0]" -> client1.id,
-        "submit" -> CLEAR_BUTTON,
+        "submit"     -> CLEAR_BUTTON
       )
     }
 
     "give expected Map of data Clear" in {
       val model =
-        AddClientsToGroup( None, None, None, submit = "filter")
+        AddClientsToGroup(None, None, None, submit = "filter")
       AddClientsToGroupForm
         .form()
         .mapping
         .unbind(model) shouldBe Map(
-        "submit" -> FILTER_BUTTON,
+        "submit" -> FILTER_BUTTON
       )
     }
   }

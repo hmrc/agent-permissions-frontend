@@ -23,11 +23,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.data.FormError
 
-
-class AddTeamMembersToGroupFormSpec
-  extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite {
+class AddTeamMembersToGroupFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   val search = "search"
   val members = "members[]"
@@ -40,21 +36,15 @@ class AddTeamMembersToGroupFormSpec
     "be fillable with a AddTeamMembersToGroup" in {
       val validatedForm = AddTeamMembersToGroupForm
         .form()
-        .fill(
-          AddTeamMembersToGroup(
-            None,
-            Some(List(member1.id, member2.id))))
+        .fill(AddTeamMembersToGroup(None, Some(List(member1.id, member2.id))))
       validatedForm.hasErrors shouldBe false
-      validatedForm.value shouldBe Some(
-        AddTeamMembersToGroup(
-          None,
-          Some(List(member1.id, member2.id))))
+      validatedForm.value shouldBe Some(AddTeamMembersToGroup(None, Some(List(member1.id, member2.id))))
     }
 
     "be successful when button is Continue and team members are non-empty" in {
       val params = Map(
-        search -> List.empty,
-        members -> List(member1.id, member2.id),
+        search   -> List.empty,
+        members  -> List(member1.id, member2.id),
         "submit" -> List("continue")
       )
       val boundForm = AddTeamMembersToGroupForm
@@ -62,17 +52,14 @@ class AddTeamMembersToGroupFormSpec
         .bindFromRequest(params)
 
       boundForm.value shouldBe Some(
-        AddTeamMembersToGroup(
-          None,
-          Some(List(member1.id, member2.id)),
-          submit = "continue")
+        AddTeamMembersToGroup(None, Some(List(member1.id, member2.id)), submit = "continue")
       )
     }
 
     "be successful when button is Continue, team members are empty but has preselected" in {
       val params = Map(
-        search -> List.empty,
-        members -> List.empty,
+        search   -> List.empty,
+        members  -> List.empty,
         "submit" -> List("continue")
       )
       val boundForm = AddTeamMembersToGroupForm
@@ -80,17 +67,14 @@ class AddTeamMembersToGroupFormSpec
         .bindFromRequest(params)
 
       boundForm.value shouldBe Some(
-        AddTeamMembersToGroup(
-          None,
-          None,
-          submit = "continue")
+        AddTeamMembersToGroup(None, None, submit = "continue")
       )
     }
 
     "have errors when team members is empty and submit is continue" in {
       val params = Map(
-        search -> List.empty,
-        members -> List.empty,
+        search   -> List.empty,
+        members  -> List.empty,
         "submit" -> List("continue")
       )
       val boundForm = AddTeamMembersToGroupForm.form().bindFromRequest(params)
@@ -98,42 +82,37 @@ class AddTeamMembersToGroupFormSpec
       boundForm.errors shouldBe List(FormError("", List("error.select-members.empty")))
     }
 
-
     "be successful when button is Filter with search value" in {
       val params = Map(
-        search -> List("abc"),
-        members -> List(member1.id, member2.id),
+        search   -> List("abc"),
+        members  -> List(member1.id, member2.id),
         "submit" -> List("filter")
       )
       val boundForm = AddTeamMembersToGroupForm
         .form()
         .bindFromRequest(params)
       boundForm.value shouldBe Some(
-        AddTeamMembersToGroup(
-          Some("abc"),
-          Some(List(member1.id, member2.id)),
-          submit = "filter")
+        AddTeamMembersToGroup(Some("abc"), Some(List(member1.id, member2.id)), submit = "filter")
       )
     }
 
     "have errors when button is Filter and search contains invalid characters" in {
       val params = Map(
-        search -> List("bad<search>"),
-        members -> List(member1.id, member2.id),
+        search   -> List("bad<search>"),
+        members  -> List(member1.id, member2.id),
         "submit" -> List("filter")
       )
       val boundForm = AddTeamMembersToGroupForm
         .form()
         .bindFromRequest(params)
 
-      boundForm.errors shouldBe List(
-        FormError("search", List("error.search-members.invalid")))
+      boundForm.errors shouldBe List(FormError("search", List("error.search-members.invalid")))
     }
 
     "no errors when button is Filter and search field is empty" in {
       val params = Map(
-        search -> List.empty,
-        members -> List(member1.id, member2.id),
+        search   -> List.empty,
+        members  -> List(member1.id, member2.id),
         "submit" -> List("filter")
       )
       val boundForm = AddTeamMembersToGroupForm
@@ -145,15 +124,14 @@ class AddTeamMembersToGroupFormSpec
 
     "be successful when button is Clear and form is empty" in {
       val params = Map(
-        search -> List.empty,
-        members -> List.empty,
+        search   -> List.empty,
+        members  -> List.empty,
         "submit" -> List("clear")
       )
       val boundForm = AddTeamMembersToGroupForm
         .form()
         .bindFromRequest(params)
-      boundForm.value shouldBe Some(
-        AddTeamMembersToGroup( None, None, submit = "clear"))
+      boundForm.value shouldBe Some(AddTeamMembersToGroup(None, None, submit = "clear"))
     }
 
   }
@@ -172,7 +150,7 @@ class AddTeamMembersToGroupFormSpec
         .unbind(model) shouldBe Map(
         "members[0]" -> member1.id,
         "members[1]" -> member2.id,
-        "submit" -> CONTINUE_BUTTON
+        "submit"     -> CONTINUE_BUTTON
       )
     }
 
@@ -186,14 +164,14 @@ class AddTeamMembersToGroupFormSpec
         .form()
         .mapping
         .unbind(model) shouldBe Map(
-        "search" -> "Ab",
+        "search"     -> "Ab",
         "members[0]" -> member1.id,
-        "submit" -> FILTER_BUTTON
+        "submit"     -> FILTER_BUTTON
       )
     }
 
     "give expected Map of data Clear" in {
-      val model = AddTeamMembersToGroup( None, None, submit = "clear")
+      val model = AddTeamMembersToGroup(None, None, submit = "clear")
       val unboundForm = AddTeamMembersToGroupForm
         .form()
         .mapping

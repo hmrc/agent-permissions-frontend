@@ -29,8 +29,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class OptOutController @Inject()
-(
+class OptOutController @Inject() (
   authAction: AuthAction,
   mcc: MessagesControllerComponents,
   optInStatusAction: OptInStatusAction,
@@ -38,9 +37,8 @@ class OptOutController @Inject()
   opt_out_start: opt_out_start,
   want_to_opt_out: want_to_opt_out,
   you_have_opted_out: you_have_opted_out
-)(implicit val appConfig: AppConfig,
-  ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi) extends FrontendController(mcc) with I18nSupport {
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+    extends FrontendController(mcc) with I18nSupport {
 
   import authAction._
   import optInStatusAction._
@@ -53,45 +51,42 @@ class OptOutController @Inject()
     }
   }
 
-  def showDoYouWantToOptOut: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent { arn =>
-        isOptedIn(arn) { _ =>
-          Ok(want_to_opt_out(YesNoForm.form())).toFuture
-        }
+  def showDoYouWantToOptOut: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        Ok(want_to_opt_out(YesNoForm.form())).toFuture
       }
+    }
   }
 
-  def submitDoYouWantToOptOut: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent { arn =>
-        isOptedIn(arn) { _ =>
-          YesNoForm
-            .form("do-you-want-to-opt-out.yes.error")
-            .bindFromRequest()
-            .fold(
-              formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
-              (iWantToOptOut: Boolean) => {
-                if (iWantToOptOut) {
-                  optInService
-                    .optOut(arn)
-                    .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut().url))
-                } else
-                  Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
-              }
-            )
-        }
+  def submitDoYouWantToOptOut: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        YesNoForm
+          .form("do-you-want-to-opt-out.yes.error")
+          .bindFromRequest()
+          .fold(
+            formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
+            (iWantToOptOut: Boolean) =>
+              if (iWantToOptOut) {
+                optInService
+                  .optOut(arn)
+                  .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut().url))
+              } else
+                Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+          )
       }
+    }
   }
 
-  def showYouHaveOptedOut: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent { arn =>
-        isOptedOut(arn) { _ =>
-          sessionCacheService.deleteAll(sessionKeys)
-            .map(_ => Ok(you_have_opted_out()))
-        }
+  def showYouHaveOptedOut: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedOut(arn) { _ =>
+        sessionCacheService
+          .deleteAll(sessionKeys)
+          .map(_ => Ok(you_have_opted_out()))
       }
+    }
   }
 
 }

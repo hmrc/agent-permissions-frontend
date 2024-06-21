@@ -16,8 +16,9 @@
 
 package helpers
 
-import akka.Done
+import org.apache.pekko.Done
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Request
 import services.OptinService
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -25,12 +26,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait OptInServiceMocks extends MockFactory {
+trait OptInServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectOptOut(arn: Arn)(implicit optinService: OptinService): Unit =
     (optinService
       .optOut(_: Arn)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
-      .returning(Future successful Done).once()
+      .returning(Future successful Done)
+      .once()
 
 }

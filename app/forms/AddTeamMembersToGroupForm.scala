@@ -25,14 +25,19 @@ object AddTeamMembersToGroupForm {
 
   def form(hasPreSelected: Boolean = false): Form[AddTeamMembersToGroup] = Form(
     mapping(
-    "search" -> optional(text.transform[String](_.trim, x => x).verifying(
-      "error.search-members.invalid", s => !(s.contains('<') || s.contains('>')))),
-    "members" -> optional(list(text)),
-    "submit" -> text
-  )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
-      .verifying("error.select-members.empty", data => {
-        data.submit != CONTINUE_BUTTON ||
-          (data.submit == CONTINUE_BUTTON && (data.members.getOrElse(Seq.empty).nonEmpty || hasPreSelected))
-      })
+      "search" -> optional(
+        text
+          .transform[String](_.trim, x => x)
+          .verifying("error.search-members.invalid", s => !(s.contains('<') || s.contains('>')))
+      ),
+      "members" -> optional(list(text)),
+      "submit"  -> text
+    )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
+      .verifying(
+        "error.select-members.empty",
+        data =>
+          data.submit != CONTINUE_BUTTON ||
+            (data.submit == CONTINUE_BUTTON && (data.members.getOrElse(Seq.empty).nonEmpty || hasPreSelected))
+      )
   )
 }

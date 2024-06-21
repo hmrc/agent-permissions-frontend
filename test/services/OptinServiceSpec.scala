@@ -16,10 +16,10 @@
 
 package services
 
-import akka.Done
 import com.google.inject.AbstractModule
 import connectors.AgentPermissionsConnector
 import helpers.BaseSpec
+import org.apache.pekko.Done
 import play.api.Application
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository

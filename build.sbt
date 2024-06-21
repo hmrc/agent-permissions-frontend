@@ -1,6 +1,10 @@
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
+import uk.gov.hmrc.{DefaultBuildSettings, SbtAutoBuildPlugin}
+import CodeCoverageSettings.{settings}
 
 val appName = "agent-permissions-frontend"
+
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := "2.13.12"
 
 TwirlKeys.templateImports ++= Seq(
   "views.html.components._",
@@ -10,26 +14,57 @@ TwirlKeys.templateImports ++= Seq(
   "uk.gov.hmrc.hmrcfrontend.views.html.components._",
 )
 
-lazy val microservice = Project(appName, file("."))
-  .enablePlugins(PlayScala, SbtDistributablesPlugin)
+val scalaCOptions = Seq(
+  "-Werror",
+  "-Wdead-code",
+  "-Xlint",
+  "-Wconf:src=target/.*:s", // silence warnings from compiled files
+  "-Wconf:src=*html:w", // silence html warnings as they are wrong
+  "-Wconf:cat=deprecation:s",
+  "-Wconf:cat=unused-privates:s",
+  "-Wconf:msg=match may not be exhaustive:is", // summarize warnings about non-exhaustive pattern matching
+)
+
+
+lazy val root = (project in file("."))
   .settings(
-    majorVersion              := 0,
-    scalaVersion              := "2.13.10",
-    PlayKeys.playDefaultPort  := 9452,
-    libraryDependencies       ++= AppDependencies.compile ++ AppDependencies.test,
-    //fix for scoverage compile errors for scala 2.13.10
-    libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always),
-    Assets / pipelineStages   := Seq(gzip),
-    scalacOptions ++= Seq(
-      "-Werror",
-      "-Wdead-code",
-      "-Xlint",
-      "-Wconf:src=target/.*:s", // silence warnings from compiled files
-      "-Wconf:src=*html:w", // silence html warnings as they are wrong
-      "-Wconf:cat=deprecation:s",
-      "-Wconf:cat=unused-privates:s",
-      "-Wconf:msg=match may not be exhaustive:is", // summarize warnings about non-exhaustive pattern matching
-    )
+    name := appName,
+    organization := "uk.gov.hmrc",
+    PlayKeys.playDefaultPort := 9452,
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    resolvers ++= Seq(Resolver.typesafeRepo("releases")),
+    scalacOptions ++= scalaCOptions,
+//    Assets / pipelineStages   := Seq(gzip),
+    Compile / scalafmtOnCompile := true,
+    Test / scalafmtOnCompile := true,
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "resources"
+  )
+  .settings(resolvers += Resolver.jcenterRepo)
+  .settings(
+    Test / parallelExecution := false,
+    settings
+  )
+  .enablePlugins(PlayScala, SbtDistributablesPlugin)
+  .disablePlugins(JUnitXmlReportPlugin)
+
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(root % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(DefaultBuildSettings.itSettings())
+  .settings(libraryDependencies ++= AppDependencies.test)
+  .settings(
+    Compile / scalafmtOnCompile := true,
+    Test / scalafmtOnCompile := true
+  )
+
+
+import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
+
+lazy val microservice = Project(appName, file("."))
+  .settings(
+
+
   )
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)

@@ -39,24 +39,11 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with AuthMocks
-    with AgentClientAuthorisationConnectorMocks
-    with ScalaFutures
-    with GroupServiceMocks
-    with TaxGroupServiceMocks
-    with TeamMemberServiceMocks
-    with ClientServiceMocks
-    with SessionServiceMocks
-    with SessionCacheOperationsMocks
-    with AgentPermissionsConnectorMocks
-    with HttpClientMocks
-    with OptInServiceMocks
-    with CleanMongoCollectionSupport
-    with AgentUserClientDetailsConnectorMocks
-    with IntegrationPatience {
+    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with AuthMocks
+    with AgentClientAuthorisationConnectorMocks with ScalaFutures with GroupServiceMocks with TaxGroupServiceMocks
+    with TeamMemberServiceMocks with ClientServiceMocks with SessionServiceMocks with SessionCacheOperationsMocks
+    with AgentPermissionsConnectorMocks with HttpClientMocks with OptInServiceMocks with CleanMongoCollectionSupport
+    with AgentUserClientDetailsConnectorMocks with IntegrationPatience {
 
   implicit val ec: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
@@ -74,16 +61,13 @@ abstract class BaseSpec
   val arn = Arn(validArn)
 
   val agentEnrolmentIdentifiers: Seq[EnrolmentIdentifier] = Seq(
-    EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn))
-  val mockedAuthResponse = Enrolments(Set(Enrolment(agentEnrolment,
-                                                    agentEnrolmentIdentifiers,
-                                                    "Activated"))) and Some(
-    User)
+    EnrolmentIdentifier(agentReferenceNumberIdentifier, validArn)
+  )
+  val mockedAuthResponse =
+    Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
 
-  val mockedAssistantAuthResponse = Enrolments(Set(Enrolment(agentEnrolment,
-    agentEnrolmentIdentifiers,
-    "Activated"))) and Some(
-    Assistant)
+  val mockedAssistantAuthResponse =
+    Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(Assistant)
 
   lazy val conf: Configuration = GuiceApplicationBuilder().configuration
   lazy val env: Environment = GuiceApplicationBuilder().environment
@@ -92,7 +76,7 @@ abstract class BaseSpec
 
   def appBuilder =
     GuiceApplicationBuilder()
-      .disable[com.kenshoo.play.metrics.PlayModule]
+      .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
       .configure("auditing.enabled" -> false)
       .configure("metrics.enabled" -> true)
       .configure("metrics.jvm" -> false)

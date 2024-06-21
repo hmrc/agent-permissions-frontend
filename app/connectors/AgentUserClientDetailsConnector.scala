@@ -16,19 +16,18 @@
 
 package connectors
 
-import akka.Done
-import com.codahale.metrics.MetricRegistry
 import com.google.inject.ImplementedBy
-import com.kenshoo.play.metrics.Metrics
 import config.AppConfig
 import models.AgencyDetails
+import org.apache.pekko.Done
 import play.api.Logging
 import play.api.http.Status.{ACCEPTED, NOT_FOUND, NO_CONTENT, OK}
-import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
 import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
+import utils.HttpAPIMonitor
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,79 +36,82 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentUserClientDetailsConnector extends HttpAPIMonitor with Logging {
   val http: HttpClient
 
-  def getClients(arn: Arn)
-                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]]
+  def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]]
 
-  def getClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Client]]
+  def getClient(arn: Arn, enrolmentKey: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[Client]]
 
-  def getPaginatedClients(arn: Arn)
-                         (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaginatedList[Client]]
+  def getPaginatedClients(
+    arn: Arn
+  )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[PaginatedList[Client]]
 
   def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[UserDetails]]
 
-  def updateClientReference(arn: Arn, client: Client)
-                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def updateClientReference(arn: Arn, client: Client)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
   def getAgencyDetails(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgencyDetails]]
 }
 
 @Singleton
-class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
-  implicit metrics: Metrics,
-  appConfig: AppConfig)
-  extends AgentUserClientDetailsConnector
-    with HttpAPIMonitor
-    with Logging {
-
-  override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
+class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClient)(implicit
+  val metrics: Metrics,
+  appConfig: AppConfig,
+  val ec: ExecutionContext
+) extends AgentUserClientDetailsConnector with HttpAPIMonitor with Logging {
 
   private lazy val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
-  def getClients(arn: Arn)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Seq[Client]] = {
+  def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"
     monitor("ConsumedAPI-getClientList-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
           case ACCEPTED => Seq.empty[Client]
-          case OK => response.json.as[Seq[Client]]
+          case OK       => response.json.as[Seq[Client]]
           case e =>
-            throw UpstreamErrorResponse(s"error getClientList for ${arn.value}",
-              e)
+            throw UpstreamErrorResponse(s"error getClientList for ${arn.value}", e)
         }
       }
     }
   }
 
-  def getClient(arn: Arn, enrolmentKey: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Client]] = {
+  def getClient(arn: Arn, enrolmentKey: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[Client]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/client/$enrolmentKey"
     monitor("ConsumedAPI-getClientList-GET") {
       http
         .GET[HttpResponse](url)
         .map { response =>
-        response.status match {
-          case OK => Option(response.json.as[Client])
-          case _ => None
+          response.status match {
+            case OK => Option(response.json.as[Client])
+            case _  => None
+          }
         }
-      }
     }
   }
 
-  def getPaginatedClients(arn: Arn)
-                         (page: Int, pageSize: Int, search: Option[String]= None, filter: Option[String]= None)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext)
-  : Future[PaginatedList[Client]] = {
-    val searchParam = search.fold("")(searchTerm => s"&search=${searchTerm}")
-    val filterParam = filter.fold("")(filterTerm => s"&filter=${filterTerm}")
+  def getPaginatedClients(
+    arn: Arn
+  )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[PaginatedList[Client]] = {
+    val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
+    val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/clients" +
-      s"?page=${page}&pageSize=${pageSize}$searchParam$filterParam"
+      s"?page=$page&pageSize=$pageSize$searchParam$filterParam"
     monitor("ConsumedAPI-getClientList-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
           case OK => response.json.as[PaginatedList[Client]]
-          case e => throw UpstreamErrorResponse(s"error getClientList for ${arn.value}", e)
+          case e  => throw UpstreamErrorResponse(s"error getClientList for ${arn.value}", e)
         }
       }
     }
@@ -121,41 +123,44 @@ class AgentUserClientDetailsConnectorImpl @Inject()(val http: HttpClient)(
       http.GET[HttpResponse](url).map { response =>
         response.status match {
           case ACCEPTED => Seq.empty[UserDetails]
-          case OK => response.json.as[Seq[UserDetails]]
-          case e => throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}", e)
+          case OK       => response.json.as[Seq[UserDetails]]
+          case e        => throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}", e)
         }
       }
     }
 
   }
 
-  override def updateClientReference(arn: Arn, client: Client)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Done] = {
+  override def updateClientReference(arn: Arn, client: Client)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Done] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/update-friendly-name"
 
     monitor("ConsumedAPI-update-friendly-name-PUT") {
       http
-        .PUT[Client, HttpResponse](url, client).map { response =>
-        response.status match {
-          case NO_CONTENT => Done
-          case e =>
-            throw UpstreamErrorResponse(s"error PUTing friendlyName for $client with agent ${arn.value}",
-              e)
+        .PUT[Client, HttpResponse](url, client)
+        .map { response =>
+          response.status match {
+            case NO_CONTENT => Done
+            case e =>
+              throw UpstreamErrorResponse(s"error PUTing friendlyName for $client with agent ${arn.value}", e)
+          }
         }
-      }
     }
 
   }
 
-  override def getAgencyDetails(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgencyDetails]] = {
+  override def getAgencyDetails(
+    arn: Arn
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgencyDetails]] = {
     val url = s"$baseUrl/agent-user-client-details/arn/${arn.value}/agency-details"
     monitor("ConsumedAPI-agency-details-GET") {
       http.GET[HttpResponse](url).map { response =>
         response.status match {
-          case OK => response.json.asOpt[AgencyDetails]
+          case OK        => response.json.asOpt[AgencyDetails]
           case NOT_FOUND => None
-          case e => throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}", e)
+          case e         => throw UpstreamErrorResponse(s"error getTeamMemberList for ${arn.value}", e)
         }
       }
     }

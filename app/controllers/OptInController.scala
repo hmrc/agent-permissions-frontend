@@ -30,19 +30,17 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class OptInController @Inject()(
-   authAction: AuthAction,
-   mcc: MessagesControllerComponents,
-   optInStatusAction: OptInStatusAction,
-   aucdConnector: AgentUserClientDetailsConnector,
-   optInService: OptInServiceImpl,
-   start_optIn: start,
-   want_to_opt_in: want_to_opt_in,
-   you_have_opted_in: you_have_opted_in
+class OptInController @Inject() (
+  authAction: AuthAction,
+  mcc: MessagesControllerComponents,
+  optInStatusAction: OptInStatusAction,
+  aucdConnector: AgentUserClientDetailsConnector,
+  optInService: OptInServiceImpl,
+  start_optIn: start,
+  want_to_opt_in: want_to_opt_in,
+  you_have_opted_in: you_have_opted_in
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
-    extends FrontendController(mcc)
-    with I18nSupport
-     {
+    extends FrontendController(mcc) with I18nSupport {
 
   import authAction._
   import optInStatusAction._
@@ -55,49 +53,49 @@ class OptInController @Inject()(
     }
   }
 
-  def showDoYouWantToOptIn: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent { arn =>
-        isEligibleToOptIn(arn) { _ =>
-          Ok(want_to_opt_in(YesNoForm.form())).toFuture
-        }
+  def showDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isEligibleToOptIn(arn) { _ =>
+        Ok(want_to_opt_in(YesNoForm.form())).toFuture
       }
+    }
   }
 
-  def submitDoYouWantToOptIn: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent { arn =>
-        isEligibleToOptIn(arn) { _ =>
-          YesNoForm
-            .form("do-you-want-to-opt-in.yes.error")
-            .bindFromRequest()
-            .fold(
-              formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
-              (iWantToOptIn: Boolean) => {
-                val lang = request.cookies.get("PLAY_LANG").map(_.value)
-                if (iWantToOptIn)
-                  optInService
-                    .optIn(arn, lang)
-                    .map(_ =>
-                      Redirect(routes.OptInController.showYouHaveOptedIn().url))
-                else
-                  Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
-              }
-            )
-        }
+  def submitDoYouWantToOptIn: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isEligibleToOptIn(arn) { _ =>
+        YesNoForm
+          .form("do-you-want-to-opt-in.yes.error")
+          .bindFromRequest()
+          .fold(
+            formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
+            (iWantToOptIn: Boolean) => {
+              val lang = request.cookies.get("PLAY_LANG").map(_.value)
+              if (iWantToOptIn)
+                optInService
+                  .optIn(arn, lang)
+                  .map(_ => Redirect(routes.OptInController.showYouHaveOptedIn().url))
+              else
+                Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+            }
+          )
       }
+    }
   }
 
-  //if there is a clientList available then proceed to Groups otherwise go back to the ASA dashboard (and wait)
-  def showYouHaveOptedIn: Action[AnyContent] = Action.async {
-    implicit request =>
-      isAuthorisedAgent { arn =>
-        isOptedIn(arn) { status =>
-          // In case of problems retrieving the email, I'm choosing to display a blank string rather than an error page
-          aucdConnector.getAgencyDetails(arn).map(_.flatMap(_.agencyEmail).getOrElse("")).recover {
-            case _ => ""
-          }.map(email => Ok(you_have_opted_in(status, email)))
-        }
+  // if there is a clientList available then proceed to Groups otherwise go back to the ASA dashboard (and wait)
+  def showYouHaveOptedIn: Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { status =>
+        // In case of problems retrieving the email, I'm choosing to display a blank string rather than an error page
+        aucdConnector
+          .getAgencyDetails(arn)
+          .map(_.flatMap(_.agencyEmail).getOrElse(""))
+          .recover { case _ =>
+            ""
+          }
+          .map(email => Ok(you_have_opted_in(status, email)))
       }
+    }
   }
 }

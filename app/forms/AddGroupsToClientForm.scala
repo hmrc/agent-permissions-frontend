@@ -27,17 +27,17 @@ object AddGroupsToClientForm {
     - a list of groups containing ONLY the special 'none' value
    */
 
-  def form(): Form[List[String]] = {
+  def form(): Form[List[String]] =
     Form(
       single(
         "groups" -> list(text)
           // empty error
-          .verifying("error.select.groups.empty",
-            groups => groups.nonEmpty)
+          .verifying("error.select.groups.empty", groups => groups.nonEmpty)
           // Selected 'none of the above' AND one or more groups (can happen with JS disabled)
-          .verifying("unassigned.client.assign.invalid-selection.error",
-            groups => if(groups.contains(NoneValue)) groups.length == 1 else true)
+          .verifying(
+            "unassigned.client.assign.invalid-selection.error",
+            groups => if (groups.contains(NoneValue)) groups.length == 1 else true
+          )
       )
     )
-  }
 }

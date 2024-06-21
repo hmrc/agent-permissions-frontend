@@ -49,8 +49,7 @@ trait AppConfig {
 }
 
 @Singleton
-class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: Environment)
-    extends AppConfig {
+class AppConfigImpl @Inject() (val servicesConfig: ServicesConfig, environment: Environment) extends AppConfig {
   def isTest: Boolean = environment.mode == Mode.Test
   lazy val appName: String = servicesConfig.getString("appName")
   lazy val welshLanguageSupportEnabled: Boolean = servicesConfig.getBoolean("features.welsh-language-support")
@@ -63,11 +62,16 @@ class AppConfigImpl @Inject()(val servicesConfig: ServicesConfig, environment: E
   lazy val basGatewayUrl: String = servicesConfig.getString("microservice.services.bas-gateway.external-url")
   lazy val loginContinueUrl: String = servicesConfig.getString("microservice.services.bas-gateway.login-continue")
 
-  val agentServicesAccountExternalUrl: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.external-url")
-  val agentServicesAccountManageAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.manage-account-path")
-  val agentServicesAccountYourAccountPath: String = servicesConfig.getString("microservice.services.agent-services-account-frontend.your-account-path")
-  val agentServicesAccountManageAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
-  val agentServicesAccountYourAssistantAccountUrl: String = agentServicesAccountExternalUrl + agentServicesAccountYourAccountPath
+  val agentServicesAccountExternalUrl: String =
+    servicesConfig.getString("microservice.services.agent-services-account-frontend.external-url")
+  val agentServicesAccountManageAccountPath: String =
+    servicesConfig.getString("microservice.services.agent-services-account-frontend.manage-account-path")
+  val agentServicesAccountYourAccountPath: String =
+    servicesConfig.getString("microservice.services.agent-services-account-frontend.your-account-path")
+  val agentServicesAccountManageAccountUrl: String =
+    agentServicesAccountExternalUrl + agentServicesAccountManageAccountPath
+  val agentServicesAccountYourAssistantAccountUrl: String =
+    agentServicesAccountExternalUrl + agentServicesAccountYourAccountPath
   val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
   val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
   val agentClientAuthBaseUrl: String = servicesConfig.baseUrl("agent-client-authorisation")

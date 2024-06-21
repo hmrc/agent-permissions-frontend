@@ -27,40 +27,38 @@ trait GroupMemberOps {
 
   val sessionCacheService: SessionCacheService
 
-  def addSelectablesToSession[T <: Selectable](selectables: List[T])
-                                              (selectedKey: DataKey[Seq[T]],
-                                               filteredKey: DataKey[Seq[T]])
-                                              (implicit request: Request[Any],
-                                               ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] = {
-
+  def addSelectablesToSession[T <: Selectable](selectables: List[T])(
+    selectedKey: DataKey[Seq[T]],
+    filteredKey: DataKey[Seq[T]]
+  )(implicit request: Request[Any], ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] =
     for {
-      //ALL the existing selected items, whether visible to user or not
+      // ALL the existing selected items, whether visible to user or not
       currentlySelectedInSession <- sessionCacheService.get[Seq[T]](selectedKey).map(_.map(_.toList))
 
-      //if a filter is on, we have these items. The ones that are also
+      // if a filter is on, we have these items. The ones that are also
       // selected are "currentlySelectedInFilteredSession"
       currentlySelectedInFilteredSession <- sessionCacheService
-        .get[Seq[T]](filteredKey)
-        .map(_.map(_.filter(_.selected == true).toList))
+                                              .get[Seq[T]](filteredKey)
+                                              .map(_.map(_.filter(_.selected == true).toList))
 
-      //we want to remove the previously selected items in session in case they were de-selected by user.
-      toRemoveFromSession = currentlySelectedInFilteredSession.orElse(currentlySelectedInSession).map(_ diff selectables)
+      // we want to remove the previously selected items in session in case they were de-selected by user.
+      toRemoveFromSession =
+        currentlySelectedInFilteredSession.orElse(currentlySelectedInSession).map(_ diff selectables)
 
-      //These are the new items to add that were selected by the user but not already in the session
+      // These are the new items to add that were selected by the user but not already in the session
       toAdd = selectables.diff(currentlySelectedInFilteredSession.getOrElse(Nil))
 
-      //the new session is the addition o
+      // the new session is the addition o
       currentlySelectedMinusThoseToRemove = currentlySelectedInSession
-        .getOrElse(Nil)
-        .diff(toRemoveFromSession.getOrElse(Nil))
+                                              .getOrElse(Nil)
+                                              .diff(toRemoveFromSession.getOrElse(Nil))
 
-      //now add the new ones to the existing session
+      // now add the new ones to the existing session
       toSave = toAdd ::: currentlySelectedMinusThoseToRemove
 
-      //add selected items to session
+      // add selected items to session
       _ <- sessionCacheService.put[Seq[T]](selectedKey, toSave.distinct)
 
     } yield ()
-  }
 
 }

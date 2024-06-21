@@ -20,9 +20,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class AddGroupsToClientFormSpec extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite {
+class AddGroupsToClientFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   "AddGroupsToClientForm binding" should {
 

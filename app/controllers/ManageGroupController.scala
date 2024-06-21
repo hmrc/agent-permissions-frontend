@@ -36,8 +36,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ManageGroupController @Inject()
-(
+class ManageGroupController @Inject() (
   authAction: AuthAction,
   groupAction: GroupAction,
   mcc: MessagesControllerComponents,
@@ -49,16 +48,11 @@ class ManageGroupController @Inject()
   rename_group_complete: rename_group_complete,
   confirm_delete_group: confirm_delete_group,
   delete_group_complete: delete_group_complete
-)
-(
+)(
   implicit val appConfig: AppConfig,
   ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi
-) extends FrontendController(mcc)
-
-
-  with I18nSupport
-  with Logging {
+) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._
   import groupAction._
@@ -66,26 +60,34 @@ class ManageGroupController @Inject()
 
   val controller: ReverseManageGroupController = controllers.routes.ManageGroupController
 
-  def showManageGroups(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        sessionCacheService.deleteAll(managingGroupKeys).flatMap(_ =>
-        sessionCacheService.get(GROUP_SEARCH_INPUT)
-          .flatMap(maybeSearchTerm => {
-            groupService
-              .getPaginatedGroupSummaries(arn, maybeSearchTerm.getOrElse(""))(page.getOrElse(1), pageSize.getOrElse(5))
-              .map { pagination =>
-                Ok(manage_existing_groups(
-                  pagination.pageContent,
-                  SearchAndFilterForm.form().fill(SearchFilter(maybeSearchTerm, None, None)),
-                  Some(pagination.paginationMetaData)
-                ))
-              }
-          }
-          )
-        )
+  def showManageGroups(page: Option[Int] = None, pageSize: Option[Int] = None): Action[AnyContent] = Action.async {
+    implicit request =>
+      isAuthorisedAgent { arn =>
+        isOptedIn(arn) { _ =>
+          sessionCacheService
+            .deleteAll(managingGroupKeys)
+            .flatMap(_ =>
+              sessionCacheService
+                .get(GROUP_SEARCH_INPUT)
+                .flatMap { maybeSearchTerm =>
+                  groupService
+                    .getPaginatedGroupSummaries(arn, maybeSearchTerm.getOrElse(""))(
+                      page.getOrElse(1),
+                      pageSize.getOrElse(5)
+                    )
+                    .map { pagination =>
+                      Ok(
+                        manage_existing_groups(
+                          pagination.pageContent,
+                          SearchAndFilterForm.form().fill(SearchFilter(maybeSearchTerm, None, None)),
+                          Some(pagination.paginationMetaData)
+                        )
+                      )
+                    }
+                }
+            )
+        }
       }
-    }
   }
 
   def submitManageGroups: Action[AnyContent] = Action.async { implicit request =>
@@ -100,15 +102,17 @@ class ManageGroupController @Inject()
               .delete(GROUP_SEARCH_INPUT)
               .map(_ => Redirect(controller.showManageGroups(None, None)))
           case PAGINATION_REGEX(_, pageToShow) =>
-            sessionCacheService.get(GROUP_SEARCH_INPUT).flatMap(search => {
-              if (searchFilter.search == search) {
-                Redirect(controller.showManageGroups(Some(pageToShow.toInt), None)).toFuture
-              } else {
-                sessionCacheService
-                  .put(GROUP_SEARCH_INPUT, searchFilter.search.getOrElse(""))
-                  .map(_ => Redirect(controller.showManageGroups(None, None)))
+            sessionCacheService
+              .get(GROUP_SEARCH_INPUT)
+              .flatMap { search =>
+                if (searchFilter.search == search) {
+                  Redirect(controller.showManageGroups(Some(pageToShow.toInt), None)).toFuture
+                } else {
+                  sessionCacheService
+                    .put(GROUP_SEARCH_INPUT, searchFilter.search.getOrElse(""))
+                    .map(_ => Redirect(controller.showManageGroups(None, None)))
+                }
               }
-            })
           case FILTER_BUTTON =>
             sessionCacheService
               .put(GROUP_SEARCH_INPUT, searchFilter.search.getOrElse(""))
@@ -137,13 +141,12 @@ class ManageGroupController @Inject()
         .bindFromRequest()
         .fold(
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = true)).toFuture,
-          (newName: String) => {
+          (newName: String) =>
             for {
               _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
               patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
               _ <- groupService.updateGroup(groupId, patchRequestBody)
             } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
-          }
         )
     }
   }
@@ -155,13 +158,12 @@ class ManageGroupController @Inject()
         .bindFromRequest()
         .fold(
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = false)).toFuture,
-          (newName: String) => {
+          (newName: String) =>
             for {
               _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
               patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
               _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
             } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
-          }
         )
     }
   }
@@ -170,20 +172,16 @@ class ManageGroupController @Inject()
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       sessionCacheService
         .get(GROUP_RENAMED_FROM)
-        .map(oldName =>
-          Ok(rename_group_complete(oldName.get, summary.groupName))
-        )
+        .map(oldName => Ok(rename_group_complete(oldName.get, summary.groupName)))
     }
   }
 
   def showTaxGroupRenamed(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, _: Arn) =>
-        sessionCacheService
-          .get(GROUP_RENAMED_FROM)
-          .map(oldName =>
-            Ok(rename_group_complete(oldName.get, summary.groupName))
-          )
-      }
+      sessionCacheService
+        .get(GROUP_RENAMED_FROM)
+        .map(oldName => Ok(rename_group_complete(oldName.get, summary.groupName)))
+    }
   }
 
   def showDeleteGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
@@ -204,9 +202,8 @@ class ManageGroupController @Inject()
         .form("group.delete.select.error")
         .bindFromRequest()
         .fold(
-          formWithErrors =>
-            Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
-          (answer: Boolean) => {
+          formWithErrors => Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
+          (answer: Boolean) =>
             if (answer) {
               for {
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
@@ -214,7 +211,6 @@ class ManageGroupController @Inject()
               } yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
             } else
               Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
-          }
         )
     }
   }
@@ -225,9 +221,8 @@ class ManageGroupController @Inject()
         .form("group.delete.select.error")
         .bindFromRequest()
         .fold(
-          formWithErrors =>
-            Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
-          (answer: Boolean) => {
+          formWithErrors => Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
+          (answer: Boolean) =>
             if (answer) {
               for {
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
@@ -235,7 +230,6 @@ class ManageGroupController @Inject()
               } yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
             } else
               Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
-          }
         )
     }
   }
@@ -245,9 +239,7 @@ class ManageGroupController @Inject()
       isOptedIn(arn) { _ =>
         sessionCacheService
           .get(GROUP_DELETED_NAME)
-          .map(groupName =>
-            Ok(delete_group_complete(groupName.getOrElse("")))
-          )
+          .map(groupName => Ok(delete_group_complete(groupName.getOrElse(""))))
       }
     }
   }

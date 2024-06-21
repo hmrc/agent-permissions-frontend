@@ -17,10 +17,10 @@
 package helpers
 
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{Assertion, Suite}
 import play.api.Application
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import scala.collection.JavaConverters._
 
@@ -29,15 +29,14 @@ trait MetricsTestSupport {
 
   def app: Application
 
-  implicit val metrics = app.injector.instanceOf[Metrics]
+  implicit val metrics: Metrics = app.injector.instanceOf[Metrics]
 
   private var metricsRegistry: MetricRegistry = _
 
   def givenCleanMetricRegistry(): Unit = {
     val registry = metrics.defaultRegistry
-    for (metric <- registry.getMetrics.keySet().iterator().asScala) {
+    for (metric <- registry.getMetrics.keySet().iterator().asScala)
       registry.remove(metric)
-    }
     metricsRegistry = registry
   }
 
@@ -45,8 +44,7 @@ trait MetricsTestSupport {
     val timers = metricsRegistry.getTimers
     val metrics = timers.get(s"Timer-$metric")
     if (metrics == null)
-      throw new Exception(
-        s"Metric [$metric] not found, try one of ${timers.keySet()}")
+      throw new Exception(s"Metric [$metric] not found, try one of ${timers.keySet()}")
     metrics.getCount should be >= 1L
   }
 

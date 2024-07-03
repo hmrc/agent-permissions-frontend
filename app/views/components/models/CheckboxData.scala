@@ -17,12 +17,12 @@
 package views.components.models
 
 case class CheckboxData(
-    id: String,
-    name: String = "",
-    label: String,
-    hint: Option[String] = None,
-    value: String,
-    checked: Boolean = false,
-    exclusive: Boolean = false,
-    extraAttributes: Map[String, String] = Map.empty
+  id: String,
+  name: String = "",
+  label: String,
+  hint: Option[String] = None,
+  value: String,
+  checked: Boolean = false,
+  exclusive: Boolean = false,
+  extraAttributes: Map[String, String] = Map.empty
 )

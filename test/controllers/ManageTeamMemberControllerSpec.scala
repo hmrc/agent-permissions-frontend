@@ -38,8 +38,10 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
   implicit lazy val authConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit lazy val groupService: GroupService = mock[GroupService]
   implicit lazy val teamMemberService: TeamMemberService = mock[TeamMemberService]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
@@ -47,7 +49,16 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(authConnector, env, conf, agentPermissionsConnector, mockAgentClientAuthConnector, sessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          authConnector,
+          env,
+          conf,
+          agentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          sessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(agentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(agentUserClientDetailsConnector)
       bind(classOf[GroupService]).toInstance(groupService)
@@ -82,11 +93,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   val groupSummaries = Seq(
     GroupSummary(GroupId.random(), "groupName", Some(33), 9),
     GroupSummary(GroupId.random(), "groupName1", Some(3), 1),
-    GroupSummary(GroupId.random(), "groupName2", Some(3), 1, taxService = Some("VAT")),
+    GroupSummary(GroupId.random(), "groupName2", Some(3), 1, taxService = Some("VAT"))
   )
   private val ctrlRoute: ReverseManageTeamMemberController = routes.ManageTeamMemberController
 
-  def expectAuthOkOptedInReady(): Unit ={
+  def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
@@ -96,16 +107,16 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showPageOfTeamMembers(None).url}" should {
 
     "render the manage team members list" in {
-      //given
+      // given
       val searchTerm = "ab"
       expectAuthOkOptedInReady()
       expectGetPageOfTeamMembers(arn)(teamMembers)
       expectGetSessionItem(TEAM_MEMBER_SEARCH_INPUT, searchTerm)
 
-      //when
+      // when
       val result = controller.showPageOfTeamMembers(Some(1))(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -139,31 +150,31 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   s"POST ${ctrlRoute.submitPageOfTeamMembers().url}" should {
 
     "redirect and clear filter when CLEAR FILTER is clicked" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
 
-      //and we have CLEAR filter in query params
+      // and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
         .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
     }
 
     "go to correct page when FILTER_BUTTON is clicked" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val dude = "dude"
       expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
 
-      //and we have CLEAR filter in query params
+      // and we have CLEAR filter in query params
       implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
         .withFormUrlEncodedBody(
           "submit" -> FILTER_BUTTON,
@@ -172,10 +183,10 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get.shouldBe(ctrlRoute.showPageOfTeamMembers(None).url)
     }
@@ -184,16 +195,16 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showTeamMemberDetails(memberId).url}" should {
 
     "render the team member details page with NO GROUPS" in {
-      //given
+      // given
       val teamMember = teamMembers.head
       expectAuthOkOptedInReady()
       expectLookupTeamMember(arn)(teamMember)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(Seq.empty)
 
-      //when
+      // when
       val result = controller.showTeamMemberDetails(teamMember.id)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -204,20 +215,23 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
       html.select(checkYourAnswersListRows).get(0).text() shouldBe "Name John 1 name"
       html.select(checkYourAnswersListRows).get(1).text() shouldBe "Email john1@abc.com"
-      html.select(checkYourAnswersListRows).get(2).text() shouldBe "Role Administrator - Can manage access groups and client details."
+      html
+        .select(checkYourAnswersListRows)
+        .get(2)
+        .text() shouldBe "Role Administrator - Can manage access groups and client details."
     }
 
     "render the team member details page with a list of groups" in {
-      //given
+      // given
       val teamMember = teamMembers.head
       expectAuthOkOptedInReady()
       expectLookupTeamMember(arn)(teamMember)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showTeamMemberDetails(memberId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -230,11 +244,15 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       linksToGroups.size() shouldBe 3
       linksToGroups.get(0).text() shouldBe "groupName"
       linksToGroups.get(0).attr("href") shouldBe
-        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries.head.groupId, CUSTOM, None).url
+        controllers.routes.ManageGroupTeamMembersController
+          .showExistingGroupTeamMembers(groupSummaries.head.groupId, CUSTOM, None)
+          .url
 
       linksToGroups.get(2).text() shouldBe "groupName2"
       linksToGroups.get(2).attr("href") shouldBe
-        controllers.routes.ManageGroupTeamMembersController.showExistingGroupTeamMembers(groupSummaries(2).groupId, TAX_SERVICE, None).url
+        controllers.routes.ManageGroupTeamMembersController
+          .showExistingGroupTeamMembers(groupSummaries(2).groupId, TAX_SERVICE, None)
+          .url
 
     }
   }

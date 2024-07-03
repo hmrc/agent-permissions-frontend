@@ -29,15 +29,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class RootController @Inject()(
-    authAction: AuthAction,
-    mcc: MessagesControllerComponents,
-    agentPermissionsConnector: AgentPermissionsConnector,
-    sessionCacheRepository: SessionCacheRepository)(
-    implicit val appConfig: AppConfig,
-    ec: ExecutionContext)
-    extends FrontendController(mcc)
-    with Logging {
+class RootController @Inject() (
+  authAction: AuthAction,
+  mcc: MessagesControllerComponents,
+  agentPermissionsConnector: AgentPermissionsConnector,
+  sessionCacheRepository: SessionCacheRepository
+)(implicit val appConfig: AppConfig, ec: ExecutionContext)
+    extends FrontendController(mcc) with Logging {
 
   import authAction._
 
@@ -50,8 +48,7 @@ class RootController @Inject()(
           else if (controllers.isOptedIn(status))
             Redirect(routes.OptOutController.start().url).toFuture
           else {
-            logger.warn(
-              s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
+            logger.warn(s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
             Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
           }
         case None =>
@@ -61,8 +58,7 @@ class RootController @Inject()(
                 .putSession(OPT_IN_STATUS, status)
                 .map(_ => Redirect(routes.RootController.start().url))
             case None =>
-              throw new RuntimeException(
-                "there was a problem when trying to get the opted-In status")
+              throw new RuntimeException("there was a problem when trying to get the opted-In status")
           }
       }
     }

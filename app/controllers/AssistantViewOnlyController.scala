@@ -33,21 +33,17 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AssistantViewOnlyController @Inject()
-(
-   authAction: AuthAction,
-   groupAction: GroupAction,
-   mcc: MessagesControllerComponents,
-   optInStatusAction: OptInStatusAction,
-   clientService: ClientService,
-   sessionCacheOps: SessionCacheOperationsService,
-   unassigned_client_list: unassigned_client_list,
-   existing_group_client_list: existing_group_client_list
- )(implicit val appConfig: AppConfig, ec: ExecutionContext,
-   implicit override val messagesApi: MessagesApi) extends FrontendController(mcc)
-
-  with I18nSupport
-  with Logging {
+class AssistantViewOnlyController @Inject() (
+  authAction: AuthAction,
+  groupAction: GroupAction,
+  mcc: MessagesControllerComponents,
+  optInStatusAction: OptInStatusAction,
+  clientService: ClientService,
+  sessionCacheOps: SessionCacheOperationsService,
+  unassigned_client_list: unassigned_client_list,
+  existing_group_client_list: existing_group_client_list
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+    extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._
   import groupAction._
@@ -61,15 +57,15 @@ class AssistantViewOnlyController @Inject()
         for {
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-          unassignedClients <- clientService.getUnassignedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE, search, filter)
-        } yield {
-          Ok(
-            unassigned_client_list(
-              unassignedClients.pageContent,
-              SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
-              Some(unassignedClients.paginationMetaData))
+          unassignedClients <-
+            clientService.getUnassignedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE, search, filter)
+        } yield Ok(
+          unassigned_client_list(
+            unassignedClients.pageContent,
+            SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+            Some(unassignedClients.paginationMetaData)
           )
-        }
+        )
       }
     }
   }
@@ -83,23 +79,25 @@ class AssistantViewOnlyController @Inject()
     }
   }
 
-  def showExistingGroupClientsViewOnly(groupId: GroupId, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedAssistant(groupId) { (group: AccessGroup, _: Arn) =>
-      val summary = GroupSummary.of(group)
-      for {
-        search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-        filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-        list <- groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize = CLIENTS_PAGE_SIZE)
-      } yield {
-        Ok(existing_group_client_list(
-          clients = list._1,
-          summary = summary,
-          filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
-          formAction = routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
-          paginationMetaData = Some(list._2)
-        ))
+  def showExistingGroupClientsViewOnly(groupId: GroupId, page: Option[Int] = None): Action[AnyContent] = Action.async {
+    implicit request =>
+      withGroupForAuthorisedAssistant(groupId) { (group: AccessGroup, _: Arn) =>
+        val summary = GroupSummary.of(group)
+        for {
+          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+          list <-
+            groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize = CLIENTS_PAGE_SIZE)
+        } yield Ok(
+          existing_group_client_list(
+            clients = list._1,
+            summary = summary,
+            filterForm = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
+            formAction = routes.AssistantViewOnlyController.submitExistingGroupClientsViewOnly(summary.groupId),
+            paginationMetaData = Some(list._2)
+          )
+        )
       }
-    }
   }
 
   // This endpoint exists in order to POST search/filter terms (GET form submit is disallowed by organisation policy)
@@ -111,21 +109,21 @@ class AssistantViewOnlyController @Inject()
     }
   }
 
-  def showExistingTaxClientsViewOnly(groupId: GroupId, page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
-    withGroupForAuthorisedAssistant(groupId, isCustom = false) { (group: AccessGroup, arn: Arn) =>
-      val summary = GroupSummary.of(group)
-      for {
-        // needs Tax service saved to session on page load
-        search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-        filter = if (summary.taxService.getOrElse("") == "HMRC-TERS") {
-          Some("TRUST")
-        } else {
-          summary.taxService
-        }
-        _ <- sessionCacheOps.saveSearch(search, filter)
-        list <- clientService.getPaginatedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE)
-      } yield
-        Ok(
+  def showExistingTaxClientsViewOnly(groupId: GroupId, page: Option[Int] = None): Action[AnyContent] = Action.async {
+    implicit request =>
+      withGroupForAuthorisedAssistant(groupId, isCustom = false) { (group: AccessGroup, arn: Arn) =>
+        val summary = GroupSummary.of(group)
+        for {
+          // needs Tax service saved to session on page load
+          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter = if (summary.taxService.getOrElse("") == "HMRC-TERS") {
+                     Some("TRUST")
+                   } else {
+                     summary.taxService
+                   }
+          _    <- sessionCacheOps.saveSearch(search, filter)
+          list <- clientService.getPaginatedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE)
+        } yield Ok(
           existing_group_client_list(
             clients = list.pageContent,
             summary = summary,
@@ -134,7 +132,7 @@ class AssistantViewOnlyController @Inject()
             paginationMetaData = Some(list.paginationMetaData)
           )
         )
-    }
+      }
   }
 
   // This endpoint exists in order to POST search/filter terms (GET form submit is disallowed by organisation policy)
@@ -149,7 +147,9 @@ class AssistantViewOnlyController @Inject()
     }
   }
 
-  private def updateSearchFilter(redirectTo: Call, ignoreTaxService: Boolean = false)(implicit request: Request[_]): Future[Result] = {
+  private def updateSearchFilter(redirectTo: Call, ignoreTaxService: Boolean = false)(implicit
+    request: Request[_]
+  ): Future[Result] = {
     val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
     searchFilter.submit match {
       case Some(CLEAR_BUTTON) =>
@@ -171,9 +171,7 @@ class AssistantViewOnlyController @Inject()
           for {
             _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
             _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
-          } yield {
-            Redirect(redirectTo)
-          }
+          } yield Redirect(redirectTo)
         }
       case _ => Future.successful(BadRequest)
     }

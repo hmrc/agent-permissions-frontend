@@ -32,37 +32,35 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ClientAction @Inject()(
+class ClientAction @Inject() (
   val authConnector: AuthConnector,
   val env: Environment,
   val config: Configuration,
   authAction: AuthAction,
   optInStatusAction: OptInStatusAction,
   val clientService: ClientService,
-  client_not_found: client_not_found,
-  )
-  extends Logging  {
+  client_not_found: client_not_found
+) extends Logging {
 
   import optInStatusAction._
 
-  def withClientForAuthorisedOptedAgent(clientId: String)
-                                       (fn: (DisplayClient, Arn) => Future[Result])
-                                       (implicit ec: ExecutionContext,
-                                        hc: HeaderCarrier,
-                                        request: MessagesRequest[AnyContent],
-                                        appConfig: AppConfig)
-  : Future[Result] = {
+  def withClientForAuthorisedOptedAgent(clientId: String)(fn: (DisplayClient, Arn) => Future[Result])(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: MessagesRequest[AnyContent],
+    appConfig: AppConfig
+  ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        clientService.lookupClient(arn)(clientId).flatMap(
-          _.fold(clientNotFound)(client => fn(client, arn))
-        )
+        clientService
+          .lookupClient(arn)(clientId)
+          .flatMap(
+            _.fold(clientNotFound)(client => fn(client, arn))
+          )
       }
     }
-  }
 
-  def clientNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] = {
+  def clientNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] =
     Ok(client_not_found()).toFuture
-  }
 
 }

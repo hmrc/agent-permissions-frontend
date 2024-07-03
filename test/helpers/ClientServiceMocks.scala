@@ -16,9 +16,10 @@
 
 package helpers
 
-import akka.Done
 import models.{DisplayClient, GroupId}
+import org.apache.pekko.Done
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsNumber, JsValue}
 import play.api.mvc.Request
 import services.ClientService
@@ -30,124 +31,149 @@ import utils.FilterUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ClientServiceMocks extends MockFactory {
+trait ClientServiceMocks extends AnyWordSpec with MockFactory {
 
-  def expectGetAvailableTaxServiceClientCount(arn: Arn)
-                                             (numberOfEachService: List[Int])
-                                             (implicit clientService: ClientService): Unit = {
+  def expectGetAvailableTaxServiceClientCount(
+    arn: Arn
+  )(numberOfEachService: List[Int])(implicit clientService: ClientService): Unit = {
     val data: Map[String, Int] = Map(
-      "HMRC-MTD-IT" -> numberOfEachService.head,
-      "HMRC-MTD-VAT" -> numberOfEachService(1),
-      "HMRC-CGT-PD" -> numberOfEachService(2),
-      "HMRC-PPT-ORG" -> numberOfEachService(3),
-      "HMRC-TERS" -> numberOfEachService(4),
-      "HMRC-CBC" -> numberOfEachService(5),
-      "HMRC-PILLAR2-ORG" -> numberOfEachService(6),
+      "HMRC-MTD-IT"      -> numberOfEachService.head,
+      "HMRC-MTD-VAT"     -> numberOfEachService(1),
+      "HMRC-CGT-PD"      -> numberOfEachService(2),
+      "HMRC-PPT-ORG"     -> numberOfEachService(3),
+      "HMRC-TERS"        -> numberOfEachService(4),
+      "HMRC-CBC"         -> numberOfEachService(5),
+      "HMRC-PILLAR2-ORG" -> numberOfEachService(6)
     ).filter { case (_, count) => count != 0 }
     (clientService
       .getAvailableTaxServiceClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful data).once()
+      .returning(Future successful data)
+      .once()
 
   }
 
-  def expectGetUnassignedClients(arn: Arn)
-                                (clients: Seq[DisplayClient], page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)
-                                (implicit clientService: ClientService): Unit =
+  def expectGetUnassignedClients(arn: Arn)(
+    clients: Seq[DisplayClient],
+    page: Int = 1,
+    pageSize: Int = 20,
+    search: Option[String] = None,
+    filter: Option[String] = None
+  )(implicit clientService: ClientService): Unit =
     (clientService
-      .getUnassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getUnassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
+        _: Request[_],
+        _: HeaderCarrier,
+        _: ExecutionContext
+      ))
       .expects(arn, page, pageSize, search, filter, *, *, *)
-      .returning(Future.successful(PaginatedListBuilder.build(page = page, pageSize = pageSize, fullList = FilterUtils.filterClients(clients, search, filter)))).once()
+      .returning(
+        Future.successful(
+          PaginatedListBuilder
+            .build(page = page, pageSize = pageSize, fullList = FilterUtils.filterClients(clients, search, filter))
+        )
+      )
+      .once()
 
-  def expectLookupClient(arn: Arn)
-                        (client: DisplayClient)
-                        (implicit clientService: ClientService): Unit =
+  def expectLookupClient(arn: Arn)(client: DisplayClient)(implicit clientService: ClientService): Unit =
     (clientService
       .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.id, *, *)
       .returning(Future successful Some(client))
       .once()
 
-  def expectGetClient(arn: Arn)
-                     (client: DisplayClient)
-                     (implicit clientService: ClientService): Unit =
+  def expectGetClient(arn: Arn)(client: DisplayClient)(implicit clientService: ClientService): Unit =
     (clientService
       .getClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.id, *, *)
       .returning(Future successful Some(client))
       .once()
 
-  def expectLookupClientNone(arn: Arn)
-                            (implicit clientService: ClientService): Unit =
+  def expectLookupClientNone(arn: Arn)(implicit clientService: ClientService): Unit =
     (clientService
       .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful None)
       .once()
 
-  def expectUpdateClientReference(arn: Arn, client: DisplayClient, newName: String)
-                                 (implicit clientService: ClientService): Unit =
+  def expectUpdateClientReference(arn: Arn, client: DisplayClient, newName: String)(implicit
+    clientService: ClientService
+  ): Unit =
     (clientService
       .updateClientReference(_: Arn, _: DisplayClient, _: String)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client, newName, *, *, *)
       .returning(Future successful Done)
       .once()
 
-  def expectLookupClientNotFound(arn: Arn)
-                                (clientId: String)
-                                (implicit clientService: ClientService): Unit =
+  def expectLookupClientNotFound(arn: Arn)(clientId: String)(implicit clientService: ClientService): Unit =
     (clientService
       .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, clientId, *, *)
-      .returning(Future successful None).once()
+      .returning(Future successful None)
+      .once()
 
-  def expectGetClientNotFound(arn: Arn)
-                             (clientId: String)
-                             (implicit clientService: ClientService): Unit =
+  def expectGetClientNotFound(arn: Arn)(clientId: String)(implicit clientService: ClientService): Unit =
     (clientService
       .getClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, clientId, *, *)
-      .returning(Future successful None).once()
+      .returning(Future successful None)
+      .once()
 
-
-  def expectGetPageOfClients(arn: Arn, page: Int = 1, pageSize: Int = 20)
-                            (clients: Seq[DisplayClient])
-                            (implicit clientService: ClientService): Unit = {
-    val paginatedList = PaginatedList(pageContent = clients,
-      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length))
+  def expectGetPageOfClients(arn: Arn, page: Int = 1, pageSize: Int = 20)(
+    clients: Seq[DisplayClient]
+  )(implicit clientService: ClientService): Unit = {
+    val paginatedList = PaginatedList(
+      pageContent = clients,
+      paginationMetaData =
+        PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length)
+    )
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier,
-        _: ExecutionContext))
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }
 
-  def expectGetPaginatedClientsToAddToGroup(groupId: GroupId,
-                                            page: Int = 1,
-                                            pageSize: Int = 20,
-                                            search: Option[String] = None,
-                                            filter: Option[String] = None)
-                                           (groupSummary: GroupSummary, clients: Seq[DisplayClient])
-                                           (implicit clientService: ClientService): Unit = {
-    val paginatedList = PaginatedList(pageContent = clients,
-      paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, totalSize = 40, totalPages = 40 / pageSize, pageSize = pageSize,
-        currentPageNumber = page, currentPageSize = clients.length, extra = Some(Map[String, JsValue]("totalSelected" -> JsNumber(2)))))
-    (clientService
-      .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(_: Request[_], _: HeaderCarrier,
-        _: ExecutionContext))
+  def expectGetPaginatedClientsToAddToGroup(
+    groupId: GroupId,
+    page: Int = 1,
+    pageSize: Int = 20,
+    search: Option[String] = None,
+    filter: Option[String] = None
+  )(groupSummary: GroupSummary, clients: Seq[DisplayClient])(implicit clientService: ClientService): Unit = {
+    val paginatedList = PaginatedList(
+      pageContent = clients,
+      paginationMetaData = PaginationMetaData(
+        lastPage = false,
+        firstPage = page == 1,
+        totalSize = 40,
+        totalPages = 40 / pageSize,
+        pageSize = pageSize,
+        currentPageNumber = page,
+        currentPageSize = clients.length,
+        extra = Some(Map[String, JsValue]("totalSelected" -> JsNumber(2)))
+      )
+    )
+    (
+      clientService
+        .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
+          _: Request[_],
+          _: HeaderCarrier,
+          _: ExecutionContext
+        )
+      )
       .expects(groupId, page, pageSize, search, filter, *, *, *)
       .returning(Future.successful((groupSummary, paginatedList)))
   }
 
-  def expectGetPageOfClientsNone(arn: Arn, page: Int = 1, pageSize: Int = 10)
-                                (implicit clientService: ClientService): Unit = {
+  def expectGetPageOfClientsNone(arn: Arn, page: Int = 1, pageSize: Int = 10)(implicit
+    clientService: ClientService
+  ): Unit = {
     val paginatedList = PaginatedList(
       pageContent = Seq.empty[DisplayClient],
       paginationMetaData = PaginationMetaData(lastPage = false, firstPage = false, 0, 0, 0, 0, 0)
     )
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier,
-        _: ExecutionContext))
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }

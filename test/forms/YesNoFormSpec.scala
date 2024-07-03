@@ -48,8 +48,7 @@ class YesNoFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
     }
 
     "unbind" in {
-      YesNoForm.form("my.error.key").mapping.unbind(true) shouldBe Map(
-        "answer" -> "true")
+      YesNoForm.form("my.error.key").mapping.unbind(true) shouldBe Map("answer" -> "true")
     }
   }
 

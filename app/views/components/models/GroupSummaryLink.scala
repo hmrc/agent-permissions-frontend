@@ -18,7 +18,7 @@ package views.components.models
 
 /** provides terser data for GroupSummary */
 case class GroupSummaryLink(
-    groupId: String,
-    groupName: String,
-    isCustomGroup: Boolean = true
+  groupId: String,
+  groupName: String,
+  isCustomGroup: Boolean = true
 )

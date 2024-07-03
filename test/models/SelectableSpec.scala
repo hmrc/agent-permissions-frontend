@@ -27,32 +27,24 @@ class SelectableSpec extends AnyWordSpec with Matchers {
       "client is cbc uk" in {
         val cbcUkClient = Client("HMRC-CBC-ORG~cbcId~XACBC123456789012~UTR~1234567890", "Jelly Incorporated")
 
-        //when
+        // when
         val dc = DisplayClient.fromClient(cbcUkClient)
 
-        val expectedDc = DisplayClient(
-          "XACBC123456789012",
-          "Jelly Incorporated",
-          "HMRC-CBC-ORG",
-          "UTR~1234567890")
+        val expectedDc = DisplayClient("XACBC123456789012", "Jelly Incorporated", "HMRC-CBC-ORG", "UTR~1234567890")
 
-        //then
+        // then
         dc shouldBe expectedDc
       }
 
       "client has no friendly name" in {
-        val vatClient =  Client("HMRC-MTD-VAT~VRN~123456789", "")
+        val vatClient = Client("HMRC-MTD-VAT~VRN~123456789", "")
 
-        //when
+        // when
         val dc = DisplayClient.fromClient(vatClient)
 
-        val expectedDc = DisplayClient(
-          "123456789",
-          "",
-          "HMRC-MTD-VAT",
-          "VRN")
+        val expectedDc = DisplayClient("123456789", "", "HMRC-MTD-VAT", "VRN")
 
-        //then
+        // then
         dc shouldBe expectedDc
       }
 
@@ -60,34 +52,27 @@ class SelectableSpec extends AnyWordSpec with Matchers {
 
     "convert back to Client model" when {
       "client is cbc uk" in {
-        val cbcUkDisplayClient = DisplayClient(
-          "XACBC123456789012",
-          "Jelly Incorporated",
-          "HMRC-CBC-ORG",
-          "UTR~1234567890")
+        val cbcUkDisplayClient =
+          DisplayClient("XACBC123456789012", "Jelly Incorporated", "HMRC-CBC-ORG", "UTR~1234567890")
 
-        //when
+        // when
         val client = DisplayClient.toClient(cbcUkDisplayClient)
 
         val expectedCbcUkClient = Client("HMRC-CBC-ORG~cbcId~XACBC123456789012~UTR~1234567890", "Jelly Incorporated")
 
-        //then
+        // then
         client shouldBe expectedCbcUkClient
       }
 
       "client has no friendly name" in {
-        val vatDc = DisplayClient(
-          "123456789",
-          "",
-          "HMRC-MTD-VAT",
-          "VRN")
+        val vatDc = DisplayClient("123456789", "", "HMRC-MTD-VAT", "VRN")
 
-        //when
+        // when
         val client = DisplayClient.toClient(vatDc)
 
-        val expectedVatClient =  Client("HMRC-MTD-VAT~VRN~123456789", "")
+        val expectedVatClient = Client("HMRC-MTD-VAT~VRN~123456789", "")
 
-        //then
+        // then
         client shouldBe expectedVatClient
       }
 

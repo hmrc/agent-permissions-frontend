@@ -41,10 +41,11 @@ class OptInControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
-  implicit lazy val mockAgentUserClientDetailsConnector
-    : AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
@@ -52,7 +53,16 @@ class OptInControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, mockSessionService))
+        .toInstance(
+          new AuthAction(
+            mockAuthConnector,
+            env,
+            conf,
+            mockAgentPermissionsConnector,
+            mockAgentClientAuthConnector,
+            mockSessionService
+          )
+        )
       bind(classOf[AgentPermissionsConnector])
         .toInstance(mockAgentPermissionsConnector)
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
@@ -94,7 +104,7 @@ class OptInControllerSpec extends BaseSpec {
       html
         .select(Css.insetText)
         .text() shouldBe "By default, agent services accounts allow all team members to view and manage the tax affairs of all clients using shared sign in details."
-      //if adding a para please test it!
+      // if adding a para please test it!
       val paragraphs = html.select(Css.paragraphs)
       paragraphs.size() shouldBe 4
       paragraphs
@@ -112,23 +122,22 @@ class OptInControllerSpec extends BaseSpec {
 
       html.select(Css.linkStyledAsButton).get(0).text() shouldBe "Cancel"
       html
-        .select(Css.linkStyledAsButton).get(0)
+        .select(Css.linkStyledAsButton)
+        .get(0)
         .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
 
       html.select(Css.linkStyledAsButton).get(1).text() shouldBe "Continue"
       html
-        .select(Css.linkStyledAsButton).get(1)
+        .select(Css.linkStyledAsButton)
+        .get(1)
         .attr("href") shouldBe "/agent-permissions/confirm-turn-on"
     }
 
     "return Forbidden when user is not an Agent" in {
 
       val nonAgentEnrolmentKey = "IR-SA"
-      val mockedAuthResponse = Enrolments(
-        Set(
-          Enrolment(nonAgentEnrolmentKey,
-                    agentEnrolmentIdentifiers,
-                    "Activated"))) and Some(User)
+      val mockedAuthResponse =
+        Enrolments(Set(Enrolment(nonAgentEnrolmentKey, agentEnrolmentIdentifiers, "Activated"))) and Some(User)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
@@ -138,10 +147,8 @@ class OptInControllerSpec extends BaseSpec {
 
     "return Forbidden when user is not an admin" in {
 
-      val mockedAuthResponse = Enrolments(Set(Enrolment(
-        agentEnrolment,
-        agentEnrolmentIdentifiers,
-        "Activated"))) and Some(Assistant)
+      val mockedAuthResponse =
+        Enrolments(Set(Enrolment(agentEnrolment, agentEnrolmentIdentifiers, "Activated"))) and Some(Assistant)
       expectAuthorisationGrantsAccess(mockedAuthResponse)
 
       val result = controller.start()(request)
@@ -231,8 +238,7 @@ class OptInControllerSpec extends BaseSpec {
       val result = controller.submitDoYouWantToOptIn()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(
-        "http://localhost:9401/agent-services-account/manage-account")
+      redirectLocation(result) shouldBe Some("http://localhost:9401/agent-services-account/manage-account")
     }
 
     "render correct error messages when form not filled in" in {
@@ -288,11 +294,13 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(
-        sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInNotReady))
+      await(sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInNotReady))
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
-      (mockAgentUserClientDetailsConnector.getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
+      (mockAgentUserClientDetailsConnector
+        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(*, *, *)
+        .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 
       val result = controller.showYouHaveOptedIn()(request)
 
@@ -328,11 +336,13 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(
-        sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInReady))
+      await(sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInReady))
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
-      (mockAgentUserClientDetailsConnector.getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext)).expects(*, *, *).returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
+      (mockAgentUserClientDetailsConnector
+        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(*, *, *)
+        .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 
       val result = controller.showYouHaveOptedIn()(request)
 

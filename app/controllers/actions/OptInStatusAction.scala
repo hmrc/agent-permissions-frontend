@@ -33,71 +33,76 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class OptInStatusAction @Inject()(val authConnector: AuthConnector,
-                                  val env: Environment,
-                                  val config: Configuration,
-                                  val sessionCacheService: SessionCacheService,
-                                  val agentPermissionsConnector: AgentPermissionsConnector
-                            ) extends Logging  {
+class OptInStatusAction @Inject() (
+  val authConnector: AuthConnector,
+  val env: Environment,
+  val config: Configuration,
+  val sessionCacheService: SessionCacheService,
+  val agentPermissionsConnector: AgentPermissionsConnector
+) extends Logging {
 
-  def isEligibleToOptIn(arn: Arn)(body: OptinStatus => Future[Result])
-                       (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  def isEligibleToOptIn(arn: Arn)(
+    body: OptinStatus => Future[Result]
+  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(request, hc, ec)
 
-  def isOptedIn(arn: Arn)(body: OptinStatus => Future[Result])
-               (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  def isOptedIn(arn: Arn)(
+    body: OptinStatus => Future[Result]
+  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedIn)(arn)(body)(request, hc, ec)
 
-  def isOptedInComplete(arn: Arn)(body: OptinStatus => Future[Result])
-                       (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  def isOptedInComplete(arn: Arn)(
+    body: OptinStatus => Future[Result]
+  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedInComplete)(arn)(body)(request, hc, ec)
 
-  def isOptedOut(arn: Arn)(body: OptinStatus => Future[Result])
-                (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  def isOptedOut(arn: Arn)(
+    body: OptinStatus => Future[Result]
+  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedOut)(arn)(body)(request, hc, ec)
 
-  def isOptedInWithSessionItem[T](dataKey: DataKey[T])
-                                 (arn: Arn)(body: Option[T] => Future[Result])
-                                 (implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+  def isOptedInWithSessionItem[T](dataKey: DataKey[T])(arn: Arn)(
+    body: Option[T] => Future[Result]
+  )(implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     sessionCacheService.get[OptinStatus](OPT_IN_STATUS).flatMap {
       case Some(status) if status == OptedInReady =>
-        sessionCacheService.get[T](dataKey)
+        sessionCacheService
+          .get[T](dataKey)
           .flatMap(data => body(data))
       case _ =>
         agentPermissionsConnector
           .getOptInStatus(arn)
           .flatMap {
             case Some(status) if status == OptedInReady =>
-              sessionCacheService.put[OptinStatus](OPT_IN_STATUS, status)
+              sessionCacheService
+                .put[OptinStatus](OPT_IN_STATUS, status)
                 .flatMap(_ => body(None))
             case _ => Redirect(routes.RootController.start()).toFuture
           }
     }
-  }
 
-  private def eligibleFor(predicate: OptinStatus => Boolean)(arn: Arn)
-                         (body: OptinStatus => Future[Result])
-                         (implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    sessionCacheService.get[OptinStatus](OPT_IN_STATUS)
+  private def eligibleFor(predicate: OptinStatus => Boolean)(arn: Arn)(
+    body: OptinStatus => Future[Result]
+  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+    sessionCacheService
+      .get[OptinStatus](OPT_IN_STATUS)
       .flatMap {
         case Some(status) if predicate(status) => body(status)
-        case Some(_) => Redirect(routes.RootController.start().url).toFuture
+        case Some(_)                           => Redirect(routes.RootController.start().url).toFuture
         case None =>
           initialiseSession(arn)
-            .flatMap(_ =>
-              sessionCacheService.get[OptinStatus](OPT_IN_STATUS))
+            .flatMap(_ => sessionCacheService.get[OptinStatus](OPT_IN_STATUS))
             .flatMap {
               case Some(status) if predicate(status) => body(status)
-              case Some(_) => Redirect(routes.RootController.start()).toFuture
+              case Some(_)                           => Redirect(routes.RootController.start()).toFuture
               case None =>
-                throw new RuntimeException(
-                  s"opt-in status could not be found for ${arn.value}")
+                throw new RuntimeException(s"opt-in status could not be found for ${arn.value}")
             }
       }
-  }
 
-  private def initialiseSession(arn: Arn)
-                               (implicit request: Request[_], writes: Writes[OptinStatus], hc: HeaderCarrier, ec: ExecutionContext) =
+  private def initialiseSession(
+    arn: Arn
+  )(implicit request: Request[_], writes: Writes[OptinStatus], hc: HeaderCarrier, ec: ExecutionContext) =
     agentPermissionsConnector
       .getOptInStatus(arn)
       .flatMap {
@@ -105,7 +110,8 @@ class OptInStatusAction @Inject()(val authConnector: AuthConnector,
           sessionCacheService.put[OptinStatus](OPT_IN_STATUS, status)
         case None =>
           throw new RuntimeException(
-            s"could not initialise session because opt-In status was not returned for ${arn.value}")
+            s"could not initialise session because opt-In status was not returned for ${arn.value}"
+          )
       }
 
 }

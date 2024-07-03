@@ -36,7 +36,8 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   private val groupName = "XYZ"
@@ -44,7 +45,16 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[GroupService]).toInstance(mockGroupService)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
@@ -58,7 +68,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   private val ctrlRoute: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
-  def expectAuthOkOptedInReadyWithGroupType(groupType :String = CUSTOM_GROUP): Unit = {
+  def expectAuthOkOptedInReadyWithGroupType(groupType: String = CUSTOM_GROUP): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(SUSPENSION_STATUS, false)
@@ -277,8 +287,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectClientsController.showSearchClients
-        ().url)
+      redirectLocation(result) shouldBe Some(routes.CreateGroupSelectClientsController.showSearchClients().url)
     }
 
     "redirect to /group/group-name when Confirm access group name 'no' selected" in {
@@ -287,14 +296,13 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitConfirmGroupName().url)
-        .withFormUrlEncodedBody("name" -> groupName, "answer" -> "false")
-        .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody("name" -> groupName, "answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       val result = controller.submitConfirmGroupName()(request)
 
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(
-        ctrlRoute.showGroupName().url)
+      redirectLocation(result) shouldBe Some(ctrlRoute.showGroupName().url)
     }
   }
 

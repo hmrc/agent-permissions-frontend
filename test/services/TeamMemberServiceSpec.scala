@@ -27,38 +27,34 @@ import uk.gov.hmrc.agents.accessgroups.UserDetails
 
 class TeamMemberServiceSpec extends BaseSpec {
 
-  implicit val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
+  implicit val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   val service = new TeamMemberServiceImpl(mockAgentUserClientDetailsConnector, sessionCacheService)
 
   val users: Seq[UserDetails] = (1 to 5)
-    .map(
-      i =>
-        UserDetails(userId = Option(s"user$i"),
-          None,
-          Some(s"Name $i"),
-          Some(s"bob$i@accounting.com")))
+    .map(i => UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com")))
 
   val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
   "Lookup 1 team member" should {
 
     "Return nothing when not found" in {
-      //given
+      // given
       expectGetTeamMembers(arn)(users)
-      //when
+      // when
       val teamMember: Option[TeamMember] = await(service.lookupTeamMember(arn)("matchesNothing"))
-      //then
+      // then
       teamMember shouldBe None
     }
 
     "Return a team members with matched id" in {
-      //given
+      // given
       expectGetTeamMembers(arn)(users)
-      //when
+      // when
       val teamMember: Option[TeamMember] = await(service.lookupTeamMember(arn)(members.head.id))
-      //then
+      // then
       teamMember shouldBe Some(members.head)
     }
   }
@@ -67,22 +63,22 @@ class TeamMemberServiceSpec extends BaseSpec {
 
     "Return empty list when no ids passed in" in {
 
-      //when
+      // when
       val teamMembers: Seq[TeamMember] = await(service.lookupTeamMembers(arn)(None))
 
-      //then
+      // then
       teamMembers shouldBe Seq.empty[TeamMember]
 
     }
 
     "Return list of team members with passed ids" in {
 
-      //given
+      // given
       expectGetTeamMembers(arn)(users)
-      //when
+      // when
       val teamMembers: Seq[TeamMember] = await(service.lookupTeamMembers(arn)(Some(members.take(2).map(_.id).toList)))
 
-      //then
+      // then
       teamMembers shouldBe teamMembers.take(2)
 
     }
@@ -92,12 +88,9 @@ class TeamMemberServiceSpec extends BaseSpec {
 
     "return correct page of team members unfiltered with no search input" in {
 
-      val users: Seq[UserDetails] = (1 to 17).map(
-        i =>
-          UserDetails(userId = Option(s"user$i"),
-            None,
-            Some(s"Name $i"),
-            Some(s"bob$i@accounting.com")))
+      val users: Seq[UserDetails] = (1 to 17).map(i =>
+        UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com"))
+      )
       val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
       val pageSize = 5
@@ -108,25 +101,32 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectPutSessionItem(CURRENT_PAGE_TEAM_MEMBERS, expectedPage)
       val page: PaginatedList[TeamMember] = await(service.getPageOfTeamMembers(arn)(1, pageSize))
 
-      page.paginationMetaData shouldBe PaginationMetaData(false, true, users.length, 4, pageSize, 1, pageSize, Some(Map("totalSelected" -> JsNumber(3))))
+      page.paginationMetaData shouldBe PaginationMetaData(
+        false,
+        true,
+        users.length,
+        4,
+        pageSize,
+        1,
+        pageSize,
+        Some(Map("totalSelected" -> JsNumber(3)))
+      )
       page.pageContent shouldBe
-        List(TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None, true),
+        List(
+          TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None, true),
           TeamMember("Name 2", "bob2@accounting.com", Some("user2"), None, true),
           TeamMember("Name 3", "bob3@accounting.com", Some("user3"), None, true),
           TeamMember("Name 4", "bob4@accounting.com", Some("user4"), None, false),
-          TeamMember("Name 5", "bob5@accounting.com", Some("user5"), None, false),
+          TeamMember("Name 5", "bob5@accounting.com", Some("user5"), None, false)
         )
 
     }
 
     "return correct page of team members filtered with search input of partial case insensitive member name" in {
 
-      val users: Seq[UserDetails] = (1 to 17).map(
-        i =>
-          UserDetails(userId = Option(s"user$i"),
-            None,
-            Some(s"Name $i"),
-            Some(s"bob$i@accounting.com")))
+      val users: Seq[UserDetails] = (1 to 17).map(i =>
+        UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com"))
+      )
       val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
       val pageSize = 5
@@ -137,10 +137,19 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectPutSessionItem(CURRENT_PAGE_TEAM_MEMBERS, expectedPage)
       val page: PaginatedList[TeamMember] = await(service.getPageOfTeamMembers(arn)(1, pageSize))
 
-      page.paginationMetaData shouldBe PaginationMetaData(lastPage = false, firstPage = true, 9, 2, 5, 1, 5, Some(Map("totalSelected" -> JsNumber(0))))
+      page.paginationMetaData shouldBe PaginationMetaData(
+        lastPage = false,
+        firstPage = true,
+        9,
+        2,
+        5,
+        1,
+        5,
+        Some(Map("totalSelected" -> JsNumber(0)))
+      )
       page.pageContent shouldBe
         Seq(
-          TeamMember("Name 1", "bob1@accounting.com",   Some("user1"), None ),
+          TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None),
           TeamMember("Name 10", "bob10@accounting.com", Some("user10"), None),
           TeamMember("Name 11", "bob11@accounting.com", Some("user11"), None),
           TeamMember("Name 12", "bob12@accounting.com", Some("user12"), None),
@@ -151,12 +160,9 @@ class TeamMemberServiceSpec extends BaseSpec {
 
     "return correct page of team members filtered with search input of partial case insensitive email address" in {
 
-      val users: Seq[UserDetails] = (1 to 17).map(
-        i =>
-          UserDetails(userId = Option(s"user$i"),
-            None,
-            Some(s"Name $i"),
-            Some(s"bob$i@accounting.com")))
+      val users: Seq[UserDetails] = (1 to 17).map(i =>
+        UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com"))
+      )
       val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
       val pageSize = 5
@@ -167,10 +173,19 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectPutSessionItem(CURRENT_PAGE_TEAM_MEMBERS, expectedPage)
       val page: PaginatedList[TeamMember] = await(service.getPageOfTeamMembers(arn)(1, pageSize))
 
-      page.paginationMetaData shouldBe PaginationMetaData(lastPage = true, firstPage = true, 1,1, 5, 1, 1, Some(Map("totalSelected" -> JsNumber(0))))
+      page.paginationMetaData shouldBe PaginationMetaData(
+        lastPage = true,
+        firstPage = true,
+        1,
+        1,
+        5,
+        1,
+        1,
+        Some(Map("totalSelected" -> JsNumber(0)))
+      )
       page.pageContent shouldBe
         Seq(
-          TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None),
+          TeamMember("Name 1", "bob1@accounting.com", Some("user1"), None)
         )
 
     }
@@ -181,13 +196,10 @@ class TeamMemberServiceSpec extends BaseSpec {
     """add to existing saved members and sort by name setting all to SELECTED = TRUE
        and delete TEAM_MEMBER_SEARCH_INPUT when search is empty""" in {
 
-      //given
-      val users: Seq[UserDetails] = (1 to 25).map(
-        i =>
-          UserDetails(userId = Option(s"user$i"),
-            None,
-            Some(s"Name $i"),
-            Some(s"bob$i@accounting.com")))
+      // given
+      val users: Seq[UserDetails] = (1 to 25).map(i =>
+        UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com"))
+      )
       val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
@@ -196,27 +208,25 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, existingSavedMembers)
       expectGetSessionItem(CURRENT_PAGE_TEAM_MEMBERS, members.slice(10, 20))
 
-      val expectedNewSelectedMembers = (membersToSave ++ existingSavedMembers).map(_.copy(selected = true)).sortBy(_.name)
+      val expectedNewSelectedMembers =
+        (membersToSave ++ existingSavedMembers).map(_.copy(selected = true)).sortBy(_.name)
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, expectedNewSelectedMembers)
 
       val formData = AddTeamMembersToGroup(members = Some(membersToSave.map(_.id).toList))
-      //when
+      // when
       val saved = await(service.savePageOfTeamMembers(formData))
 
-      //then
+      // then
       saved shouldBe expectedNewSelectedMembers
 
     }
 
     "delete all search keys when CONTINUE_BUTTON pushed" in {
 
-      //given
-      val users: Seq[UserDetails] = (1 to 25).map(
-        i =>
-          UserDetails(userId = Option(s"user$i"),
-            None,
-            Some(s"Name $i"),
-            Some(s"bob$i@accounting.com")))
+      // given
+      val users: Seq[UserDetails] = (1 to 25).map(i =>
+        UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com"))
+      )
       val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
@@ -224,31 +234,27 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
       expectGetSessionItem(CURRENT_PAGE_TEAM_MEMBERS, members.slice(10, 20))
 
-      val expectedNewSelectedMembers = (membersToSave).map(_.copy(selected = true)).sortBy(_.name)
+      val expectedNewSelectedMembers = membersToSave.map(_.copy(selected = true)).sortBy(_.name)
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, expectedNewSelectedMembers)
 
-      //and
+      // and
       val formData = AddTeamMembersToGroup(submit = CONTINUE_BUTTON, members = Some(membersToSave.map(_.id).toList))
-      //EXPECT
+      // EXPECT
       expectDeleteSessionItems(teamMemberFilteringKeys)
 
-      //when
+      // when
       val saved = await(service.savePageOfTeamMembers(formData))
 
-      //then
+      // then
       saved shouldBe expectedNewSelectedMembers
     }
-
 
     "delete TEAM_MEMBER_SEARCH_INPUT when CLEAR_BUTTON pushed" in {
 
-      //given
-      val users: Seq[UserDetails] = (1 to 25).map(
-        i =>
-          UserDetails(userId = Option(s"user$i"),
-            None,
-            Some(s"Name $i"),
-            Some(s"bob$i@accounting.com")))
+      // given
+      val users: Seq[UserDetails] = (1 to 25).map(i =>
+        UserDetails(userId = Option(s"user$i"), None, Some(s"Name $i"), Some(s"bob$i@accounting.com"))
+      )
       val members: Seq[TeamMember] = users.map(TeamMember.fromUserDetails)
 
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
@@ -256,24 +262,21 @@ class TeamMemberServiceSpec extends BaseSpec {
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty)
       expectGetSessionItem(CURRENT_PAGE_TEAM_MEMBERS, members.slice(10, 20))
 
-      val expectedNewSelectedMembers = (membersToSave).map(_.copy(selected = true)).sortBy(_.name)
+      val expectedNewSelectedMembers = membersToSave.map(_.copy(selected = true)).sortBy(_.name)
       expectPutSessionItem(SELECTED_TEAM_MEMBERS, expectedNewSelectedMembers)
 
-      //and
+      // and
       val formData = AddTeamMembersToGroup(submit = CLEAR_BUTTON, members = Some(membersToSave.map(_.id).toList))
-      //EXPECT
+      // EXPECT
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
 
-      //when
+      // when
       val saved = await(service.savePageOfTeamMembers(formData))
 
-      //then
+      // then
       saved shouldBe expectedNewSelectedMembers
     }
 
-
-
   }
-
 
 }

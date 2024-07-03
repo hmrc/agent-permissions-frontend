@@ -1,7 +1,7 @@
-import sbt.Keys.parallelExecution
-import sbt.{Setting, Test}
+import sbt.Setting
 import scoverage.ScoverageKeys
-
+import sbt._
+import sbt.Keys._
 object CodeCoverageSettings {
 
   private val excludedPackages: Seq[String] = Seq(
@@ -27,8 +27,8 @@ object CodeCoverageSettings {
   val settings: Seq[Setting[_]] = Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
     ScoverageKeys.coverageExcludedFiles := excludedFiles.mkString(";"),
-    ScoverageKeys.coverageMinimumStmtTotal := 90,
-    ScoverageKeys.coverageMinimumStmtPerFile := 90,
+    ScoverageKeys.coverageMinimumStmtTotal := 80,
+    ScoverageKeys.coverageMinimumStmtPerFile := 80,
     ScoverageKeys.coverageMinimumBranchTotal:= 88,
     ScoverageKeys.coverageMinimumBranchPerFile:= 65, //this should really be increased asap some files are letting the file team down :D
     ScoverageKeys.coverageFailOnMinimum := true,

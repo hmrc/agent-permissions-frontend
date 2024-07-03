@@ -35,21 +35,15 @@ package connectors
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client}
 
-
 case class CreateTaxServiceGroupRequest(
-                                         groupName: String,
-                                         teamMembers: Option[Set[AgentUser]],
-                                         service: String,
-                                         autoUpdate: Boolean = true,
-                                         excludedClients: Option[Set[Client]] = None
-                                       ) {
-
-}
+  groupName: String,
+  teamMembers: Option[Set[AgentUser]],
+  service: String,
+  autoUpdate: Boolean = true,
+  excludedClients: Option[Set[Client]] = None
+) {}
 
 object CreateTaxServiceGroupRequest {
   implicit val formatCreateTaxServiceGroupRequest: OFormat[CreateTaxServiceGroupRequest] =
     Json.format[CreateTaxServiceGroupRequest]
 }
-
-
-

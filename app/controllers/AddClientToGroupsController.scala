@@ -34,24 +34,20 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AddClientToGroupsController @Inject()(
-   clientAction: ClientAction,
-   mcc: MessagesControllerComponents,
-   val sessionCacheService: SessionCacheService,
-   groupService: GroupService,
-   select_groups: select_groups,
-   confirm_added: confirm_added
-)(implicit val appConfig: AppConfig,
-  ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi)
-  extends FrontendController(mcc)
-    with I18nSupport
-    with Logging {
+class AddClientToGroupsController @Inject() (
+  clientAction: ClientAction,
+  mcc: MessagesControllerComponents,
+  val sessionCacheService: SessionCacheService,
+  groupService: GroupService,
+  select_groups: select_groups,
+  confirm_added: confirm_added
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+    extends FrontendController(mcc) with I18nSupport with Logging {
 
   import clientAction._
 
   def showSelectGroupsForClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
-    withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
+    withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) =>
       sessionCacheService.delete(GROUP_IDS_ADDED_TO)
       groupService.getGroupSummaries(arn).flatMap { allGroups =>
         groupService.groupSummariesForClient(arn, displayClient).map { clientGroups =>
@@ -66,55 +62,58 @@ class AddClientToGroupsController @Inject()(
         }
       }
     }
-    }
   }
 
   def submitSelectGroupsForClient(clientId: String): Action[AnyContent] = Action.async { implicit request =>
-    withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
-      AddGroupsToClientForm.form().bindFromRequest().fold(formErrors => {
-        groupService.getGroupSummaries(arn).flatMap { allGroups =>
-          groupService.groupSummariesForClient(arn, displayClient).map { clientGroups =>
-            Ok(
-              select_groups(
-                clientGroups,
-                allGroups.diff(clientGroups).filter(s => !s.isTaxGroup), // only custom groups they're not already in
-                displayClient,
-                formErrors
-              )
-            )
-          }
-        }
-      }, { validForm =>
-        if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
-          Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
-        } else {
-          val groupIds: Seq[GroupId] = validForm.map(GroupId.fromString)
-          val client = Client(displayClient.enrolmentKey, displayClient.name)
-          Future.sequence(groupIds.map { grp =>
-            groupService.addMembersToGroup(
-              grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))
-              ))
-          }).map { _ =>
-            sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupIds)
-            Redirect(routes.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId))
-          }
-        }
-      }
-      )
-    }
+    withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) =>
+      AddGroupsToClientForm
+        .form()
+        .bindFromRequest()
+        .fold(
+          formErrors =>
+            groupService.getGroupSummaries(arn).flatMap { allGroups =>
+              groupService.groupSummariesForClient(arn, displayClient).map { clientGroups =>
+                Ok(
+                  select_groups(
+                    clientGroups,
+                    allGroups
+                      .diff(clientGroups)
+                      .filter(s => !s.isTaxGroup), // only custom groups they're not already in
+                    displayClient,
+                    formErrors
+                  )
+                )
+              }
+            },
+          validForm =>
+            if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
+              Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+            } else {
+              val groupIds: Seq[GroupId] = validForm.map(GroupId.fromString)
+              val client = Client(displayClient.enrolmentKey, displayClient.name)
+              Future
+                .sequence(groupIds.map { grp =>
+                  groupService.addMembersToGroup(grp, AddMembersToAccessGroupRequest(clients = Some(Set(client))))
+                })
+                .map { _ =>
+                  sessionCacheService.put[Seq[GroupId]](GROUP_IDS_ADDED_TO, groupIds)
+                  Redirect(routes.AddClientToGroupsController.showConfirmClientAddedToGroups(clientId))
+                }
+            }
+        )
     }
   }
 
   def showConfirmClientAddedToGroups(clientId: String): Action[AnyContent] = Action.async { implicit request =>
-    withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) => {
-      sessionCacheService.get[Seq[GroupId]](GROUP_IDS_ADDED_TO)
+    withClientForAuthorisedOptedAgent(clientId) { (displayClient: DisplayClient, arn: Arn) =>
+      sessionCacheService
+        .get[Seq[GroupId]](GROUP_IDS_ADDED_TO)
         .flatMap { maybeGroupIds =>
-        groupService.getGroupSummaries(arn).map { groups =>
-          val groupsAddedTo = groups.filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))
-          Ok(confirm_added(displayClient, groupsAddedTo))
+          groupService.getGroupSummaries(arn).map { groups =>
+            val groupsAddedTo = groups.filter(grp => maybeGroupIds.getOrElse(Seq.empty).contains(grp.groupId))
+            Ok(confirm_added(displayClient, groupsAddedTo))
+          }
         }
-      }
-    }
     }
   }
 

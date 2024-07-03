@@ -16,12 +16,12 @@
 
 package services
 
-import akka.Done
 import connectors._
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, NAME_OF_GROUP_CREATED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys}
 import helpers.BaseSpec
 import models.TeamMember.toAgentUser
 import models.{DisplayClient, GroupId, TeamMember}
+import org.apache.pekko.Done
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agents.accessgroups._
@@ -58,21 +58,22 @@ class GroupServiceSpec extends BaseSpec {
   "get group summaries" should {
     "Return groups from agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupSummaries = Seq(
         GroupSummary(GroupId.random(), "Carrots", Some(1), 1),
-        GroupSummary(GroupId.random(), "Potatoes", Some(1), 1),
+        GroupSummary(GroupId.random(), "Potatoes", Some(1), 1)
       )
 
       (mockAgentPermissionsConnector
         .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
-        .returning(Future successful groupSummaries).once()
+        .returning(Future successful groupSummaries)
+        .once()
 
-      //when
+      // when
       val summaries = await(service.getGroupSummaries(arn))
 
-      //then
+      // then
       summaries shouldBe groupSummaries
     }
   }
@@ -80,25 +81,26 @@ class GroupServiceSpec extends BaseSpec {
   "get a custom group summary" should {
     "Return summary from agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupSummary = GroupSummary(GroupId.random(), "Carrots", Some(1), 1)
 
       (mockAgentPermissionsConnector
         .getCustomSummary(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
         .expects(groupSummary.groupId, *, *)
-        .returning(Future successful Some(groupSummary)).once()
+        .returning(Future successful Some(groupSummary))
+        .once()
 
-      //when
+      // when
       val summary = await(service.getCustomSummary(groupSummary.groupId))
 
-      //then
+      // then
       summary shouldBe Some(groupSummary)
     }
   }
 
   "get paginated group summaries" should {
     "Return first page of summaries as paginated list" in {
-      //given
+      // given
       val groupSummaries = (1 to 8)
         .map { i =>
           GroupSummary(GroupId.random(), s"Carrots$i", Some(1), 1)
@@ -107,24 +109,29 @@ class GroupServiceSpec extends BaseSpec {
       (mockAgentPermissionsConnector
         .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
-        .returning(Future successful groupSummaries).once()
+        .returning(Future successful groupSummaries)
+        .once()
 
-      //when
+      // when
       val summaries = await(service.getPaginatedGroupSummaries(arn)())
 
-      //then
-      summaries shouldBe PaginatedList[GroupSummary](groupSummaries.take(5),
-        PaginationMetaData(lastPage = false,
+      // then
+      summaries shouldBe PaginatedList[GroupSummary](
+        groupSummaries.take(5),
+        PaginationMetaData(
+          lastPage = false,
           firstPage = true,
           totalSize = 8,
           totalPages = 2,
           pageSize = 5,
           currentPageNumber = 1,
-          currentPageSize = 5))
+          currentPageSize = 5
+        )
+      )
     }
 
     "Return second page of summaries as paginated list" in {
-      //given
+      // given
       val groupSummaries = (1 to 8)
         .map { i =>
           GroupSummary(GroupId.random(), s"Carrots$i", Some(1), 1)
@@ -133,93 +140,129 @@ class GroupServiceSpec extends BaseSpec {
       (mockAgentPermissionsConnector
         .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
-        .returning(Future successful groupSummaries).once()
+        .returning(Future successful groupSummaries)
+        .once()
 
-      //when
+      // when
       val summaries = await(service.getPaginatedGroupSummaries(arn)(2))
 
-      //then
-      summaries shouldBe PaginatedList[GroupSummary](groupSummaries.takeRight(3),
-        PaginationMetaData(lastPage = true,
+      // then
+      summaries shouldBe PaginatedList[GroupSummary](
+        groupSummaries.takeRight(3),
+        PaginationMetaData(
+          lastPage = true,
           firstPage = false,
           totalSize = 8,
           totalPages = 2,
           pageSize = 5,
           currentPageNumber = 2,
-          currentPageSize = 3))
+          currentPageSize = 3
+        )
+      )
     }
 
   }
 
   "get Paginated Clients For Custom Group" should {
-    //given
+    // given
     val grpId = GroupId.random()
 
     "return first page of clients as (page content, pagination data)" in {
-      //given
-      val paginatedListOfClients = PaginatedList[Client](fakeClients.take(5), PaginationMetaData(lastPage = true,
-        firstPage = false,
-        totalSize = 8,
-        totalPages = 2,
-        pageSize = 5,
-        currentPageNumber = 1,
-        currentPageSize = 5))
+      // given
+      val paginatedListOfClients = PaginatedList[Client](
+        fakeClients.take(5),
+        PaginationMetaData(
+          lastPage = true,
+          firstPage = false,
+          totalSize = 8,
+          totalPages = 2,
+          pageSize = 5,
+          currentPageNumber = 1,
+          currentPageSize = 5
+        )
+      )
 
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
-      (mockAgentPermissionsConnector
-        .getPaginatedClientsForCustomGroup(_: GroupId)(_:Int, _:Int, _:Option[String], _:Option[String])(_: HeaderCarrier, _: ExecutionContext))
+      (
+        mockAgentPermissionsConnector
+          .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
+            _: HeaderCarrier,
+            _: ExecutionContext
+          )
+        )
         .expects(grpId, *, *, *, *, *, *)
-        .returning(Future successful paginatedListOfClients).once()
+        .returning(Future successful paginatedListOfClients)
+        .once()
 
       val pageOfClientsInGroup = displayClients.take(5)
 
-      //when
+      // when
       val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(1, 5))
 
-      val expectedData = (pageOfClientsInGroup, PaginationMetaData(lastPage = true,
-        firstPage = false,
-        totalSize = 8,
-        totalPages = 2,
-        pageSize = 5,
-        currentPageNumber = 1,
-        currentPageSize = 5))
+      val expectedData = (
+        pageOfClientsInGroup,
+        PaginationMetaData(
+          lastPage = true,
+          firstPage = false,
+          totalSize = 8,
+          totalPages = 2,
+          pageSize = 5,
+          currentPageNumber = 1,
+          currentPageSize = 5
+        )
+      )
 
-      //then
+      // then
       data shouldBe expectedData
     }
 
     "return second page of display clients as (page content, pagination data)" in {
-      //given
-      val paginatedListOfClients = PaginatedList[Client](fakeClients.takeRight(3), PaginationMetaData(lastPage = true,
-        firstPage = false,
-        totalSize = 8,
-        totalPages = 2,
-        pageSize = 5,
-        currentPageNumber = 2,
-        currentPageSize = 3))
+      // given
+      val paginatedListOfClients = PaginatedList[Client](
+        fakeClients.takeRight(3),
+        PaginationMetaData(
+          lastPage = true,
+          firstPage = false,
+          totalSize = 8,
+          totalPages = 2,
+          pageSize = 5,
+          currentPageNumber = 2,
+          currentPageSize = 3
+        )
+      )
 
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
-      (mockAgentPermissionsConnector
-        .getPaginatedClientsForCustomGroup(_: GroupId)(_:Int, _:Int, _:Option[String], _:Option[String])(_: HeaderCarrier, _: ExecutionContext))
+      (
+        mockAgentPermissionsConnector
+          .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
+            _: HeaderCarrier,
+            _: ExecutionContext
+          )
+        )
         .expects(grpId, *, *, *, *, *, *)
-        .returning(Future successful paginatedListOfClients).once()
+        .returning(Future successful paginatedListOfClients)
+        .once()
 
       val pageOfClientsInGroup = displayClients.takeRight(3)
 
-
-      //when
+      // when
       val data = await(service.getPaginatedClientsForCustomGroup(groupId = grpId)(2, 5))
-      val expectedData = (pageOfClientsInGroup, PaginationMetaData(lastPage = true,
-        firstPage = false,
-        totalSize = 8,
-        totalPages = 2,
-        pageSize = 5,
-        currentPageNumber = 2,
-        currentPageSize = 3))
+      val expectedData = (
+        pageOfClientsInGroup,
+        PaginationMetaData(
+          lastPage = true,
+          firstPage = false,
+          totalSize = 8,
+          totalPages = 2,
+          pageSize = 5,
+          currentPageNumber = 2,
+          currentPageSize = 3
+        )
+      )
 
-      //then
+      // then
       data shouldBe expectedData
     }
   }
@@ -227,15 +270,15 @@ class GroupServiceSpec extends BaseSpec {
   "update groups" should {
     "delegate to agentPermissionsConnector" in {
 
-      //given
+      // given
       val req = UpdateAccessGroupRequest(Some("grpName"))
       val grpId = GroupId.random()
       expectUpdateGroupSuccess(grpId, req)
 
-      //when
+      // when
       val done: Done = await(service.updateGroup(grpId, req))
 
-      //then
+      // then
       done shouldBe Done
     }
   }
@@ -243,17 +286,28 @@ class GroupServiceSpec extends BaseSpec {
   "get group" should {
     "delegate to agentPermissionsConnector" in {
 
-      //given
+      // given
       val grpId = GroupId.random()
       val agentUser = AgentUser("agent1", "Bob Smith")
-      val expectedGroup = Some(CustomGroup(grpId, Arn("arn1"), "Bangers & Mash",
-        LocalDateTime.MIN, LocalDateTime.MIN, agentUser, agentUser, Set.empty, Set.empty))
+      val expectedGroup = Some(
+        CustomGroup(
+          grpId,
+          Arn("arn1"),
+          "Bangers & Mash",
+          LocalDateTime.MIN,
+          LocalDateTime.MIN,
+          agentUser,
+          agentUser,
+          Set.empty,
+          Set.empty
+        )
+      )
       expectGetGroupSuccess(grpId, expectedGroup)
 
-      //when
+      // when
       val output: Option[CustomGroup] = await(service.getGroup(grpId))
 
-      //then
+      // then
       output shouldBe expectedGroup
     }
   }
@@ -261,7 +315,7 @@ class GroupServiceSpec extends BaseSpec {
   "create group" should {
     "delegate to agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupName = "Carrots"
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Nil)
       expectGetSessionItem(SELECTED_CLIENTS, Nil)
@@ -269,10 +323,10 @@ class GroupServiceSpec extends BaseSpec {
       expectDeleteSessionItems(creatingGroupKeys)
       expectPutSessionItem(NAME_OF_GROUP_CREATED, groupName)
 
-      //when
+      // when
       val output = await(service.createGroup(arn, groupName))
 
-      //then
+      // then
       output shouldBe Done
     }
   }
@@ -280,14 +334,14 @@ class GroupServiceSpec extends BaseSpec {
   "delete group" should {
     "delegate to agentPermissionsConnector" in {
 
-      //given
+      // given
       val grpId = GroupId.random()
       expectDeleteGroupSuccess(grpId)
 
-      //when
+      // when
       val output = await(service.deleteGroup(grpId))
 
-      //then
+      // then
       output shouldBe Done
     }
   }
@@ -295,7 +349,7 @@ class GroupServiceSpec extends BaseSpec {
   "addMembersToGroup" should {
     "delegate to agentPermissionsConnector" in {
 
-      //given
+      // given
       val grpId = GroupId.random()
       val payload = AddMembersToAccessGroupRequest(None, None)
 
@@ -304,10 +358,10 @@ class GroupServiceSpec extends BaseSpec {
         .expects(grpId, payload, *, *)
         .returning(Future successful Done)
 
-      //when
+      // when
       val output = await(service.addMembersToGroup(grpId, payload))
 
-      //then
+      // then
       output shouldBe Done
     }
   }
@@ -315,24 +369,24 @@ class GroupServiceSpec extends BaseSpec {
   "groupSummariesForClient" should {
     "Return groups summaries from agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupSummaries = Seq(
         GroupSummary(GroupId.random(), "Carrots", Some(1), 1),
-        GroupSummary(GroupId.random(), "Potatoes", Some(1), 1),
+        GroupSummary(GroupId.random(), "Potatoes", Some(1), 1)
       )
       val expectedClient = DisplayClient("hmrc", "Bob", "VAT", "ident")
 
-      (mockAgentPermissionsConnector.getGroupsForClient(_: Arn, _: String)
-      (_: HeaderCarrier, _: ExecutionContext))
+      (mockAgentPermissionsConnector
+        .getGroupsForClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, expectedClient.enrolmentKey, *, *)
-        .returning(Future successful groupSummaries).once()
+        .returning(Future successful groupSummaries)
+        .once()
 
-      //when
+      // when
       val summaries = await(service.groupSummariesForClient(arn, expectedClient))
 
-      //then
+      // then
       summaries shouldBe groupSummaries
-
 
     }
   }
@@ -340,27 +394,25 @@ class GroupServiceSpec extends BaseSpec {
   "groupSummariesForTeamMember" should {
     "Return groups summaries from agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupSummaries = Seq(
         GroupSummary(GroupId.random(), "Carrots", Some(1), 1),
-        GroupSummary(GroupId.random(), "Potatoes", Some(1), 1),
+        GroupSummary(GroupId.random(), "Potatoes", Some(1), 1)
       )
       val member = TeamMember("Bob the agent", "dont care", Some("123"))
       val agentUser = toAgentUser(member)
 
       (mockAgentPermissionsConnector
-        .getGroupsForTeamMember(_: Arn, _: AgentUser)
-        (_: HeaderCarrier, _: ExecutionContext))
+        .getGroupsForTeamMember(_: Arn, _: AgentUser)(_: HeaderCarrier, _: ExecutionContext))
         .expects(arn, agentUser, *, *)
         .returning(Future successful Option(groupSummaries))
         .once()
 
-      //when
+      // when
       val summaries = await(service.groupSummariesForTeamMember(arn, member))
 
-      //then
+      // then
       summaries shouldBe groupSummaries
-
 
     }
   }
@@ -368,27 +420,27 @@ class GroupServiceSpec extends BaseSpec {
   "getTeamMembersFromGroup" should {
     "contact agentUserClientDetailsConnector and set items as selected based on input " in {
 
-      //given
+      // given
       val teamMembersInGroup = userDetails.take(2).reverse.map(TeamMember.fromUserDetails).toVector
       expectGetTeamMembers(arn)(userDetails)
 
-      //when
+      // when
       val output: Seq[TeamMember] = await(service.getTeamMembersFromGroup(arn)(teamMembersInGroup))
 
-      //then
+      // then
       output shouldBe teamMembersInGroup.map(_.copy(alreadyInGroup = true, selected = false)).sortBy(_.name)
     }
   }
 
   "group name check" should {
     "delegate to agentPermissionsConnector" in {
-      //given
+      // given
       expectGroupNameCheck(ok = true)(arn, "Good name")
 
-      //when
+      // when
       val output: Boolean = await(service.groupNameCheck(arn, "Good name"))
 
-      //then
+      // then
       output shouldBe true
     }
   }
@@ -396,7 +448,7 @@ class GroupServiceSpec extends BaseSpec {
   "add team member to a group" should {
     "call patch/update on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
       val agent = AgentUser("agentId", "Bob Builder")
       val payload = AddOneTeamMemberToGroupRequest(agent)
@@ -407,19 +459,19 @@ class GroupServiceSpec extends BaseSpec {
         .returning(Future successful Done)
         .once()
 
-      //when
+      // when
       val response = service.addOneMemberToGroup(groupId, payload).futureValue
 
-      //then
+      // then
       response shouldBe Done
     }
 
-    }
+  }
 
   "remove client from custom group" should {
     "call DELETE on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
       val clientId = UUID.randomUUID().toString
 
@@ -429,10 +481,10 @@ class GroupServiceSpec extends BaseSpec {
         .returning(Future successful Done)
         .once()
 
-      //when
+      // when
       val response = service.removeClientFromGroup(groupId, clientId).futureValue
 
-      //then
+      // then
       response shouldBe Done
     }
 
@@ -442,7 +494,7 @@ class GroupServiceSpec extends BaseSpec {
 
     "call DELETE on agentPermissionsConnector" in {
 
-      //given
+      // given
       val groupId = GroupId.random()
       val memberId = UUID.randomUUID().toString
 
@@ -452,10 +504,10 @@ class GroupServiceSpec extends BaseSpec {
         .returning(Future successful Done)
         .once()
 
-      //when
+      // when
       val response = service.removeTeamMemberFromGroup(groupId, memberId, true).futureValue
 
-      //then
+      // then
       response shouldBe Done
     }
 

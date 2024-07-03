@@ -25,11 +25,10 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionAction @Inject()(sessionCacheService: SessionCacheService) {
+class SessionAction @Inject() (sessionCacheService: SessionCacheService) {
 
-  def withSessionItem[T](dataKey: DataKey[T])
-                        (body: Option[T] => Future[Result])
-                        (implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Result] = {
+  def withSessionItem[T](dataKey: DataKey[T])(
+    body: Option[T] => Future[Result]
+  )(implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Result] =
     sessionCacheService.get[T](dataKey).flatMap(data => body(data))
-  }
 }

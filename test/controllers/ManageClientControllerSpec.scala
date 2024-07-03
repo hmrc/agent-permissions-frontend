@@ -37,8 +37,10 @@ class ManageClientControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
@@ -47,7 +49,16 @@ class ManageClientControllerSpec extends BaseSpec {
 
     override def configure(): Unit = {
       bind(classOf[AuthAction])
-        .toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, sessionCacheService))
+        .toInstance(
+          new AuthAction(
+            mockAuthConnector,
+            env,
+            conf,
+            mockAgentPermissionsConnector,
+            mockAgentClientAuthConnector,
+            sessionCacheService
+          )
+        )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[ClientService]).toInstance(mockClientService)
       bind(classOf[SessionCacheService]).toInstance(sessionCacheService)
@@ -76,15 +87,14 @@ class ManageClientControllerSpec extends BaseSpec {
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
   val displayClientsIds: Seq[String] =
-    displayClients.map(client =>
-      client.id)
+    displayClients.map(client => client.id)
 
   val clientId: String = displayClientsIds.head
 
   val groupSummaries = Seq(
     GroupSummary(GroupId.random(), "groupName", Some(33), 9),
     GroupSummary(GroupId.random(), "groupName1", Some(3), 1),
-    GroupSummary(GroupId.random(), "groupName2", Some(3), 1, taxService = Some("VAT")),
+    GroupSummary(GroupId.random(), "groupName2", Some(3), 1, taxService = Some("VAT"))
   )
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
@@ -100,16 +110,16 @@ class ManageClientControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showPageOfClients(None).url}" should {
 
     "render the manage clients list with no search " in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetPageOfClients(arn, 1, 10)(displayClients)
       expectGetSessionItemNone(CLIENT_SEARCH_INPUT)
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
 
-      //when
+      // when
       val result = controller.showPageOfClients(None)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -134,26 +144,30 @@ class ManageClientControllerSpec extends BaseSpec {
       paginationItems.select("a").get(0).text() shouldBe "2"
       paginationItems.select("a").get(0).attr("href") startsWith "/agent-permissions/manage-clients?page=2"
 
-      html.select(".hmrc-report-technical-issue").text() shouldBe "Is this page not working properly? (opens in new tab)"
-      html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
+      html
+        .select(".hmrc-report-technical-issue")
+        .text() shouldBe "Is this page not working properly? (opens in new tab)"
+      html
+        .select(".hmrc-report-technical-issue")
+        .attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
 
     }
 
     "render the 'Showing...' text correctly when search and filter are defined" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetPageOfClients(arn, 1, 10)(displayClients)
       expectGetSessionItem(CLIENT_SEARCH_INPUT, "friendly")
       expectGetSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
 
-      //when
+      // when
       val result = controller.showPageOfClients(None)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.body().text() should include ("""Showing total of 40 clients for ‘friendly’ and ‘VAT’""")
+      html.body().text() should include("""Showing total of 40 clients for ‘friendly’ and ‘VAT’""")
     }
 
   }
@@ -161,7 +175,7 @@ class ManageClientControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.submitPageOfClients().url}" should {
 
     "render the manage clients list with search term posted" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
       expectPutSessionItem(CLIENT_FILTER_INPUT, "")
@@ -169,52 +183,52 @@ class ManageClientControllerSpec extends BaseSpec {
       val url = ctrlRoute.submitPageOfClients().url
       implicit val fakeRequest = FakeRequest(POST, url)
         .withHeaders("Authorization" -> "Bearer XYZ")
-        .withFormUrlEncodedBody("search"-> "friendly1", "submit"-> FILTER_BUTTON)
+        .withFormUrlEncodedBody("search" -> "friendly1", "submit" -> FILTER_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitPageOfClients(fakeRequest)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(ctrlRoute.showPageOfClients(None).url)
     }
 
     "redirect to baseUrl when CLEAR FILTER is clicked" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
       expectDeleteSessionItem(CLIENT_FILTER_INPUT)
-      
-      //and we have CLEAR filter in query params
+
+      // and we have CLEAR filter in query params
       implicit val fakeRequest =
         FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
-        .withHeaders("Authorization" -> "Bearer XYZ")
-          .withFormUrlEncodedBody("submit"-> CLEAR_BUTTON)
-        .withSession(SessionKeys.sessionId -> "session-x")
+          .withHeaders("Authorization" -> "Bearer XYZ")
+          .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
+          .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitPageOfClients(fakeRequest)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showPageOfClients(None).url
     }
 
     "redirect  when form is empty" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
 
-      //and we have CLEAR filter in query params
+      // and we have CLEAR filter in query params
       implicit val fakeRequest =
         FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
           .withHeaders("Authorization" -> "Bearer XYZ")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitPageOfClients(fakeRequest)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showPageOfClients(None).url
     }
@@ -224,15 +238,15 @@ class ManageClientControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showClientDetails(clientId).url}" should {
 
     "render not found for invalid id" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val invalidClientId = "invalid id"
       expectGetClientNotFound(arn)(invalidClientId)
 
-      //when
+      // when
       val result = controller.showClientDetails(invalidClientId)(request)
 
-      //then
+      // then
       status(result) shouldBe NOT_FOUND
       val html = Jsoup.parse(contentAsString(result))
 
@@ -242,16 +256,16 @@ class ManageClientControllerSpec extends BaseSpec {
     }
 
     "render the clients details page with NO GROUPS" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
-      expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
+      expectGetGroupSummariesForClient(arn)(expectedClient)(groupSummaries)
       expectGetClient(arn)(expectedClient)
 
-      //when
+      // when
       val result = controller.showClientDetails(expectedClient.id)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -271,16 +285,16 @@ class ManageClientControllerSpec extends BaseSpec {
     }
 
     "render the clients details page with list of groups" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
       expectGetClient(arn)(expectedClient)
-      expectGetGroupSummariesForClient(arn)(expectedClient)( groupSummaries)
+      expectGetGroupSummariesForClient(arn)(expectedClient)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showClientDetails(expectedClient.id)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -293,25 +307,30 @@ class ManageClientControllerSpec extends BaseSpec {
       linksToGroups.size() shouldBe 3
       linksToGroups.get(0).text() shouldBe "groupName"
       linksToGroups.get(0).attr("href") shouldBe
-        controllers.routes.ManageGroupClientsController.showExistingGroupClients(groupSummaries.head.groupId,None, None).url
+        controllers.routes.ManageGroupClientsController
+          .showExistingGroupClients(groupSummaries.head.groupId, None, None)
+          .url
 
       linksToGroups.get(2).text() shouldBe "groupName2"
       linksToGroups.get(2).attr("href") shouldBe
-        controllers.routes.ManageTaxGroupClientsController.showExistingGroupClients(groupSummaries(2).groupId,None,None).url}
+        controllers.routes.ManageTaxGroupClientsController
+          .showExistingGroupClients(groupSummaries(2).groupId, None, None)
+          .url
+    }
 
   }
 
   s"GET ${ctrlRoute.showUpdateClientReference(clientId).url}" should {
 
     "render update_client_reference with existing client reference" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
       expectGetClient(arn)(expectedClient)
-      //when
+      // when
       val result = controller.showUpdateClientReference(expectedClient.id)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -322,11 +341,11 @@ class ManageClientControllerSpec extends BaseSpec {
     }
 
     "render update_client_reference for invalid id" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetClientNotFound(arn)("invalid")
 
-      //when
+      // when
       val caught = intercept[RuntimeException] {
         await(controller.showUpdateClientReference("invalid")(request))
       }
@@ -335,15 +354,15 @@ class ManageClientControllerSpec extends BaseSpec {
     }
 
     "render update_client_reference without a client reference" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val expectedClient = displayClients.head.copy(name = "")
       expectGetClient(arn)(expectedClient)
 
-      //when
+      // when
       val result = controller.showUpdateClientReference(expectedClient.id)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -358,7 +377,7 @@ class ManageClientControllerSpec extends BaseSpec {
   s"POST to UPDATE CLIENT REF at ${ctrlRoute.submitUpdateClientReference(clientId).url}" should {
 
     s"redirect to ${ctrlRoute.showClientReferenceUpdatedComplete(clientId)} and save client reference" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val newClientReference = "whatever"
       val expectedClient = displayClients.head
@@ -371,25 +390,25 @@ class ManageClientControllerSpec extends BaseSpec {
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitUpdateClientReference(expectedClient.id)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(ctrlRoute.showClientReferenceUpdatedComplete(expectedClient.id).url)
 
     }
 
     "display errors for update_client_details" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val expectedClient = displayClients.head
       expectLookupClient(arn)(expectedClient)
 
-      //when
+      // when
       val result = controller.submitUpdateClientReference(expectedClient.id)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
@@ -401,36 +420,38 @@ class ManageClientControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showClientReferenceUpdatedComplete(clientId).url}" should {
 
     "render client_details_complete with new client reference" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetSessionItem(CLIENT_REFERENCE, "The New Name")
       val expectedClient = displayClients.head
       expectLookupClient(arn)(expectedClient)
 
-      //when
+      // when
       val result = controller.showClientReferenceUpdatedComplete(expectedClient.id)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Client reference will update shortly - Agent services account - GOV.UK"
       html
         .select(".govuk-panel")
         .text() shouldBe "Tax reference: ending in 6780 Client reference will update shortly"
-      html.select(Css.paragraphs).get(0)
-        .text()shouldBe "You have asked us to update this client reference in your agent services account. We’ll update it to The New Name in the next two hours. We will not change the client reference in other HMRC online services."
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text() shouldBe "You have asked us to update this client reference in your agent services account. We’ll update it to The New Name in the next two hours. We will not change the client reference in other HMRC online services."
     }
 
     s"GET showClientReferenceUpdatedComplete for invalid client id" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       val invalidClientId = "not found id"
       expectLookupClientNotFound(arn)(invalidClientId)
 
-      //when
+      // when
       val result = controller.showClientReferenceUpdatedComplete(invalidClientId)(request)
 
-      //then
+      // then
       status(result) shouldBe NOT_FOUND
     }
 

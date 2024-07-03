@@ -40,8 +40,10 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionService: InMemorySessionCacheService =
     new InMemorySessionCacheService(Map("optinStatus" -> OptedInReady))
@@ -49,14 +51,22 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   private val ctrlRoutes: ReverseUnassignedClientController = routes.UnassignedClientController
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     mockSessionService.values.clear()
-  }
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionService)
@@ -75,8 +85,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
   val displayClients: Seq[DisplayClient] = fakeClients.map(DisplayClient.fromClient(_))
 
-  val groupSummaries: Seq[GroupSummary] = (1 to 3).map(i =>
-    GroupSummary(GroupId.random(), s"with none setname $i", Some(i * 3), i * 4))
+  val groupSummaries: Seq[GroupSummary] =
+    (1 to 3).map(i => GroupSummary(GroupId.random(), s"with none setname $i", Some(i * 3), i * 4))
 
   val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
 
@@ -93,10 +103,10 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         // given
         expectAuthOkOptedInReady()
         expectGetUnassignedClients(arn)(displayClients)
-        //when
+        // when
         val result = controller.showUnassignedClients()(request)
 
-        //then
+        // then
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
@@ -114,14 +124,14 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       "unassigned clients list has search results" in {
         // given
         expectAuthOkOptedInReady()
-        
+
         await(mockSessionService.put(CLIENT_SEARCH_INPUT, "friendly1"))
         expectGetUnassignedClients(arn)(displayClients, search = Some("friendly1"))
 
-        //when
+        // when
         val result = controller.showUnassignedClients()(request)
 
-        //then
+        // then
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
@@ -139,14 +149,14 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       "unassigned clients list has NO search results" in {
         // given
         expectAuthOkOptedInReady()
-        
+
         await(mockSessionService.put(CLIENT_SEARCH_INPUT, "nothing"))
         expectGetUnassignedClients(arn)(Seq.empty, search = Some("nothing"))
 
-        //when
+        // when
         val result = controller.showUnassignedClients()(request)
 
-        //then
+        // then
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
@@ -162,20 +172,22 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         html.select("input#search").attr("value") shouldBe "nothing"
 
         html.select("main h3").text() shouldBe "No clients found"
-        html.select(paragraphs).text() shouldBe "Update your filters and try again. Clear your filters to see all your clients who are not in any groups."
+        html
+          .select(paragraphs)
+          .text() shouldBe "Update your filters and try again. Clear your filters to see all your clients who are not in any groups."
 
       }
 
       "no unassigned clients (all assigned to groups)" in {
         // given
         expectAuthOkOptedInReady()
-        
+
         expectGetUnassignedClients(arn)(Seq.empty)
 
-        //when
+        // when
         val result = controller.showUnassignedClients()(request)
 
-        //then
+        // then
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
@@ -198,30 +210,32 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     s"save selected unassigned clients and redirect to ${ctrlRoutes.showSelectedUnassignedClients()} " +
       s"when button is Continue and form is valid" in {
 
-      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients().url)
-          .withFormUrlEncodedBody(
-            "clients[0]" -> displayClients.head.id,
-            "clients[1]" -> displayClients.last.id,
-            "search" -> "",
-            "filter" -> "",
-            "submit" -> CONTINUE_BUTTON
-          )
-          .withSession(SessionKeys.sessionId -> "session-x")
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoutes.submitAddUnassignedClients().url)
+            .withFormUrlEncodedBody(
+              "clients[0]" -> displayClients.head.id,
+              "clients[1]" -> displayClients.last.id,
+              "search"     -> "",
+              "filter"     -> "",
+              "submit"     -> CONTINUE_BUTTON
+            )
+            .withSession(SessionKeys.sessionId -> "session-x")
 
-      expectAuthOkOptedInReady()
-      
-      await(mockSessionService.put(CURRENT_PAGE_CLIENTS, displayClients))
+        expectAuthOkOptedInReady()
 
-      val result = controller.submitAddUnassignedClients()(request)
+        await(mockSessionService.put(CURRENT_PAGE_CLIENTS, displayClients))
 
-      status(result) shouldBe SEE_OTHER
+        val result = controller.submitAddUnassignedClients()(request)
 
-      redirectLocation(result).get shouldBe s"${ctrlRoutes.showSelectedUnassignedClients().url}"
+        status(result) shouldBe SEE_OTHER
 
-      // check that the selected clients have been added to the session cache value
-      await(mockSessionService.get(SELECTED_CLIENTS)).map(_.map(_.id)) shouldBe Some(List(displayClients.head.id, displayClients.last.id))
-    }
+        redirectLocation(result).get shouldBe s"${ctrlRoutes.showSelectedUnassignedClients().url}"
+
+        // check that the selected clients have been added to the session cache value
+        await(mockSessionService.get(SELECTED_CLIENTS)).map(_.map(_.id)) shouldBe Some(
+          List(displayClients.head.id, displayClients.last.id)
+        )
+      }
 
     s"""save selected unassigned clients and redirect to ${ctrlRoutes.showUnassignedClients()}
       when button is FILTER (i.e. not CONTINUE)""" in {
@@ -231,14 +245,14 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withFormUrlEncodedBody(
             "clients[0]" -> displayClients.head.id,
             "clients[1]" -> displayClients.last.id,
-            "search" -> "",
-            "filter" -> "HMRC-MTD-VAT",
-            "submit" -> FILTER_BUTTON
+            "search"     -> "",
+            "filter"     -> "HMRC-MTD-VAT",
+            "submit"     -> FILTER_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(CURRENT_PAGE_CLIENTS, displayClients))
 
       val result = controller.submitAddUnassignedClients()(request)
@@ -248,7 +262,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       redirectLocation(result).get shouldBe s"${ctrlRoutes.showUnassignedClients().url}"
 
       // check that the selected clients have been added to the session cache value
-      await(mockSessionService.get(SELECTED_CLIENTS)).map(_.map(_.id)) shouldBe Some(List(displayClients.head.id, displayClients.last.id))
+      await(mockSessionService.get(SELECTED_CLIENTS)).map(_.map(_.id)) shouldBe Some(
+        List(displayClients.head.id, displayClients.last.id)
+      )
     }
 
     "present page with errors when form validation fails" in {
@@ -264,7 +280,6 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       expectAuthOkOptedInReady()
       expectGetUnassignedClients(arn)(displayClients)
-      
 
       val result = controller.submitAddUnassignedClients()(request)
 
@@ -276,28 +291,28 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   s"GET ${ctrlRoutes.showSelectedUnassignedClients().url}" should {
 
     "redirect if NO CLIENTS SELECTED are in session" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.delete(SELECTED_CLIENTS))
 
-      //when
+      // when
       val result = controller.showSelectedUnassignedClients()(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoutes.showUnassignedClients().url
     }
 
     "render review selected clients" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
 
-      //when
+      // when
       val result = controller.showSelectedUnassignedClients()(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
@@ -323,71 +338,71 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
     "redirect if no selected clients in session" in {
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.delete(SELECTED_CLIENTS)) // <-- we are testing this
 
-      //when
+      // when
       val result = controller.submitSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(ctrlRoutes.showUnassignedClients().url)
     }
 
     s"redirect if yes to ${ctrlRoutes.showUnassignedClients().url}" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
 
-      //when
+      // when
       val result = controller.submitSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(ctrlRoutes.showUnassignedClients().url)
     }
 
     s"redirect if no to ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients()}" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
 
-      //when
+      // when
       val result = controller.submitSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe
         Some(ctrlRoutes.showSelectGroupsForSelectedUnassignedClients().url)
     }
 
     "render Review selected clients page if errors" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitSelectedUnassignedClients().url)
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
 
-      //when
+      // when
       val result = controller.submitSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Review selected clients - Agent services account - GOV.UK"
@@ -405,18 +420,17 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   s"GET ${ctrlRoutes.showSelectGroupsForSelectedUnassignedClients().url}" should {
 
     "render html with the available groups for these unassigned clients" in {
-      //given
-      val groupSummaries = (1 to 3).map(i =>
-        GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
+      // given
+      val groupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
       expectAuthOkOptedInReady()
-      
+
       expectGetGroupsForArn(arn)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Which custom access groups would you like to add the selected clients to? - Agent services account - GOV.UK"
@@ -424,7 +438,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
 
-      //checkboxes
+      // checkboxes
 
       val form = html.select("main form")
       val checkboxes = form.select("#available-groups .govuk-checkboxes__item")
@@ -432,7 +446,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val checkboxInputs = checkboxes.select("input[type='checkbox']")
 
       form.attr("action") shouldBe ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url
-      checkboxes.size shouldBe (groupSummaries.size + 1 /* (none of the above) */)
+      checkboxes.size shouldBe (groupSummaries.size + 1 /* (none of the above) */ )
       checkboxLabels.get(0).text shouldBe "name 1"
       checkboxLabels.get(1).text shouldBe "name 2"
       checkboxLabels.get(2).text shouldBe "name 3"
@@ -451,32 +465,31 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
 
     "remove any tax service groups from the available choices for these unassigned clients" in {
-      //given
+      // given
       val id1 = GroupId.random()
       val id2 = GroupId.random()
       val customGroupSummaries = List(GroupSummary(id1, s"custom group", Some(3), 4))
       val taxGroupSummaries = List(GroupSummary(id2, s"tax service group", Some(3), 4, Some("VAT")))
       val groupSummaries = customGroupSummaries ++ taxGroupSummaries
       expectAuthOkOptedInReady()
-      
+
       expectGetGroupsForArn(arn)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      //checkboxes
+      // checkboxes
 
       val form = html.select("main form")
       val checkboxes = form.select("#available-groups .govuk-checkboxes__item")
       val checkboxLabels = checkboxes.select("label")
       val checkboxInputs = checkboxes.select("input[type='checkbox']")
 
-
-      checkboxes.size shouldBe (customGroupSummaries.size + 1 /* (none of the above) */)
+      checkboxes.size shouldBe (customGroupSummaries.size + 1 /* (none of the above) */ )
       checkboxLabels.get(0).text shouldBe "custom group"
 
       checkboxInputs.get(0).attr("name") shouldBe "groups[]"
@@ -484,20 +497,18 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
 
     "render html when there are no available custom groups for these unassigned clients" in {
-      //given
+      // given
       val id1 = GroupId.random()
-      val groupSummaries = List(
-        GroupSummary(id1, s"tax service group", Some(3), 4, Some("VAT")))
+      val groupSummaries = List(GroupSummary(id1, s"tax service group", Some(3), 4, Some("VAT")))
 
       expectAuthOkOptedInReady()
-      
 
       expectGetGroupsForArn(arn)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       val pageHeading = "You do not have any custom access groups"
@@ -506,27 +517,30 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
 
-      html.select(paragraphs).get(0).text() shouldBe "You cannot manually add clients to tax service access groups here. You can only manually add clients to custom access groups."
+      html
+        .select(paragraphs)
+        .get(0)
+        .text() shouldBe "You cannot manually add clients to tax service access groups here. You can only manually add clients to custom access groups."
 
       val form = html.select("main form")
-      //shouldn't be anything in the form except the button group hence checking the full html
+      // shouldn't be anything in the form except the button group hence checking the full html
       form.html() shouldBe "<div class=\"govuk-button-group\"><button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
         "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button> <a href=\"/agent-permissions/manage-access-groups\" class=\" govuk-link govuk-body\">Return to manage access groups</a>" +
         "\n" + "</div>"
     }
 
     "render no_access_groups when there are no groups for the unassigned clients" in {
-      //given
+      // given
       val groupSummaries = Seq.empty
 
       expectAuthOkOptedInReady()
-      
+
       expectGetGroupsForArn(arn)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       val pageHeading = "You do not have any access groups"
@@ -534,10 +548,12 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       html.select(H1).text() shouldBe pageHeading
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
-      html.select(paragraphs).text() shouldBe "Create access groups if you want to restrict which team members can manage each client. Select ‘Create an access group’ and follow the instructions."
+      html
+        .select(paragraphs)
+        .text() shouldBe "Create access groups if you want to restrict which team members can manage each client. Select ‘Create an access group’ and follow the instructions."
 
       val form = html.select("main form")
-      //shouldn't be anything in the form except the button hence checking the full html
+      // shouldn't be anything in the form except the button hence checking the full html
       form.html() shouldBe "<button type=\"submit\" class=\"govuk-button\" data-module=\"govuk-button\" " +
         "id=\"continue\" name=\"createNew\" value=\"true\"> Create an access group </button>"
     }
@@ -546,26 +562,25 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   s"POST ${ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url}" should {
 
     "redirect to create group if CREATE NEW is selected" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("createNew" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
 
-      //when
+      // when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe routes.CreateGroupSelectNameController.showGroupName().url
 
     }
 
     "redirect to manage account if 'none of the above' is selected" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
           .withFormUrlEncodedBody("groups[0]" -> SelectGroupsForm.NoneValue)
@@ -573,28 +588,26 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       expectAuthOkOptedInReady()
 
-
-      //when
+      // when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe controller.appConfig.agentServicesAccountManageAccountUrl
 
     }
 
     "redirect to confirmation page when existing groups are selected to assign the selected clients to" in {
-      //given
+      // given
       val groupSummaries = (1 to 2).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
       val expectedGroupAddedTo = groupSummaries(0)
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url
-        ).withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId.toString)
+        FakeRequest("POST", ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
+          .withFormUrlEncodedBody("groups[0]" -> expectedGroupAddedTo.groupId.toString)
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients))
       expectGetGroupsForArn(arn)(groupSummaries)
       expectAddMembersToGroup(
@@ -602,40 +615,40 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
         AddMembersToAccessGroupRequest(None, Some(fakeClients.toSet))
       )
 
-      //when
+      // when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoutes.showConfirmClientsAddedToGroups().url
     }
 
     "show errors when nothing selected" in {
-      //given
+      // given
       val groupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
+        FakeRequest("POST", ctrlRoutes.submitSelectGroupsForSelectedUnassignedClients().url)
           .withFormUrlEncodedBody()
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       expectGetGroupsForArn(arn)(groupSummaries)
 
-
-      //when
+      // when
       val result = controller.submitSelectGroupsForSelectedUnassignedClients(request)
 
-      //then
+      // then
       status(result) shouldBe OK
-      //and should show errors
+      // and should show errors
       val html = Jsoup.parse(contentAsString(result))
-      html.select(Css.errorSummaryForField(groupSummaries(0).groupId.toString))
+      html
+        .select(Css.errorSummaryForField(groupSummaries(0).groupId.toString))
         .text() shouldBe "Select at least one access group or No access groups"
-      html.select(Css.errorForField("field-wrapper")).text() shouldBe "Select at least one access group or No access groups"
-
+      html
+        .select(Css.errorForField("field-wrapper"))
+        .text() shouldBe "Select at least one access group or No access groups"
 
     }
 
@@ -644,16 +657,16 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   s"GET ${ctrlRoutes.showConfirmClientsAddedToGroups().url}" should {
 
     "render correctly the select groups for unassigned clients page" in {
-      //given
+      // given
       val groups = Seq("South West", "London")
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groups))
 
-      //when
+      // when
       val result = controller.showConfirmClientsAddedToGroups(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Clients added to access groups - Agent services account - GOV.UK"
@@ -664,22 +677,21 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       listItems.size() shouldBe groups.size
       listItems.get(0).text shouldBe groups.head
       listItems.get(1).text shouldBe groups(1)
-      //and the back link should not be present
+      // and the back link should not be present
       html.select(Css.backLink).size() shouldBe 0
       await(mockSessionService.get(SELECTED_CLIENTS)) shouldBe None
     }
 
     "redirect when no group names in session" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
-      
-      await(mockSessionService.delete(GROUPS_FOR_UNASSIGNED_CLIENTS))
-      
 
-      //when
+      await(mockSessionService.delete(GROUPS_FOR_UNASSIGNED_CLIENTS))
+
+      // when
       val result = controller.showConfirmClientsAddedToGroups(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoutes.showSelectGroupsForSelectedUnassignedClients().url
 
@@ -691,11 +703,11 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     "render with selected clients" in {
       val clientToRemove = displayClients.head
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(2)))
       await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
 
-      //when
+      // when
       val result = controller.showConfirmRemoveClient(Option(clientToRemove.id))(request)
 
       status(result) shouldBe OK
@@ -720,11 +732,11 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveClient}")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
 
       val remainingClients = displayClients.diff(Seq(clientToRemove))
@@ -746,10 +758,9 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(2)))
       await(mockSessionService.put(CLIENT_TO_REMOVE, clientToRemove))
-
 
       val result = controller.submitConfirmRemoveClient()(request)
 
@@ -757,18 +768,15 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       redirectLocation(result).get shouldBe ctrlRoutes.showSelectedUnassignedClients(None, None).url
     }
 
-
     s"render errors when no radio button selected" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest(
-          "POST",
-          s"${controller.submitConfirmRemoveClient()}")
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      
+
       await(mockSessionService.put(CLIENT_TO_REMOVE, displayClients.head))
       await(mockSessionService.put(SELECTED_CLIENTS, displayClients.take(10)))
 
@@ -778,8 +786,12 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Error: Remove friendly0 from selected clients? - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Remove friendly0 from selected clients?"
-      html.select(Css.errorSummaryForField("answer")).text() shouldBe "Select yes if you need to remove this client from the access group"
-      html.select(Css.errorForField("answer")).text() shouldBe "Error: Select yes if you need to remove this client from the access group"
+      html
+        .select(Css.errorSummaryForField("answer"))
+        .text() shouldBe "Select yes if you need to remove this client from the access group"
+      html
+        .select(Css.errorForField("answer"))
+        .text() shouldBe "Error: Select yes if you need to remove this client from the access group"
 
     }
   }

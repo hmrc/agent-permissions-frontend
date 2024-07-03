@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package forms
+package utils
 
-import play.api.data.Form
-import play.api.data.Forms._
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
-object ClientReferenceForm {
+import scala.concurrent.{ExecutionContext, Future}
 
-  val friendlyNameRegex = "^[!%*^()_+\\-={}:;@~#,.?\\[\\]/A-Za-z0-9 ]{0,}$"
+trait HttpAPIMonitor {
 
-  def form(): Form[String] =
-    Form(
-      single(
-        "clientRef" ->
-          text
-            .verifying("error.client-reference.required", _.trim.nonEmpty)
-            .verifying("error.client-reference.max-length", _.trim.length < 80)
-            .verifying("error.client-reference.invalid", _.matches(friendlyNameRegex))
-      )
-    )
+  val metrics: Metrics
+  implicit val ec: ExecutionContext
 
+  def monitor[A](str: String)(f: => Future[A]): Future[A] = {
+    val timerContext = metrics.defaultRegistry.timer(s"Timer-$str").time()
+    f.andThen { case _ => timerContext.stop() }
+  }
 }

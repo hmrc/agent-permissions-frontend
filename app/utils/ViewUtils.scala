@@ -35,85 +35,78 @@ object ViewUtils {
     filters.sortBy(x => (x._2))
   }
 
-  def getFiltersTaxServiceListWithClientCount(data: Map[String, Int])
-                                             (implicit mgs: Messages): Seq[(String, String)] = {
+  def getFiltersTaxServiceListWithClientCount(data: Map[String, Int])(implicit mgs: Messages): Seq[(String, String)] =
     data
-      .map(entry => (entry._1, displayTaxServiceFromServiceKey(entry._1) + s" (${entry._2})" ))
+      .map(entry => (entry._1, displayTaxServiceFromServiceKey(entry._1) + s" (${entry._2})"))
       .toSeq
       .sortBy(x => displayTaxServiceFromServiceKey(x._1))
-  }
 
-
-  def displayTaxServiceFromServiceKey(serviceKey: String)(implicit mgs: Messages): String = {
+  def displayTaxServiceFromServiceKey(serviceKey: String)(implicit mgs: Messages): String =
     serviceKey match {
-      case "HMRC-MTD-IT"     => mgs("tax-service.mdt-it")
-      case "HMRC-MTD-VAT"    => mgs("tax-service.vat")
-      case "HMRC-CGT-PD"     => mgs("tax-service.cgt")
-      case "HMRC-PPT-ORG"    => mgs("tax-service.ppt")
+      case "HMRC-MTD-IT"      => mgs("tax-service.mdt-it")
+      case "HMRC-MTD-VAT"     => mgs("tax-service.vat")
+      case "HMRC-CGT-PD"      => mgs("tax-service.cgt")
+      case "HMRC-PPT-ORG"     => mgs("tax-service.ppt")
       case "HMRC-PILLAR2-ORG" => mgs("tax-service.pillar2")
       // TRUST not a service key but value for filter
       case s if s.contains("HMRC-TERS") || s == "TRUST" => mgs("tax-service.trusts")
       // We treat UK and NONUK variants as the same service
       case s if s.contains("HMRC-CBC") => mgs("tax-service.cbc")
-      case s => throw new Exception(s"str: '$s' is not a value for a tax service")
+      case s                           => throw new Exception(s"str: '$s' is not a value for a tax service")
     }
-  }
 
   // can only display full taxId if no name
-  def displayObfuscatedReference(name: String, taxId: String)(implicit msgs: Messages): String = {
-    if(name.isEmpty) taxId else msgs("ending.in", taxId.substring(taxId.length - 4))
-  }
+  def displayObfuscatedReference(name: String, taxId: String)(implicit msgs: Messages): String =
+    if (name.isEmpty) taxId else msgs("ending.in", taxId.substring(taxId.length - 4))
 
-  def clientCheckboxLabel(name: String, taxId: String, serviceKey: String)(implicit msgs: Messages):String = {
-    if(name.isEmpty) {
-      msgs("group.client.list.table.checkbox.label-missing-reference",
+  def clientCheckboxLabel(name: String, taxId: String, serviceKey: String)(implicit msgs: Messages): String =
+    if (name.isEmpty) {
+      msgs(
+        "group.client.list.table.checkbox.label-missing-reference",
         taxId,
         displayTaxServiceFromServiceKey(serviceKey)
       )
     } else {
-      msgs("group.client.list.table.checkbox.label",
+      msgs(
+        "group.client.list.table.checkbox.label",
         name,
         msgs("ending.in", taxId.substring(taxId.length - 4)),
         displayTaxServiceFromServiceKey(serviceKey)
       )
     }
-  }
 
   // for hidden labels, name is preferred
-  def displayNameOrFullReference(name: String, taxId: String): String = {
-    if(name.isEmpty) {
+  def displayNameOrFullReference(name: String, taxId: String): String =
+    if (name.isEmpty) {
       taxId
     } else {
       name
     }
-  }
 
   // we want to translate - included Admin but it should be deprecated?
-  def displayTeamMemberRole(role: String)(implicit mgs: Messages): String = {
-    if(role == "User" || role == "Admin") {
+  def displayTeamMemberRole(role: String)(implicit mgs: Messages): String =
+    if (role == "User" || role == "Admin") {
       mgs("role.admin")
     } else {
       // role == Assistant
       mgs("role.standard")
     }
-  }
 
   def withErrorPrefix(hasFormErrors: Boolean, str: String)(implicit mgs: Messages): String = {
-    val errorPrefix = if(hasFormErrors) { mgs("error-prefix") + " "} else {""}
+    val errorPrefix = if (hasFormErrors) { mgs("error-prefix") + " " }
+    else { "" }
     errorPrefix.concat(mgs(str))
   }
 
-
-  def withSearchPrefix( str: String,
-                        formFilter: Option[String],
-                        formSearch: Option[String]
-                       )(implicit mgs: Messages): String = {
+  def withSearchPrefix(str: String, formFilter: Option[String], formSearch: Option[String])(implicit
+    mgs: Messages
+  ): String = {
 
     // the form makes search/filter an option but an empty term is usually "" so .isDefined or .nonEmpty are both unhelpful here
-    val hasOneInput = if(formFilter.getOrElse("") != "" && formSearch.getOrElse("") != "") {
+    val hasOneInput = if (formFilter.getOrElse("") != "" && formSearch.getOrElse("") != "") {
       Some(false)
     } else {
-      if(formFilter.getOrElse("") != "" || formSearch.getOrElse("") != "") {
+      if (formFilter.getOrElse("") != "" || formSearch.getOrElse("") != "") {
         Some(true)
       } else {
         None
@@ -141,31 +134,28 @@ object ViewUtils {
   }
 
   // prioritises Error prefix (error state clears any filter)
-  def withSearchAndErrorPrefix(hasFormErrors: Boolean,
-                               str: String,
-                               formFilter: Option[String],
-                               formSearch: Option[String]
-                              )(implicit mgs: Messages): String = {
+  def withSearchAndErrorPrefix(
+    hasFormErrors: Boolean,
+    str: String,
+    formFilter: Option[String],
+    formSearch: Option[String]
+  )(implicit mgs: Messages): String =
     if (hasFormErrors) {
       withErrorPrefix(hasFormErrors, str)
     } else {
       withSearchPrefix(str, formFilter, formSearch)
     }
 
-  }
-
-  /**
-   * Given filter terms (or none), return a string like so:
-   * (Some("mySearch"), Some("myFilter") => "for mySearch and myFilter"
-   * (Some("mySearch"), None) => "for mySearch"
-   * (None, None) => ""
-   * This is in order to interpolate the string in the search results summary string, like:
-   * "Displaying 10 results for mySearch and myFilter in this group"
-   * or similar.
-   *
-   * This logic was requested as part of the APB-7104 content changes
-   */
-  def filterReminderSubstring(formSearch: Option[String], formFilter: Option[String])(implicit msgs: Messages): String = {
+  /** Given filter terms (or none), return a string like so: (Some("mySearch"), Some("myFilter") => "for mySearch and
+    * myFilter" (Some("mySearch"), None) => "for mySearch" (None, None) => "" This is in order to interpolate the string
+    * in the search results summary string, like: "Displaying 10 results for mySearch and myFilter in this group" or
+    * similar.
+    *
+    * This logic was requested as part of the APB-7104 content changes
+    */
+  def filterReminderSubstring(formSearch: Option[String], formFilter: Option[String])(implicit
+    msgs: Messages
+  ): String = {
     val filterTerms = List(
       formSearch.filter(_.nonEmpty).toSeq,
       formFilter.filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
@@ -173,7 +163,7 @@ object ViewUtils {
     val `for` = msgs("paginated.clients.showing.total.filter-preposition")
     val and = msgs("paginated.clients.showing.total.filter-conjunction")
     filterTerms match {
-      case Nil => ""
+      case Nil   => ""
       case terms => (s"${`for`} " + filterTerms.mkString(s" $and ")).trim
     }
   }

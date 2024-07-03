@@ -16,10 +16,10 @@
 
 package connectors
 
-import akka.Done
 import com.google.inject.AbstractModule
 import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.TeamMember
+import org.apache.pekko.Done
 import play.api.Application
 import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
 import play.api.libs.json.Json
@@ -29,17 +29,14 @@ import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, UpstreamErrorResponse}
 
 class AgentUserClientDetailsConnectorSpec
-  extends BaseSpec
-    with HttpClientMocks
-    with AgentUserClientDetailsConnectorMocks {
+    extends BaseSpec with HttpClientMocks with AgentUserClientDetailsConnectorMocks {
 
   implicit val mockHttpClient: HttpClient = mock[HttpClient]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
-    override def configure(): Unit = {
+    override def configure(): Unit =
       bind(classOf[HttpClient]).toInstance(mockHttpClient)
-    }
   }
 
   override implicit lazy val fakeApplication: Application =
@@ -58,7 +55,6 @@ class AgentUserClientDetailsConnectorSpec
 
       connector.getClient(arn, expectedClient.enrolmentKey).futureValue.get shouldBe expectedClient
     }
-
 
     "throw error when status response is 404" in {
 
@@ -80,7 +76,8 @@ class AgentUserClientDetailsConnectorSpec
             |"friendlyName": "Rapunzel"
             |}
             |]""".stripMargin
-        ))
+        )
+      )
 
       connector.getClients(arn).futureValue shouldBe
         Seq(expectedClient)
@@ -120,10 +117,7 @@ class AgentUserClientDetailsConnectorSpec
       )
       val paginatedList = PaginatedList[Client](pageContent = clients, paginationMetaData = meta)
 
-      expectHttpClientGET[HttpResponse](HttpResponse.apply(
-        OK,
-        Json.toJson(paginatedList).toString())
-      )
+      expectHttpClientGET[HttpResponse](HttpResponse.apply(OK, Json.toJson(paginatedList).toString()))
 
       connector.getPaginatedClients(arn)(1, 20).futureValue shouldBe paginatedList
     }
@@ -152,7 +146,8 @@ class AgentUserClientDetailsConnectorSpec
             |"email": "x@y.com"
             |}
             |]""".stripMargin
-        ))
+        )
+      )
 
       connector.getTeamMembers(arn).futureValue shouldBe
         Seq(UserDetails(Some("uid"), Some("cred-role"), Some("name"), Some("x@y.com")))
@@ -182,9 +177,7 @@ class AgentUserClientDetailsConnectorSpec
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
       val mockResponse = HttpResponse.apply(NO_CONTENT, "")
-      expectHttpClientPUT[Client, HttpResponse](url,
-        clientRequest,
-        mockResponse)
+      expectHttpClientPUT[Client, HttpResponse](url, clientRequest, mockResponse)
       connector.updateClientReference(arn, clientRequest).futureValue shouldBe Done
     }
 
@@ -193,17 +186,14 @@ class AgentUserClientDetailsConnectorSpec
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url = s"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-      expectHttpClientPUT[Client, HttpResponse](url,
-        clientRequest,
-        mockResponse)
+      expectHttpClientPUT[Client, HttpResponse](url, clientRequest, mockResponse)
 
-      //then
+      // then
       val caught = intercept[UpstreamErrorResponse] {
         await(connector.updateClientReference(arn, clientRequest))
       }
       caught.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
-
 
   }
 }

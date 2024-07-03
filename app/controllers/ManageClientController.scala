@@ -16,11 +16,11 @@
 
 package controllers
 
-import akka.Done
 import config.AppConfig
 import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.{ClientReferenceForm, SearchAndFilterForm}
 import models.SearchFilter
+import org.apache.pekko.Done
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -33,8 +33,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ManageClientController @Inject()
-(
+class ManageClientController @Inject() (
   authAction: AuthAction,
   mcc: MessagesControllerComponents,
   val sessionCacheService: SessionCacheService,
@@ -50,10 +49,7 @@ class ManageClientController @Inject()
   implicit val appConfig: AppConfig,
   ec: ExecutionContext,
   implicit override val messagesApi: MessagesApi
-) extends FrontendController(mcc)
-
-  with I18nSupport
-  with Logging {
+) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._
   import optInStatusAction._
@@ -65,16 +61,15 @@ class ManageClientController @Inject()
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         val eventualTuple = for {
-          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-          filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+          search  <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter  <- sessionCacheService.get(CLIENT_FILTER_INPUT)
           clients <- clientService.getPaginatedClients(arn)(page.getOrElse(1), 10)
         } yield (search, filter, clients)
-        eventualTuple.map(tuple => {
+        eventualTuple.map { tuple =>
           val (search, filter, clients) = (tuple._1, tuple._2, tuple._3)
           val form = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None))
           Ok(manage_clients_list(clients, form))
         }
-        )
       }
     }
   }
@@ -85,7 +80,7 @@ class ManageClientController @Inject()
         val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
         searchFilter.submit.fold(
           Redirect(controller.showPageOfClients(None)).toFuture
-        )({
+        ) {
           case CLEAR_BUTTON =>
             val eventualDone = for {
               _ <- sessionCacheService.delete(CLIENT_SEARCH_INPUT)
@@ -97,7 +92,7 @@ class ManageClientController @Inject()
               .put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
               .flatMap(_ => sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse("")))
               .map(_ => Redirect(controller.showPageOfClients(None)))
-        })
+        }
       }
     }
   }
@@ -108,14 +103,12 @@ class ManageClientController @Inject()
         clientService
           .getClient(arn)(clientId)
           .flatMap { maybeClient =>
-          maybeClient.fold(
-            Future.successful(NotFound(client_not_found()))
-          )(client =>
-            groupService.groupSummariesForClient(arn, client).map(groups =>
-              Ok(client_details(client, groups))
+            maybeClient.fold(
+              Future.successful(NotFound(client_not_found()))
+            )(client =>
+              groupService.groupSummariesForClient(arn, client).map(groups => Ok(client_details(client, groups)))
             )
-          )
-        }
+          }
       }
     }
   }
@@ -124,16 +117,17 @@ class ManageClientController @Inject()
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         clientService
-          .getClient(arn)(clientId).map {
-          case Some(client) =>
-            Ok(
-              update_client_reference(
-                client = client,
-                form = ClientReferenceForm.form().fill(client.name)
+          .getClient(arn)(clientId)
+          .map {
+            case Some(client) =>
+              Ok(
+                update_client_reference(
+                  client = client,
+                  form = ClientReferenceForm.form().fill(client.name)
+                )
               )
-            )
-          case None => throw new RuntimeException("client reference supplied did not match any client")
-        }
+            case None => throw new RuntimeException("client reference supplied did not match any client")
+          }
       }
     }
   }
@@ -143,15 +137,11 @@ class ManageClientController @Inject()
       isOptedIn(arn) { _ =>
         clientService.lookupClient(arn)(clientId).map {
           case Some(client) =>
-            ClientReferenceForm.form()
+            ClientReferenceForm
+              .form()
               .bindFromRequest()
               .fold(
-                formWithErrors => {
-                  Ok(
-                    update_client_reference(
-                      client,
-                      formWithErrors))
-                },
+                formWithErrors => Ok(update_client_reference(client, formWithErrors)),
                 (newName: String) => {
                   for {
                     _ <- sessionCacheService.put[String](CLIENT_REFERENCE, newName)
@@ -175,9 +165,9 @@ class ManageClientController @Inject()
             maybeClient.fold(
               Future.successful(NotFound(client_not_found()))
             )(client =>
-              sessionCacheService.get(CLIENT_REFERENCE).map(newName =>
-                Ok(update_client_reference_complete(client, clientRef = newName.get))
-              )
+              sessionCacheService
+                .get(CLIENT_REFERENCE)
+                .map(newName => Ok(update_client_reference_complete(client, clientRef = newName.get)))
             )
           )
 

@@ -42,8 +42,10 @@ class ManageGroupControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector = mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
+    mock[AgentUserClientDetailsConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
@@ -51,7 +53,8 @@ class ManageGroupControllerSpec extends BaseSpec {
   val groupId: GroupId = GroupId.random()
   private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
 
-  val accessGroup: CustomGroup = CustomGroup(GroupId.random(),
+  val accessGroup: CustomGroup = CustomGroup(
+    GroupId.random(),
     arn,
     "Bananas",
     LocalDate.of(2020, 3, 10).atStartOfDay(),
@@ -59,14 +62,36 @@ class ManageGroupControllerSpec extends BaseSpec {
     agentUser,
     agentUser,
     Set.empty,
-    Set.empty)
+    Set.empty
+  )
 
-  val taxGroup: TaxGroup = TaxGroup(GroupId.random(), arn, "Bananas", MIN, MIN, agentUser, agentUser, Set.empty, "", automaticUpdates = true, Set.empty)
+  val taxGroup: TaxGroup = TaxGroup(
+    GroupId.random(),
+    arn,
+    "Bananas",
+    MIN,
+    MIN,
+    agentUser,
+    agentUser,
+    Set.empty,
+    "",
+    automaticUpdates = true,
+    Set.empty
+  )
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector, mockSessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[AgentUserClientDetailsConnector]).toInstance(mockAgentUserClientDetailsConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionCacheService)
@@ -113,20 +138,28 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showManageGroups(None, None).url}" should {
 
     "render correctly the manage groups page" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectDeleteSessionItems(managingGroupKeys)
 
       val searchTerm = "ab"
-      val groupSummaries = (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4, taxService = if(i%2==0) Some("VAT") else None))
+      val groupSummaries = (1 to 3).map(i =>
+        GroupSummary(
+          GroupId.random(),
+          s"name $i",
+          Some(i * 3),
+          i * 4,
+          taxService = if (i % 2 == 0) Some("VAT") else None
+        )
+      )
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(groupSummaries)
 
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
 
-      //when
+      // when
       val result = controller.showManageGroups(None, None)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
@@ -144,35 +177,40 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 3
 
       // check first custom group
-      html.select(H3).text() should include ("name 1 Custom group")
+      html.select(H3).text() should include("name 1 Custom group")
       val firstCustomGroup = groups.get(0)
       val firstCustomGroupClients = firstCustomGroup.select(".govuk-summary-list__row").get(0)
       firstCustomGroupClients.select("dt").text() shouldBe "Clients"
       firstCustomGroupClients.select(".govuk-summary-list__value").text() shouldBe "3"
       firstCustomGroupClients.select(".govuk-summary-list__actions").text() shouldBe "Manage clients for name 1"
-      firstCustomGroupClients.select(".govuk-summary-list__actions a")
+      firstCustomGroupClients
+        .select(".govuk-summary-list__actions a")
         .attr("href") shouldBe s"/agent-permissions/manage-custom-group/${groupSummaries(0).groupId}/view-clients"
 
-      //verify a tax group
+      // verify a tax group
       val taxGroup = groups.get(1)
       val clientsRow2 = taxGroup.select(".govuk-summary-list__row").get(0)
       clientsRow2.select(".govuk-summary-list__actions").text() shouldBe "Manage clients for name 2"
-      clientsRow2.select(".govuk-summary-list__actions a")
+      clientsRow2
+        .select(".govuk-summary-list__actions a")
         .attr("href") shouldBe s"/agent-permissions/manage-tax-group/${groupSummaries(1).groupId}/clients"
 
       val membersRow = firstCustomGroup.select(".govuk-summary-list__row").get(1)
       membersRow.select("dt").text() shouldBe "Team members"
-      membersRow.select(".govuk-summary-list__value")
+      membersRow
+        .select(".govuk-summary-list__value")
         .text() shouldBe "4"
-      membersRow.select(".govuk-summary-list__actions")
+      membersRow
+        .select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for name 1"
-      membersRow.select(".govuk-summary-list__actions a")
+      membersRow
+        .select(".govuk-summary-list__actions a")
         .attr("href") shouldBe s"/agent-permissions/manage-group/custom/${groupSummaries(0).groupId}/team-members"
     }
 
     "render correctly the manage groups page when nothing returned" in {
 
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectDeleteSessionItems(managingGroupKeys)
 
@@ -181,16 +219,18 @@ class ManageGroupControllerSpec extends BaseSpec {
 
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
 
-      //when
+      // when
       val result = controller.showManageGroups(None, None)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Manage access groups - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage access groups"
-      html.select("p#info").get(0)
+      html
+        .select("p#info")
+        .get(0)
         .text() shouldBe "The team members in the group will be able to manage the tax affairs of clients in the group."
 
       html.select(H2).text() shouldBe "No groups found"
@@ -203,7 +243,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
 
     "render content when filtered access groups" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectDeleteSessionItems(managingGroupKeys)
 
@@ -212,15 +252,14 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(Seq(expectedGroupSummaries.head))
       expectGetSessionItem(GROUP_SEARCH_INPUT, searchTerm)
 
-      val requestWithQuery = FakeRequest(GET,
-        ctrlRoute.showManageGroups(None, None).url)
+      val requestWithQuery = FakeRequest(GET, ctrlRoute.showManageGroups(None, None).url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.showManageGroups(None, None)(requestWithQuery)
 
-      //then
+      // then
       status(result) shouldBe OK
 
       val html = Jsoup.parse(contentAsString(result))
@@ -238,23 +277,28 @@ class ManageGroupControllerSpec extends BaseSpec {
       groups.size() shouldBe 1
 
       // check first group contents
-      html.select(H3).text() should include ("GroupName1 Custom group")
+      html.select(H3).text() should include("GroupName1 Custom group")
       val firstGroup = groups.get(0)
       val clientsRow = firstGroup.select(".govuk-summary-list__row").get(0)
       clientsRow.select("dt").text() shouldBe "Clients"
-      clientsRow.select(".govuk-summary-list__value")
+      clientsRow
+        .select(".govuk-summary-list__value")
         .text() shouldBe "3"
-      clientsRow.select(".govuk-summary-list__actions")
+      clientsRow
+        .select(".govuk-summary-list__actions")
         .text() shouldBe "Manage clients for GroupName1"
-      clientsRow.select(".govuk-summary-list__actions a")
+      clientsRow
+        .select(".govuk-summary-list__actions a")
         .attr("href") shouldBe s"/agent-permissions/manage-custom-group/${expectedGroupSummaries(0).groupId}/view-clients"
 
       val membersRow = firstGroup.select(".govuk-summary-list__row").get(1)
       membersRow.select("dt").text() shouldBe "Team members"
       membersRow.select(".govuk-summary-list__value").text() shouldBe "4"
-      membersRow.select(".govuk-summary-list__actions")
+      membersRow
+        .select(".govuk-summary-list__actions")
         .text() shouldBe "Manage team members for GroupName1"
-      membersRow.select(".govuk-summary-list__actions a")
+      membersRow
+        .select(".govuk-summary-list__actions a")
         .attr("href") shouldBe s"/agent-permissions/manage-group/custom/${expectedGroupSummaries(0).groupId}/team-members"
     }
   }
@@ -263,13 +307,12 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "redirect to showManageGroups and work for FILTER_BUTTON" in {
 
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectPutSessionItem(GROUP_SEARCH_INPUT, "xx")
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitManageGroups().url)
+        FakeRequest("POST", ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
             "search" -> "xx",
             "submit" -> FILTER_BUTTON
@@ -277,64 +320,62 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitManageGroups(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
     "redirect to showManageGroups and work for CLEAR_BUTTON" in {
 
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectDeleteSessionItem(GROUP_SEARCH_INPUT)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitManageGroups().url)
+        FakeRequest("POST", ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
             "submit" -> CLEAR_BUTTON
           )
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitManageGroups(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
     "redirect to showManageGroups and work for PAGINATION_BUTTON and redirect to page requested when search term is unchanged" in {
 
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_SEARCH_INPUT, "abc")
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitManageGroups().url)
+        FakeRequest("POST", ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
-            "search"-> "abc",
-            "submit" -> s"${PAGINATION_BUTTON}_2",
+            "search" -> "abc",
+            "submit" -> s"${PAGINATION_BUTTON}_2"
           )
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitManageGroups(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url + "?page=2"
     }
 
     "redirect to showManageGroups and work for PAGINATION_BUTTON and redirect to page 1 when search term is changed" in {
 
-      //given
+      // given
       expectAuthOkOptedInReady()
       val oldSearchTerm = "abc"
       expectGetSessionItem(GROUP_SEARCH_INPUT, oldSearchTerm)
@@ -342,22 +383,21 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectPutSessionItem(GROUP_SEARCH_INPUT, updatedSearchTerm)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitManageGroups().url)
+        FakeRequest("POST", ctrlRoute.submitManageGroups().url)
           .withFormUrlEncodedBody(
-            "search"-> updatedSearchTerm,
-            "submit" -> s"${PAGINATION_BUTTON}_2",
+            "search" -> updatedSearchTerm,
+            "submit" -> s"${PAGINATION_BUTTON}_2"
           )
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitManageGroups(request)
 
-      //then
+      // then
       oldSearchTerm should not be updatedSearchTerm
       status(result) shouldBe SEE_OTHER
-      //NB: no "?page=2" on url as we redirect to page 1 when you change search term
+      // NB: no "?page=2" on url as we redirect to page 1 when you change search term
       redirectLocation(result).get shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
@@ -365,22 +405,23 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showRenameGroup(groupId).url}" should {
 
     "render correctly the rename groups page" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
-      //when
+      // when
       val result = controller.showRenameGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Rename group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Rename group"
       html.select(Css.form).attr("action") shouldBe ctrlRoute
-        .submitRenameGroup(groupId).url
+        .submitRenameGroup(groupId)
+        .url
       html
         .select(Css.labelFor("name"))
         .text() shouldBe "What do you want to call this group?"
@@ -389,11 +430,11 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
 
     "render NOT_FOUND when no group is found for this group id" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Option.empty[GroupSummary])
 
-      //when
+      // when
       val result = controller.showRenameGroup(groupId)(request)
 
       status(result) shouldBe NOT_FOUND
@@ -415,17 +456,17 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showRenameTaxGroup(groupId).url}" should {
 
     "render correctly the rename groups page" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
 
-      //when
+      // when
       val result = controller.showRenameTaxGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Rename group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Rename group"
@@ -438,11 +479,11 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
 
     "render NOT_FOUND when no group is found for this group id" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Option.empty[TaxGroup])
 
-      //when
+      // when
       val result = controller.showRenameTaxGroup(groupId)(request)
 
       status(result) shouldBe NOT_FOUND
@@ -465,41 +506,39 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "redirect to confirmation page with when posting a valid group name" in {
 
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
       expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"), None, None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitRenameGroup(groupId).url)
+        FakeRequest("POST", ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
 
-      //when
+      // when
       val result = controller.submitRenameGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showGroupRenamed(groupId).url
     }
 
     "redirect when no group is returned for this group id" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Option.empty[GroupSummary])
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitRenameGroup(groupId).url)
+        FakeRequest("POST", ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitRenameGroup(groupId)(request)
 
       status(result) shouldBe NOT_FOUND
@@ -518,10 +557,9 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
 
     "render errors when no group name is specified" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitRenameGroup(groupId).url)
+        FakeRequest("POST", ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -529,7 +567,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
-      //when
+      // when
       val result = controller.submitRenameGroup(groupId)(request)
 
       status(result) shouldBe OK
@@ -540,29 +578,28 @@ class ManageGroupControllerSpec extends BaseSpec {
 
     "redirect to confirmation page with when posting a valid group name" in {
 
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
       expectUpdateTaxGroup(groupId, UpdateTaxServiceGroupRequest(groupName = Some("New Group Name")))
       expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitRenameTaxGroup(groupId).url)
+        FakeRequest("POST", ctrlRoute.submitRenameTaxGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "New Group Name")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitRenameTaxGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
       redirectLocation(result).get shouldBe ctrlRoute.showTaxGroupRenamed(groupId).url
     }
 
     "redirect when no group is returned for this group id" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Option.empty[TaxGroup])
 
@@ -572,28 +609,30 @@ class ManageGroupControllerSpec extends BaseSpec {
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitRenameTaxGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe NOT_FOUND
 
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Access group not found - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Access group not found"
-      html.select(Css.paragraphs)
+      html
+        .select(Css.paragraphs)
         .text() shouldBe "Please check the url or return to the Manage groups page"
-      html.select(Css.linkStyledAsButton)
+      html
+        .select(Css.linkStyledAsButton)
         .text() shouldBe "Back to manage groups page"
-      html.select(Css.linkStyledAsButton)
+      html
+        .select(Css.linkStyledAsButton)
         .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
     "render errors when no group name is specified" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitRenameGroup(groupId).url)
+        FakeRequest("POST", ctrlRoute.submitRenameGroup(groupId).url)
           .withFormUrlEncodedBody("name" -> "")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -601,7 +640,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
-      //when
+      // when
       val result = controller.submitRenameGroup(groupId)(request)
 
       status(result) shouldBe OK
@@ -611,18 +650,18 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showGroupRenamed(groupId).url}" should {
 
     "render correctly the custom group renamed page" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_RENAMED_FROM, "Previous Name")
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
-      //when
+      // when
       val result = controller.showGroupRenamed(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Access group renamed - Agent services account - GOV.UK"
       html
@@ -631,7 +670,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelBody)
         .text() shouldBe "Previous Name access group renamed to Bananas"
-      //we have removed the "what happens next h2 and paragraph.
+      // we have removed the "what happens next h2 and paragraph.
       // so just check it's not there in case someone merges it back
       html.select(Css.H2).size() shouldBe 0
       html.select(Css.paragraphs).size() shouldBe 0
@@ -645,18 +684,18 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showTaxGroupRenamed(groupId).url}" should {
 
     "render correctly the tax group renamed" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_RENAMED_FROM, "Previous Name")
       expectGetTaxGroupById(groupId, Some(taxGroup))
 
-      //when
+      // when
       val result = controller.showTaxGroupRenamed(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //andmanage_existing_groups.scala.html
+      // andmanage_existing_groups.scala.html
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Access group renamed - Agent services account - GOV.UK"
       html
@@ -665,7 +704,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.confirmationPanelBody)
         .text() shouldBe "Previous Name access group renamed to Bananas"
-      //we have removed the "what happens next h2 and paragraph.
+      // we have removed the "what happens next h2 and paragraph.
       // so just check it's not there in case someone merges it back
       html.select(Css.H2).size() shouldBe 0
       html.select(Css.paragraphs).size() shouldBe 0
@@ -679,22 +718,24 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showDeleteGroup(groupId).url}" should {
 
     "render correctly the DELETE group page" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
-      //when
+      // when
       val result = controller.showDeleteGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Delete group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Delete group"
-      html.select(Css.form)
+      html
+        .select(Css.form)
         .attr("action") shouldBe ctrlRoute.showDeleteGroup(accessGroup.id).url
 
-      html.select(Css.legend)
+      html
+        .select(Css.legend)
         .text() shouldBe s"Are you sure you want to delete ${accessGroup.groupName} access group?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
@@ -706,59 +747,62 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"POST ${ctrlRoute.submitDeleteGroup(accessGroup.id).url}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectPutSessionItem(GROUP_DELETED_NAME, accessGroup.groupName)
       expectGetCustomSummaryById(accessGroup.id, Some(GroupSummary.of(accessGroup)))
       expectDeleteGroup(accessGroup.id)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
+        FakeRequest(
+          "POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup.id).url)
+            .submitDeleteGroup(accessGroup.id)
+            .url
+        )
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitDeleteGroup(accessGroup.id)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
-      //and
-      redirectLocation(result) shouldBe Some(
-        ctrlRoute.showGroupDeleted().url)
+      // and
+      redirectLocation(result) shouldBe Some(ctrlRoute.showGroupDeleted().url)
 
     }
 
     "render correctly the DASHBOARD group page when 'no' selected" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(accessGroup.id, Some(GroupSummary.of(accessGroup)))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
+        FakeRequest(
+          "POST",
           ctrlRoute
-            .submitDeleteGroup(accessGroup.id).url)
+            .submitDeleteGroup(accessGroup.id)
+            .url
+        )
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result =
         controller.submitDeleteGroup(accessGroup.id)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
-      //and
-      redirectLocation(result) shouldBe Some(
-        ctrlRoute.showManageGroups(None, None).url)
+      // and
+      redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroups(None, None).url)
 
     }
 
     "render errors when no answer is specified" in {
-      //given
+      // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitDeleteGroup(groupId).url)
+        FakeRequest("POST", ctrlRoute.submitDeleteGroup(groupId).url)
           .withFormUrlEncodedBody("answer" -> "")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -766,7 +810,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
 
-      //when
+      // when
       val result = controller.submitDeleteGroup(groupId)(request)
 
       status(result) shouldBe OK
@@ -776,17 +820,17 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showGroupDeleted().url}" should {
 
     "render correctly" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetSessionItem(GROUP_DELETED_NAME, "Rubbish")
 
-      //when
+      // when
       val result = controller.showGroupDeleted(request)
 
-      //then
+      // then
       status(result) shouldBe OK
 
-      //and
+      // and
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Rubbish access group deleted - Agent services account - GOV.UK"
       html
@@ -810,21 +854,23 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showDeleteTaxGroup(groupId).url}" should {
 
     "render correctly the DELETE group page" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
-      //when
+      // when
       val result = controller.showDeleteTaxGroup(groupId)(request)
 
-      //then
+      // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Delete group - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Delete group"
-      html.select(Css.form)
+      html
+        .select(Css.form)
         .attr("action") shouldBe ctrlRoute.showDeleteTaxGroup(taxGroup.id).url
 
-      html.select(Css.legend)
+      html
+        .select(Css.legend)
         .text() shouldBe s"Are you sure you want to delete ${taxGroup.groupName} access group?"
       html.select("label[for=answer]").text() shouldBe "Yes"
       html.select("label[for=answer-no]").text() shouldBe "No"
@@ -836,67 +882,70 @@ class ManageGroupControllerSpec extends BaseSpec {
   s"POST ${ctrlRoute.submitDeleteTaxGroup(taxGroup.id).url}" should {
 
     "render correctly the confirm DELETE group page when 'yes' selected" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectPutSessionItem(GROUP_DELETED_NAME, taxGroup.groupName)
       expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
       expectDeleteTaxGroup(taxGroup.id)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
+        FakeRequest(
+          "POST",
           ctrlRoute
-            .submitDeleteGroup(taxGroup.id).url)
+            .submitDeleteGroup(taxGroup.id)
+            .url
+        )
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitDeleteTaxGroup(taxGroup.id)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
-      //and
-      redirectLocation(result) shouldBe Some(
-        ctrlRoute.showGroupDeleted().url)
+      // and
+      redirectLocation(result) shouldBe Some(ctrlRoute.showGroupDeleted().url)
 
     }
 
     "render correctly the DASHBOARD group page when 'no' selected" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
+        FakeRequest(
+          "POST",
           ctrlRoute
-            .submitDeleteGroup(taxGroup.id).url)
+            .submitDeleteGroup(taxGroup.id)
+            .url
+        )
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result =
         controller.submitDeleteTaxGroup(taxGroup.id)(request)
 
-      //then
+      // then
       status(result) shouldBe SEE_OTHER
-      //and
-      redirectLocation(result) shouldBe Some(
-        ctrlRoute.showManageGroups(None, None).url)
+      // and
+      redirectLocation(result) shouldBe Some(ctrlRoute.showManageGroups(None, None).url)
 
     }
 
     "render errors when no answer is specified" in {
-      //given
+      // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST",
-          ctrlRoute.submitDeleteGroup(groupId).url)
+        FakeRequest("POST", ctrlRoute.submitDeleteGroup(groupId).url)
           .withFormUrlEncodedBody("answer" -> "")
           .withHeaders("Authorization" -> s"Bearer whatever")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      //when
+      // when
       val result = controller.submitDeleteTaxGroup(groupId)(request)
 
       status(result) shouldBe OK

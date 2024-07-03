@@ -33,7 +33,8 @@ class AuthActionSpec extends BaseSpec with AgentClientAuthorisationConnectorMock
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
@@ -71,7 +72,7 @@ class AuthActionSpec extends BaseSpec with AgentClientAuthorisationConnectorMock
         expectAuthorisationGrantsAccess(mockedAuthResponse)
         expectGetSuspensionDetails(suspensionStatus = true)
 
-        val result =  authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
+        val result = authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           "http://localhost:9401/agent-services-account/account-limited"
@@ -83,7 +84,7 @@ class AuthActionSpec extends BaseSpec with AgentClientAuthorisationConnectorMock
         expectGetSuspensionDetails()
         expectIsArnAllowed(allowed = true)
 
-        val result =  authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
+        val result = authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
         status(result) shouldBe OK
       }
     }

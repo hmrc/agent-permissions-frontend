@@ -25,14 +25,16 @@ object AddClientsToGroupForm {
 
   def form(hasPreSelected: Boolean = false): Form[AddClientsToGroup] = Form(
     mapping(
-      "search" -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
-      "filter" -> optional(text),
+      "search"  -> optional(text.verifying("error.search-filter.invalid", s => !(s.contains('<') || s.contains('>')))),
+      "filter"  -> optional(text),
       "clients" -> optional(seq(text)),
-      "submit" -> text
+      "submit"  -> text
     )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
-      .verifying("error.select-clients.empty", data => {
-        data.submit != CONTINUE_BUTTON ||
-        (data.submit == CONTINUE_BUTTON && (data.clients.getOrElse(Seq.empty).nonEmpty || hasPreSelected))
-      })
+      .verifying(
+        "error.select-clients.empty",
+        data =>
+          data.submit != CONTINUE_BUTTON ||
+            (data.submit == CONTINUE_BUTTON && (data.clients.getOrElse(Seq.empty).nonEmpty || hasPreSelected))
+      )
   )
 }

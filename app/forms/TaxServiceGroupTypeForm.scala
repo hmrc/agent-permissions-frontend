@@ -24,7 +24,7 @@ object TaxServiceGroupTypeForm {
 
   def form: Form[TaxServiceGroupType] = Form(
     mapping(
-      "taxType" -> text.verifying("group.tax-service.select.error", _.nonEmpty),
+      "taxType" -> text.verifying("group.tax-service.select.error", _.nonEmpty)
     )(TaxServiceGroupType.apply)(TaxServiceGroupType.unapply)
   )
 }

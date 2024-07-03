@@ -19,17 +19,17 @@ package utils
 import models.DisplayClient
 
 object FilterUtils {
-  //TODO move to tests, unused in code
+  // TODO move to tests, unused in code
   // Ideally we won't need this logic here any more after the backend becomes able to serve all client lists as paginated.
-  def filterClients(clients: Seq[DisplayClient], search: Option[String], filter: Option[String]): Seq[DisplayClient] = {
+  def filterClients(clients: Seq[DisplayClient], search: Option[String], filter: Option[String]): Seq[DisplayClient] =
     clients
       .filter(_.name.toLowerCase.contains(search.getOrElse("").toLowerCase))
       .filter(dc =>
         filter match {
-          case None => true
+          case None                              => true
           case Some(empty) if empty.trim.isEmpty => true
-          case Some(fltr) => dc.taxService.equalsIgnoreCase(fltr) || (fltr == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
+          case Some(fltr) =>
+            dc.taxService.equalsIgnoreCase(fltr) || (fltr == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
         }
       )
-  }
 }

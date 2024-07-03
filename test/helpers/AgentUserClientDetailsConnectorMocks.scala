@@ -16,84 +16,99 @@
 
 package helpers
 
-import akka.Done
 import connectors.AgentUserClientDetailsConnector
+import org.apache.pekko.Done
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait AgentUserClientDetailsConnectorMocks extends MockFactory {
+trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory {
 
-  def expectGetAucdClient(arn: Arn)(client: Client)(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def expectGetAucdClient(
+    arn: Arn
+  )(client: Client)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.enrolmentKey, *, *)
-      .returning(Future successful Option(client)).once()
+      .returning(Future successful Option(client))
+      .once()
 
-  def expectGetAucdClientNotFound(arn: Arn, enrolmentKey: String)(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def expectGetAucdClientNotFound(arn: Arn, enrolmentKey: String)(implicit
+    agentUserClientDetailsConnector: AgentUserClientDetailsConnector
+  ): Unit =
     (agentUserClientDetailsConnector
       .getClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, enrolmentKey, *, *)
-      .returning(Future successful None).once()
-  def expectGetClients(arn: Arn)(clientList: Seq[Client])(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+      .returning(Future successful None)
+      .once()
+  def expectGetClients(
+    arn: Arn
+  )(clientList: Seq[Client])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
-      .returning(Future successful clientList).once()
+      .returning(Future successful clientList)
+      .once()
 
-  def expectGetClientsReturningNone(arn: Arn)(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def expectGetClientsReturningNone(
+    arn: Arn
+  )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Seq.empty)
 
-  def expectGetClientsWithUpstreamError(arn: Arn)(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def expectGetClientsWithUpstreamError(
+    arn: Arn
+  )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def expectGetTeamMembers(arn: Arn)(teamMembers: Seq[UserDetails])(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def expectGetTeamMembers(
+    arn: Arn
+  )(teamMembers: Seq[UserDetails])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful teamMembers)
 
-  def expectGetTeamMembersWithUpstreamError(arn: Arn)(
-    implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
+  def expectGetTeamMembersWithUpstreamError(
+    arn: Arn
+  )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
       .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
-  def expectUpdateClientReferenceSuccess()
-                                        (implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
-    (agentUserClientDetailsConnector.updateClientReference(_: Arn, _: Client)(_: HeaderCarrier, _: ExecutionContext))
+  def expectUpdateClientReferenceSuccess()(implicit
+    agentUserClientDetailsConnector: AgentUserClientDetailsConnector
+  ): Unit =
+    (agentUserClientDetailsConnector
+      .updateClientReference(_: Arn, _: Client)(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future successful Done)
 
-  def expectGetPaginatedClients(arn: Arn)
-                               (pageContent: Seq[Client])
-                               (page: Int = 1,
-                                pageSize: Int = 20,
-                                search: Option[String] = None,
-                                filter: Option[String] = None)
-                               (implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit = {
-    val paginationMetaData = PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, pageContent.length)
+  def expectGetPaginatedClients(arn: Arn)(
+    pageContent: Seq[Client]
+  )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
+    agentUserClientDetailsConnector: AgentUserClientDetailsConnector
+  ): Unit = {
+    val paginationMetaData =
+      PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, pageContent.length)
     val paginatedList = PaginatedList(pageContent, paginationMetaData)
-    (agentUserClientDetailsConnector.getPaginatedClients(_: Arn)( _: Int, _: Int, _: Option[String], _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+    (agentUserClientDetailsConnector
+      .getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
+        _: HeaderCarrier,
+        _: ExecutionContext
+      ))
       .expects(arn, page, pageSize, search, filter, *, *)
       .returning(Future successful paginatedList)
   }
-
 
 }

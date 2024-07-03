@@ -34,26 +34,25 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
   val displayClients: Seq[DisplayClient] =
     fakeClients.map(DisplayClient.fromClient(_))
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     sessionCacheService.values.clear()
-  }
 
   "addSelectablesToSession" should {
 
     "work as expected with none set as selected " in {
-      //given existing session state
+      // given existing session state
       await(sessionCacheService.put(SELECTED_CLIENTS, displayClients.take(2)))
       await(sessionCacheService.put(FILTERED_CLIENTS, displayClients.takeRight(1)))
 
-      //when
+      // when
       await(sessionCacheOps.addSelectablesToSession(displayClients.take(3).toList)(SELECTED_CLIENTS, FILTERED_CLIENTS))
 
-      //we expect the sesion to be changed like this
+      // we expect the sesion to be changed like this
       await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(displayClients.take(3))
     }
 
     "work as expected with selected in session " in {
-      //given existing session state
+      // given existing session state
       await(sessionCacheService.put(SELECTED_CLIENTS, displayClients.take(2).map(_.copy(selected = true))))
       await(sessionCacheService.put(FILTERED_CLIENTS, displayClients.takeRight(1).map(_.copy(selected = true))))
 
@@ -65,10 +64,10 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
         DisplayClient("123456782", "friendly name 2", "HMRC-MTD-VAT", "VRN", true)
       )
 
-      //when
+      // when
       await(sessionCacheOps.addSelectablesToSession(displayClients.take(3).toList)(SELECTED_CLIENTS, FILTERED_CLIENTS))
 
-      //we expect the sesion to be changed like this
+      // we expect the sesion to be changed like this
       await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedPayload)
     }
   }
@@ -76,16 +75,15 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
   "saveSearch" should {
 
     "PUT search terms to session" in {
-      //expect
+      // expect
       val searchTerm = Some("blah")
       val filterTerm = Some("MTD-VAT")
 
-      //when
+      // when
       await(sessionCacheOps.saveSearch(searchTerm, filterTerm))
 
       await(sessionCacheService.get(CLIENT_SEARCH_INPUT)) shouldBe searchTerm
       await(sessionCacheService.get(CLIENT_FILTER_INPUT)) shouldBe filterTerm
-
 
     }
 
@@ -96,7 +94,7 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
       val searchTerm = Some("")
       val filterTerm = Some("")
 
-      //when
+      // when
       await(sessionCacheOps.saveSearch(searchTerm, filterTerm))
 
       await(sessionCacheService.get(CLIENT_SEARCH_INPUT)) shouldBe None
@@ -110,7 +108,7 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
       val searchTerm = None
       val filterTerm = None
 
-      //when
+      // when
       await(sessionCacheOps.saveSearch(searchTerm, filterTerm))
 
       await(sessionCacheService.get(CLIENT_SEARCH_INPUT)) shouldBe None
@@ -122,18 +120,19 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
 
     "ADD selected clients to SELECTED_CLIENTS for current page" in {
 
-      //expect
+      // expect
       val clientsSelectedOnThisPage = displayClients.take(4)
       val selectedClientIdsPosted = clientsSelectedOnThisPage.map(_.id).toList
       val alreadySelectedClients = displayClients.takeRight(2)
       await(sessionCacheService.put(SELECTED_CLIENTS, alreadySelectedClients))
       await(sessionCacheService.put(CURRENT_PAGE_CLIENTS, displayClients.take(6)))
 
-      val expectedToBeSaved = (alreadySelectedClients ++ clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
+      val expectedToBeSaved =
+        (alreadySelectedClients ++ clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
 
       val formData = AddClientsToGroup(None, None, Some(selectedClientIdsPosted), CONTINUE_BUTTON)
 
-      //when
+      // when
       await(sessionCacheOps.savePageOfClientsForCreateGroup(formData))
 
       await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedToBeSaved)
@@ -146,7 +145,7 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
 
     "ADD selected clients to SELECTED_CLIENTS for current page and REMOVE existing ones on page that are not selected" in {
 
-      //expect
+      // expect
       val clientsSelectedOnThisPage = displayClients.take(4).takeRight(2)
       val selectedClientIdsPosted = clientsSelectedOnThisPage.map(_.id).toList
       val alreadySelectedClients = displayClients.take(2) // <-- these were the already selected clients
@@ -154,12 +153,12 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
       await(sessionCacheService.put(SELECTED_CLIENTS, alreadySelectedClients))
       await(sessionCacheService.put(CURRENT_PAGE_CLIENTS, displayClients.take(6)))
 
-      //we expect to save in session ordered by name and 'selected = true'
-      val expectedToBeSaved = (clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
+      // we expect to save in session ordered by name and 'selected = true'
+      val expectedToBeSaved = clientsSelectedOnThisPage.map(_.copy(selected = true)).sortBy(_.name)
 
       val formData = AddClientsToGroup(None, None, Some(selectedClientIdsPosted), CONTINUE_BUTTON)
 
-      //when
+      // when
       await(sessionCacheOps.savePageOfClientsForCreateGroup(formData))
 
       await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedToBeSaved)
@@ -175,18 +174,19 @@ class SessionCacheOperationsServiceSpec extends BaseSpec with BeforeAndAfterEach
 
     "ADD selected clients to SELECTED_CLIENTS for current page" in {
 
-      //expect
+      // expect
       val clientsSelectedOnThisPage = displayClients.take(4)
       val selectedClientIdsPosted = clientsSelectedOnThisPage.map(_.id).toList
       val alreadySelectedClients = displayClients.takeRight(2)
       await(sessionCacheService.put(SELECTED_CLIENTS, alreadySelectedClients))
       await(sessionCacheService.put(CURRENT_PAGE_CLIENTS, displayClients.take(6)))
 
-      val expectedToBeSaved = (alreadySelectedClients ++ clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
+      val expectedToBeSaved =
+        (alreadySelectedClients ++ clientsSelectedOnThisPage).map(_.copy(selected = true)).sortBy(_.name)
 
       val formData = AddClientsToGroup(None, None, Some(selectedClientIdsPosted), CONTINUE_BUTTON)
 
-      //when
+      // when
       await(sessionCacheOps.saveClientsToAddToExistingGroup(formData))
 
       await(sessionCacheService.get(SELECTED_CLIENTS)) shouldBe Some(expectedToBeSaved)

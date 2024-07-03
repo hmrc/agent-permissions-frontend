@@ -21,10 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class ConfirmGroupNameFormSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite {
+class ConfirmGroupNameFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   val groupNameField = "name"
   val answerField = "answer"
@@ -46,8 +43,7 @@ class ConfirmGroupNameFormSpec
     }
 
     "have errors when group name hidden input exceeds max allowed characters" in {
-      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(33),
-                       answerField -> "true")
+      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(33), answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm.errors.length shouldBe 1
@@ -58,8 +54,7 @@ class ConfirmGroupNameFormSpec
     }
 
     "have errors when group name hidden input has invalid character < present" in {
-      val params = Map(groupNameField -> "invalid < chars>  ",
-        answerField -> "true")
+      val params = Map(groupNameField -> "invalid < chars>  ", answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm.errors.length shouldBe 1
@@ -70,8 +65,7 @@ class ConfirmGroupNameFormSpec
     }
 
     "have errors when group name hidden input has invalid character \\ present" in {
-      val params = Map(groupNameField -> "invalid \\chars",
-        answerField -> "true")
+      val params = Map(groupNameField -> "invalid \\chars", answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm.errors.length shouldBe 1

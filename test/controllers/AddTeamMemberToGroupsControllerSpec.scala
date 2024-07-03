@@ -34,12 +34,12 @@ import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
-
 class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector = mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
+    mock[AgentClientAuthorisationConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
@@ -48,7 +48,16 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
     override def configure(): Unit = {
-      bind(classOf[AuthAction]).toInstance(new AuthAction(mockAuthConnector, env, conf, mockAgentPermissionsConnector, mockAgentClientAuthConnector,mockSessionCacheService))
+      bind(classOf[AuthAction]).toInstance(
+        new AuthAction(
+          mockAuthConnector,
+          env,
+          conf,
+          mockAgentPermissionsConnector,
+          mockAgentClientAuthConnector,
+          mockSessionCacheService
+        )
+      )
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
       bind(classOf[TaxGroupService]).toInstance(taxGroupService)
       bind(classOf[GroupService]).toInstance(groupService)
@@ -89,8 +98,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showSelectGroupsForTeamMember(teamMember.id).url}" should {
 
     "render correctly the html" in {
-      //given
-      //TODO update to mix of custom and tax group summaries
+      // given
+      // TODO update to mix of custom and tax group summaries
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
@@ -100,11 +109,12 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
+      html
+        .title() shouldBe "Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Team member is currently in these access groups:"
       html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group 1"
@@ -128,13 +138,17 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       html.select(Css.linkStyledAsButton).hasClass("govuk-!-margin-right-3")
       html.select(Css.submitButton).text() shouldBe "Save and continue"
 
-      html.select(".hmrc-report-technical-issue").text() shouldBe "Is this page not working properly? (opens in new tab)"
-      html.select(".hmrc-report-technical-issue").attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
+      html
+        .select(".hmrc-report-technical-issue")
+        .text() shouldBe "Is this page not working properly? (opens in new tab)"
+      html
+        .select(".hmrc-report-technical-issue")
+        .attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
 
     }
 
     "render correctly when member is not in any groups yet" in {
-      //given
+      // given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = Seq.empty
@@ -144,11 +158,12 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
+      html
+        .title() shouldBe "Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Team member is currently not in any access groups"
       html.select(Css.li("already-in-groups")).isEmpty shouldBe true
@@ -170,7 +185,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
 
     "render correctly when no available groups" in {
-      //given
+      // given
       val groupSummaries = (1 to 2)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries
@@ -180,7 +195,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       expectGetGroupsForArn(arn)(groupSummaries)
       expectGetGroupSummariesForTeamMember(arn)(teamMember)(groupsAlreadyAssociatedToMember)
 
-      //when
+      // when
       val result = controller.showSelectGroupsForTeamMember(teamMember.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
@@ -203,7 +218,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     "add team member to the selected groups and redirect" when {
 
       s"At least 1 checkbox is checked for the group to add to" in {
-        //given
+        // given
         AuthOkWithTeamMember()
 
         val groupSummaries = (1 to 5).map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
@@ -215,7 +230,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
             .withFormUrlEncodedBody(
               "groups[0]" -> s"${GroupType.CUSTOM}_${groupSummaries(3).groupId}",
               "groups[1]" -> s"${GroupType.TAX_SERVICE}_${groupSummaries(4).groupId}",
-              "submit" -> CONTINUE_BUTTON
+              "submit"    -> CONTINUE_BUTTON
             )
             .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -233,14 +248,14 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
 
     "redirect to manage account if 'none of the above' is selected" in {
-      //given
+      // given
       AuthOkWithTeamMember()
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", submitUrl)
           .withFormUrlEncodedBody(
             "groups[0]" -> s"${AddGroupsToClientForm.NoneValue}",
-            "submit" -> CONTINUE_BUTTON
+            "submit"    -> CONTINUE_BUTTON
           )
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -251,7 +266,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
 
     "display error when no groups are selected" in {
-      //given
+      // given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
       val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
@@ -274,7 +289,9 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       // then
       html.title() shouldBe "Error: Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
-      html.select(Css.errorSummaryForField(groupSummaries(2).groupId.toString)).text() shouldBe "You must select at least one group"
+      html
+        .select(Css.errorSummaryForField(groupSummaries(2).groupId.toString))
+        .text() shouldBe "You must select at least one group"
       html.select(Css.errorForField("groups")).text() shouldBe "Error: You must select at least one group"
     }
   }
@@ -282,7 +299,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   s"GET ${ctrlRoute.showConfirmTeamMemberAddedToGroups(teamMember.id).url}" should {
 
     "render correctly the html" in {
-      //given
+      // given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
 
@@ -290,7 +307,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       expectGetSessionItem(GROUP_IDS_ADDED_TO, groupSummaries.take(2).map(_.groupId))
       expectGetGroupsForArn(arn)(groupSummaries)
 
-      //when
+      // when
       val result = controller.showConfirmTeamMemberAddedToGroups(teamMember.id)(request)
 
       val html = Jsoup.parse(contentAsString(result))
@@ -300,7 +317,10 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       html.select(Css.li("groups-added-to")).get(0).text shouldBe "Group 1"
       html.select(Css.li("groups-added-to")).get(1).text shouldBe "Group 2"
       html.select(Css.paragraphs).get(0).text() shouldBe "You have added John Smith 1 to the following groups:"
-      html.select(Css.paragraphs).get(1).text()
+      html
+        .select(Css.paragraphs)
+        .get(1)
+        .text()
         .shouldBe("John Smith 1 can now view and manage the tax affairs of the clients in these access groups.")
       html.select("a#back-to-manage").text() shouldBe "Return to manage team members page"
 

@@ -29,11 +29,12 @@ import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
+import services.{ClientService, GroupService, SessionCacheService, SessionCacheServiceImpl, TaxGroupService}
 import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
 import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
 import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup}
 import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
@@ -50,10 +51,16 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
   implicit val groupService: GroupService = mock[GroupService]
   implicit val clientService: ClientService = mock[ClientService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
-  implicit val sessionCacheService: SessionCacheService = mock[SessionCacheService]
+  implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
-  lazy val sessionCacheRepo: SessionCacheRepository =
+  private implicit val crypto: Encrypter with Decrypter = SymmetricCryptoFactory.aesCrypto(
+    "oaJdbtyXIUyd+hHefKbMUqtehotAG99pH0bqpkSuQ/Q="
+  )
+
+  private lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
+
+  private lazy val sessionCacheService: SessionCacheService = new SessionCacheServiceImpl(sessionCacheRepo)
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -66,7 +73,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
             conf,
             mockAgentPermissionsConnector,
             mockAgentClientAuthConnector,
-            sessionCacheService
+            mockSessionCacheService
           )
         )
       bind(classOf[AgentPermissionsConnector])
@@ -168,7 +175,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       AssistantAuthOk()
       expectGetUnassignedClients(arn)(displayClients, search = Some("friendly1"))
 
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
 
       // when
       val result = controller.showUnassignedClientsViewOnly()(request)
@@ -197,8 +204,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       expectGetUnassignedClients(arn)(displayClients, search = Some("friendly1"), filter = Some(NON_MATCHING_FILTER))
 
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
-      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, NON_MATCHING_FILTER).futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_FILTER_INPUT, NON_MATCHING_FILTER).futureValue
 
       // when
       val result = controller.showUnassignedClientsViewOnly()(request)
@@ -240,8 +247,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       redirectLocation(result) shouldBe Some(ctrlRoute.showUnassignedClientsViewOnly(None).url)
 
-      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
-      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT")
+      sessionCacheService.get(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
+      sessionCacheService.get(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT")
     }
 
     "clear filters from cache and redirect to base URL when ‘clear’ is clicked" in {
@@ -253,8 +260,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "clear", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
 
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
-      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
 
       // when
       val result = controller.submitUnassignedClientsViewOnly()(requestWithFormBody)
@@ -265,8 +272,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       redirectLocation(result) shouldBe Some(ctrlRoute.showUnassignedClientsViewOnly(None).url)
 
       // check that filter values have been removed
-      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe None
-      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe None
+      sessionCacheService.get(CLIENT_SEARCH_INPUT).futureValue shouldBe None
+      sessionCacheService.get(CLIENT_FILTER_INPUT).futureValue shouldBe None
     }
 
   }
@@ -306,7 +313,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // given
       AssistantAuthOk()
       expectGetGroupById(accessGroup.id, Some(accessGroup))
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
       expectGetPaginatedClientsForCustomGroup(accessGroup.id)(1, 20)(
         (displayClients.take(1), PaginationMetaData(lastPage = true, firstPage = true, 0, 1, 10, 1, 10))
       )
@@ -340,8 +347,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       // there are none of these HMRC-CGT-PD in the setup clients. so expect no results back
       val NON_MATCHING_FILTER = "HMRC-CGT-PD"
 
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
-      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, NON_MATCHING_FILTER).futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_FILTER_INPUT, NON_MATCHING_FILTER).futureValue
 
       expectGetPaginatedClientsForCustomGroup(accessGroup.id)(1, 20)(
         (Seq.empty, PaginationMetaData(lastPage = true, firstPage = true, 0, 1, 10, 1, 10))
@@ -408,8 +415,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup.id, None).url)
 
-      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
-      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT")
+      sessionCacheService.get(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
+      sessionCacheService.get(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT")
     }
 
     "clear filters from cache and redirect to base URL when ‘clear’ is clicked" in {
@@ -421,8 +428,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
         .withSession(SessionKeys.sessionId -> "session-x")
         .withFormUrlEncodedBody("submit" -> "clear", "search" -> "friendly1", "filter" -> "HMRC-MTD-IT")
 
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
-      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
 
       // when
       val result = controller.submitExistingGroupClientsViewOnly(accessGroup.id)(requestWithFormBody)
@@ -433,8 +440,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       redirectLocation(result) shouldBe Some(ctrlRoute.showExistingGroupClientsViewOnly(accessGroup.id, None).url)
 
       // check that filter values have been removed
-      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe None
-      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe None
+      sessionCacheService.get(CLIENT_SEARCH_INPUT).futureValue shouldBe None
+      sessionCacheService.get(CLIENT_FILTER_INPUT).futureValue shouldBe None
     }
 
   }
@@ -481,7 +488,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       // ? expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       // expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
 
       expectGetPageOfClients(taxGroup.arn)(displayClients.take(1))
 
@@ -518,7 +525,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       expectGetTaxGroupById(taxGroup.id, Some(taxGroup))
 
       // expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "nothing").futureValue // not matching any setup clients
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "nothing").futureValue // not matching any setup clients
       // expectPutSessionItem(CLIENT_SEARCH_INPUT, "nothing") //not matching any setup clients
 
       expectGetPageOfClients(taxGroup.arn)(Seq.empty[DisplayClient])
@@ -553,7 +560,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     "save search ONLY and redirect to 1st page when ‘filter’ is clicked" in {
       // given
       AssistantAuthOk()
-      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
+      sessionCacheService.put(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
 
       // expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
 
@@ -570,15 +577,15 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
 
       redirectLocation(result) shouldBe Some(ctrlRoute.showExistingTaxClientsViewOnly(taxGroup.id, None).url)
 
-      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
-      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT") // unchanged
+      sessionCacheService.get(CLIENT_SEARCH_INPUT).futureValue shouldBe Some("friendly1")
+      sessionCacheService.get(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT") // unchanged
     }
 
     "clear search ONLY from cache and redirect to base URL when ‘clear’ is clicked" in {
       // given
       AssistantAuthOk()
-      sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "friendly1").futureValue
-      sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
+      sessionCacheService.put(CLIENT_SEARCH_INPUT, "friendly1").futureValue
+      sessionCacheService.put(CLIENT_FILTER_INPUT, "HMRC-MTD-IT").futureValue
 
       // expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
 
@@ -596,8 +603,8 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
       redirectLocation(result) shouldBe Some(ctrlRoute.showExistingTaxClientsViewOnly(taxGroup.id, None).url)
 
       // check that filter values have been removed
-      sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe None
-      sessionCacheRepo.getFromSession(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT") // unchanged
+      sessionCacheService.get(CLIENT_SEARCH_INPUT).futureValue shouldBe None
+      sessionCacheService.get(CLIENT_FILTER_INPUT).futureValue shouldBe Some("HMRC-MTD-IT") // unchanged
     }
 
   }

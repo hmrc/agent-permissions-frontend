@@ -16,9 +16,13 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.json.{Format, Json, OFormat, __}
 import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, UserDetails}
+import uk.gov.hmrc.crypto.json.JsonEncryption.stringEncrypterDecrypter
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import utils.EncryptionUtil
+import utils.StringFormatFallbackSetup.stringFormatFallback
 
 import scala.util.hashing.MurmurHash3
 
@@ -41,6 +45,16 @@ case class TeamMember(
 }
 
 case object TeamMember {
+  def teamMemberDatabaseFormat(implicit crypto: Encrypter with Decrypter): Format[TeamMember] =
+    (
+      (__ \ "name").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
+        (__ \ "email").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
+        (__ \ "userId").formatNullable[String](stringFormatFallback(stringEncrypterDecrypter)) and
+        (__ \ "credentialRole").formatNullable[String] and
+        (__ \ "selected").format[Boolean] and
+        (__ \ "alreadyInGroup").format[Boolean]
+    )(TeamMember.apply, unlift(TeamMember.unapply))
+
   implicit val format: OFormat[TeamMember] = Json.format[TeamMember]
 
   def fromUserDetails(user: UserDetails): TeamMember =
@@ -73,6 +87,15 @@ case class DisplayClient(
 
 // There's a copy of this in agent-permissions BE
 case object DisplayClient {
+  def displayClientDatabaseFormat(implicit crypto: Encrypter with Decrypter): Format[DisplayClient] =
+    (
+      (__ \ "hmrcRef").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
+        (__ \ "name").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
+        (__ \ "taxService").format[String] and
+        (__ \ "enrolmentKeyExtra").format[String] and
+        (__ \ "selected").format[Boolean] and
+        (__ \ "alreadyInGroup").format[Boolean]
+    )(DisplayClient.apply, unlift(DisplayClient.unapply))
 
   implicit val format: OFormat[DisplayClient] = Json.format[DisplayClient]
 

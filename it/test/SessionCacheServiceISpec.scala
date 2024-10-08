@@ -30,15 +30,12 @@ import uk.gov.hmrc.mongo.CurrentTimestampSupport
 import uk.gov.hmrc.mongo.cache.CacheItem
 import uk.gov.hmrc.mongo.test.CleanMongoCollectionSupport
 
-import java.time.Instant
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongoCollectionSupport {
 
   private val sessionId: String = UUID.randomUUID.toString
-
-  private val instant: Instant = Instant.now()
 
   private implicit val request: FakeRequest[AnyContent] = FakeRequest().withSession(
     SessionKeys.sessionId -> sessionId
@@ -255,95 +252,6 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
         val extractedValue: JsValue = (jsonData \ GROUPS_FOR_UNASSIGNED_CLIENTS.unwrap).as[JsValue]
 
         extractedValue shouldBe expectedUnassignedClientsGroupsJson
-
-        await(sessionCacheService.get(GROUPS_FOR_UNASSIGNED_CLIENTS)) shouldBe Some(unassignedClientsGroups)
-      }
-    }
-
-    "fallback when retrieving unencrypted data" which {
-      Seq(
-        GROUP_NAME,
-        CLIENT_SEARCH_INPUT,
-        GROUP_SEARCH_INPUT,
-        TEAM_MEMBER_SEARCH_INPUT,
-        NAME_OF_GROUP_CREATED,
-        GROUP_RENAMED_FROM,
-        GROUP_DELETED_NAME,
-        CLIENT_REFERENCE
-      ).foreach { dataKey =>
-        s"is for ${dataKey.unwrap}" in {
-          val data: JsObject = Json.obj(
-            dataKey.unwrap -> "John Doe"
-          )
-
-          val cacheItem: CacheItem = CacheItem(sessionId, data, instant, instant)
-
-          await(sessionCacheRepository.cacheRepo.collection.insertOne(cacheItem).head())
-
-          await(sessionCacheService.get(dataKey)) shouldBe Some("John Doe")
-        }
-      }
-
-      s"is for ${CLIENT_TO_REMOVE.unwrap}" in {
-        val data: JsObject = Json.obj(
-          CLIENT_TO_REMOVE.unwrap -> Json.toJson(displayClient)
-        )
-
-        val cacheItem: CacheItem = CacheItem(sessionId, data, instant, instant)
-
-        await(sessionCacheRepository.cacheRepo.collection.insertOne(cacheItem).head())
-
-        await(sessionCacheService.get(CLIENT_TO_REMOVE)) shouldBe Some(displayClient)
-      }
-
-      Seq(SELECTED_CLIENTS, CURRENT_PAGE_CLIENTS).foreach { dataKey =>
-        s"is for ${dataKey.unwrap}" in {
-          val data: JsObject = Json.obj(
-            dataKey.unwrap -> Json.toJson(displayClients)
-          )
-
-          val cacheItem: CacheItem = CacheItem(sessionId, data, instant, instant)
-
-          await(sessionCacheRepository.cacheRepo.collection.insertOne(cacheItem).head())
-
-          await(sessionCacheService.get(dataKey)) shouldBe Some(displayClients)
-        }
-      }
-
-      s"is for ${MEMBER_TO_REMOVE.unwrap}" in {
-        val data: JsObject = Json.obj(
-          MEMBER_TO_REMOVE.unwrap -> Json.toJson(teamMember)
-        )
-
-        val cacheItem: CacheItem = CacheItem(sessionId, data, instant, instant)
-
-        await(sessionCacheRepository.cacheRepo.collection.insertOne(cacheItem).head())
-
-        await(sessionCacheService.get(MEMBER_TO_REMOVE)) shouldBe Some(teamMember)
-      }
-
-      Seq(CURRENT_PAGE_TEAM_MEMBERS, SELECTED_TEAM_MEMBERS).foreach { dataKey =>
-        s"is for ${dataKey.unwrap}" in {
-          val data: JsObject = Json.obj(
-            dataKey.unwrap -> Json.toJson(teamMembers)
-          )
-
-          val cacheItem: CacheItem = CacheItem(sessionId, data, instant, instant)
-
-          await(sessionCacheRepository.cacheRepo.collection.insertOne(cacheItem).head())
-
-          await(sessionCacheService.get(dataKey)) shouldBe Some(teamMembers)
-        }
-      }
-
-      s"is for ${GROUPS_FOR_UNASSIGNED_CLIENTS.unwrap}" in {
-        val data: JsObject = Json.obj(
-          GROUPS_FOR_UNASSIGNED_CLIENTS.unwrap -> Json.toJson(unassignedClientsGroups)
-        )
-
-        val cacheItem: CacheItem = CacheItem(sessionId, data, instant, instant)
-
-        await(sessionCacheRepository.cacheRepo.collection.insertOne(cacheItem).head())
 
         await(sessionCacheService.get(GROUPS_FOR_UNASSIGNED_CLIENTS)) shouldBe Some(unassignedClientsGroups)
       }

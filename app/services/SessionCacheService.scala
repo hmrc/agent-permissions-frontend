@@ -27,7 +27,6 @@ import repository.SessionCacheRepository
 import uk.gov.hmrc.crypto.json.JsonEncryption.stringEncrypterDecrypter
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import uk.gov.hmrc.mongo.cache.DataKey
-import utils.StringFormatFallbackSetup.stringFormatFallback
 
 import javax.inject.{Inject, Named, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -56,21 +55,21 @@ class SessionCacheServiceImpl @Inject() (sessionCacheRepository: SessionCacheRep
     )
 
   private val formatMappings: Map[DataKey[_], Format[_]] = Map(
-    GROUP_NAME                    -> stringFormatFallback(stringEncrypterDecrypter),
-    CLIENT_SEARCH_INPUT           -> stringFormatFallback(stringEncrypterDecrypter),
-    GROUP_SEARCH_INPUT            -> stringFormatFallback(stringEncrypterDecrypter),
-    TEAM_MEMBER_SEARCH_INPUT      -> stringFormatFallback(stringEncrypterDecrypter),
-    NAME_OF_GROUP_CREATED         -> stringFormatFallback(stringEncrypterDecrypter),
-    GROUP_RENAMED_FROM            -> stringFormatFallback(stringEncrypterDecrypter),
-    GROUP_DELETED_NAME            -> stringFormatFallback(stringEncrypterDecrypter),
-    CLIENT_REFERENCE              -> stringFormatFallback(stringEncrypterDecrypter),
+    GROUP_NAME                    -> stringEncrypterDecrypter,
+    CLIENT_SEARCH_INPUT           -> stringEncrypterDecrypter,
+    GROUP_SEARCH_INPUT            -> stringEncrypterDecrypter,
+    TEAM_MEMBER_SEARCH_INPUT      -> stringEncrypterDecrypter,
+    NAME_OF_GROUP_CREATED         -> stringEncrypterDecrypter,
+    GROUP_RENAMED_FROM            -> stringEncrypterDecrypter,
+    GROUP_DELETED_NAME            -> stringEncrypterDecrypter,
+    CLIENT_REFERENCE              -> stringEncrypterDecrypter,
     CLIENT_TO_REMOVE              -> displayClientDatabaseFormat,
     SELECTED_CLIENTS              -> seqFormat[DisplayClient](displayClientDatabaseFormat),
     CURRENT_PAGE_CLIENTS          -> seqFormat[DisplayClient](displayClientDatabaseFormat),
     MEMBER_TO_REMOVE              -> teamMemberDatabaseFormat,
     CURRENT_PAGE_TEAM_MEMBERS     -> seqFormat[TeamMember](teamMemberDatabaseFormat),
     SELECTED_TEAM_MEMBERS         -> seqFormat[TeamMember](teamMemberDatabaseFormat),
-    GROUPS_FOR_UNASSIGNED_CLIENTS -> seqFormat[String](stringFormatFallback(stringEncrypterDecrypter))
+    GROUPS_FOR_UNASSIGNED_CLIENTS -> seqFormat[String](stringEncrypterDecrypter)
   )
 
   def get[T](dataKey: DataKey[T])(implicit reads: Reads[T], request: Request[_]): Future[Option[T]] =

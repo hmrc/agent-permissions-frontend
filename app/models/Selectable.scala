@@ -22,7 +22,6 @@ import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, UserDetails}
 import uk.gov.hmrc.crypto.json.JsonEncryption.stringEncrypterDecrypter
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import utils.EncryptionUtil
-import utils.StringFormatFallbackSetup.stringFormatFallback
 
 import scala.util.hashing.MurmurHash3
 
@@ -47,9 +46,9 @@ case class TeamMember(
 case object TeamMember {
   def teamMemberDatabaseFormat(implicit crypto: Encrypter with Decrypter): Format[TeamMember] =
     (
-      (__ \ "name").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
-        (__ \ "email").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
-        (__ \ "userId").formatNullable[String](stringFormatFallback(stringEncrypterDecrypter)) and
+      (__ \ "name").format[String](stringEncrypterDecrypter) and
+        (__ \ "email").format[String](stringEncrypterDecrypter) and
+        (__ \ "userId").formatNullable[String](stringEncrypterDecrypter) and
         (__ \ "credentialRole").formatNullable[String] and
         (__ \ "selected").format[Boolean] and
         (__ \ "alreadyInGroup").format[Boolean]
@@ -89,8 +88,8 @@ case class DisplayClient(
 case object DisplayClient {
   def displayClientDatabaseFormat(implicit crypto: Encrypter with Decrypter): Format[DisplayClient] =
     (
-      (__ \ "hmrcRef").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
-        (__ \ "name").format[String](stringFormatFallback(stringEncrypterDecrypter)) and
+      (__ \ "hmrcRef").format[String](stringEncrypterDecrypter) and
+        (__ \ "name").format[String](stringEncrypterDecrypter) and
         (__ \ "taxService").format[String] and
         (__ \ "enrolmentKeyExtra").format[String] and
         (__ \ "selected").format[Boolean] and

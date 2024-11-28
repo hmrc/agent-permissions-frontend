@@ -53,7 +53,7 @@ class AddTeamMemberToGroupsController @Inject() (
           Ok(
             select_groups(
               membersGroups,
-              allGroups.diff(membersGroups),
+              allGroups.filterNot(group => membersGroups.exists(_.groupId == group.groupId)),
               tm,
               AddGroupsToClientForm.form()
             )
@@ -75,7 +75,7 @@ class AddTeamMemberToGroupsController @Inject() (
                 Ok(
                   select_groups(
                     membersGroups,
-                    allGroups.diff(membersGroups),
+                    allGroups.filterNot(group => membersGroups.exists(_.groupId == group.groupId)),
                     tm,
                     formErrors
                   )

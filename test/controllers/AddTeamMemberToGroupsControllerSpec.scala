@@ -97,12 +97,16 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   s"GET ${ctrlRoute.showSelectGroupsForTeamMember(teamMember.id).url}" should {
 
-    "render correctly the html" in {
+    "render correctly when the member is in some existing groups that share the same group ID" in {
       // given
-      // TODO update to mix of custom and tax group summaries
-      val groupSummaries = (1 to 5)
-        .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
-      val groupsAlreadyAssociatedToMember = groupSummaries.take(2)
+      val sharedGroupId = GroupId.random()
+      val groupSummaries = Seq(
+        GroupSummary(sharedGroupId, "Group ABC", Some(1), 4),
+        GroupSummary(GroupId.random(), "Group XYZ", Some(1), 4)
+      )
+      val groupsAlreadyAssociatedToMember = Seq(
+        GroupSummary(sharedGroupId, "Group ABC", None, 1)
+      )
 
       AuthOkWithTeamMember()
       expectDeleteSessionItem(GROUP_IDS_ADDED_TO)
@@ -117,8 +121,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .title() shouldBe "Which access groups would you like to add John Smith 1 to? - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
       html.select(Css.paragraphs).get(0).text() shouldBe "Team member is currently in these access groups:"
-      html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group 1"
-      html.select(Css.li("already-in-groups")).get(1).text() shouldBe "Group 2"
+      html.select(Css.li("already-in-groups")).get(0).text() shouldBe "Group ABC"
       val form = html.select(Css.form)
       form.attr("action").shouldBe(submitUrl)
 
@@ -126,12 +129,10 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       fieldset.select(Css.legend).text() shouldBe "Which access groups would you like to add John Smith 1 to?"
       fieldset.select("#groups-hint").text() shouldBe "Select all that apply"
       val checkboxes = fieldset.select(".govuk-checkboxes#groups input[name=groups[]]")
-      checkboxes.size() shouldBe 4
+      checkboxes.size() shouldBe 2
       val checkboxLabels = form.select("label.govuk-checkboxes__label")
-      checkboxLabels.get(0).text() shouldBe "Group 3"
-      checkboxLabels.get(1).text() shouldBe "Group 4"
-      checkboxLabels.get(2).text() shouldBe "Group 5"
-      checkboxLabels.get(3).text() shouldBe "No access groups"
+      checkboxLabels.get(0).text() shouldBe "Group XYZ"
+      checkboxLabels.get(1).text() shouldBe "No access groups"
       form.select("#__none__-item-hint").get(0).text() shouldBe "This will return you to the Manage account page"
       html.select(Css.linkStyledAsButton).text() shouldBe "Cancel"
       html.select(Css.linkStyledAsButton).hasClass("govuk-button--secondary")
@@ -147,7 +148,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
     }
 
-    "render correctly when member is not in any groups yet" in {
+    "render correctly when the member is not in any existing groups" in {
       // given
       val groupSummaries = (1 to 5)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))
@@ -175,6 +176,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       checkboxLabels.get(0).text() shouldBe "Group 1"
       checkboxLabels.get(1).text() shouldBe "Group 2"
       checkboxLabels.get(2).text() shouldBe "Group 3"
+      checkboxLabels.get(3).text() shouldBe "Group 4"
       checkboxLabels.get(4).text() shouldBe "Group 5"
       checkboxLabels.get(5).text() shouldBe "No access groups"
       form.select("#__none__-item-hint").get(0).text() shouldBe "This will return you to the Manage account page"
@@ -184,7 +186,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
       html.select(Css.submitButton).text() shouldBe "Save and continue"
     }
 
-    "render correctly when no available groups" in {
+    "render correctly when there are no available groups" in {
       // given
       val groupSummaries = (1 to 2)
         .map(i => GroupSummary(GroupId.random(), s"Group $i", Some(i * 3), i * 4))

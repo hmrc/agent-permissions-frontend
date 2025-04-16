@@ -43,11 +43,11 @@ object ViewUtils {
 
   def displayTaxServiceFromServiceKey(serviceKey: String)(implicit mgs: Messages): String =
     serviceKey match {
-      case "HMRC-MTD-IT"      => mgs("tax-service.mdt-it")
-      case "HMRC-MTD-VAT"     => mgs("tax-service.vat")
-      case "HMRC-CGT-PD"      => mgs("tax-service.cgt")
-      case "HMRC-PPT-ORG"     => mgs("tax-service.ppt")
-      case "HMRC-PILLAR2-ORG" => mgs("tax-service.pillar2")
+      case "HMRC-MTD-IT" | "HMRC-MTD-IT-SUPP" => mgs("tax-service.mdt-it")
+      case "HMRC-MTD-VAT"                     => mgs("tax-service.vat")
+      case "HMRC-CGT-PD"                      => mgs("tax-service.cgt")
+      case "HMRC-PPT-ORG"                     => mgs("tax-service.ppt")
+      case "HMRC-PILLAR2-ORG"                 => mgs("tax-service.pillar2")
       // TRUST not a service key but value for filter
       case s if s.contains("HMRC-TERS") || s == "TRUST" => mgs("tax-service.trusts")
       // We treat UK and NONUK variants as the same service

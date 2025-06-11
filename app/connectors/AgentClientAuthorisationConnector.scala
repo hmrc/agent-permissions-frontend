@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,24 @@ import play.api.Logging
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import utils.HttpAPIMonitor
 
+import java.net.URL
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AgentClientAuthorisationConnectorImpl])
 trait AgentClientAuthorisationConnector extends HttpAPIMonitor with Logging {
-  val http: HttpClient
+  val http: HttpClientV2
 
   def getSuspensionDetails()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SuspensionDetails]
 }
 
 @Singleton
-class AgentClientAuthorisationConnectorImpl @Inject() (val http: HttpClient)(implicit
+class AgentClientAuthorisationConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   val metrics: Metrics,
   appConfig: AppConfig,
   val ec: ExecutionContext
@@ -46,7 +48,8 @@ class AgentClientAuthorisationConnectorImpl @Inject() (val http: HttpClient)(imp
   def getSuspensionDetails()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SuspensionDetails] =
     monitor("ConsumerAPI-Get-AgencySuspensionDetails-GET") {
       http
-        .GET[HttpResponse](s"${appConfig.agentClientAuthBaseUrl}/agent-client-authorisation/agent/suspension-details")
+        .get(new URL(s"${appConfig.agentClientAuthBaseUrl}/agent-client-authorisation/agent/suspension-details"))
+        .execute[HttpResponse]
         .map(response =>
           response.status match {
             case OK         => Json.parse(response.body).as[SuspensionDetails]

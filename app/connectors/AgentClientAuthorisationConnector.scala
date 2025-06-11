@@ -23,11 +23,10 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import utils.HttpAPIMonitor
 
-import java.net.URL
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -48,7 +47,7 @@ class AgentClientAuthorisationConnectorImpl @Inject() (val http: HttpClientV2)(i
   def getSuspensionDetails()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SuspensionDetails] =
     monitor("ConsumerAPI-Get-AgencySuspensionDetails-GET") {
       http
-        .get(new URL(s"${appConfig.agentClientAuthBaseUrl}/agent-client-authorisation/agent/suspension-details"))
+        .get(url"${appConfig.agentClientAuthBaseUrl}/agent-client-authorisation/agent/suspension-details")
         .execute[HttpResponse]
         .map(response =>
           response.status match {

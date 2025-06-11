@@ -26,7 +26,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
 import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import utils.HttpAPIMonitor
 
@@ -69,7 +69,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
   private lazy val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 
   def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]] = {
-    val url: URL = new URL(s"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list")
+    val url: URL = url"$baseUrl/agent-user-client-details/arn/${arn.value}/client-list"
     monitor("ConsumedAPI-getClientList-GET") {
       http.get(url).execute[HttpResponse].map { response =>
         response.status match {
@@ -86,7 +86,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Option[Client]] = {
-    val url: URL = new URL(s"$baseUrl/agent-user-client-details/arn/${arn.value}/client/$enrolmentKey")
+    val url: URL = url"$baseUrl/agent-user-client-details/arn/${arn.value}/client/$enrolmentKey"
     monitor("ConsumedAPI-getClientList-GET") {
       http
         .get(url)
@@ -108,10 +108,8 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
   ): Future[PaginatedList[Client]] = {
     val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
     val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
-    val url: URL = new URL(
-      s"$baseUrl/agent-user-client-details/arn/${arn.value}/clients" +
-        s"?page=$page&pageSize=$pageSize$searchParam$filterParam"
-    )
+    val url: URL =
+      url"$baseUrl/agent-user-client-details/arn/${arn.value}/clients?page=$page&pageSize=$pageSize$searchParam$filterParam"
     monitor("ConsumedAPI-getClientList-GET") {
       http.get(url).execute[HttpResponse].map { response =>
         response.status match {
@@ -123,7 +121,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
   }
 
   override def getTeamMembers(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[UserDetails]] = {
-    val url: URL = new URL(s"$baseUrl/agent-user-client-details/arn/${arn.value}/team-members")
+    val url: URL = url"$baseUrl/agent-user-client-details/arn/${arn.value}/team-members"
     monitor("ConsumedAPI-team-members-GET") {
       http.get(url).execute[HttpResponse].map { response =>
         response.status match {
@@ -140,7 +138,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done] = {
-    val url: URL = new URL(s"$baseUrl/agent-user-client-details/arn/${arn.value}/update-friendly-name")
+    val url: URL = url"$baseUrl/agent-user-client-details/arn/${arn.value}/update-friendly-name"
 
     monitor("ConsumedAPI-update-friendly-name-PUT") {
       http
@@ -160,7 +158,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
   override def getAgencyDetails(
     arn: Arn
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgencyDetails]] = {
-    val url: URL = new URL(s"$baseUrl/agent-user-client-details/arn/${arn.value}/agency-details")
+    val url: URL = url"$baseUrl/agent-user-client-details/arn/${arn.value}/agency-details"
     monitor("ConsumedAPI-agency-details-GET") {
       http.get(url).execute[HttpResponse].map { response =>
         response.status match {

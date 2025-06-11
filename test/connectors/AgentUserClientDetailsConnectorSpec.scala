@@ -20,16 +20,14 @@ import com.google.inject.AbstractModule
 import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.TeamMember
 import org.apache.pekko.Done
-import play.api.http.Status.NO_CONTENT
 import play.api.Application
-import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, OK}
+import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
-
 import java.net.URL
 
 class AgentUserClientDetailsConnectorSpec
@@ -176,7 +174,7 @@ class AgentUserClientDetailsConnectorSpec
 
   "updateClientReference" should {
 
-    "return Future[Done] when response code is NO_CONTENT" in { // TODO: RESOLVE TEST
+    "return Future[Done] when response code is NO_CONTENT" in {
 
       val clientRequest = Client("HMRC-MTD-VAT~VRN~123456789", "new friendly name")
       val url: URL = url"http://localhost:9449/agent-user-client-details/arn/${arn.value}/update-friendly-name"
@@ -200,29 +198,5 @@ class AgentUserClientDetailsConnectorSpec
     }
 
   }
-
-//  "PATCH update Group" should {
-//
-//    "return Done when response code is OK" in {
-//
-//
-//    }
-//
-//    "throw exception when it fails" in {
-//
-//      val groupId = GroupId.random()
-//      val groupRequest = UpdateAccessGroupRequest(Some("name of group"))
-//      val url: URL = url"http://localhost:9447/agent-permissions/groups/$groupId"
-//      val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR, "")
-//      expectHttpClientPatch[UpdateAccessGroupRequest, HttpResponse](url, groupRequest, mockResponse)
-//
-//      // then
-//      val caught = intercept[UpstreamErrorResponse] {
-//        await(connector.updateGroup(groupId, groupRequest))
-//      }
-//      caught.statusCode shouldBe INTERNAL_SERVER_ERROR
-//    }
-//
-//  }
 
 }

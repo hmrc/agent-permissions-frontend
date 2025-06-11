@@ -16,7 +16,7 @@
 
 package helpers
 
-import connectors.AgentClientAuthorisationConnector
+import connectors.AgentAssuranceConnector
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
@@ -24,23 +24,23 @@ import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait AgentClientAuthorisationConnectorMocks extends AnyWordSpec with MockFactory {
+trait AgentAssuranceConnectorMocks extends AnyWordSpec with MockFactory {
 
   def expectGetSuspensionDetails(suspensionStatus: Boolean = false, regimes: Option[Set[String]] = None)(implicit
-    agentClientAuthConnector: AgentClientAuthorisationConnector
+    agentClientAuthConnector: AgentAssuranceConnector
   ): Unit =
     (agentClientAuthConnector
       .getSuspensionDetails()(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)
       .returning(Future successful SuspensionDetails(suspensionStatus, regimes))
 
-  def expectGetSuspensionDetailsNotFound(implicit agentClientAuthConnector: AgentClientAuthorisationConnector): Unit =
+  def expectGetSuspensionDetailsNotFound(implicit agentClientAuthConnector: AgentAssuranceConnector): Unit =
     (agentClientAuthConnector
       .getSuspensionDetails()(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)
       .throwing(SuspensionDetailsNotFound("No record found for this agent"))
 
-  def expectGetSuspensionDetailsError(implicit agentClientAuthConnector: AgentClientAuthorisationConnector): Unit =
+  def expectGetSuspensionDetailsError(implicit agentClientAuthConnector: AgentAssuranceConnector): Unit =
     (agentClientAuthConnector
       .getSuspensionDetails()(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)

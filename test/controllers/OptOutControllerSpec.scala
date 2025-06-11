@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector}
+import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import org.jsoup.Jsoup
@@ -34,8 +34,8 @@ class OptOutControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
-    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+    mock[AgentAssuranceConnector]
   implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit lazy val mockOptinService: OptinService = mock[OptinService]
 

@@ -41,7 +41,7 @@ trait AppConfig {
   def agentServicesAccountYourAssistantAccountUrl: String
   def agentPermissionsBaseUrl: String
   def agentUserClientDetailsBaseUrl: String
-  def agentClientAuthBaseUrl: String
+  def agentAssuranceBaseUrl: String
   def sessionCacheExpiryDuration: Duration
   def userTimeoutCountdown: Int
   def userTimeout: Int
@@ -74,7 +74,7 @@ class AppConfigImpl @Inject() (val servicesConfig: ServicesConfig, environment: 
     agentServicesAccountExternalUrl + agentServicesAccountYourAccountPath
   val agentPermissionsBaseUrl: String = servicesConfig.baseUrl("agent-permissions")
   val agentUserClientDetailsBaseUrl: String = servicesConfig.baseUrl("agent-user-client-details")
-  val agentClientAuthBaseUrl: String = servicesConfig.baseUrl("agent-client-authorisation")
+  val agentAssuranceBaseUrl: String = servicesConfig.baseUrl("agent-assurance")
 
   val sessionCacheExpiryDuration: Duration = servicesConfig.getDuration("mongodb.cache.expiry")
 

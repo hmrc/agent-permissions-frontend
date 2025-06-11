@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@
     customError: Option[String] = None,
     hasTimeout: Boolean = true,
     backLink: Option[BackLink] = None,
-    fullWidth: Boolean = false,
-)(mainContent: Html)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+    fullWidth: Boolean = false
+)(mainContent: Html)(implicit request: RequestHeader, msgs: Messages, appConfig: AppConfig)
 
 @gtmUrl = @{
     "https://www.googletagmanager.com/ns.html?id=GTM-P39VTVL"
@@ -50,9 +50,6 @@
 }
 
 @mainContentWithTechIssueHelper = {
-    @if(!appConfig.isTest) {
-        @gtmNoScript
-    }
     @summaryErrors(formErrors, customError)
 
     @if(request.flash.get("success").isDefined) {

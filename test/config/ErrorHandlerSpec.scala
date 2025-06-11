@@ -22,6 +22,8 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.FakeRequest
+import play.twirl.api.Html
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 
 class ErrorHandlerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
@@ -39,7 +41,7 @@ class ErrorHandlerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuit
 
   "standard error endpoint" should {
     "render HTML" in {
-      val html = handler.standardErrorTemplate("title", "heading", "message")(fakeRequest)
+      val html: Html = await(handler.standardErrorTemplate("title", "heading", "message")(fakeRequest))
       html.contentType shouldBe "text/html"
     }
   }

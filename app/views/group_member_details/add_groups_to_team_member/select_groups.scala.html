@@ -43,7 +43,7 @@
     @layout(
         title = withErrorPrefix(form.hasErrors, h1Text),
         fullWidth = true,
-        backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
+        backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
     ) {
 
     @if(form.errors && availableGroups.nonEmpty) {

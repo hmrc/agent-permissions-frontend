@@ -4,7 +4,7 @@ import CodeCoverageSettings.{settings}
 val appName = "agent-permissions-frontend"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.16"
 
 TwirlKeys.templateImports ++= Seq(
   "views.html.components._",

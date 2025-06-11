@@ -129,7 +129,7 @@ class GroupAction @Inject() (
       }
     }
 
-  @Deprecated // use withGroupTypeAndAuthorised for the new flow
+  @deprecated("use withGroupTypeAndAuthorised for the new flow", since = "Release: 0.198.0")
   def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])(implicit
     ec: ExecutionContext,
     hc: HeaderCarrier,

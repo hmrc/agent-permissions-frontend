@@ -16,6 +16,7 @@
 
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import uk.gov.hmrc.govukfrontend.views.html.components.{GovukSelect, Hint, Label, Select, SelectItem, Text}
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.FormGroup
 
 @this(govukSelect: GovukSelect)
 
@@ -52,6 +53,6 @@
             )
     ),
     classes = if(inputClass.isDefined) inputClass.get else "",
-    formGroupClasses = formGroupClasses.mkString(" "),
+    formGroup = FormGroup(classes = Some(formGroupClasses.mkString(" "))),
     attributes = selectAttribute,
 ).withFormField(field))

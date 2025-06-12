@@ -181,7 +181,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val urlQuery: String = lang.fold("")(x => s"?lang=$x")
-    val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/optin$urlQuery"
+    val url: URL = new URL(s"$agentPermissionsUrl/arn/${arn.value}/optin$urlQuery")
     monitor("ConsumedAPI-optin-POST") {
       http.post(url).execute[HttpResponse].map { response =>
         response.status match {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ class GroupAction @Inject() (
       }
     }
 
-  @Deprecated // use withGroupTypeAndAuthorised for the new flow
+  @deprecated("use withGroupTypeAndAuthorised for the new flow", since = "Release: 0.198.0")
   def withGroupNameForAuthorisedOptedAgent(body: (String, Arn) => Future[Result])(implicit
     ec: ExecutionContext,
     hc: HeaderCarrier,

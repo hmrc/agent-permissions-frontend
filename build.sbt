@@ -4,7 +4,7 @@ import CodeCoverageSettings.{settings}
 val appName = "agent-permissions-frontend"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.16"
 
 TwirlKeys.templateImports ++= Seq(
   "views.html.components._",
@@ -39,7 +39,6 @@ lazy val root = (project in file("."))
     Test / scalafmtOnCompile := true,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources"
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     Test / parallelExecution := false,
     settings
@@ -68,7 +67,6 @@ lazy val microservice = Project(appName, file("."))
   )
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)
-  .settings(resolvers ++= Seq(Resolver.jcenterRepo))
   .settings(CodeCoverageSettings.settings: _*)
   .settings(IntegrationTest / Keys.fork := false)
   .settings(IntegrationTest / parallelExecution := false)

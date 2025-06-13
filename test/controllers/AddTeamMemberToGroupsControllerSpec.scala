@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddOneTeamMemberToGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector}
+import connectors.{AddOneTeamMemberToGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import forms.AddGroupsToClientForm
 import helpers.{BaseSpec, Css}
@@ -38,8 +38,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
-    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+    mock[AgentAssuranceConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]

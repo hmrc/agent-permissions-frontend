@@ -17,7 +17,7 @@
 package controllers.actions
 
 import config.AppConfig
-import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector}
+import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
 import controllers._
 import play.api.libs.json.Reads
 import play.api.mvc.Results.{Forbidden, Redirect}
@@ -41,7 +41,7 @@ class AuthAction @Inject() (
   val env: Environment,
   val config: Configuration,
   agentPermissionsConnector: AgentPermissionsConnector,
-  agentClientAuthorisationConnector: AgentClientAuthorisationConnector,
+  agentAssuranceConnector: AgentAssuranceConnector,
   sessionCacheService: SessionCacheService
 ) extends AuthorisedFunctions with Logging {
 
@@ -147,7 +147,7 @@ class AuthAction @Inject() (
       case Some(status) if !status =>
         body(None)
       case _ =>
-        agentClientAuthorisationConnector
+        agentAssuranceConnector
           .getSuspensionDetails()
           .flatMap {
             case suspensionDetails: SuspensionDetails if !suspensionDetails.suspensionStatus =>

@@ -39,9 +39,9 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseSpec
-    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with AuthMocks
-    with AgentClientAuthorisationConnectorMocks with ScalaFutures with GroupServiceMocks with TaxGroupServiceMocks
-    with TeamMemberServiceMocks with ClientServiceMocks with SessionServiceMocks with SessionCacheOperationsMocks
+    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with AuthMocks with AgentAssuranceConnectorMocks
+    with ScalaFutures with GroupServiceMocks with TaxGroupServiceMocks with TeamMemberServiceMocks
+    with ClientServiceMocks with SessionServiceMocks with SessionCacheOperationsMocks
     with AgentPermissionsConnectorMocks with HttpClientMocks with OptInServiceMocks with CleanMongoCollectionSupport
     with AgentUserClientDetailsConnectorMocks with IntegrationPatience {
 

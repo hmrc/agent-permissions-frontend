@@ -33,7 +33,7 @@ class RootControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
   lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
@@ -47,7 +47,7 @@ class RootControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           mockSessionService
         )
       )

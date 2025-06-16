@@ -34,7 +34,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit lazy val mockOptinService: OptinService = mock[OptinService]
@@ -49,7 +49,7 @@ class OptOutControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           mockSessionCacheService
         )
       )

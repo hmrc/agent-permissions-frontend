@@ -42,7 +42,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionService: InMemorySessionCacheService =
@@ -63,7 +63,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           mockSessionService
         )
       )

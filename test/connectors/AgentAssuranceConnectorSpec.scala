@@ -18,14 +18,14 @@ package connectors
 
 import com.google.inject.AbstractModule
 import config.AppConfig
-import helpers.{AgentAssuranceConnectorMocks, BaseSpec, HttpClientMocksV2}
+import helpers.{AgentAssuranceConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 
-class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocksV2 with AgentAssuranceConnectorMocks {
+class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocks with AgentAssuranceConnectorMocks {
 
   implicit val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
   implicit val requestBuilder: RequestBuilder = mock[RequestBuilder]
@@ -54,31 +54,39 @@ class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocksV2 with A
                           |    ]
                           |}}""".stripMargin
 
-      mockHttpGet(url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks")
-      mockRequestBuilderExecute(HttpResponse.apply(200, jsonString))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(200, jsonString)
+      )
 
       connector.getSuspensionDetails().futureValue shouldBe suspendedDetails
     }
     "return SuspensionDetails when NO_CONTENT received" in {
       val suspensionDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = false, None)
 
-      mockHttpGet(url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks")
-      mockRequestBuilderExecute(HttpResponse.apply(204, s""" "" """))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(204, s""" "" """)
+      )
 
       connector.getSuspensionDetails().futureValue shouldBe suspensionDetails
     }
 
     "throw an SuspensionDetailsNotFound when NOT_FOUND received" in {
-      mockHttpGet(url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks")
-      mockRequestBuilderExecute(HttpResponse.apply(404, s""" "" """))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(404, s""" "" """)
+      )
 
       intercept[SuspensionDetailsNotFound] {
         await(connector.getSuspensionDetails())
       }
     }
     "throw an UpstreamErrorResponse when unexpected response" in {
-      mockHttpGet(url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks")
-      mockRequestBuilderExecute(HttpResponse.apply(500, s""" "" """))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(500, s""" "" """)
+      )
 
       intercept[UpstreamErrorResponse] {
         await(connector.getSuspensionDetails())

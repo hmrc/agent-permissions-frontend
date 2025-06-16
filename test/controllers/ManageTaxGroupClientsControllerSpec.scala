@@ -49,7 +49,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
@@ -84,7 +84,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           mockSessionCacheService
         )
       )

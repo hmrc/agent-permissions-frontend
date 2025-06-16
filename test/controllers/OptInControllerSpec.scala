@@ -41,7 +41,7 @@ class OptInControllerSpec extends BaseSpec {
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector =
     mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
@@ -59,7 +59,7 @@ class OptInControllerSpec extends BaseSpec {
             env,
             conf,
             mockAgentPermissionsConnector,
-            mockAgentClientAuthConnector,
+            mockAgentAssuranceConnector,
             mockSessionService
           )
         )

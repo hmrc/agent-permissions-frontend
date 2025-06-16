@@ -27,21 +27,21 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AgentAssuranceConnectorMocks extends AnyWordSpec with MockFactory {
 
   def expectGetSuspensionDetails(suspensionStatus: Boolean = false, regimes: Option[Set[String]] = None)(implicit
-    agentClientAuthConnector: AgentAssuranceConnector
+    agentAssuranceConnector: AgentAssuranceConnector
   ): Unit =
-    (agentClientAuthConnector
+    (agentAssuranceConnector
       .getSuspensionDetails()(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)
       .returning(Future successful SuspensionDetails(suspensionStatus, regimes))
 
-  def expectGetSuspensionDetailsNotFound(implicit agentClientAuthConnector: AgentAssuranceConnector): Unit =
-    (agentClientAuthConnector
+  def expectGetSuspensionDetailsNotFound(implicit agentAssuranceConnector: AgentAssuranceConnector): Unit =
+    (agentAssuranceConnector
       .getSuspensionDetails()(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)
       .throwing(SuspensionDetailsNotFound("No record found for this agent"))
 
-  def expectGetSuspensionDetailsError(implicit agentClientAuthConnector: AgentAssuranceConnector): Unit =
-    (agentClientAuthConnector
+  def expectGetSuspensionDetailsError(implicit agentAssuranceConnector: AgentAssuranceConnector): Unit =
+    (agentAssuranceConnector
       .getSuspensionDetails()(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))

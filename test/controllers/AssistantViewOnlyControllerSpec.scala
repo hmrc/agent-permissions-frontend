@@ -46,7 +46,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val clientService: ClientService = mock[ClientService]
@@ -72,7 +72,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
             env,
             conf,
             mockAgentPermissionsConnector,
-            mockAgentClientAuthConnector,
+            mockAgentAssuranceConnector,
             mockSessionCacheService
           )
         )

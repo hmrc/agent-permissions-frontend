@@ -33,7 +33,7 @@ class AuthActionSpec extends BaseSpec with AgentAssuranceConnectorMocks {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
 
@@ -41,7 +41,7 @@ class AuthActionSpec extends BaseSpec with AgentAssuranceConnectorMocks {
     override def configure(): Unit = {
       bind(classOf[AuthConnector]).toInstance(mockAuthConnector)
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
-      bind(classOf[AgentAssuranceConnector]).toInstance(mockAgentClientAuthConnector)
+      bind(classOf[AgentAssuranceConnector]).toInstance(mockAgentAssuranceConnector)
       bind(classOf[SessionCacheService]).toInstance(mockSessionService)
     }
   }

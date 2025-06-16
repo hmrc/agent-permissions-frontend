@@ -40,7 +40,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentAssuranceConnector =
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
     mock[AgentAssuranceConnector]
   implicit lazy val groupService: GroupService = mock[GroupService]
   implicit lazy val teamMemberService: TeamMemberService = mock[TeamMemberService]
@@ -55,7 +55,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
           env,
           conf,
           agentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           sessionCacheService
         )
       )

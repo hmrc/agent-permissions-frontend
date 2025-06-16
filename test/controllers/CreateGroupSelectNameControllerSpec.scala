@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector}
+import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
 import org.apache.commons.lang3.RandomStringUtils
@@ -36,8 +36,8 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
-    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
+    mock[AgentAssuranceConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   private val groupName = "XYZ"
@@ -51,7 +51,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           mockSessionCacheService
         )
       )

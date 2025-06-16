@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,19 @@
 package connectors
 
 import com.google.inject.AbstractModule
-import helpers.{AgentClientAuthorisationConnectorMocks, BaseSpec, HttpClientMocks}
+import config.AppConfig
+import helpers.{AgentAssuranceConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
-import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 
-class AgentClientAuthorisationConnectorSpec
-    extends BaseSpec with HttpClientMocks with AgentClientAuthorisationConnectorMocks {
+class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocks with AgentAssuranceConnectorMocks {
 
   implicit val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
+  implicit val requestBuilder: RequestBuilder = mock[RequestBuilder]
+  val appConfig = fakeApplication.injector.instanceOf[AppConfig]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -37,41 +39,54 @@ class AgentClientAuthorisationConnectorSpec
 
   override implicit lazy val fakeApplication: Application = appBuilder.build()
 
-  val connector: AgentClientAuthorisationConnector =
-    fakeApplication.injector.instanceOf[AgentClientAuthorisationConnectorImpl]
+  val connector: AgentAssuranceConnector =
+    fakeApplication.injector.instanceOf[AgentAssuranceConnector]
 
   "getSuspensionDetails" should {
     "return SuspensionDetails when OK with valid JSON response received" in {
       val suspendedDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = true, Some(Set("ALL")))
 
       val jsonString = s"""{
+                          |   "suspensionDetails":{
                           |    "suspensionStatus": true,
                           |    "regimes": [
                           |        "ALL"
                           |    ]
-                          |}""".stripMargin
+                          |}}""".stripMargin
 
-      expectHttpClientGet[HttpResponse](HttpResponse.apply(200, jsonString))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(200, jsonString)
+      )
 
       connector.getSuspensionDetails().futureValue shouldBe suspendedDetails
     }
     "return SuspensionDetails when NO_CONTENT received" in {
       val suspensionDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = false, None)
 
-      expectHttpClientGet[HttpResponse](HttpResponse.apply(204, s""" "" """))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(204, s""" "" """)
+      )
 
       connector.getSuspensionDetails().futureValue shouldBe suspensionDetails
     }
 
     "throw an SuspensionDetailsNotFound when NOT_FOUND received" in {
-      expectHttpClientGet[HttpResponse](HttpResponse.apply(404, s""" "" """))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(404, s""" "" """)
+      )
 
       intercept[SuspensionDetailsNotFound] {
         await(connector.getSuspensionDetails())
       }
     }
     "throw an UpstreamErrorResponse when unexpected response" in {
-      expectHttpClientGet[HttpResponse](HttpResponse.apply(503, s""" "" """))
+      expectHttpClientGetWithUrl(
+        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+        HttpResponse.apply(500, s""" "" """)
+      )
 
       intercept[UpstreamErrorResponse] {
         await(connector.getSuspensionDetails())

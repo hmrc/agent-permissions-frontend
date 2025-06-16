@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.CUSTOM
 import controllers.actions.AuthAction
 import helpers.Css._
@@ -45,8 +45,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
-    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
+    mock[AgentAssuranceConnector]
   implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
@@ -75,7 +75,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           mockSessionCacheService
         )
       )

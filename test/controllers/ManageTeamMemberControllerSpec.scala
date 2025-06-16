@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.{CUSTOM, TAX_SERVICE}
 import controllers.actions.AuthAction
 import helpers.Css.{H1, checkYourAnswersListRows}
@@ -40,8 +40,8 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
-    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
+    mock[AgentAssuranceConnector]
   implicit lazy val groupService: GroupService = mock[GroupService]
   implicit lazy val teamMemberService: TeamMemberService = mock[TeamMemberService]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
@@ -55,7 +55,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
           env,
           conf,
           agentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           sessionCacheService
         )
       )

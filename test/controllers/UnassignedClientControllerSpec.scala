@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.{AuthAction, SessionAction}
 import forms.SelectGroupsForm
 import helpers.Css._
@@ -42,8 +42,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
-    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
+    mock[AgentAssuranceConnector]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionService: InMemorySessionCacheService =
     new InMemorySessionCacheService(Map("optinStatus" -> OptedInReady))
@@ -63,7 +63,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           mockSessionService
         )
       )

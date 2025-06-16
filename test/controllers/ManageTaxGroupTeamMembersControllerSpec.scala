@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToTaxServiceGroupRequest, AgentClientAuthorisationConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToTaxServiceGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.TAX_SERVICE
 import controllers.actions.AuthAction
 import helpers.Css._
@@ -45,8 +45,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentClientAuthConnector: AgentClientAuthorisationConnector =
-    mock[AgentClientAuthorisationConnector]
+  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
+    mock[AgentAssuranceConnector]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
@@ -79,7 +79,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
           env,
           conf,
           agentPermissionsConnector,
-          mockAgentClientAuthConnector,
+          mockAgentAssuranceConnector,
           sessionCacheService
         )
       )

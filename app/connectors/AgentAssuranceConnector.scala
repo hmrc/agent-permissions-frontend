@@ -17,10 +17,9 @@
 package connectors
 
 import config.AppConfig
-import play.api.http.Status.NOT_FOUND
-import play.api.http.Status.NO_CONTENT
 import play.api.http.Status.OK
-import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
+import play.api.libs.json.JsDefined
+import uk.gov.hmrc.agentmtdidentifiers.model.SuspensionDetails
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
@@ -40,9 +39,11 @@ class AgentAssuranceConnector @Inject() (http: HttpClientV2)(implicit
     http.get(url).execute[HttpResponse].map { response =>
       timer.time().stop()
       response.status match {
-        case OK         => (response.json \ "suspensionDetails").as[SuspensionDetails]
-        case NO_CONTENT => SuspensionDetails(suspensionStatus = false, None)
-        case NOT_FOUND  => throw SuspensionDetailsNotFound("No record found for this agent")
+        case OK =>
+          response.json \ "suspensionDetails" match {
+            case JsDefined(json) => json.as[SuspensionDetails]
+            case _               => SuspensionDetails(suspensionStatus = false, None)
+          }
         case _ =>
           throw UpstreamErrorResponse(s"Error ${response.status} unable to get suspension details", response.status)
       }

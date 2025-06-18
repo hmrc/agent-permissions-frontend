@@ -21,7 +21,7 @@ import config.AppConfig
 import helpers.{AgentAssuranceConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{SuspensionDetails, SuspensionDetailsNotFound}
+import uk.gov.hmrc.agentmtdidentifiers.model.SuspensionDetails
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 
@@ -29,7 +29,7 @@ class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocks with Age
 
   implicit val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
   implicit val requestBuilder: RequestBuilder = mock[RequestBuilder]
-  val appConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -43,45 +43,43 @@ class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocks with Age
     fakeApplication.injector.instanceOf[AgentAssuranceConnector]
 
   "getSuspensionDetails" should {
-    "return SuspensionDetails when OK with valid JSON response received" in {
-      val suspendedDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = true, Some(Set("ALL")))
 
-      val jsonString = s"""{
-                          |   "suspensionDetails":{
-                          |    "suspensionStatus": true,
-                          |    "regimes": [
-                          |        "ALL"
-                          |    ]
-                          |}}""".stripMargin
+    "return SuspensionDetails" when {
 
-      expectHttpClientGetWithUrl(
-        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
-        HttpResponse.apply(200, jsonString)
-      )
+      "the response status is 200 and the suspensionDetails field is present" in {
+        val suspendedDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = true, Some(Set("ALL")))
 
-      connector.getSuspensionDetails().futureValue shouldBe suspendedDetails
-    }
-    "return SuspensionDetails when NO_CONTENT received" in {
-      val suspensionDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = false, None)
+        val jsonString =
+          s"""{
+             |   "suspensionDetails":{
+             |    "suspensionStatus": true,
+             |    "regimes": [
+             |        "ALL"
+             |    ]
+             |}}""".stripMargin
 
-      expectHttpClientGetWithUrl(
-        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
-        HttpResponse.apply(204, s""" "" """)
-      )
+        expectHttpClientGetWithUrl(
+          url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+          HttpResponse.apply(200, jsonString)
+        )
 
-      connector.getSuspensionDetails().futureValue shouldBe suspensionDetails
-    }
+        connector.getSuspensionDetails().futureValue shouldBe suspendedDetails
+      }
 
-    "throw an SuspensionDetailsNotFound when NOT_FOUND received" in {
-      expectHttpClientGetWithUrl(
-        url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
-        HttpResponse.apply(404, s""" "" """)
-      )
+      "the response status is 200 and the suspensionDetails field is not present" in {
+        val suspensionDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = false, None)
 
-      intercept[SuspensionDetailsNotFound] {
-        await(connector.getSuspensionDetails())
+        val jsonString = s"""{"abc": "xyz"}"""
+
+        expectHttpClientGetWithUrl(
+          url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+          HttpResponse.apply(200, jsonString)
+        )
+
+        connector.getSuspensionDetails().futureValue shouldBe suspensionDetails
       }
     }
+
     "throw an UpstreamErrorResponse when unexpected response" in {
       expectHttpClientGetWithUrl(
         url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",

@@ -122,14 +122,8 @@ class AgentUserClientDetailsConnectorSpec
         currentPageSize = 2
       )
       val paginatedList = PaginatedList[Client](pageContent = clients, paginationMetaData = meta)
-      val params = List(
-        "page"     -> 1,
-        "pageSize" -> 20,
-        "search"   -> None,
-        "filter"   -> Some("HMRC-MTD-IT")
-      )
       val expectedUrl =
-        url"${appConfig.agentUserClientDetailsBaseUrl}/agent-user-client-details/arn/${arn.value}/clients?$params"
+        url"${appConfig.agentUserClientDetailsBaseUrl}/agent-user-client-details/arn/${arn.value}/clients?page=1&pageSize=20&filter=HMRC-MTD-IT"
       val mockResponse = HttpResponse.apply(OK, Json.toJson(paginatedList).toString())
 
       expectHttpClientGetWithUrl[HttpResponse](expectedUrl, mockResponse)

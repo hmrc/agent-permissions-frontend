@@ -107,10 +107,10 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
     ec: ExecutionContext
   ): Future[PaginatedList[Client]] = {
     val params = List(
-      "page" -> page,
+      "page"     -> page,
       "pageSize" -> pageSize,
-      "search" -> search,
-      "filter" -> filter
+      "search"   -> search,
+      "filter"   -> filter
     )
     val url: URL =
       url"$baseUrl/agent-user-client-details/arn/${arn.value}/clients?$params"

@@ -106,10 +106,14 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[Client]] = {
-    val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
-    val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
+    val params = List(
+      "page" -> page,
+      "pageSize" -> pageSize,
+      "search" -> search,
+      "filter" -> filter
+    )
     val url: URL =
-      url"$baseUrl/agent-user-client-details/arn/${arn.value}/clients?page=$page&pageSize=$pageSize$searchParam$filterParam"
+      url"$baseUrl/agent-user-client-details/arn/${arn.value}/clients?$params"
     monitor("ConsumedAPI-getClientList-GET") {
       http.get(url).execute[HttpResponse].map { response =>
         response.status match {

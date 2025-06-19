@@ -17,6 +17,7 @@
 package connectors
 
 import com.google.inject.AbstractModule
+import config.AppConfig
 import helpers.{AgentUserClientDetailsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.TeamMember
 import org.apache.pekko.Done
@@ -28,6 +29,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
+
 import java.net.URL
 
 class AgentUserClientDetailsConnectorSpec
@@ -47,6 +49,8 @@ class AgentUserClientDetailsConnectorSpec
 
   val connector: AgentUserClientDetailsConnector =
     fakeApplication.injector.instanceOf[AgentUserClientDetailsConnectorImpl]
+
+  val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
 
   private val expectedClient: Client = Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Rapunzel")
   "get client" should {
@@ -118,10 +122,12 @@ class AgentUserClientDetailsConnectorSpec
         currentPageSize = 2
       )
       val paginatedList = PaginatedList[Client](pageContent = clients, paginationMetaData = meta)
+      val expectedUrl =
+        url"${appConfig.agentUserClientDetailsBaseUrl}/agent-user-client-details/arn/${arn.value}/clients?page=1&pageSize=20&filter=HMRC-MTD-IT"
+      val mockResponse = HttpResponse.apply(OK, Json.toJson(paginatedList).toString())
 
-      expectHttpClientGet[HttpResponse](HttpResponse.apply(OK, Json.toJson(paginatedList).toString()))
-
-      connector.getPaginatedClients(arn)(1, 20).futureValue shouldBe paginatedList
+      expectHttpClientGetWithUrl[HttpResponse](expectedUrl, mockResponse)
+      connector.getPaginatedClients(arn)(1, 20, None, Some("HMRC-MTD-IT")).futureValue shouldBe paginatedList
     }
 
     "throw error when status response is 5xx" in {

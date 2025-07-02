@@ -49,9 +49,9 @@
         Seq(
             Html(
                 checkbox(
-                    name = Some("members[]"),
-                    id = Some(s"add-member-$idx"),
-                    value = Some(member.id),
+                    name = "members[]",
+                    id = s"add-member-$idx",
+                    value = member.id,
                     label = msgs("group.members.list.table.checkbox.label", member.name, member.email),
                     checked = member.selected
                 ).toString

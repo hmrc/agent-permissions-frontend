@@ -17,23 +17,25 @@
 @this()
 
 @(
-    name: Option[String] = None,
-    value: Option[String] = None,
-    id: Option[String] = None,
-    label: String = "",
+    name: String,
+    value: String,
+    id: String,
+    label: String,
     checked: Boolean = false
 )(implicit msgs: Messages)
 
 
 <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
     <div class="govuk-checkboxes__item">
-        <input class="govuk-checkboxes__input"
+        <input
+            class="govuk-checkboxes__input"
             type="checkbox"
-            @name.map(n => s"name=${n}")
-            @id.map(id => s"id=${id}")
-            @value.map(n => s"value=${n}")
-            @{if(checked)"checked"}>
-        <label class="govuk-label govuk-checkboxes__label" @id.map(id => s"for=${id}")>
+            name="@{name}"
+            id="@{id}"
+            value="@{value}"
+            @{if(checked)" checked"}
+        >
+        <label class="govuk-label govuk-checkboxes__label" for="@{id}">
            <span class="govuk-visually-hidden">@label</span>
         </label>
     </div>

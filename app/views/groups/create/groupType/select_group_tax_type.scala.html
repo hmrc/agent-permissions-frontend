@@ -38,6 +38,11 @@
 ) {
     @h1("group.tax-service.h1")
 
+    @inset_text(
+        key = p("group.tax-service.select.inset.p1").toString + p("group.tax-service.select.inset.p2").toString,
+        id = Some("tsg-inset")
+    )
+
     @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitSelectTaxServiceGroupType) {
 
         @input_select(
@@ -45,11 +50,6 @@
             label = msgs("group.tax-service.select.label"),
             emptyOptionText = msgs("group.tax-service.select.label.empty-option"),
             options = getFiltersTaxServiceListWithClientCount(clientCountByTaxService)
-        )
-
-        @inset_text(
-            key = p("group.tax-service.select.inset.p1").toString + p("group.tax-service.select.inset.p2").toString,
-            id = Some("tsg-inset")
         )
 
         @submit_button("save.and.continue.button")

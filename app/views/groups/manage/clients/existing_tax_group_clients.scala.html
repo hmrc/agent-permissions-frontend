@@ -26,7 +26,6 @@
     layout: main_layout,
     p: p, h1: h1, h2: h2, a: a, span: span,
     caption: caption, table: table,
-    govukSkipLink: GovukSkipLink,
     link_as_button: link_as_button,
     submit_button: submit_button,
     textbox: textbox,
@@ -79,11 +78,6 @@
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
         @h1("group.existing.clients.h1")
     </div>
-    @* TODO use a partial *@
-    @govukSkipLink(SkipLink(
-        href = "#clients",
-        content = Text(msgs("common.skip-to-clients"))
-    ))
 
     @inset_text(msgs("tax-group.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))
 

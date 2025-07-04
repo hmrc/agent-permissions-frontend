@@ -34,7 +34,6 @@
         input_select: input_select,
         checkbox: checkbox,
         summaryErrors: SummaryErrors,
-        govukSkipLink: GovukSkipLink,
         formWithCSRF: FormWithCSRF
 )
 
@@ -75,8 +74,6 @@
     @* Values used by JS selected client counter to enable counting selections on other pages. *@
 @totalResults = @{paginationMetaData.fold(teamMembers.length)(_.totalSize)}
 @totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
-
-@govukSkipLink(SkipLink(href = "#teamMembers", content = Text(msgs("common.skip-to-team-members"))))
 
 @formWithCSRF(action = formAction) {
 

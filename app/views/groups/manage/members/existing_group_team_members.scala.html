@@ -24,7 +24,6 @@
 @this(
     layout: main_layout,table: table,
     p: p, h1: h1, h2: h2, a: a, caption: caption,
-    govukSkipLink: GovukSkipLink,
     link_as_button: link_as_button,
     submit_button: submit_button,
     textbox: textbox, checkbox: checkbox,
@@ -48,13 +47,6 @@
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(msgs("tax-group.manage.team-members.h1"))
     </div>
-
-    @govukSkipLink(
-        SkipLink(
-            href = "#members",
-            content = Text(msgs("common.skip-to-team-members"))
-        )
-    )
 
     @if(paginatedMembers.pageContent.nonEmpty) {
         @existing_members_table_filter_form(

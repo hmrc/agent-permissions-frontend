@@ -24,7 +24,6 @@
         p: p, h1: h1, a: a, span: span,
         table: table, caption:caption,
         summaryErrors: SummaryErrors,
-        govukSkipLink: GovukSkipLink,
         details_team_members_table_filter_form: details_team_members_table_filter_form
 )
 
@@ -47,7 +46,6 @@
 
     <div class="govuk-!-width-two-thirds">
         @h1("group.manage.members.h1")
-        @govukSkipLink(SkipLink(href = "#members", content = Text(msgs("common.skip-to-team-members"))))
         @p(html = Some(Html(msgs("group.manage.members.p", "/tax-and-scheme-management/users?origin=Agent"))))
     </div>
 

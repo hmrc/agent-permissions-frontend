@@ -25,7 +25,7 @@
 @import views.html.partials.search_and_filter
 
 @this(
-    layout: main_layout, govukSkipLink: GovukSkipLink, govukTag : GovukTag,
+    layout: main_layout, govukTag : GovukTag,
     p: p, h1: h1, h2: h2, h3: h3, a: a, span: span,
     table: table, textbox: textbox, summary_list: summary_list,
     a_button: link_as_button, search_and_filter: search_and_filter,
@@ -58,15 +58,6 @@
 
     <div class="govuk-!-width-two-thirds">
     @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id = Some("info"))
-    </div>
-
-    <div class="govuk-!-margin-bottom-5">
-        @govukSkipLink(
-            SkipLink(
-                href = "#results",
-                content = Text(msgs("common.skip-to-results"))
-            )
-        )
     </div>
 
     @formWithCSRF(routes.ManageGroupController.submitManageGroups) {

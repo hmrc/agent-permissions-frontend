@@ -23,7 +23,7 @@
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
-    caption: caption, govukSkipLink: GovukSkipLink,
+    caption: caption,
     table: table, search_and_filter: search_and_filter,
     textbox: textbox, input_select: input_select,
     formWithCSRF: FormWithCSRF,
@@ -56,11 +56,6 @@
         ))
     }
 }
-
-@govukSkipLink(SkipLink(
-    href = "#clients",
-    content = Text(msgs("common.skip-to-clients"))
-))
 
 @formWithCSRF(action = formAction) {
 

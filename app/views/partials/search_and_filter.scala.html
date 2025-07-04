@@ -15,8 +15,13 @@
  *@
 
 @import config.AppConfig
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 
-@this(filter_buttons: filter_buttons, textbox: textbox, input_select: input_select)
+@this(
+        govukButton: GovukButton,
+        govukInput: GovukInput,
+        govukSelect: GovukSelect
+)
 
 @(
     form: Form[_],
@@ -26,44 +31,64 @@
     emptyFilterOptionKey: String  = "client-filter.select.label.empty-option"
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@searchGridClass = @{if(withFilter) "govuk-grid-column-one-third" else "govuk-grid-column-one-half"}
-@paddingTopType = @{if(withFilter && msgs(searchLabelKey).length > 38) "pad-top-2" else "pad-top-1" }
-
 @applyButtonKey = @{if (withFilter) "filter.apply" else "filter.apply.singular" }
 @clearButtonKey = @{if (withFilter) "filter.clear" else "filter.clear.singular" }
 
-<div class="govuk-grid-row" role="search" id="search-filter-wrapper">
+@searchInput = {
+        <div id="search-box-wrapper">
+            @govukInput(Input(
+                label = Label(
+                    classes = "govuk-label--s",
+                    content = Text(msgs(searchLabelKey))
+                ),
+                classes = "govuk-input--width-20"
+            ).withFormField(form("search")))
+        </div>
+}
 
-    @if(withFilter){
-    <fieldset class="govuk-fieldset" id="search-and-filter">
-        <legend class="govuk-fieldset__legend govuk-visually-hidden">
-            @msgs("filter.legend")
-        </legend>
+<div role="search" id="search-filter-wrapper">
+
+    @if(!withFilter) {
+        @searchInput
+    } else {
+        <fieldset class="govuk-fieldset" id="search-and-filter">
+            <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                @msgs("filter.legend")
+            </legend>
+            @searchInput
+            <div id="filter-box-wrapper">
+                @govukSelect(Select(
+                    items = Seq(SelectItem(value = Some(""), text = msgs(emptyFilterOptionKey))) ++
+                            getFiltersByTaxService().map(option =>
+                                SelectItem(
+                                    value = Some(option._1),
+                                    text = option._2,
+                                    selected = form("filter").value.contains(option._1),
+                                    attributes = Map("id" -> s"filter-${option._1.filterNot(_.isWhitespace)}")
+                                )
+                            ),
+                    label = Label(
+                        content = Text(msgs(filterLabelKey))
+                    )
+                ).withFormField(form("filter")))
+            </div>
+        </fieldset>
     }
 
-        <div class="@searchGridClass" id="search-box-wrapper">
-        @textbox(
-            field = form("search"),
-            label = msgs(searchLabelKey),
-            labelClasses = "govuk-label--s",
-            classes = if(withFilter)"govuk-input--width-20" else "govuk-input--width-30"
-        )
+    <div id="button-wrapper">
+        <div class="govuk-button-group">
+            @govukButton(Button(
+                attributes = Map("id" -> "filter-button"),
+                classes = "govuk-button--secondary",
+                content = Text(msgs(applyButtonKey)),
+                value = Some("filter")
+            ))
+            @govukButton(Button(
+                attributes = Map("id" -> "clear-button"),
+                classes = "govuk-button--secondary",
+                content = Text(msgs(clearButtonKey)),
+                value = Some("clear")
+            ))
         </div>
-
-        @if(withFilter){
-            <div class="govuk-grid-column-one-third @paddingTopType" id="filter-box-wrapper">
-            @input_select(
-                field = form("filter"),
-                label = msgs(filterLabelKey),
-                emptyOptionText = msgs(emptyFilterOptionKey),
-                options = getFiltersByTaxService()
-            )
-            </div>
-        }
-
-        <div class="govuk-grid-column-one-third @paddingTopType" id="button-wrapper">
-            @filter_buttons(additionalClasses = "", applyKey = Some(applyButtonKey), clearKey = Some(clearButtonKey))
-        </div>
-
-    @if(withFilter){ </fieldset> }
+    </div>
 </div>

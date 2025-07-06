@@ -82,6 +82,7 @@ common.update=Diweddaru
 common.what.happens.next=Yr hyn sy’n digwydd nesaf
 common.yes.label=Iawn
 common.or=or
+common.selectAll=Dewiswch yr holl ganlyniadau ar y dudalen hon
 details.clients=Manylion cleient
 details.link-hidden= ar gyfer {0}
 details.no-data=Nid oeddem yn gallu adalw hyn

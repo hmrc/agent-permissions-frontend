@@ -14,23 +14,21 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.govukfrontend.views.html.components.{Button, GovukButton, Text}
-
-@this(button: GovukButton)
+@this()
 
 @(
     key: String = "common.continue",
-    name: String = "submit",
     value: String = "continue",
     classes: String = "submit-as-link",
     id: Option[String] = None,
     attrs: Map[String, String] = Map.empty,
 )(implicit msgs: Messages)
 
-
-<button type="submit"
-    name="@name"
+<button
+    type="submit"
     class="@classes"
     value="@value"
-    @id.map(i => { s"id =${i}"})
-    @attrs.map(a => a._1 + "=" + a._2)>@Html(msgs(key))</button>
+    @id.map(i => { s"""id ="${i}""""})
+    @attrs.map(a => s"""${a._1}="${a._2}"""")>
+    @msgs(key)
+</button>

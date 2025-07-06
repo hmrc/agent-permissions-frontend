@@ -82,6 +82,7 @@ common.update=Update
 common.what.happens.next=What happens next
 common.yes.label=Yes
 common.or=or
+common.selectAll=Select all results on this page
 details.clients=Client details
 details.link-hidden= for {0}
 details.no-data=We could not retrieve this

@@ -79,12 +79,14 @@
         <div class="govuk-button-group">
             @govukButton(Button(
                 attributes = Map("id" -> "filter-button"),
+                name = Some("submit"),
                 classes = "govuk-button--secondary",
                 content = Text(msgs(applyButtonKey)),
                 value = Some("filter")
             ))
             @govukButton(Button(
                 attributes = Map("id" -> "clear-button"),
+                name = Some("submit"),
                 classes = "govuk-button--secondary",
                 content = Text(msgs(clearButtonKey)),
                 value = Some("clear")

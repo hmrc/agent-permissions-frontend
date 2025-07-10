@@ -26,9 +26,11 @@
 
 <button
     type="submit"
+    name="submit"
     class="@classes"
     value="@value"
     @id.map(i => { s"""id ="${i}""""})
-    @attrs.map(a => s"""${a._1}="${a._2}"""")>
-    @msgs(key)
+    @attrs.map(a => s"""${a._1}="${a._2}"""")
+>
+  @msgs(key)
 </button>

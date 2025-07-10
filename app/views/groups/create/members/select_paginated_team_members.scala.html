@@ -44,7 +44,7 @@
 }
 
 @pageTitle = @{
-    withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"select.members.list.h1", groupName), None, form("search").value)
+    withSearchAndErrorPrefix(form.errors.nonEmpty, msgs(s"select.members.list.h1", groupName), None, form("search").value)
 }
 
 @layout(

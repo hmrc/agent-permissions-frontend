@@ -1,8 +1,11 @@
 @import "lib/govuk-frontend/dist/govuk/base";
-@import "moj-frontend.min.css";
 @import "post-pagination";
 @import "search-pagination";
 @import "search-and-filter";
+
+body:not(.js-enabled) .js-only {
+  display: none;
+}
 
 .govuk-back-link {
   margin: 0 !important;
@@ -70,9 +73,7 @@ div.scrollable-table-container {
 }
 
 nav#pagination-nav {
-  .govuk-pagination__item, .govuk-pagination__next, .govuk-pagination__prev {
-    padding: 10px !important;
-  }
+
   .govuk-pagination__next {
     padding-right: 0 !important;
   }

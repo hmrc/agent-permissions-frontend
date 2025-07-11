@@ -34,7 +34,8 @@
         input_select: input_select,
         checkbox: checkbox,
         summaryErrors: SummaryErrors,
-        formWithCSRF: FormWithCSRF
+        formWithCSRF: FormWithCSRF,
+        selectAllCheckbox: select_all_checkboxes
 )
 
 @(
@@ -74,51 +75,49 @@
     @* Values used by JS selected client counter to enable counting selections on other pages. *@
 @totalResults = @{paginationMetaData.fold(teamMembers.length)(_.totalSize)}
 @totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
+@formGroupClasses = @{if(form.hasGlobalErrors) "govuk-form-group govuk-form-group--error" else "govuk-form-group"}
 
 @formWithCSRF(action = formAction) {
 
     @search_and_filter(form, withFilter =false, searchLabelKey = "group.members.list.filter.label")
     <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
     @if(teamMembers.nonEmpty) {
+        <div class="@formGroupClasses">
+            <fieldset class="govuk-fieldset" role="group">
+                <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                  @msgs("select.members.list.h1")
+                </legend>
+                @if(form.hasGlobalErrors) {
+                    <p id="teamMembers-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-members.empty")
+                    </p>
+                }
 
-        @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-                <p id="teamMembers-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-members.empty")
-                </p>
-         }
+                @if(totalResults > 1) {
+                    @selectAllCheckbox(totalSelected)
+                }
 
-        <fieldset class="govuk-fieldset" data-module="moj-multi-select" data-multi-select-checkbox="#select-all">
-            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-            @msgs("select.members.list.h1")
-            </legend>
+                @table(
+                    caption = Some("common.teamMembers"),
+                    captionClasses = "govuk-visually-hidden",
+                    id = Some("multi-select-table"),
+                    headings = Seq(
+                        (span("group.members.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty),
+                        (Html(msgs("group.members.list.table.th1")), Map.empty),
+                        (Html(msgs("group.members.list.table.th2")), Map.empty)
+                    ),
+                    rows = tableRows,
+                )
+            </fieldset>
+        </div>
 
-            <div id="members">
-                <div id="select-all"></div>
-
-            @table(
-                caption = Some("common.teamMembers"),
-                captionClasses = "govuk-visually-hidden",
-                id = Some("multi-select-table"),
-                headings = Seq(
-                    (span("group.members.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty),
-                    (Html(msgs("group.members.list.table.th1")), Map.empty),
-                    (Html(msgs("group.members.list.table.th2")), Map.empty)
-                ),
-                rows = tableRows,
-            )
-            </div>
-        </fieldset>
         @if(paginationMetaData.get.totalPages > 1) {
             @pagination(pagination = paginationMetaData.get)
         }
-        @if(form.errors.map(error => error.message).contains("error.select-members.empty")) {</div>}
 
-        @* this paragraph is only shown when js enabled*@
-        @p(html = Some(Html(msgs("common.total.selected") + s" <strong>$totalSelected</strong> " + msgs("common.total.team-members.selected"))),
-            id = Some("member-count-text"),
-            attrs = Map("role" -> "status")
-        )
+        <p class="govuk-body js-only" id="member-count-text">
+            @msgs("common.total.selected") <strong id="selected-count">@totalSelected</strong> @msgs("common.total.team-members.selected")
+        </p>
     } else {
         <div id="teamMembers">
             @h2("team-members.not-found.heading")

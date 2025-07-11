@@ -384,9 +384,13 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[Client]] = {
-    val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
-    val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
-    val url: URL = url"$agentPermissionsUrl/group/$id/clients?page=$page&pageSize=$pageSize$searchParam$filterParam"
+    val params: Map[String, Option[String]] = Map(
+      "page"     -> Some(page.toString),
+      "pageSize" -> Some(pageSize.toString),
+      "search"   -> search,
+      "filter"   -> filter
+    )
+    val url: URL = url"$agentPermissionsUrl/group/$id/clients?$params"
     monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {
       http.get(url).execute[HttpResponse].map { response =>
         response.status match {
@@ -403,10 +407,13 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(GroupSummary, PaginatedList[DisplayClient])] = {
-
-    val searchParam = search.fold("")(searchTerm => s"&search=$searchTerm")
-    val filterParam = filter.fold("")(filterTerm => s"&filter=$filterTerm")
-    val url: URL = url"$agentPermissionsUrl/group/$id/clients/add?page=$page&pageSize=$pageSize$searchParam$filterParam"
+    val params: Map[String, Option[String]] = Map(
+      "page"     -> Some(page.toString),
+      "pageSize" -> Some(pageSize.toString),
+      "search"   -> search,
+      "filter"   -> filter
+    )
+    val url: URL = url"$agentPermissionsUrl/group/$id/clients/add?$params"
     monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {
       http.get(url).execute[HttpResponse].map { response =>
         response.status match {

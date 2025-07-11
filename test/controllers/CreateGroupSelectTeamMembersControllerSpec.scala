@@ -364,7 +364,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members"
-      html.select(Css.errorSummaryLinkWithHref("#members")).text() shouldBe "You must select at least one team member"
+      html
+        .select(Css.errorSummaryLinkWithHref("#add-member-0"))
+        .text() shouldBe "You must select at least one team member"
 
     }
 

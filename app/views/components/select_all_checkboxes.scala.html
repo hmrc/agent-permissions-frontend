@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,11 @@
 
 @this()
 
-@(
-    key: String = "common.continue",
-    value: String = "continue",
-    classes: String = "submit-as-link",
-    id: Option[String] = None,
-    attrs: Map[String, String] = Map.empty,
-)(implicit msgs: Messages)
+@(totalSelected: Int)(implicit msgs: Messages)
 
-<button
-    type="submit"
-    name="submit"
-    class="@classes"
-    value="@value"
-    @id.map(i => { s"""id ="${i}""""})
-    @attrs.map(a => s"""${a._1}="${a._2}"""")
->
-  @msgs(key)
-</button>
+<div class="govuk-checkboxes govuk-checkboxes--small js-only" data-module="govuk-checkboxes">
+    <div class="govuk-checkboxes__item">
+        <input type="checkbox" class="govuk-checkboxes__input" id="checkboxes-all" name="checkboxes-all" value="all" data-selected="@totalSelected">
+        <label class="govuk-label govuk-checkboxes__label" for="checkboxes-all">@msgs("common.selectAll")</label>
+    </div>
+</div>

@@ -37,7 +37,8 @@
     checkbox: checkbox,
     summaryErrors: SummaryErrors,
     formWithCSRF: FormWithCSRF,
-    govukWarningText: GovukWarningText
+    govukWarningText: GovukWarningText,
+   selectAllCheckbox: select_all_checkboxes
 )
 
 @(
@@ -80,6 +81,7 @@
 @* Values used by JS selected client counter to enable counting selections on other pages. *@
 @totalResults = @{paginationMetaData.fold(clients.length)(_.totalSize)}
 @totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
+@formGroupClasses = @{if(form.hasGlobalErrors) "govuk-form-group govuk-form-group--error" else "govuk-form-group"}
 
 @formWithCSRF(action = formAction) {
 
@@ -88,50 +90,50 @@
     }
 
     @if(clients.nonEmpty) {
+        <div class="@formGroupClasses">
+            <fieldset class="govuk-fieldset" role="group">
 
-        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-                <p id="clients-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
-                </p>
-         }
+                <legend class="govuk-fieldset__legend govuk-visually-hidden">
+                    @msgs("group.client.list.h1")
+                </legend>
 
-        <fieldset class="govuk-fieldset" data-module="moj-multi-select" data-multi-select-checkbox="#select-all">
-            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                @msgs("group.client.list.h1")
-            </legend>
+                @resultsSummary.map { summary =>
+                    @h2(summary)
+                    <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+                }
+                @if(form.hasGlobalErrors) {
+                    <p id="clients-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
+                    </p>
+                }
 
-            <div id="clients">
-                <div id="select-all"></div>
+                @if(totalResults > 1) {
+                  @selectAllCheckbox(totalSelected)
+                }
 
-            @resultsSummary.map { summary =>
-                @h2(summary)
-                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-            }
+                @table(
+                    caption = Some("common.clients"),
+                    captionClasses = "govuk-visually-hidden",
+                    id = Some("multi-select-table"),
+                    headings = Seq(
+                        (span("group.client.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty[String, String]),
+                        (Html(msgs("group.client.list.table.th1")), Map.empty[String, String]),
+                        (Html(msgs("group.client.list.table.th2")), Map.empty[String, String])
+                    ) ++ Seq((Html(msgs("group.client.list.table.th3")), Map.empty[String, String])).filter(_ => displayTaxService),
+                    rows = tableRows,
+                )
 
-            @table(
-                caption = Some("common.clients"),
-                captionClasses = "govuk-visually-hidden",
-                id = Some("multi-select-table"),
-                headings = Seq(
-                    (span("group.client.list.table.th", classes = Some("govuk-visually-hidden")), Map.empty[String, String]),
-                    (Html(msgs("group.client.list.table.th1")), Map.empty[String, String]),
-                    (Html(msgs("group.client.list.table.th2")), Map.empty[String, String])
-                ) ++ Seq((Html(msgs("group.client.list.table.th3")), Map.empty[String, String])).filter(_ => displayTaxService),
-                rows = tableRows,
-            )
-            </div>
-        </fieldset>
+            </fieldset>
+        </div>
+
         @if(paginationMetaData.get.totalPages > 1) {
             @pagination(pagination = paginationMetaData.get)
         }
-        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
         @* this paragraph is only shown when js enabled*@
-        @p(html = Some(Html(s"<strong>$totalSelected</strong> " + msgs("common.total.clients.selected"))),
-            id = Some("member-count-text"),
-            attrs = Map("role" -> "status")
-        )
+        <p class="govuk-body js-only" id="selected-count-text">
+            <strong id="selected-count">@totalSelected</strong> @msgs("common.total.clients.selected")
+        </p>
 
         @submit_button(submitButtonKey)
 

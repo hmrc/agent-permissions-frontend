@@ -39,12 +39,12 @@
 
 @errorHref = @{
     if(form.errors.map(error => error.message).contains("error.select-members.empty"))
-        "members"
+        "add-member-0"
     else "search"
 }
 
 @pageTitle = @{
-    withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"select.members.list.h1", groupName), None, form("search").value)
+    withSearchAndErrorPrefix(form.errors.nonEmpty, msgs(s"select.members.list.h1", groupName), None, form("search").value)
 }
 
 @layout(

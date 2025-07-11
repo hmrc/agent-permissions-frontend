@@ -37,7 +37,8 @@
     checkbox: checkbox,
     summaryErrors: SummaryErrors,
     formWithCSRF: FormWithCSRF,
-    govukWarningText: GovukWarningText
+    govukWarningText: GovukWarningText,
+   selectAllCheckbox: select_all_checkboxes
 )
 
 @(
@@ -107,12 +108,7 @@
                 }
 
                 @if(totalResults > 1) {
-                  <div class="govuk-checkboxes govuk-checkboxes--small js-only" data-module="govuk-checkboxes">
-                      <div class="govuk-checkboxes__item">
-                        <input type="checkbox" class="govuk-checkboxes__input" id="select-all" name="select-all" value="all" data-selected="@totalSelected">
-                        <label class="govuk-label govuk-checkboxes__label" for="select-all">@msgs("common.selectAll")</label>
-                      </div>
-                  </div>
+                  @selectAllCheckbox(totalResults)
                 }
 
                 @table(

@@ -1,7 +1,7 @@
 (function(document){
-    const selectAllEl = document.querySelector('#select-all')
+    const selectAllEl = document.querySelector('#checkboxes-all')
     const selectedCountEl = document.querySelector('#selected-count')
-    const checkBoxElements = document.querySelectorAll('input[type="checkbox"]:not(#select-all)')
+    const checkBoxElements = document.querySelectorAll('input[type="checkbox"]:not(#checkboxes-all)')
     if(selectAllEl && selectedCountEl && checkBoxElements.length) {
         const syncSelectedState = () => selectAllEl.checked = [...checkBoxElements].every(option => option.checked)
         const countOnThisPage = () => [...checkBoxElements].filter(option => option.checked).length

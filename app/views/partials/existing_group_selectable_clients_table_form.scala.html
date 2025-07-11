@@ -25,21 +25,22 @@
 @import utils.ViewUtils
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, h2: h2, span: span, a: a,
-    caption: caption,
-    table: table,
-    submit_button: submit_button,
-    info_text: info_text,
-    link_as_button: link_as_button,
-    search_and_filter: search_and_filter,
-    pagination: POST_pagination,
-    textbox: textbox,
-    input_select: input_select,
-    checkbox: checkbox,
-    summaryErrors: SummaryErrors,
-    formWithCSRF: FormWithCSRF,
-    govukWarningText: GovukWarningText
+        layout: main_layout,
+        p: p, h1: h1, h2: h2, span: span, a: a,
+        caption: caption,
+        table: table,
+        submit_button: submit_button,
+        info_text: info_text,
+        link_as_button: link_as_button,
+        search_and_filter: search_and_filter,
+        pagination: POST_pagination,
+        textbox: textbox,
+        input_select: input_select,
+        checkbox: checkbox,
+        summaryErrors: SummaryErrors,
+        formWithCSRF: FormWithCSRF,
+        govukWarningText: GovukWarningText,
+        selectAllCheckbox: select_all_checkboxes
 )
 
 @(
@@ -92,6 +93,7 @@
 @* Values used by JS selected client counter to enable counting selections on other pages. *@
 @totalResults = @{paginationMetaData.fold(clients.length)(_.totalSize)}
 @totalSelected = @{paginationMetaData.flatMap(_.extra).flatMap(_.get("totalSelected")).flatMap(_.asOpt[Int]).getOrElse(0)}
+@formGroupClasses = @{if(form.hasGlobalErrors) "govuk-form-group govuk-form-group--error" else "govuk-form-group"}
 
 @formWithCSRF(action = routes.ManageGroupClientsController.submitAddClients(group.groupId)) {
 
@@ -101,14 +103,8 @@
 
     @if(clients.nonEmpty) {
 
-        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {
-            <div class="govuk-form-group govuk-form-group--error">
-                <p id="clients-error" class="govuk-error-message">
-                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
-                </p>
-        }
-
-        <fieldset class="govuk-fieldset" data-module="moj-multi-select" data-multi-select-checkbox="#select-all">
+      <div class="@formGroupClasses">
+        <fieldset class="govuk-fieldset" role="group">
             <legend class="govuk-fieldset__legend govuk-visually-hidden">
                 @msgs("group.client.list.h1")
             </legend>
@@ -122,11 +118,18 @@
                     else
                         msgs("group.manage.clients.showing.results.many", clients.length, filterReminder)
                 })
-            <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
             }
 
-            <div id="clients">
-                <div id="select-all"></div>
+            @if(form.hasGlobalErrors) {
+                <p id="clients-error" class="govuk-error-message">
+                    <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
+                </p>
+            }
+
+            @if(totalResults > 1) {
+                @selectAllCheckbox(totalResults)
+            }
 
             @table(
                 caption = Some("common.clients"),
@@ -135,18 +138,18 @@
                 headings = tableHeadings,
                 rows = tableRows,
             )
-            </div>
+
         </fieldset>
+      </div>
+
         @if(paginationMetaData.get.totalPages > 1) {
             @pagination(pagination = paginationMetaData.get)
         }
-        @if(form.errors.map(error => error.message).contains("error.select-clients.empty")) {</div>}
 
-        @* this paragraph is only shown when js enabled*@
-        @p(html = Some(Html(s"<strong>$totalSelected</strong> " + msgs("common.total.clients.selected"))),
-            id = Some("member-count-text"),
-            attrs = Map("role" -> "status")
-        )
+        <p class="govuk-body js-only" id="member-count-text">
+            <strong id="selected-count">@totalSelected</strong> @msgs("common.total.clients.selected")
+        </p>
+
         @submit_button(submitButtonKey)
 
     } else {

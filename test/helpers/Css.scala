@@ -41,7 +41,7 @@ object Css {
   def tableWithId(id: String) = s"table.govuk-table#$id"
   def tabPanelWithIdOf(id: String) = s".govuk-tabs__panel#$id"
   def linkStyledAsButtonWithId(id: String) = s"a.govuk-button#$id"
-  val submitButton = "main form button#continue[type=submit]"
+  val submitButton = "button#continue[type='submit']"
   val linkStyledAsButton = "a.govuk-button"
   val link = "main a"
   val pagination_li = "main nav.govuk-pagination ul.govuk-pagination__list li.govuk-pagination__item"

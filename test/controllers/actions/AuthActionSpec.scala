@@ -63,7 +63,7 @@ class AuthActionSpec extends BaseSpec with AgentAssuranceConnectorMocks {
           authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
-          "http://localhost:9553/bas-gateway/sign-in?continue_url=http%3A%2F%2Flocalhost%3A9452%2F&origin=agent-permissions-frontend"
+          "http://localhost:9099/bas-gateway/sign-in?continue_url=http://localhost:9452/&origin=agent-permissions-frontend"
       }
     }
 

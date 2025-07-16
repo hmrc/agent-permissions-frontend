@@ -19,29 +19,42 @@ package controllers
 import config.AppConfig
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import sttp.model.Uri.UriContext
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.timeout._
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.Future
 
 @Singleton
-class TimeoutController @Inject() (
+class SignOutController @Inject() (
   mcc: MessagesControllerComponents,
   you_have_been_timed_out: you_have_been_timed_out,
   you_have_signed_out: you_have_signed_out
 )(implicit val appConfig: AppConfig, implicit override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport {
 
-  def keepAlive: Action[AnyContent] = Action { _ =>
-    Ok("Ok")
+  private def signOutWithContinue(continue: String) = {
+    val signOutAndRedirectUrl: String = uri"${appConfig.signOut}?${Map("continue" -> continue)}".toString
+    Redirect(signOutAndRedirectUrl)
+  }
+
+  def timeOut: Action[AnyContent] = Action.async {
+    val continue = uri"${appConfig.selfExternalUrl + routes.SignOutController.timedOut().url}"
+    Future.successful(signOutWithContinue(continue.toString))
   }
 
   def timedOut: Action[AnyContent] = Action { implicit request =>
-    Ok(you_have_been_timed_out()).withNewSession
+    Ok(you_have_been_timed_out())
   }
 
-  def signOut: Action[AnyContent] = Action { implicit request =>
-    Ok(you_have_signed_out()).withNewSession
+  def signOut: Action[AnyContent] = Action.async {
+    val continue = uri"${appConfig.selfExternalUrl + routes.SignOutController.signedOut().url}"
+    Future.successful(signOutWithContinue(continue.toString))
+  }
+
+  def signedOut: Action[AnyContent] = Action { implicit request =>
+    Ok(you_have_signed_out())
   }
 
 }

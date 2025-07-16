@@ -145,7 +145,8 @@ POST    /your-account/group-clients/tax/:groupId        controllers.AssistantVie
 GET     /your-account/other-clients                     controllers.AssistantViewOnlyController.showUnassignedClientsViewOnly(page: Option[Int] ?= None)
 POST    /your-account/other-clients                     controllers.AssistantViewOnlyController.submitUnassignedClientsViewOnly()
 
-GET     /you-have-been-timed-out                        controllers.TimeoutController.timedOut()
-GET     /keep-alive                                     controllers.TimeoutController.keepAlive()
-GET     /sign-out                                       controllers.TimeoutController.signOut()
+GET     /time-out                                       controllers.SignOutController.timeOut()
+GET     /you-have-been-timed-out                        controllers.SignOutController.timedOut()
+GET     /sign-out                                       controllers.SignOutController.signOut()
+GET     /signed-out                                     controllers.SignOutController.signedOut()
 

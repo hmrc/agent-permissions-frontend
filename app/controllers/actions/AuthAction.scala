@@ -24,6 +24,7 @@ import play.api.mvc.Results.{Forbidden, Redirect}
 import play.api.mvc.{Request, RequestHeader, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.SessionCacheService
+import sttp.model.Uri.UriContext
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, SuspensionDetails}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
@@ -118,10 +119,12 @@ class AuthAction @Inject() (
 
   def handleFailure(implicit request: RequestHeader, appConfig: AppConfig): PartialFunction[Throwable, Result] = {
     case _: NoActiveSession =>
-      Redirect(
-        s"${appConfig.basGatewayUrl}/bas-gateway/sign-in",
-        Map("continue_url" -> Seq(s"${appConfig.loginContinueUrl}${request.uri}"), "origin" -> Seq(appConfig.appName))
-      )
+      val continueUrl = uri"${appConfig.selfExternalUrl + request.uri}"
+      val signInUrl = uri"${appConfig.signInUrl}?${Map(
+          "continue_url" -> continueUrl,
+          "origin"       -> appConfig.appName
+        )}"
+      Redirect(signInUrl.toString)
     case _: InsufficientEnrolments =>
       logger.warn(s"user does not have ASA agent enrolment")
       Forbidden

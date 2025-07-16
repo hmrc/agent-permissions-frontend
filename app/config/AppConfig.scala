@@ -46,6 +46,9 @@ trait AppConfig {
   def userTimeoutCountdown: Int
   def userTimeout: Int
   def isTest: Boolean
+  val signOut: String
+  val signInUrl: String
+  val selfExternalUrl: String
 }
 
 @Singleton
@@ -61,6 +64,13 @@ class AppConfigImpl @Inject() (val servicesConfig: ServicesConfig, environment: 
   lazy val betaFeedbackUrl: String = s"$contactFrontendBaseUrl/contact/beta-feedback?service=$contactFrontendServiceId"
   lazy val basGatewayUrl: String = servicesConfig.getString("microservice.services.bas-gateway.external-url")
   lazy val loginContinueUrl: String = servicesConfig.getString("microservice.services.bas-gateway.login-continue")
+
+  private val basGatewayFrontendExternalUrl: String = servicesConfig.getString("bas-gateway-frontend.external-url")
+  private val signOutPath: String = servicesConfig.getString("bas-gateway-frontend.sign-out.path")
+  private val signInPath: String = servicesConfig.getString("bas-gateway-frontend.sign-in.path")
+  override lazy val signOut: String = s"$basGatewayFrontendExternalUrl$signOutPath"
+  override lazy val signInUrl: String = s"$basGatewayFrontendExternalUrl$signInPath"
+  override val selfExternalUrl: String = servicesConfig.getString("self.external-url")
 
   val agentServicesAccountExternalUrl: String =
     servicesConfig.getString("microservice.services.agent-services-account-frontend.external-url")

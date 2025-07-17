@@ -16,19 +16,20 @@
 
 @import config.AppConfig
 @import uk.gov.hmrc.hmrcfrontend.views.config.StandardBetaBanner
-@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcReportTechnicalIssueHelper
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers._
 @import views.html.helper.CSPNonce
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcStandardPage
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage._
 
 @this(
-    hmrcStandardPage: HmrcStandardPage,
-    standardBetaBanner: StandardBetaBanner,
-    fullWidthMainContent: fullWidthMainContentLayout,
-    hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
-    summaryErrors: SummaryErrors,
-    govukNotificationBanner: GovukNotificationBanner,
-    head: head
+        hmrcStandardPage: HmrcStandardPage,
+        standardBetaBanner: StandardBetaBanner,
+        fullWidthMainContent: fullWidthMainContentLayout,
+        hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
+        hmrcTimeoutDialogHelper: HmrcTimeoutDialogHelper,
+        summaryErrors: SummaryErrors,
+        govukNotificationBanner: GovukNotificationBanner,
+        appConfig: AppConfig
 )
 
 @(
@@ -39,14 +40,24 @@
     hasTimeout: Boolean = true,
     backLink: Option[BackLink] = None,
     fullWidth: Boolean = false
-)(mainContent: Html)(implicit request: RequestHeader, msgs: Messages, appConfig: AppConfig)
+)(mainContent: Html)(implicit request: RequestHeader, msgs: Messages)
 
-@gtmUrl = @{
-    "https://www.googletagmanager.com/ns.html?id=GTM-P39VTVL"
+@isSignedIn = @{
+    try {
+        request.session.get("authToken").isDefined
+    } catch {
+        case _: Throwable => false
+    }
 }
-@gtmNoScript = {
-    <noscript><iframe src="@gtmUrl" height="0" width="0" style="display: none;
-        visibility: hidden"></iframe></noscript>
+
+@head = {
+    @if(isSignedIn) {
+        @hmrcTimeoutDialogHelper(
+            signOutUrl = routes.SignOutController.signOut().url,
+            timeoutUrl = Some(routes.SignOutController.timeOut().url)
+        )
+    }
+    <link rel="stylesheet" media="all" href='@controllers.routes.Assets.versioned("stylesheets/application.css")'>
 }
 
 @mainContentWithTechIssueHelper = {
@@ -70,7 +81,7 @@
 }
 
 @pageTitle = @{
-    val errorPrefix = if(!formErrors.isEmpty) msgs("error-prefix") + " " else ""
+    val errorPrefix = if(formErrors.nonEmpty) msgs("error-prefix") + " " else ""
     Some(errorPrefix.concat(msgs("generic.title", title, msgs("service.name"))))
 }
 
@@ -85,7 +96,7 @@
     serviceName = Some(msgs("service.name")),
     serviceURLs = ServiceURLs(
         serviceUrl = Some(appConfig.agentServicesAccountManageAccountUrl),
-        signOutUrl = None
+        signOutUrl = if(isSignedIn) Some(routes.SignOutController.signOut().url) else None
     ),
     banners = Banners(
         phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
@@ -93,7 +104,7 @@
     backLink = backLink,
     isWelshTranslationAvailable = true,
     templateOverrides = TemplateOverrides(
-        additionalHeadBlock = Some(head(hasTimeout)),
+        additionalHeadBlock = Some(head),
         additionalScriptsBlock = Some(scripts),
         mainContentLayout = if(fullWidth) Some(fullWidthMainContent(_)) else None
     )

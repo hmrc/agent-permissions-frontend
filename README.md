@@ -53,6 +53,11 @@ POST pagination is used when we want to persist selections/deselection between p
 
     sbt "clean;coverageOn;test;IntegrationTest/test;coverageReport"
 
+### Automated testing
+This service is tested by the following automated test repositories:
+- [agent-gran-perms-acceptance-tests](https://github.com/hmrc/agent-gran-perms-acceptance-tests/)
+- [agent-granperms-performance-tests](https://github.com/hmrc/agent-granperms-performance-tests)
+
 ### Running the app locally
 
     sm2 --start AGENT_GRAN_PERMS

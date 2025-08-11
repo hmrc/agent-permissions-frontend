@@ -7,7 +7,7 @@
     if(selectAllEl && selectedCountEl && checkBoxElements.length) {
         const syncSelectedState = () => selectAllEl.checked = [...checkBoxElements].every(option => option.checked)
         const countOnThisPage = () => [...checkBoxElements].filter(option => option.checked).length
-        const countOnOtherPages = selectAllEl.dataset["selected"] - countOnThisPage()
+        const countOnOtherPages = Number(selectAllEl.dataset["selected"]) - countOnThisPage()
         const updateTotalCount = () => {
             const newTotal = countOnThisPage() + countOnOtherPages
             selectedCountEl.innerHTML = "" + newTotal

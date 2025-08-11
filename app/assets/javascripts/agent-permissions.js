@@ -1,12 +1,19 @@
 (function(document){
     const selectAllEl = document.querySelector('#checkboxes-all')
     const selectedCountEl = document.querySelector('#selected-count')
+    const selectedCountContainerEl = document.querySelector('#selected-count-text')
+    const selectedCountMessageEl = document.querySelector('#selected-count-message')
     const checkBoxElements = document.querySelectorAll('input[type="checkbox"]:not(#checkboxes-all)')
     if(selectAllEl && selectedCountEl && checkBoxElements.length) {
         const syncSelectedState = () => selectAllEl.checked = [...checkBoxElements].every(option => option.checked)
         const countOnThisPage = () => [...checkBoxElements].filter(option => option.checked).length
         const countOnOtherPages = selectAllEl.dataset["selected"] - countOnThisPage()
-        const updateTotalCount = () => selectedCountEl.innerHTML = countOnOtherPages + countOnThisPage()
+        const updateTotalCount = () => {
+            const newTotal = countOnThisPage() + countOnOtherPages
+            selectedCountEl.innerHTML = "" + newTotal
+            selectedCountMessageEl.innerHTML = newTotal === 1 ?
+                selectedCountContainerEl.dataset["singular"] : selectedCountContainerEl.dataset["plural"]
+        }
         checkBoxElements.forEach(option => option.addEventListener('click', () => {
                 syncSelectedState()
                 updateTotalCount()

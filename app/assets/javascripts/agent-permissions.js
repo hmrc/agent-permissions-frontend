@@ -10,8 +10,8 @@
         const countOnOtherPages = Number(selectAllEl.dataset["selected"]) - countOnThisPage()
         const updateTotalCount = () => {
             const newTotal = countOnThisPage() + countOnOtherPages
-            selectedCountEl.innerHTML = "" + newTotal
-            selectedCountMessageEl.innerHTML = newTotal === 1 ?
+            selectedCountEl.textContent = "" + newTotal
+            selectedCountMessageEl.textContent = newTotal === 1 ?
                 selectedCountContainerEl.dataset["singular"] : selectedCountContainerEl.dataset["plural"]
         }
         checkBoxElements.forEach(option => option.addEventListener('click', () => {

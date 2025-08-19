@@ -115,9 +115,16 @@
             @pagination(pagination = paginationMetaData.get)
         }
 
-        <p class="govuk-body js-only" id="member-count-text">
-            @msgs("common.total.selected") <strong id="selected-count">@totalSelected</strong> @msgs("common.total.team-members.selected")
+        <p
+        class="govuk-body js-only"
+        id="selected-count-text"
+        data-singular="@{msgs("common.singular.team-members.selected")}"
+        data-plural="@{msgs("common.plural.team-members.selected")}"
+        >
+            @msgs("common.total.selected") <strong id="selected-count">@totalSelected </strong>
+            <span id="selected-count-message">@msgs(s"common.${if(totalSelected == 1) "singular" else "plural"}.team-members.selected")</span>
         </p>
+
     } else {
         <div id="teamMembers">
             @h2("team-members.not-found.heading")

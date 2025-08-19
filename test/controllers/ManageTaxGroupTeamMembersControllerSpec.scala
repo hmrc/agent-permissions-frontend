@@ -296,7 +296,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       trs.get(4).select("td").get(1).text() shouldBe "John 5 name"
       trs.get(4).select("td").get(2).text() shouldBe "john5@abc.com"
 
-      html.select("p#member-count-text").text() shouldBe "Selected 0 team members across all searches"
+      html.select("p#selected-count-text").text() shouldBe "Selected 0 team members across all searches"
     }
 
     "render correctly the manage TEAM MEMBERS LIST page filtered results exist" in {

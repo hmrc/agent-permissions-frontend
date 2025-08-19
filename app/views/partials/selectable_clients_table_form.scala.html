@@ -131,8 +131,16 @@
         }
 
         @* this paragraph is only shown when js enabled*@
-        <p class="govuk-body js-only" id="selected-count-text">
-            <strong id="selected-count">@totalSelected</strong> @msgs("common.total.clients.selected")
+        <p
+            class="govuk-body js-only"
+            id="selected-count-text"
+            data-singular="@{msgs("common.singular.clients.selected")}"
+            data-plural="@{msgs("common.plural.clients.selected")}"
+        >
+            <strong id="selected-count">@totalSelected </strong>
+            <span id="selected-count-message">
+                @msgs(s"common.${if(totalSelected ==  1) "singular" else "plural" }.clients.selected")
+            </span>
         </p>
 
         @submit_button(submitButtonKey)

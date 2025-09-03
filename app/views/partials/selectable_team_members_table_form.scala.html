@@ -118,6 +118,7 @@
             data-selected="@totalSelected"
             data-singular="@{msgs("common.singular.team-members.selected")}"
             data-plural="@{msgs("common.plural.team-members.selected")}"
+            aria-live="polite"
         >
           @msgs("common.total.selected") <strong id="selected-count">@totalSelected </strong>
           <span id="selected-count-message">@msgs(s"common.${if(totalSelected == 1) "singular" else "plural"}.team-members.selected")</span>

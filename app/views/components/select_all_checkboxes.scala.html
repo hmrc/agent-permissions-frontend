@@ -16,11 +16,11 @@
 
 @this()
 
-@(totalSelected: Int)(implicit msgs: Messages)
+@()(implicit msgs: Messages)
 
 <div class="govuk-checkboxes govuk-checkboxes--small js-only" data-module="govuk-checkboxes">
     <div class="govuk-checkboxes__item">
-        <input type="checkbox" class="govuk-checkboxes__input" id="checkboxes-all" name="checkboxes-all" value="all" data-selected="@totalSelected">
+        <input type="checkbox" class="govuk-checkboxes__input" id="checkboxes-all" name="checkboxes-all" value="all">
         <label class="govuk-label govuk-checkboxes__label" for="checkboxes-all">@msgs("common.selectAll")</label>
     </div>
 </div>

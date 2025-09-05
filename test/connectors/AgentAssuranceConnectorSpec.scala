@@ -21,7 +21,7 @@ import config.AppConfig
 import helpers.{AgentAssuranceConnectorMocks, BaseSpec, HttpClientMocks}
 import play.api.Application
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.SuspensionDetails
+import models.SuspensionDetails
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 
@@ -63,7 +63,31 @@ class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocks with Age
           HttpResponse.apply(200, jsonString)
         )
 
-        connector.getSuspensionDetails().futureValue shouldBe suspendedDetails
+        val result = connector.getSuspensionDetails().futureValue
+        result shouldBe suspendedDetails
+        result.toString shouldBe "CGT,ITSA,PIR,PLR,PPT,TRS,VATC"
+      }
+
+      "the response status is 200 and the suspensionDetails field is present and single regime supplied" in {
+        val suspendedDetails: SuspensionDetails = SuspensionDetails(suspensionStatus = true, Some(Set("CGT")))
+
+        val jsonString =
+          s"""{
+             |   "suspensionDetails":{
+             |    "suspensionStatus": true,
+             |    "regimes": [
+             |        "CGT"
+             |    ]
+             |}}""".stripMargin
+
+        expectHttpClientGetWithUrl(
+          url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks",
+          HttpResponse.apply(200, jsonString)
+        )
+
+        val result = connector.getSuspensionDetails().futureValue
+        result shouldBe suspendedDetails
+        result.toString shouldBe "CGT"
       }
 
       "the response status is 200 and the suspensionDetails field is not present" in {

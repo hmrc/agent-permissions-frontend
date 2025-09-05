@@ -17,11 +17,12 @@
 package helpers
 
 import connectors.AgentUserClientDetailsConnector
+import models.Arn
+import models.accessgroups.{Client, UserDetails}
 import org.apache.pekko.Done
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
+import models.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}

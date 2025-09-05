@@ -28,8 +28,8 @@ import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{ClientService, GroupService, SessionCacheService}
-import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
-import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

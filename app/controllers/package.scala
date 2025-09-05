@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import models.accessgroups.{Client, GroupSummary}
+import models.accessgroups.optin.{OptedInNotReady, OptedInReady, OptedInSingleUser, OptedOutEligible, OptedOutSingleUser, OptedOutWrongClientCount, OptinStatus}
 import models.{DisplayClient, GroupId, TeamMember}
 import play.api.data.Form
-import uk.gov.hmrc.agents.accessgroups.optin._
-import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future

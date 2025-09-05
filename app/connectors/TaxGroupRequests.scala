@@ -32,8 +32,8 @@ package connectors
  * limitations under the License.
  */
 
+import models.accessgroups.{AgentUser, Client}
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client}
 
 case class CreateTaxServiceGroupRequest(
   groupName: String,

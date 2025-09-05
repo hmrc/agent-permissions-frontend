@@ -22,8 +22,8 @@ import org.apache.pekko.Done
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import services.TaxGroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agents.accessgroups.TaxGroup
+import models.Arn
+import models.accessgroups.TaxGroup
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}

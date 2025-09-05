@@ -20,13 +20,14 @@ import com.google.inject.AbstractModule
 import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
+import models.accessgroups.optin.OptinStatus
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.{OptinService, SessionCacheService}
-import uk.gov.hmrc.agents.accessgroups.optin._
+import models.accessgroups.optin._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.SessionKeys
 
@@ -72,7 +73,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "display content for start" in {
       authOk()
-      expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
+      expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedInSingleUser)
 
       val result = controller.start()(request)
 
@@ -110,7 +111,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "display expected content" in {
       authOk()
-      expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
+      expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedInSingleUser)
 
       val result = controller.showDoYouWantToOptOut()(request)
 
@@ -133,7 +134,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     s"redirect to ${routes.OptOutController.showYouHaveOptedOut} page with answer 'true'" in {
       authOk()
-      expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
+      expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedInSingleUser)
       expectOptOut(arn)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -149,7 +150,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "redirect to 'manage dashboard' page when user decides not to opt out" in {
       authOk()
-      expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
+      expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedInSingleUser)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut}")
@@ -170,7 +171,7 @@ class OptOutControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       authOk()
-      expectGetSessionItem(OPT_IN_STATUS, OptedInSingleUser)
+      expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedInSingleUser)
 
       val result = controller.submitDoYouWantToOptOut()(request)
 
@@ -190,7 +191,7 @@ class OptOutControllerSpec extends BaseSpec {
 
     "display expected content" in {
       authOk()
-      expectGetSessionItem(OPT_IN_STATUS, OptedOutEligible)
+      expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedOutEligible)
       expectDeleteSessionItems(sessionKeys)
 
       val result = controller.showYouHaveOptedOut()(request)

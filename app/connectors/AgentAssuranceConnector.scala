@@ -19,7 +19,7 @@ package connectors
 import config.AppConfig
 import play.api.http.Status.OK
 import play.api.libs.json.JsDefined
-import uk.gov.hmrc.agentmtdidentifiers.model.SuspensionDetails
+import models.SuspensionDetails
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
@@ -34,10 +34,7 @@ class AgentAssuranceConnector @Inject() (http: HttpClientV2)(implicit
 
   def getSuspensionDetails()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SuspensionDetails] = {
     val url = url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks"
-    val timer = metrics.defaultRegistry.timer("Timer-ConsumerAPI-AA-AgencySuspensionDetails-GET")
-    timer.time()
     http.get(url).execute[HttpResponse].map { response =>
-      timer.time().stop()
       response.status match {
         case OK =>
           response.json \ "suspensionDetails" match {

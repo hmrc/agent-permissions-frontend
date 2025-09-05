@@ -32,9 +32,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services._
-import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
-import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup, UserDetails}
+import models.PaginationMetaData
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

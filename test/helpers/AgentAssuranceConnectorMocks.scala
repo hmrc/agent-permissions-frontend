@@ -19,7 +19,7 @@ package helpers
 import connectors.AgentAssuranceConnector
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.agentmtdidentifiers.model.SuspensionDetails
+import models.SuspensionDetails
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -19,12 +19,12 @@ package services
 import com.google.inject.ImplementedBy
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, SELECTED_CLIENTS, ToFuture}
-import models.{DisplayClient, GroupId}
+import models.accessgroups.{Client, GroupSummary}
+import models.{Arn, DisplayClient, GroupId}
 import org.apache.pekko.Done
 import play.api.libs.json.JsNumber
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
-import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
+import models.PaginatedList
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EncryptionUtil
 

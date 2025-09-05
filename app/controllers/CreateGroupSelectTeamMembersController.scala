@@ -26,8 +26,8 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{SessionCacheService, TaxGroupService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
+import models.Arn
+import models.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.members.{confirm_deselect_member, review_members_paginated, select_paginated_team_members}
 import views.html.groups.create.{group_created, tax_group_created}

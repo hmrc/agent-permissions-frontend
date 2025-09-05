@@ -16,9 +16,9 @@
 
 package models
 
+import models.accessgroups.{AgentUser, Client, UserDetails}
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{Format, Json, OFormat, __}
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, UserDetails}
 import uk.gov.hmrc.crypto.json.JsonEncryption.stringEncrypterDecrypter
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import utils.EncryptionUtil

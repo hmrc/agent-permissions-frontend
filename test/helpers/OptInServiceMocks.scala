@@ -21,7 +21,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Request
 import services.OptinService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import models.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -20,11 +20,11 @@ import connectors._
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, NAME_OF_GROUP_CREATED, SELECTED_CLIENTS, SELECTED_TEAM_MEMBERS, creatingGroupKeys}
 import helpers.BaseSpec
 import models.TeamMember.toAgentUser
-import models.{DisplayClient, GroupId, TeamMember}
+import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, UserDetails}
+import models.{Arn, DisplayClient, GroupId, TeamMember}
 import org.apache.pekko.Done
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agents.accessgroups._
+import models.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime

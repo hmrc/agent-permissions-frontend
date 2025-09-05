@@ -16,12 +16,12 @@
 
 package helpers
 
-import models.{AddTeamMembersToGroup, TeamMember}
+import models.{AddTeamMembersToGroup, Arn, TeamMember}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Request
 import services.TeamMemberService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
+import models.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}

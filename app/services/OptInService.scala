@@ -22,8 +22,8 @@ import controllers.OPT_IN_STATUS
 import org.apache.pekko.Done
 import play.api.mvc.Request
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agents.accessgroups.optin.OptinStatus
+import models.Arn
+import models.accessgroups.optin.OptinStatus
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}

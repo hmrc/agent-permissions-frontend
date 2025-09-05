@@ -23,7 +23,7 @@ import play.api.mvc.Results.Ok
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.{SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import models.Arn
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import views.html.group_member_details.add_groups_to_team_member.team_member_not_found

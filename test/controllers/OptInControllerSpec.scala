@@ -28,8 +28,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
 import services.InMemorySessionCacheService
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agents.accessgroups.optin._
+import models.Arn
+import models.accessgroups.optin.{OptedInNotReady, OptedInReady, OptedInSingleUser, OptedOutEligible, OptedOutSingleUser, OptinStatus}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys, UpstreamErrorResponse}
@@ -371,6 +371,47 @@ class OptInControllerSpec extends BaseSpec {
       html
         .select(Css.linkStyledAsButton)
         .attr("href") shouldBe routes.CreateGroupSelectGroupTypeController.showSelectGroupType().url
+    }
+
+    "display expected content when client list is ready as single user" in {
+
+      expectAuthorisationGrantsAccess(mockedAuthResponse)
+      expectIsArnAllowed(allowed = true)
+      await(sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInSingleUser))
+
+      // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
+      (mockAgentUserClientDetailsConnector
+        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(*, *, *)
+        .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
+
+      val result = controller.showYouHaveOptedIn()(request)
+
+      status(result) shouldBe OK
+
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "You have turned on access groups but we need some time to gather the client data - Agent services account - GOV.UK"
+      html
+        .select(Css.H1)
+        .text() shouldBe "You have turned on access groups but we need some time to gather the client data"
+
+      html.select(Css.H2).text() shouldBe "What happens next"
+
+      html
+        .select(Css.paragraphs)
+        .get(0)
+        .text() shouldBe "We’re processing your client data."
+
+      html
+        .select(Css.paragraphs)
+        .get(1)
+        .text() shouldBe "When this is done, we’ll let you know by emailing agency@email.com and we’ll tell you what to do next."
+      html
+        .select(Css.linkStyledAsButton)
+        .text() shouldBe "Return to manage account"
+      html
+        .select(Css.linkStyledAsButton)
+        .attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
   }
 

@@ -25,8 +25,8 @@ import play.api.Application
 import play.api.http.Status.{ACCEPTED, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agents.accessgroups.{Client, UserDetails}
+import models.{PaginatedList, PaginationMetaData}
+import models.accessgroups.{Client, UserDetails}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 

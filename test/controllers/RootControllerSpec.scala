@@ -20,12 +20,12 @@ import com.google.inject.AbstractModule
 import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import helpers.BaseSpec
+import models.accessgroups.optin.{OptedInReady, OptedOutEligible, OptedOutSingleUser}
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
 import services.InMemorySessionCacheService
-import uk.gov.hmrc.agents.accessgroups.optin._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.UpstreamErrorResponse
 

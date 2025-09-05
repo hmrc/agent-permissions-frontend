@@ -16,16 +16,16 @@
 
 package helpers
 
-import models.{DisplayClient, GroupId}
+import models.accessgroups.GroupSummary
+import models.{Arn, DisplayClient, GroupId}
 import org.apache.pekko.Done
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsNumber, JsValue}
 import play.api.mvc.Request
 import services.ClientService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
-import uk.gov.hmrc.agents.accessgroups.GroupSummary
+import models.{PaginatedList, PaginationMetaData}
+import models.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FilterUtils
 

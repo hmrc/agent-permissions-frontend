@@ -20,7 +20,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.i18n.Messages
 import play.api.test.Helpers
-import uk.gov.hmrc.agentmtdidentifiers.model.Service._
+import models.Service._
 
 class ViewUtilsSpec extends AnyWordSpec with Matchers {
 

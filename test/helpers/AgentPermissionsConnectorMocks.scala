@@ -23,10 +23,10 @@ import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status.BAD_REQUEST
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
-import uk.gov.hmrc.agents.accessgroups.optin.OptinStatus
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, CustomGroup, GroupSummary}
+import models.Arn
+import models.accessgroups.{AgentUser, CustomGroup, GroupSummary}
+import models.accessgroups.optin.OptinStatus
+import models.PaginatedListBuilder
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import utils.FilterUtils
 

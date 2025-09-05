@@ -27,9 +27,9 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsNumber
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
-import uk.gov.hmrc.agents.accessgroups.Client
+import models.Arn
+import models.accessgroups.Client
+import models.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients._
 import views.html.unassigned_clients._

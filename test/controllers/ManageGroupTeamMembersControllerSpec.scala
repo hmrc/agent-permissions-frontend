@@ -32,8 +32,8 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, CustomGroup, GroupSummary, UserDetails}
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{AgentUser, CustomGroup, GroupSummary, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

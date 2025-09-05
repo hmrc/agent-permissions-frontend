@@ -18,20 +18,19 @@ package connectors
 
 import com.google.inject.ImplementedBy
 import config.AppConfig
-import models.{DisplayClient, GroupId}
+import models.accessgroups.optin.OptinStatus
+import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup}
+import models.{Arn, DisplayClient, GroupId}
 import org.apache.pekko.Done
 import play.api.Logging
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
-import uk.gov.hmrc.agents.accessgroups._
-import uk.gov.hmrc.agents.accessgroups.optin._
+import models.PaginatedList
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
-import utils.HttpAPIMonitor
 
 import java.net.{URL, URLEncoder}
 import java.nio.charset.StandardCharsets.UTF_8
@@ -39,7 +38,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AgentPermissionsConnectorImpl])
-trait AgentPermissionsConnector extends HttpAPIMonitor with Logging {
+trait AgentPermissionsConnector extends Logging {
 
   val http: HttpClientV2
 
@@ -167,48 +166,45 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     arn: Arn
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/optin-status"
-    monitor("ConsumedAPI-GetOptinStatus-GET") {
-      http.get(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK => response.json.asOpt[OptinStatus]
-          case e =>
-            logger.warn(s"getOptInStatus returned status $e ${response.body}")
-            None
-        }
+    http.get(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK => response.json.asOpt[OptinStatus]
+        case e =>
+          logger.warn(s"getOptInStatus returned status $e ${response.body}")
+          None
       }
     }
+
   }
 
   def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val urlQuery: String = lang.fold("")(x => s"?lang=$x")
     val url: URL = new URL(s"$agentPermissionsUrl/arn/${arn.value}/optin$urlQuery")
-    monitor("ConsumedAPI-optin-POST") {
-      http.post(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case CREATED => Done
-          case CONFLICT =>
-            logger.warn(s"Tried to optin $arn when already opted in")
-            Done
-          case e =>
-            throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}", e)
-        }
+    http.post(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case CREATED => Done
+        case CONFLICT =>
+          logger.warn(s"Tried to optin $arn when already opted in")
+          Done
+        case e =>
+          throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}", e)
       }
     }
+
   }
 
   def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/optout"
-    monitor("ConsumedAPI-optout-POST") {
-      http.post(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case CREATED => Done
-          case CONFLICT =>
-            logger.warn(s"Tried to optout $arn when already opted out")
-            Done
-          case e =>
-            throw UpstreamErrorResponse(s"error sending opt out request", e)
-        }
+    http.post(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case CREATED => Done
+        case CONFLICT =>
+          logger.warn(s"Tried to optout $arn when already opted out")
+          Done
+        case e =>
+          throw UpstreamErrorResponse(s"error sending opt out request", e)
       }
+
     }
   }
 
@@ -217,46 +213,43 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     val encodedName = URLEncoder.encode(name, UTF_8.name)
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/access-group-name-check?name=$encodedName"
 
-    monitor("ConsumedAPI-accessGroupNameCheck-GET") {
-      http.get(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK       => true
-          case CONFLICT => false
-          case e        => throw UpstreamErrorResponse("error on groupNameCheck", e)
-        }
+    http.get(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK       => true
+        case CONFLICT => false
+        case e        => throw UpstreamErrorResponse("error on groupNameCheck", e)
       }
     }
+
   }
 
   def createGroup(
     arn: Arn
   )(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/groups"
-    monitor("ConsumedAPI-createGroup-POST") {
-      http
-        .post(url)
-        .withBody(Json.toJson(groupRequest))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case CREATED => Done
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error posting createGroup request to $url", anyOtherStatus)
-          }
+    http
+      .post(url)
+      .withBody(Json.toJson(groupRequest))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case CREATED => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error posting createGroup request to $url", anyOtherStatus)
+
         }
-    }
+      }
   }
 
   def getGroupSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/all-groups"
-    monitor("ConsumedAPI-allGroupSummaries-GET") {
-      http.get(url).execute[HttpResponse].map { response: HttpResponse =>
-        response.status match {
-          case OK => response.json.as[Seq[GroupSummary]]
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error getting group summaries for arn $arn, from $url", anyOtherStatus)
-        }
+    http.get(url).execute[HttpResponse].map { response: HttpResponse =>
+      response.status match {
+        case OK => response.json.as[Seq[GroupSummary]]
+        case anyOtherStatus =>
+          throw UpstreamErrorResponse(s"error getting group summaries for arn $arn, from $url", anyOtherStatus)
       }
+
     }
   }
 
@@ -273,20 +266,19 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       "search"   -> search,
       "filter"   -> filter
     ).collect { case (k, Some(v)) => (k, v) }
-    monitor("ConsumedAPI-unassigned-clients-GET") {
-      val urlWithParams: URL = buildUrlWithQueryParams(url, queryParams)
-      http.get(urlWithParams).execute[HttpResponse].map { response: HttpResponse =>
-        response.status match {
-          case OK =>
-            val paginatedClients = response.json.as[PaginatedList[Client]]
-            PaginatedList[DisplayClient](
-              pageContent = paginatedClients.pageContent.map(DisplayClient.fromClient(_)),
-              paginationMetaData = paginatedClients.paginationMetaData
-            )
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error getting unassigned clients for arn $arn, from $url", anyOtherStatus)
-        }
+    val urlWithParams: URL = buildUrlWithQueryParams(url, queryParams)
+    http.get(urlWithParams).execute[HttpResponse].map { response: HttpResponse =>
+      response.status match {
+        case OK =>
+          val paginatedClients = response.json.as[PaginatedList[Client]]
+          PaginatedList[DisplayClient](
+            pageContent = paginatedClients.pageContent.map(DisplayClient.fromClient(_)),
+            paginationMetaData = paginatedClients.paginationMetaData
+          )
+        case anyOtherStatus =>
+          throw UpstreamErrorResponse(s"error getting unassigned clients for arn $arn, from $url", anyOtherStatus)
       }
+
     }
   }
 
@@ -295,22 +287,20 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     ec: ExecutionContext
   ): Future[Seq[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/client/$enrolmentKey/groups"
-    monitor("ConsumedAPI-groupSummariesForClient-GET") {
-      http.get(url).execute[HttpResponse].map { response: HttpResponse =>
-        val eventuallySummaries = response.status match {
-          case OK        => response.json.as[Seq[GroupSummary]]
-          case NOT_FOUND => Seq.empty[GroupSummary]
-          case e =>
-            throw UpstreamErrorResponse(
-              s"error getting group summary for arn: $arn, client: $enrolmentKey from $url",
-              e
-            )
-        }
-        val maybeGroups = eventuallySummaries.map { summaries =>
-          summaries
-        }
-        maybeGroups
+    http.get(url).execute[HttpResponse].map { response: HttpResponse =>
+      val eventuallySummaries = response.status match {
+        case OK        => response.json.as[Seq[GroupSummary]]
+        case NOT_FOUND => Seq.empty[GroupSummary]
+        case e =>
+          throw UpstreamErrorResponse(
+            s"error getting group summary for arn: $arn, client: $enrolmentKey from $url",
+            e
+          )
       }
+      val maybeGroups = eventuallySummaries.map { summaries =>
+        summaries
+      }
+      maybeGroups
     }
   }
 
@@ -320,20 +310,19 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   ): Future[Option[Seq[GroupSummary]]] = {
     val userId = agentUser.id
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/team-member/$userId/groups"
-    monitor("ConsumedAPI-groupSummariesForTeamMember-GET") {
-      http.get(url).execute[HttpResponse].map { response: HttpResponse =>
-        val eventuallySummaries = response.status match {
-          case OK        => response.json.asOpt[Seq[GroupSummary]]
-          case NOT_FOUND => None
-          case e =>
-            throw UpstreamErrorResponse(s"error getting group summary for arn: $arn, teamMember: $userId from $url", e)
-        }
-        val maybeGroups = eventuallySummaries.map { summaries =>
-          summaries
-        }
-        maybeGroups
+    http.get(url).execute[HttpResponse].map { response: HttpResponse =>
+      val eventuallySummaries = response.status match {
+        case OK        => response.json.asOpt[Seq[GroupSummary]]
+        case NOT_FOUND => None
+        case e =>
+          throw UpstreamErrorResponse(s"error getting group summary for arn: $arn, teamMember: $userId from $url", e)
       }
+      val maybeGroups = eventuallySummaries.map { summaries =>
+        summaries
+      }
+      maybeGroups
     }
+
   }
 
   @deprecated(
@@ -342,40 +331,38 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   )
   def getGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id"
-    monitor("ConsumedAPI-group-GET") {
-      http
-        .get(url)
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => response.json.asOpt[CustomGroup]
-            case NOT_FOUND =>
-              logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
-              None
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
-          }
+    http
+      .get(url)
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => response.json.asOpt[CustomGroup]
+          case NOT_FOUND =>
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+            None
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
         }
-    }
+      }
+
   }
 
   def getCustomSummary(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/custom-group/$id"
-    monitor("ConsumedAPI-customGroupSummary-GET") {
-      http
-        .get(url)
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => response.json.asOpt[GroupSummary]
-            case NOT_FOUND =>
-              logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
-              None
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
-          }
+    http
+      .get(url)
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => response.json.asOpt[GroupSummary]
+          case NOT_FOUND =>
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+            None
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
         }
-    }
+      }
+
   }
 
   def getPaginatedClientsForCustomGroup(
@@ -391,14 +378,13 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       "filter"   -> filter
     )
     val url: URL = url"$agentPermissionsUrl/group/$id/clients?$params"
-    monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {
-      http.get(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK => response.json.as[PaginatedList[Client]]
-          case e  => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
-        }
+    http.get(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK => response.json.as[PaginatedList[Client]]
+        case e  => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
       }
     }
+
   }
 
   def getPaginatedClientsToAddToGroup(
@@ -414,15 +400,14 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       "filter"   -> filter
     )
     val url: URL = url"$agentPermissionsUrl/group/$id/clients/add?$params"
-    monitor("ConsumedAPI-getPaginatedClientsForGroup-GET") {
-      http.get(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK =>
-            val tuple = response.json.as[(GroupSummary, PaginatedList[DisplayClient])]
-            tuple
-          case e => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
-        }
+    http.get(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK =>
+          val tuple = response.json.as[(GroupSummary, PaginatedList[DisplayClient])]
+          tuple
+        case e => throw UpstreamErrorResponse(s"error getClientList for group $id", e)
       }
+
     }
   }
 
@@ -431,19 +416,18 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id"
-    monitor("ConsumedAPI-update group-PATCH") {
-      http
-        .patch(url)
-        .withBody(Json.toJson(groupRequest))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => Done
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
-          }
+    http
+      .patch(url)
+      .withBody(Json.toJson(groupRequest))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
         }
-    }
+      }
+
   }
 
   override def addMembersToTaxGroup(id: GroupId, groupRequest: AddMembersToTaxServiceGroupRequest)(implicit
@@ -452,19 +436,18 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   ): Future[Done] = {
 
     val url: URL = url"$agentPermissionsUrl/tax-group/$id/members/add"
-    monitor("ConsumedAPI- add members to group -PUT") {
-      http
-        .put(url)
-        .withBody(Json.toJson(groupRequest))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => Done
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error PUTing team members to tax-group to $url", anyOtherStatus)
-          }
+    http
+      .put(url)
+      .withBody(Json.toJson(groupRequest))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error PUTing team members to tax-group to $url", anyOtherStatus)
         }
-    }
+
+      }
   }
 
   override def addMembersToGroup(id: GroupId, groupRequest: AddMembersToAccessGroupRequest)(implicit
@@ -472,19 +455,18 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id/members/add"
-    monitor("ConsumedAPI- add members to group -PUT") {
-      http
-        .put(url)
-        .withBody(Json.toJson(groupRequest))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => Done
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error PUTing members to group request to $url", anyOtherStatus)
-          }
+    http
+      .put(url)
+      .withBody(Json.toJson(groupRequest))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error PUTing members to group request to $url", anyOtherStatus)
         }
-    }
+      }
+
   }
 
   override def addOneTeamMemberToGroup(id: GroupId, body: AddOneTeamMemberToGroupRequest)(implicit
@@ -492,63 +474,58 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id/members/add"
-    monitor("ConsumedAPI- add one team member to group - PATCH") {
-      http
-        .patch(url)
-        .withBody(Json.toJson(body))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => Done
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"Error adding member to group request to $url", anyOtherStatus)
-          }
+    http
+      .patch(url)
+      .withBody(Json.toJson(body))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"Error adding member to group request to $url", anyOtherStatus)
         }
-    }
+
+      }
   }
 
   override def deleteGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id"
-    monitor("ConsumedAPI-custom-group-DELETE") {
-      deleteAccessGroup(url)
-    }
+    deleteAccessGroup(url)
+
   }
 
   def deleteTaxGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/tax-group/$id"
-    monitor("ConsumedAPI-tax-group-DELETE") {
-      deleteAccessGroup(url)
-    }
+    deleteAccessGroup(url)
+
   }
 
   override def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
     val url: URL = url"$agentPermissionsUrl/arn-allowed"
-    monitor("ConsumedAPI-GranPermsArnAllowed-GET") {
-      http
-        .get(url)
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => true
-            case other =>
-              logger.warn(s"ArnAllowed call returned status $other")
-              false
-          }
+    http
+      .get(url)
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => true
+          case other =>
+            logger.warn(s"ArnAllowed call returned status $other")
+            false
         }
-    }
+
+      }
   }
 
   override def getAvailableTaxServiceClientCount(
     arn: Arn
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/client-count/available-tax-services"
-    monitor("ConsumedAPI-AvailableTaxServiceClientCount-GET") {
-      http.get(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK => response.json.as[Map[String, Int]]
-          case e  => throw UpstreamErrorResponse(s"error getting AvailableTaxService client count", e)
-        }
+    http.get(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK => response.json.as[Map[String, Int]]
+        case e  => throw UpstreamErrorResponse(s"error getting AvailableTaxService client count", e)
       }
+
     }
   }
 
@@ -556,13 +533,12 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     arn: Arn
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/client-count/tax-groups"
-    monitor("ConsumedAPI-TaxGroupClientCount-GET") {
-      http.get(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK => response.json.as[Map[String, Int]]
-          case e  => throw UpstreamErrorResponse(s"error getting Tax Group client count", e)
-        }
+    http.get(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK => response.json.as[Map[String, Int]]
+        case e  => throw UpstreamErrorResponse(s"error getting Tax Group client count", e)
       }
+
     }
   }
 
@@ -570,40 +546,38 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     createTaxServiceGroupRequest: CreateTaxServiceGroupRequest
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/tax-group"
-    monitor("ConsumedAPI-createTaxServiceGroup-POST") {
-      http
-        .post(url)
-        .withBody(Json.toJson(createTaxServiceGroupRequest))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK             => response.json.asOpt[String].get
-            case CREATED        => response.json.asOpt[String].get
-            case anyOtherStatus => throw UpstreamErrorResponse(s"error creating tax service group $url", anyOtherStatus)
-          }
+    http
+      .post(url)
+      .withBody(Json.toJson(createTaxServiceGroupRequest))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK             => response.json.asOpt[String].get
+          case CREATED        => response.json.asOpt[String].get
+          case anyOtherStatus => throw UpstreamErrorResponse(s"error creating tax service group $url", anyOtherStatus)
         }
-    }
+      }
+
   }
 
   override def getTaxServiceGroup(
     groupId: GroupId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]] = {
     val url: URL = url"$agentPermissionsUrl/tax-group/$groupId"
-    monitor("ConsumedAPI-getTaxServiceGroup-GET") {
-      http
-        .get(url)
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => response.json.asOpt[TaxGroup]
-            case NOT_FOUND =>
-              logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
-              None
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error getting group details for group $groupId, from $url", anyOtherStatus)
-          }
+    http
+      .get(url)
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => response.json.asOpt[TaxGroup]
+          case NOT_FOUND =>
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
+            None
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error getting group details for group $groupId, from $url", anyOtherStatus)
         }
-    }
+
+      }
 
   }
 
@@ -622,19 +596,18 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   ): Future[Done] = {
 
     val url: URL = url"$agentPermissionsUrl/tax-group/$groupId"
-    monitor("ConsumedAPI-update tax group-PATCH") {
-      http
-        .patch(url)
-        .withBody(Json.toJson(patchRequest))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => Done
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
-          }
+    http
+      .patch(url)
+      .withBody(Json.toJson(patchRequest))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
         }
-    }
+      }
+
   }
 
   override def addOneTeamMemberToTaxGroup(id: GroupId, body: AddOneTeamMemberToGroupRequest)(implicit
@@ -642,19 +615,18 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/tax-group/${id.toString}/members/add"
-    monitor("ConsumedAPI- add one team member to tax group - PATCH") {
-      http
-        .patch(url)
-        .withBody(Json.toJson(body))
-        .execute[HttpResponse]
-        .map { response =>
-          response.status match {
-            case OK => Done
-            case anyOtherStatus =>
-              throw UpstreamErrorResponse(s"Error adding member to tax group HTTP request to $url", anyOtherStatus)
-          }
+    http
+      .patch(url)
+      .withBody(Json.toJson(body))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK => Done
+          case anyOtherStatus =>
+            throw UpstreamErrorResponse(s"Error adding member to tax group HTTP request to $url", anyOtherStatus)
         }
-    }
+
+      }
   }
 
   def removeClientFromGroup(groupId: GroupId, clientId: String)(implicit
@@ -662,15 +634,14 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$groupId/clients/$clientId"
-    monitor("ConsumedAPI-removeClientFromGroup-DELETE") {
-      http.delete(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK | NO_CONTENT => Done
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error DELETING client from group $url", anyOtherStatus)
-        }
+    http.delete(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK | NO_CONTENT => Done
+        case anyOtherStatus =>
+          throw UpstreamErrorResponse(s"error DELETING client from group $url", anyOtherStatus)
       }
     }
+
   }
 
   def removeTeamMemberFromGroup(groupId: GroupId, memberId: String, isCustom: Boolean)(implicit
@@ -679,15 +650,14 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   ): Future[Done] = {
     val typeOfGroup = if (isCustom) "groups" else "tax-group"
     val url: URL = url"$agentPermissionsUrl/$typeOfGroup/$groupId/members/$memberId"
-    monitor("ConsumedAPI-removeMemberFromGroup-DELETE") {
-      http.delete(url).execute[HttpResponse].map { response =>
-        response.status match {
-          case OK | NO_CONTENT => Done
-          case anyOtherStatus =>
-            throw UpstreamErrorResponse(s"error DELETING member from group $url", anyOtherStatus)
-        }
+    http.delete(url).execute[HttpResponse].map { response =>
+      response.status match {
+        case OK | NO_CONTENT => Done
+        case anyOtherStatus =>
+          throw UpstreamErrorResponse(s"error DELETING member from group $url", anyOtherStatus)
       }
     }
+
   }
 
   private def buildUrlWithQueryParams(base: URL, params: Seq[(String, String)]): URL = {

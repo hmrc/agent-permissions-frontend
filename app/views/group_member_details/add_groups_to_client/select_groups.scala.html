@@ -16,39 +16,39 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import uk.gov.hmrc.agents.accessgroups.GroupSummary
+@import models.accessgroups.GroupSummary
 @import forms.AddGroupsToClientForm
 @import views.components.models.{CheckboxData, LegendData}
 @import views.html.main_layout
 
 @this(
-    layout: main_layout,
-    p: p, h1: h1, h3: h3, a: a, ul: ul,
-    formWithCSRF: FormWithCSRF,
-    caption: caption, table: table,
-    govukErrorSummary: GovukErrorSummary,
-    submit_button: submit_button, a_button: link_as_button,
-    checkboxes: checkboxes,
+        layout: main_layout,
+        p: p, h1: h1, h3: h3, a: a, ul: ul,
+        formWithCSRF: FormWithCSRF,
+        caption: caption, table: table,
+        govukErrorSummary: GovukErrorSummary,
+        submit_button: submit_button, a_button: link_as_button,
+        checkboxes: checkboxes,
 )
 
 @(
-    groupsForClient: Seq[GroupSummary],
-    availableGroups: Seq[GroupSummary] = Seq.empty,
-    client: DisplayClient,
-    form: Form[_]
+        groupsForClient: Seq[GroupSummary],
+        availableGroups: Seq[GroupSummary] = Seq.empty,
+        client: DisplayClient,
+        form: Form[_]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @h1Text = @{
     msgs(if(availableGroups.isEmpty) "common.select.groups.none.h1" else "client.select.groups.h1", client.name)
 }
-    
+
 @backLink = @{
     Some(routes.ManageClientController.showClientDetails(client.id).url)
 }
 
 @layout(title = withErrorPrefix(form.hasErrors, h1Text),
-        fullWidth = true,
-        backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
+    fullWidth = true,
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
 
     @if(form.errors && availableGroups.nonEmpty) {
@@ -77,35 +77,35 @@
     @if(!availableGroups.isEmpty) {
 
         @formWithCSRF(action = routes.AddClientToGroupsController.submitSelectGroupsForClient(client.id)) {
-                @checkboxes(
-                    id = Some("groups"),
-                    hint = Some(msgs("client.select.groups.hint")),
-                    field = form("groups"),
+            @checkboxes(
+                id = Some("groups"),
+                hint = Some(msgs("client.select.groups.hint")),
+                field = form("groups"),
+                name = "groups[]",
+                items = availableGroups.map { g =>
+                    CheckboxData(
+                        id = g.groupId.toString,
+                        label = g.groupName,
+                        value = g.groupId.toString
+                    )
+                } :+ CheckboxData(/* none of the above */
+                    id = AddGroupsToClientForm.NoneValue,
                     name = "groups[]",
-                    items = availableGroups.map { g =>
-                        CheckboxData(
-                            id = g.groupId.toString,
-                            label = g.groupName,
-                            value = g.groupId.toString
-                        )
-                    } :+ CheckboxData( /* none of the above */
-                        id = AddGroupsToClientForm.NoneValue,
-                        name = "groups[]",
-                        label = msgs("unassigned.client.assign.none-of-the-above"),
-                        hint = Some(msgs("unassigned.client.assign.none-of-the-above.hint")),
-                        value = AddGroupsToClientForm.NoneValue,
-                        checked = form.data.exists { case (k, v) => k.contains("groups") && v == AddGroupsToClientForm.NoneValue },
-                        exclusive = true
-                    ),
-                    legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden")))
-                )
+                    label = msgs("unassigned.client.assign.none-of-the-above"),
+                    hint = Some(msgs("unassigned.client.assign.none-of-the-above.hint")),
+                    value = AddGroupsToClientForm.NoneValue,
+                    checked = form.data.exists { case (k, v) => k.contains("groups") && v == AddGroupsToClientForm.NoneValue },
+                    exclusive = true
+                ),
+                legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden")))
+            )
 
-                @a_button(
-                    routes.ManageClientController.showClientDetails(client.id).url,
-                    key = "common.cancel",
-                    classes = Some("govuk-button--secondary govuk-!-margin-right-3")
-                )
-                @submit_button(messageKey = "save.and.continue.button")
+            @a_button(
+                routes.ManageClientController.showClientDetails(client.id).url,
+                key = "common.cancel",
+                classes = Some("govuk-button--secondary govuk-!-margin-right-3")
+            )
+            @submit_button(messageKey = "save.and.continue.button")
         }
     } else {
         <div class="govuk-!-margin-top-8">

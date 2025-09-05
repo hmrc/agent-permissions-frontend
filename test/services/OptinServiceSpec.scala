@@ -19,11 +19,11 @@ package services
 import com.google.inject.AbstractModule
 import connectors.AgentPermissionsConnector
 import helpers.BaseSpec
+import models.accessgroups.optin.OptedInSingleUser
 import org.apache.pekko.Done
 import play.api.Application
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agents.accessgroups.optin.OptedInSingleUser
 
 class OptinServiceSpec extends BaseSpec {
 

@@ -19,10 +19,10 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import controllers.actions.AuthAction
+import models.accessgroups.optin.OptinStatus
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repository.SessionCacheRepository
-import uk.gov.hmrc.agents.accessgroups.optin.OptinStatus
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.{Inject, Singleton}

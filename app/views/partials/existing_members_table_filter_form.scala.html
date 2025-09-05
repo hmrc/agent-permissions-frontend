@@ -16,10 +16,10 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import models.PaginationMetaData
 @import views.html.components.pagination.GET_pagination
 @import views.html.partials.search_and_filter
-@import uk.gov.hmrc.agents.accessgroups.GroupSummary
+@import models.accessgroups.GroupSummary
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
@@ -29,6 +29,7 @@
     input_select: input_select,
     GET_pagination:GET_pagination,
 )
+
 
 @(
     group: GroupSummary,

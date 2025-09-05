@@ -17,18 +17,17 @@
 @import config.AppConfig
 @import views.html.main_layout
 @import views.html.partials.clients_table_filter_form
-@import uk.gov.hmrc.agentmtdidentifiers.model.EnrolmentKey
-@import uk.gov.hmrc.agentmtdidentifiers.model.PaginationMetaData
+@import models.PaginationMetaData
 
 @this(
-    layout: main_layout, h1: h1, p: p, a: a,
-    clients_table_filter_form: clients_table_filter_form,
+        layout: main_layout, h1: h1, p: p, a: a,
+        clients_table_filter_form: clients_table_filter_form,
 )
 
 @(
-    unassignedClients: Seq[DisplayClient],
-    filterForm: Form[SearchFilter],
-    paginationMetaData: Option[PaginationMetaData] = None
+        unassignedClients: Seq[DisplayClient],
+        filterForm: Form[SearchFilter],
+        paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @title = @{

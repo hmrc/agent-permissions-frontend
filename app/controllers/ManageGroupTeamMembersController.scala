@@ -22,13 +22,13 @@ import controllers.GroupType.{CUSTOM, isCustom}
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.TeamMember.toAgentUser
-import models.{AddTeamMembersToGroup, GroupId, SearchFilter, TeamMember}
+import models.accessgroups.{AccessGroup, CustomGroup, GroupSummary, TaxGroup}
+import models.{AddTeamMembersToGroup, Arn, GroupId, SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{GroupService, SessionCacheService, TeamMemberService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agents.accessgroups.{AccessGroup, CustomGroup, GroupSummary, TaxGroup}
+import models.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.members.{confirm_deselect_member, confirm_remove_member}
 import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, update_paginated_team_members}

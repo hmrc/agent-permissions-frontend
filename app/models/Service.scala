@@ -53,27 +53,93 @@ object Service {
   val HMRCPILLAR2ORG = "HMRC-PILLAR2-ORG"
   val HMRCMTDITSUPP = "HMRC-MTD-IT-SUPP"
 
-  case object MtdIt extends Service("HMRC-MTD-IT", 'A', "HMRC-MTD-IT", NinoType, MtdItIdType)
+  case object MtdIt extends Service(
+        id = "HMRC-MTD-IT",
+        invitationIdPrefix = 'A',
+        enrolmentKey = "HMRC-MTD-IT",
+        supportedSuppliedClientIdType = NinoType,
+        supportedClientIdType = MtdItIdType
+      )
 
-  case object PersonalIncomeRecord extends Service("PERSONAL-INCOME-RECORD", 'B', "HMRC-NI", NinoType, NinoType)
+  case object PersonalIncomeRecord extends Service(
+        id = "PERSONAL-INCOME-RECORD",
+        invitationIdPrefix = 'B',
+        enrolmentKey = "HMRC-NI",
+        supportedSuppliedClientIdType = NinoType,
+        supportedClientIdType = NinoType
+      )
 
-  case object Vat extends Service("HMRC-MTD-VAT", 'C', "HMRC-MTD-VAT", VrnType, VrnType)
+  case object Vat extends Service(
+        id = "HMRC-MTD-VAT",
+        invitationIdPrefix = 'C',
+        enrolmentKey = "HMRC-MTD-VAT",
+        supportedSuppliedClientIdType = VrnType,
+        supportedClientIdType = VrnType
+      )
 
-  case object Trust extends Service("HMRC-TERS-ORG", 'D', "HMRC-TERS-ORG", UtrType, UtrType)
+  case object Trust extends Service(
+        id = "HMRC-TERS-ORG",
+        invitationIdPrefix = 'D',
+        enrolmentKey = "HMRC-TERS-ORG",
+        supportedSuppliedClientIdType = UtrType,
+        supportedClientIdType = UtrType
+      )
 
-  case object TrustNT extends Service("HMRC-TERSNT-ORG", 'F', "HMRC-TERSNT-ORG", UrnType, UrnType)
+  case object TrustNT extends Service(
+        id = "HMRC-TERSNT-ORG",
+        invitationIdPrefix = 'F',
+        enrolmentKey = "HMRC-TERSNT-ORG",
+        supportedSuppliedClientIdType = UrnType,
+        supportedClientIdType = UrnType
+      )
 
-  case object CapitalGains extends Service("HMRC-CGT-PD", 'E', "HMRC-CGT-PD", CgtRefType, CgtRefType)
+  case object CapitalGains extends Service(
+        id = "HMRC-CGT-PD",
+        invitationIdPrefix = 'E',
+        enrolmentKey = "HMRC-CGT-PD",
+        supportedSuppliedClientIdType = CgtRefType,
+        supportedClientIdType = CgtRefType
+      )
 
-  case object Ppt extends Service("HMRC-PPT-ORG", 'G', "HMRC-PPT-ORG", PptRefType, PptRefType)
+  case object Ppt extends Service(
+        id = "HMRC-PPT-ORG",
+        invitationIdPrefix = 'G',
+        enrolmentKey = "HMRC-PPT-ORG",
+        supportedSuppliedClientIdType = PptRefType,
+        supportedClientIdType = PptRefType
+      )
 
-  case object Cbc extends Service("HMRC-CBC-ORG", 'H', "HMRC-CBC-ORG", CbcIdType, CbcIdType)
+  case object Cbc extends Service(
+        id = "HMRC-CBC-ORG",
+        invitationIdPrefix = 'H',
+        enrolmentKey = "HMRC-CBC-ORG",
+        supportedSuppliedClientIdType = CbcIdType,
+        supportedClientIdType = CbcIdType
+      )
 
-  case object CbcNonUk extends Service("HMRC-CBC-NONUK-ORG", 'J', "HMRC-CBC-NONUK-ORG", CbcIdType, CbcIdType)
+  case object CbcNonUk extends Service(
+        id = "HMRC-CBC-NONUK-ORG",
+        invitationIdPrefix = 'J',
+        enrolmentKey = "HMRC-CBC-NONUK-ORG",
+        supportedSuppliedClientIdType = CbcIdType,
+        supportedClientIdType = CbcIdType
+      )
 
-  case object Pillar2 extends Service("HMRC-PILLAR2-ORG", 'K', "HMRC-PILLAR2-ORG", PlrIdType, PlrIdType)
+  case object Pillar2 extends Service(
+        id = "HMRC-PILLAR2-ORG",
+        invitationIdPrefix = 'K',
+        enrolmentKey = "HMRC-PILLAR2-ORG",
+        supportedSuppliedClientIdType = PlrIdType,
+        supportedClientIdType = PlrIdType
+      )
 
-  case object MtdItSupp extends Service("HMRC-MTD-IT-SUPP", 'L', "HMRC-MTD-IT-SUPP", NinoType, MtdItIdType)
+  case object MtdItSupp extends Service(
+        id = "HMRC-MTD-IT-SUPP",
+        invitationIdPrefix = 'L',
+        enrolmentKey = "HMRC-MTD-IT-SUPP",
+        supportedSuppliedClientIdType = NinoType,
+        supportedClientIdType = MtdItIdType
+      )
 
   val supportedServices: Seq[Service] =
     Seq(MtdIt, Vat, PersonalIncomeRecord, Trust, TrustNT, CapitalGains, Ppt, Cbc, CbcNonUk, Pillar2, MtdItSupp)
@@ -98,21 +164,42 @@ sealed abstract class ClientIdType[+T <: TaxIdentifier](
   val createUnderlying: String => T
 )
 
-case object NinoType extends ClientIdType(classOf[Nino], "ni", "NINO", Nino.apply)
+case object NinoType
+    extends ClientIdType(clazz = classOf[Nino], id = "ni", enrolmentId = "NINO", createUnderlying = Nino.apply)
 
-case object MtdItIdType extends ClientIdType(classOf[MtdItId], "MTDITID", "MTDITID", MtdItId.apply)
+case object MtdItIdType extends ClientIdType(
+      clazz = classOf[MtdItId],
+      id = "MTDITID",
+      enrolmentId = "MTDITID",
+      createUnderlying = MtdItId.apply
+    )
 
-case object VrnType extends ClientIdType(classOf[Vrn], "vrn", "VRN", Vrn.apply)
+case object VrnType
+    extends ClientIdType(clazz = classOf[Vrn], id = "vrn", enrolmentId = "VRN", createUnderlying = Vrn.apply)
 
-case object UtrType extends ClientIdType(classOf[Utr], "utr", "SAUTR", Utr.apply)
+case object UtrType
+    extends ClientIdType(clazz = classOf[Utr], id = "utr", enrolmentId = "SAUTR", createUnderlying = Utr.apply)
 
-case object UrnType extends ClientIdType(classOf[Urn], "urn", "URN", Urn.apply)
+case object UrnType
+    extends ClientIdType(clazz = classOf[Urn], id = "urn", enrolmentId = "URN", createUnderlying = Urn.apply)
 
-case object CgtRefType extends ClientIdType(classOf[CgtRef], "CGTPDRef", "CGTPDRef", CgtRef.apply)
+case object CgtRefType extends ClientIdType(
+      clazz = classOf[CgtRef],
+      id = "CGTPDRef",
+      enrolmentId = "CGTPDRef",
+      createUnderlying = CgtRef.apply
+    )
 
 case object PptRefType
-    extends ClientIdType(classOf[PptRef], "EtmpRegistrationNumber", "EtmpRegistrationNumber", PptRef.apply)
+    extends ClientIdType(
+      clazz = classOf[PptRef],
+      id = "EtmpRegistrationNumber",
+      enrolmentId = "EtmpRegistrationNumber",
+      createUnderlying = PptRef.apply
+    )
 
-case object CbcIdType extends ClientIdType(classOf[CbcId], "cbcId", "cbcId", CbcId.apply)
+case object CbcIdType
+    extends ClientIdType(clazz = classOf[CbcId], id = "cbcId", enrolmentId = "cbcId", createUnderlying = CbcId.apply)
 
-case object PlrIdType extends ClientIdType(classOf[PlrId], "PLRID", "PLRID", PlrId.apply)
+case object PlrIdType
+    extends ClientIdType(clazz = classOf[PlrId], id = "PLRID", enrolmentId = "PLRID", createUnderlying = PlrId.apply)

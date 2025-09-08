@@ -21,8 +21,8 @@ import helpers.BaseSpec
 import models.GroupId
 import org.apache.pekko.Done
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, TaxGroup}
+import models.Arn
+import models.accessgroups.{AgentUser, TaxGroup}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime.MIN

@@ -16,9 +16,9 @@
 
 package models
 
+import models.accessgroups.Client
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.agents.accessgroups.Client
 
 class SelectableSpec extends AnyWordSpec with Matchers {
 

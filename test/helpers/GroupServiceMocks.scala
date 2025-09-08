@@ -17,16 +17,16 @@
 package helpers
 
 import connectors.{AddMembersToAccessGroupRequest, AddOneTeamMemberToGroupRequest, UpdateAccessGroupRequest}
-import models.{DisplayClient, GroupId, TeamMember}
+import models.accessgroups.{CustomGroup, GroupSummary}
+import models.{Arn, DisplayClient, GroupId, TeamMember}
 import org.apache.pekko.Done
 import org.scalamock.handlers.{CallHandler4, CallHandler6}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Request
 import services.GroupService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginationMetaData}
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
-import uk.gov.hmrc.agents.accessgroups.{CustomGroup, GroupSummary}
+import models.PaginationMetaData
+import models.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}

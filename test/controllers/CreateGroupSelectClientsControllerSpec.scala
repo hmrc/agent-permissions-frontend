@@ -30,8 +30,8 @@ import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redir
 import play.api.test.{FakeRequest, Helpers}
 import repository.SessionCacheRepository
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
-import uk.gov.hmrc.agents.accessgroups.Client
-import uk.gov.hmrc.agents.accessgroups.optin.OptedInReady
+import models.accessgroups.Client
+import models.accessgroups.optin.OptedInReady
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

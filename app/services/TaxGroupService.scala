@@ -21,8 +21,8 @@ import connectors._
 import models.GroupId
 import org.apache.pekko.Done
 import play.api.Logging
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.agents.accessgroups.TaxGroup
+import models.Arn
+import models.accessgroups.TaxGroup
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}

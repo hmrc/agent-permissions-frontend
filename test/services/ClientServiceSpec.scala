@@ -19,13 +19,13 @@ package services
 import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.{CLIENT_FILTER_INPUT, CLIENT_SEARCH_INPUT, CURRENT_PAGE_CLIENTS, FILTERED_CLIENTS, SELECTED_CLIENTS}
 import helpers.BaseSpec
-import models.{DisplayClient, GroupId}
+import models.{Arn, DisplayClient, GroupId}
 import org.apache.pekko.Done
 import play.api.libs.json.JsNumber
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
-import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
+import models.{PaginatedList, PaginationMetaData}
+import models.PaginatedListBuilder
+import models.accessgroups.{Client, GroupSummary}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EncryptionUtil
 

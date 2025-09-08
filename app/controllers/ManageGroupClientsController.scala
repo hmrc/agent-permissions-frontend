@@ -21,15 +21,15 @@ import connectors.AddMembersToAccessGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
 import forms._
 import models.DisplayClient.format
-import models.{AddClientsToGroup, DisplayClient, GroupId, SearchFilter}
+import models.accessgroups.{Client, GroupSummary}
+import models.{AddClientsToGroup, Arn, DisplayClient, GroupId, SearchFilter}
 import play.api.Logging
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
-import uk.gov.hmrc.agents.accessgroups.{Client, GroupSummary}
+import models.{PaginatedList, PaginationMetaData}
+import models.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.clients.{confirm_remove_client, search_clients}
 import views.html.groups.manage.clients._

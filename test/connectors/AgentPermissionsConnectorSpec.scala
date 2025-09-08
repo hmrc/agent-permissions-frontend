@@ -18,6 +18,8 @@ package connectors
 
 import com.google.inject.AbstractModule
 import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
+import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup}
+import models.accessgroups.optin.OptedInReady
 import models.{DisplayClient, GroupId}
 import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
 import org.apache.pekko.Done
@@ -25,9 +27,7 @@ import play.api.Application
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.agentmtdidentifiers.model.{PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agents.accessgroups.optin._
-import uk.gov.hmrc.agents.accessgroups._
+import models.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 

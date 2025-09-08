@@ -18,13 +18,13 @@ package controllers.actions
 
 import config.AppConfig
 import controllers._
-import models.{DisplayClient, GroupId}
+import models.accessgroups.{AccessGroup, GroupSummary, TaxGroup}
+import models.{Arn, DisplayClient, GroupId}
 import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.{GroupService, TaxGroupService}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList}
-import uk.gov.hmrc.agents.accessgroups.{AccessGroup, GroupSummary, TaxGroup}
+import models.PaginatedList
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import views.html.groups.manage.group_not_found

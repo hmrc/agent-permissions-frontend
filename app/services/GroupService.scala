@@ -20,13 +20,11 @@ import com.google.inject.ImplementedBy
 import connectors._
 import controllers._
 import models.TeamMember.toAgentUser
-import models.{DisplayClient, GroupId, TeamMember}
+import models.accessgroups.{Client, CustomGroup, GroupSummary}
+import models.{Arn, DisplayClient, GroupId, PaginatedList, PaginatedListBuilder, PaginationMetaData, TeamMember}
 import org.apache.pekko.Done
 import play.api.Logging
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
-import uk.gov.hmrc.agentmtdidentifiers.utils.PaginatedListBuilder
-import uk.gov.hmrc.agents.accessgroups.{Client, CustomGroup, GroupSummary, UserDetails}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -147,7 +145,7 @@ class GroupServiceImpl @Inject() (
     teamMembersInGroup: Seq[TeamMember] = Seq.empty
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] =
     for {
-      ugsUsers: Seq[UserDetails] <- agentUserClientDetailsConnector.getTeamMembers(arn)
+      ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
       ugsAsTeamMembers = ugsUsers.map(TeamMember.fromUserDetails)
       groupTeamMembers = ugsAsTeamMembers
                            .filter(tm => teamMembersInGroup.map(_.userId).contains(tm.userId))

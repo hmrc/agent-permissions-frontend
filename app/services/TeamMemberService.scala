@@ -19,10 +19,10 @@ package services
 import com.google.inject.ImplementedBy
 import connectors.AgentUserClientDetailsConnector
 import controllers.{CLEAR_BUTTON, CONTINUE_BUTTON, CURRENT_PAGE_TEAM_MEMBERS, SELECTED_TEAM_MEMBERS, TEAM_MEMBER_SEARCH_INPUT, ToFuture, teamMemberFilteringKeys}
-import models.{AddTeamMembersToGroup, TeamMember}
+import models.{AddTeamMembersToGroup, Arn, TeamMember}
 import play.api.libs.json.JsNumber
 import play.api.mvc.Request
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, PaginatedList, PaginationMetaData}
+import models.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}

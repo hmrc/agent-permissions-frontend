@@ -19,13 +19,14 @@ package controllers.actions
 import config.AppConfig
 import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
 import controllers._
+import models.Arn
 import play.api.libs.json.Reads
 import play.api.mvc.Results.{Forbidden, Redirect}
 import play.api.mvc.{Request, RequestHeader, Result}
 import play.api.{Configuration, Environment, Logging}
 import services.SessionCacheService
 import sttp.model.Uri.UriContext
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, SuspensionDetails}
+import models.SuspensionDetails
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}

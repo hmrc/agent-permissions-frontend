@@ -21,6 +21,7 @@ import connectors.{AgentAssuranceConnector, AgentPermissionsConnector, AgentUser
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
+import models.accessgroups.optin.OptedInReady
 import models.{DisplayClient, GroupId, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
@@ -30,8 +31,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{GroupService, SessionCacheService, TaxGroupService}
-import uk.gov.hmrc.agents.accessgroups.optin._
-import uk.gov.hmrc.agents.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup, UserDetails}
+import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 

@@ -247,6 +247,7 @@ opt-out-info.h1=Turn off access groups
 opt-out-info.inset=If you turn off this feature any access groups you have created will be disabled. The groups can be turned on again at any time.
 opt-out-info.p1=Turning off access groups will mean that all your team members can view and manage the tax affairs of all your clients. We recommend checking with your team before turning off access groups.
 opt-out-info.p2=If you turn access groups back on your groups will be restored. Team members will only be able to manage the clients in their access groups.
+paginated.title.page.of=(page {0} of {1})
 paginated.clients.showing=Showing {0} to {1} of {2} clients
 paginated.clients.showing.total=Showing total of {0} clients {1}
 paginated.clients.showing.tax-group.total=Showing {0} {1} clients

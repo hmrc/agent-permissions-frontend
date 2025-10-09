@@ -33,9 +33,18 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title = @{
+    val totalPages = paginationMetaData.get.totalPages
+    if (totalPages == 1) {
+        msgs("group.manage.members.h1")
+    } else {
+        msgs("group.manage.members.h1") + " " + msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)
+    }
+}
+
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty,
-                                     msgs("group.manage.members.h1"),
+                                     title,
                                      None,
                                      form("search").value),
     backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
@@ -45,7 +54,7 @@
     @summaryErrors(form.errors, Some("search"))
 
     <div class="govuk-!-width-two-thirds">
-        @h1("group.manage.members.h1")
+        @h1(title)
         @p(html = Some(Html(msgs("group.manage.members.p", "/tax-and-scheme-management/users?origin=Agent"))))
     </div>
 

@@ -17,6 +17,7 @@
 package utils
 
 import config.AppConfig
+import models.PaginationMetaData
 import play.api.i18n.Messages
 
 object ViewUtils {
@@ -165,6 +166,17 @@ object ViewUtils {
     filterTerms match {
       case Nil   => ""
       case terms => (s"${`for`} " + filterTerms.mkString(s" $and ")).trim
+    }
+  }
+
+  def paginationPageTitle(paginationMetaData: Option[PaginationMetaData], mainMsgString: String)(implicit
+    msgs: Messages
+  ): String = {
+    val totalPages = paginationMetaData.get.totalPages
+    if (totalPages == 1) {
+      msgs(mainMsgString)
+    } else {
+      msgs(mainMsgString) + " " + msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)
     }
   }
 }

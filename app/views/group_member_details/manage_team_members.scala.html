@@ -18,6 +18,7 @@
 @import views.html.main_layout
 @import views.html.partials.details_team_members_table_filter_form
 @import models.PaginationMetaData
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
         layout: main_layout,
@@ -33,14 +34,7 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@title = @{
-    val totalPages = paginationMetaData.get.totalPages
-    if (totalPages == 1) {
-        msgs("group.manage.members.h1")
-    } else {
-        msgs("group.manage.members.h1") + " " + msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)
-    }
-}
+@title=@{ paginationPageTitle(paginationMetaData, "group.manage.members.h1") }
 
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty,

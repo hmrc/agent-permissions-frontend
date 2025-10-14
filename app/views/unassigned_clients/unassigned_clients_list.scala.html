@@ -40,6 +40,8 @@
     paginationMetaData: Option[PaginationMetaData]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title=@{ paginationPageTitle(paginationMetaData, "unassigned-clients.h1") }
+
 @errorHref = @{
     if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
         "search"
@@ -51,7 +53,7 @@
 @pageTitle = @{
     withSearchAndErrorPrefix(
         !form.errors.isEmpty,
-        msgs("unassigned-clients.h1"),
+        title,
         form("filter").value,
         form("search").value
     )
@@ -61,7 +63,7 @@
     backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
     fullWidth = true) {
 
-    @h1("unassigned-clients.h1")
+    @h1(title)
     <div class="govuk-!-width-two-thirds">
         @inset_text("unassigned.client.list.p", classes = "govuk-!-margin-bottom-9", id= Some("info"))
     </div>

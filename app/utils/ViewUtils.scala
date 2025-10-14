@@ -179,4 +179,15 @@ object ViewUtils {
       msgs(mainMsgString) + " " + msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)
     }
   }
+
+  def paginationShowingRangeHelperText(paginationMetaData: Option[PaginationMetaData], mainMsgString: String)(implicit
+    msgs: Messages
+  ): String =
+//    TODO: Will have to do for totalPages == 1 aswell
+    msgs(
+      mainMsgString,
+      (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+      (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+      paginationMetaData.get.totalSize
+    )
 }

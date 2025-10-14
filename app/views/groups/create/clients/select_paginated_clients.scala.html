@@ -48,18 +48,8 @@
     }
 }
 
-@searchParamMsg = @{
-    if(form.get.search.getOrElse("").nonEmpty && form.get.filter.getOrElse("").nonEmpty) {
-        msgs("group.client.list.2.h2", paginationMetaData.get.totalSize, form.get.search.get, displayTaxServiceFromServiceKey(form.get.filter.get))
-    }
-    else {
-        val txt =
-            if(form.get.filter.getOrElse("").nonEmpty)
-                displayTaxServiceFromServiceKey(form.get.filter.get)
-            else
-                form.get.search.get
-        msgs("common.showing.results.many", paginationMetaData.get.totalSize, txt)
-    }
+@headingTwo(paginationMeta: Option[PaginationMetaData]) = @{
+    paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.get.search, form.get.filter)
 }
 
 @layout(
@@ -74,7 +64,7 @@
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(title)
         @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
-            @h2(searchParamMsg)
+            @h2(headingTwo(paginationMetaData))
         }
         @p("common.group.max.clients")
     </div>

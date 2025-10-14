@@ -125,7 +125,6 @@ filter.legend=Hidlwyr
 generic.title={0} - {1} - GOV.UK
 group-name-filter.text.label=Hidlo yn ôl enw’r grŵp
 group.caption.access-group=Enw’r grŵp mynediad hwn yw
-group.client.list.2.h2=Yn dangos {0} chanlyniad ar ‘{1}’ a ‘{2}’
 group.client.list.h1=Dewiswch gleientiaid
 group.client.list.table.checkbox=Blychau dewis
 group.client.list.table.checkbox.label=Cyfeirnod cleient {0}, Cyfeirnod treth {1}, Gwasanaeth treth {2}

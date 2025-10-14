@@ -57,12 +57,10 @@ class ManageTeamMemberController @Inject() (
       isOptedIn(arn) { _ =>
         val eventualTuple = for {
           search        <- sessionCacheService.get(TEAM_MEMBER_SEARCH_INPUT)
-          pageOfMembers <- teamMemberService.getPageOfTeamMembers(arn)(page.getOrElse(1), 5)
+          pageOfMembers <- teamMemberService.getPageOfTeamMembers(arn)(page.getOrElse(1), 10)
         } yield (search, pageOfMembers)
         eventualTuple.map { tuple =>
           val (search, paginatedMembers) = (tuple._1, tuple._2)
-          println("AAAAAAAAAA")
-          println(paginatedMembers.paginationMetaData)
           Ok(
             manage_team_members(
               teamMembers = paginatedMembers.pageContent,

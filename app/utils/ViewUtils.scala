@@ -173,7 +173,7 @@ object ViewUtils {
     msgs: Messages
   ): String = {
     val totalPages = paginationMetaData.get.totalPages
-    if (totalPages == 1) {
+    if (totalPages <= 1) {
       msgs(mainMsgString)
     } else {
       msgs(mainMsgString) + " " + msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)
@@ -188,7 +188,7 @@ object ViewUtils {
   )(implicit
     msgs: Messages
   ): String =
-    if (paginationMetaData.get.totalPages == 1) {
+    if (paginationMetaData.get.totalPages <= 1) {
       msgs(
         s"$mainMsgString.total",
         paginationMetaData.get.totalSize,

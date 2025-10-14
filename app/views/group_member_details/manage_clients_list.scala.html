@@ -19,6 +19,7 @@
 @import views.html.main_layout
 @import views.html.partials.details_clients_table_filter_form
 @import models.PaginatedList
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
         layout: main_layout,
@@ -34,10 +35,11 @@
     formAction: Call = routes.ManageClientController.submitPageOfClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title=@{ paginationPageTitle(Some(paginatedList.paginationMetaData), "group.manage.clients") }
 
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty,
-                                     msgs("group.manage.clients"),
+                                     title,
                                      form("filter").value,
                                      form("search").value),
     backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
@@ -47,7 +49,7 @@
     @summaryErrors(form.errors, Some("search"))
 
     <div class="govuk-!-width-two-thirds">
-        @h1("group.manage.clients")
+        @h1(title)
         @p("group.manage.clients.p")
     </div>
 

@@ -188,11 +188,19 @@ object ViewUtils {
   )(implicit
     msgs: Messages
   ): String =
-//    TODO: Will have to do for totalPages == 1 aswell
-    msgs(
-      mainMsgString,
-      (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-      (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-      paginationMetaData.get.totalSize
-    )
+    if (paginationMetaData.get.totalPages == 1) {
+      msgs(
+        s"$mainMsgString.total",
+        paginationMetaData.get.totalSize,
+        filterReminderSubstring(formSearch, formFilter)
+      )
+    } else {
+      msgs(
+        s"$mainMsgString.range",
+        (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+        (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+        paginationMetaData.get.totalSize,
+        filterReminderSubstring(formSearch, formFilter)
+      )
+    }
 }

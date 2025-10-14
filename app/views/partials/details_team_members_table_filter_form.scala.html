@@ -39,9 +39,9 @@
 
     @tableHeading(paginationMeta: PaginationMetaData) = @{
         if(form.data.nonEmpty && form.data.get("search").isDefined) {
-            msgs("paginated.team-members.showing.total", paginationMeta.totalSize, filterReminderSubstring(form.data.get("search"), None))
+            paginationShowingRangeHelperText(Some(paginationMeta), "paginated.team-members.showing", formSearch = form.data.get("search"))
         } else {
-            msgs("paginated.team-members.showing.total", paginationMeta.totalSize, filterReminderSubstring(None, None))
+            paginationShowingRangeHelperText(Some(paginationMeta), "paginated.team-members.showing")
         }
     }
 

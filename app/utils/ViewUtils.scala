@@ -180,7 +180,12 @@ object ViewUtils {
     }
   }
 
-  def paginationShowingRangeHelperText(paginationMetaData: Option[PaginationMetaData], mainMsgString: String)(implicit
+  def paginationShowingRangeHelperText(
+    paginationMetaData: Option[PaginationMetaData],
+    mainMsgString: String,
+    formSearch: Option[String] = None,
+    formFilter: Option[String] = None
+  )(implicit
     msgs: Messages
   ): String =
 //    TODO: Will have to do for totalPages == 1 aswell

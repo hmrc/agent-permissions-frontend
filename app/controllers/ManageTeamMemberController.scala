@@ -61,8 +61,8 @@ class ManageTeamMemberController @Inject() (
         } yield (search, pageOfMembers)
         eventualTuple.map { tuple =>
           val (search, paginatedMembers) = (tuple._1, tuple._2)
-//          println("AAAAAAAAAA")
-//          println(paginatedMembers.paginationMetaData)
+          println("AAAAAAAAAA")
+          println(paginatedMembers.paginationMetaData)
           Ok(
             manage_team_members(
               teamMembers = paginatedMembers.pageContent,

@@ -167,7 +167,7 @@ class ManageClientControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
 
-      html.body().text() should include("""Showing total of 40 clients for ‘friendly’ and ‘VAT’""")
+      html.body().text() should include("""Showing 1 to 3 of 40 clients for ‘friendly’ and ‘VAT’""")
     }
 
   }

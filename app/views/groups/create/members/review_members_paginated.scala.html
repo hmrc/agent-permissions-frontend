@@ -44,6 +44,8 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
     )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@firstPartOfHeadingOne = @{ msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize) }
+
 @tableRows = @{
     teamMembers.map(teamMember =>
         Seq(
@@ -63,7 +65,7 @@
 }
 
 @layout(
-    title = msgs("group.teamMembers.review.title"),
+    title = paginationPageTitle(paginationMetaData, "group.teamMembers.review.title"),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     fullWidth = true,
     formErrors = form.errors
@@ -71,7 +73,7 @@
     
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize))
+        @h1(paginationPageTitle(paginationMetaData, firstPartOfHeadingOne))
     </div>
 
     @if(teamMembers.nonEmpty) {

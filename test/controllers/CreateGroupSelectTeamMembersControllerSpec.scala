@@ -638,9 +638,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Review selected team members (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(H1).text() shouldBe "You have selected 11 team members to add to the group"
+      html.select(H1).text() shouldBe "You have selected 11 team members to add to the group (page 1 of 2)"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
       table.select("thead th").size() shouldBe 4

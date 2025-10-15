@@ -23,7 +23,7 @@
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
-@import utils.ViewUtils.paginationPageTitle
+@import utils.ViewUtils.{ paginationPageTitle, paginationShowingRangeHelperText }
 
 @this(
     layout: main_layout, govukTag : GovukTag,
@@ -49,11 +49,7 @@
         .filter(_.nonEmpty)
         .map(term => s"‘$term’")
         .getOrElse(msgs("group.manage.showing.access-groups-substring"))
-    if (summaries.length == 1) {
-        msgs("group.manage.showing.one", searchTerm)
-    } else {
-        msgs("common.showing.results.many", summaries.length, searchTerm)
-    }
+    paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", formSearch = Some(searchTerm))
 }
 
 @groupTypeTag(isCustomGroup: Boolean) = {

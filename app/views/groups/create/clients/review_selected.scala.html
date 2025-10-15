@@ -20,27 +20,36 @@
 @import views.components.models._
 @import models.PaginationMetaData
 @import views.html.components.pagination.GET_pagination
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
-        layout: main_layout,
-        p: p, h1: h1, span: span, a: a,
-        caption: caption,
-        link_as_button: link_as_button,
-        table: table,
-        submit_button: submit_button,
-        checkbox: checkbox,
-        radioButtons: radioButtons,
-        formWithCSRF: FormWithCSRF,
-        summaryErrors: SummaryErrors,
-        GET_pagination: GET_pagination
+    layout: main_layout,
+    p: p, h1: h1, span: span, a: a,
+    caption: caption,
+    link_as_button: link_as_button,
+    table: table,
+    submit_button: submit_button,
+    checkbox: checkbox,
+    radioButtons: radioButtons,
+    formWithCSRF: FormWithCSRF,
+    summaryErrors: SummaryErrors,
+    GET_pagination: GET_pagination
 )
 
 @(
-        clients: Seq[DisplayClient],
-        groupName: String,
-        form: Form[Boolean],
-        paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
+    clients: Seq[DisplayClient],
+    groupName: String,
+    form: Form[Boolean],
+    paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@firstPartOfHeadingOne = @{
+if (paginationMetaData.get.totalSize == 1) {
+        msgs("group.clients.review.h1.singular")
+    } else {
+        msgs("group.clients.review.h1", paginationMetaData.get.totalSize)
+    }
+}
 
 @tableRows = @{
     clients.map(client => {
@@ -50,20 +59,21 @@
             Html(displayTaxServiceFromServiceKey(client.taxService)),
             Html(
                 a(
-                    key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
-                        html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
-                    ).toString
+                    key = Html(msgs("common.remove") +
+                        span(
+                            classes = Some("govuk-visually-hidden"),
+                            html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
+                        ).toString
                     ).toString,
                     href = routes.CreateGroupSelectClientsController.showConfirmRemoveClient(Some(client.id)).url
                 ).toString
             )
         )
-    }
-    )
+    })
 }
 
 @layout(
-    title = msgs("group.clients.review.title"),
+    title = paginationPageTitle(paginationMetaData, "group.clients.review.title"),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = form.errors,
     fullWidth = true
@@ -71,12 +81,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-
-        @if(paginationMetaData.get.totalSize == 1) {
-            @h1(msgs("group.clients.review.h1.singular"))
-        } else {
-            @h1(msgs("group.clients.review.h1", paginationMetaData.get.totalSize))
-        }
+        @h1(paginationPageTitle(paginationMetaData, firstPartOfHeadingOne))
     </div>
 
     @if(clients.nonEmpty) {

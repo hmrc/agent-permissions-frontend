@@ -161,8 +161,8 @@ object ViewUtils {
       formSearch.filter(_.nonEmpty).toSeq,
       formFilter.filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
     ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
-    val `for` = msgs("paginated.clients.showing.total.filter-preposition")
-    val and = msgs("paginated.clients.showing.total.filter-conjunction")
+    val `for` = msgs("paginated.showing.total.filter-preposition")
+    val and = msgs("paginated.showing.total.filter-conjunction")
     filterTerms match {
       case Nil   => ""
       case terms => (s"${`for`} " + filterTerms.mkString(s" $and ")).trim

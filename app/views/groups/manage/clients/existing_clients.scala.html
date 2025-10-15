@@ -103,8 +103,8 @@
                     form.data.get("search").filter(_.nonEmpty).toSeq,
                     form.data.get("filter").filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
                 ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
-                val `for` = msgs("paginated.clients.showing.total.filter-preposition")
-                val and = msgs("paginated.clients.showing.total.filter-conjunction")
+                val `for` = msgs("paginated.showing.total.filter-preposition")
+                val and = msgs("paginated.showing.total.filter-conjunction")
                 val filterReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), form.data.get("filter"))
                 if (groupClients.length == 1)
                   msgs("group.manage.clients.showing.one", filterReminder)

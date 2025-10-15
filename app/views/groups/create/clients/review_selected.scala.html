@@ -44,7 +44,7 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @firstPartOfHeadingOne = @{
-if (paginationMetaData.get.totalSize == 1) {
+    if (paginationMetaData.get.totalSize == 1) {
         msgs("group.clients.review.h1.singular")
     } else {
         msgs("group.clients.review.h1", paginationMetaData.get.totalSize)

@@ -20,6 +20,7 @@
 @import models.PaginationMetaData
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -62,7 +63,7 @@
 }
 
 @layout(
-    title = msgs("group.teamMembers.review.title", groupName),
+    title = msgs("group.teamMembers.review.title"),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     fullWidth = true,
     formErrors = form.errors
@@ -70,12 +71,7 @@
     
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-
-        @if(paginationMetaData.isDefined){
-            @h1(msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize))
-        } else {
-            @h1("group.teamMembers.review.h1")
-        }
+        @h1(msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize))
     </div>
 
     @if(teamMembers.nonEmpty) {

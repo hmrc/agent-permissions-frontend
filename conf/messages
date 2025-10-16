@@ -53,6 +53,7 @@ common.details.groups.header=Member of these groups
 common.details.not-assigned=Not in any access groups
 common.errorSummary.heading=There is a problem
 common.group.already.in=Already in this group
+common.group.in.this=in this group
 common.group.max.clients=You can have a total of 1,200 clients and team members in a custom access group. If a client is already in this group, you can remove them using the 'Manage access groups' page.
 common.group.remove.client=Remove {0} from this access group?
 common.group.remove.member.hint=Please note that {0} will no longer be able to access clients in this access group.

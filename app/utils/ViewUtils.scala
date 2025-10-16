@@ -184,15 +184,17 @@ object ViewUtils {
     paginationMetaData: Option[PaginationMetaData],
     mainMsgString: String,
     formSearch: Option[String] = None,
-    formFilter: Option[String] = None
+    formFilter: Option[String] = None,
+    followingMsgString: Option[String] = None
   )(implicit
     msgs: Messages
-  ): String =
+  ): String = {
+    val followingString = followingMsgString.map(key => s"${msgs(key)} ").getOrElse("") + filterReminderSubstring(formSearch, formFilter)
     if (paginationMetaData.get.totalPages <= 1) {
       msgs(
         s"$mainMsgString.total",
         paginationMetaData.get.totalSize,
-        filterReminderSubstring(formSearch, formFilter)
+        followingString
       )
     } else {
       msgs(
@@ -200,7 +202,8 @@ object ViewUtils {
         (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
         (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
         paginationMetaData.get.totalSize,
-        filterReminderSubstring(formSearch, formFilter)
+        followingString
       )
     }
+  }
 }

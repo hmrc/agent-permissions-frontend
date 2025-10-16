@@ -53,6 +53,7 @@ common.details.groups.header=Aelod o’r grwpiau hyn
 common.details.not-assigned=Heb ei neilltuo i grŵp
 common.errorSummary.heading=Mae problem wedi codi
 common.group.already.in=Eisoes yn y grŵp hwn
+common.group.in.this=yn y grŵp hwn
 common.group.max.clients=Gallwch fod â chyfanswm o 1,200 o gleientiaid ac aelodau’r tîm mewn grŵp mynediad wedi’i deilwra. Os yw cleient eisoes yn y grŵp hwn, gallwch ei ddileu gan ddefnyddio’r dudalen ‘Rheoli grwpiau mynediad’.
 common.group.remove.client=Dileu {0} o’r grŵp mynediad hwn?
 common.group.remove.member.hint=Sylwer - ni fydd {0} bellach yn gallu cael mynediad i gleientiaid yn y grŵp mynediad hwn.

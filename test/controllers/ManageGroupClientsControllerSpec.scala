@@ -476,9 +476,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Agent services account - GOV.UK"
+      html.title shouldBe "Select clients (page 2 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Carrots"
-      html.select(Css.H1).text shouldBe "Select clients"
+      html.select(Css.H1).text shouldBe "Select clients (page 2 of 4)"
       html.select("#selected-count-text strong").text shouldBe "2"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
@@ -621,8 +621,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Select clients"
+        html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
         html
           .select(Css.errorSummaryForField("clients"))
       }
@@ -686,8 +686,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
+      html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
       html
         .select(Css.errorSummaryForField("clients"))
     }

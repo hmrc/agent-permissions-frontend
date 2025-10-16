@@ -189,7 +189,8 @@ object ViewUtils {
   )(implicit
     msgs: Messages
   ): String = {
-    val followingString = followingMsgString.map(key => s"${msgs(key)} ").getOrElse("") + filterReminderSubstring(formSearch, formFilter)
+    val followingString =
+      followingMsgString.map(key => s"${msgs(key)} ").getOrElse("") + filterReminderSubstring(formSearch, formFilter)
     if (paginationMetaData.get.totalPages <= 1) {
       msgs(
         s"$mainMsgString.total",

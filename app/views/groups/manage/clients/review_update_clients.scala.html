@@ -21,6 +21,7 @@
 @import views.components.models._
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -63,7 +64,7 @@
     }
 
     @layout(
-        title = msgs("group.clients.review.title", group.groupName),
+        title = paginationPageTitle(Some(paginationMetaData), "group.clients.review.title"),
         backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
         fullWidth = true,
         formErrors = form.errors
@@ -73,7 +74,7 @@
             @if(group.groupName != ""){
                 @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
             }
-            @h1(msgs("group.clients.add.review.h1", paginationMetaData.totalSize))
+            @h1(paginationPageTitle(Some(paginationMetaData), msgs("group.clients.add.review.h1", paginationMetaData.totalSize)))
         </div>
 
         @table(

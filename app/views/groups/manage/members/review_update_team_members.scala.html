@@ -21,6 +21,7 @@
 @import views.components.models.{LegendData, RadioData}
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
         layout: main_layout, p: p, h1: h1, h2: h2,
@@ -63,58 +64,55 @@
         })
     }
 
+@layout(
+    title = paginationPageTitle(Some(paginatedList.paginationMetaData), "group.teamMembers.review.title"),
+    backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
+    fullWidth = true,
+    formErrors = form.errors
+) {
 
-    @layout(
-        title = msgs("group.teamMembers.review.title", group.groupName),
-        backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
-        fullWidth = true,
-        formErrors = form.errors
-    ) {
+    <div class="govuk-!-width-two-thirds">
+        @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
+        @h1(paginationPageTitle(Some(paginatedList.paginationMetaData), msgs("group.teamMembers.review.h1", paginatedList.paginationMetaData.totalSize)))
+    </div>
 
+    @if(paginatedList.pageContent.nonEmpty) {
 
-        <div class="govuk-!-width-two-thirds">
-            @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-            @h1(msgs("group.teamMembers.review.h1", paginatedList.paginationMetaData.totalSize))
+        @table(
+            caption = Some("common.teamMembers"),
+            captionClasses = "govuk-visually-hidden",
+            id = Some("members"),
+            attrs = Map.empty,
+            headings = tableHeadings,
+            rows = tableRows,
+        )
+
+        @if(paginatedList.paginationMetaData.totalPages > 1) {
+            @GET_pagination(
+                pagination = paginatedList.paginationMetaData,
+                baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewTeamMembersToAdd(group.groupType, group.groupId, None, None),
+                additionalParams = form.data
+            )
+        }
+
+    } else {
+        <div id="members">
+            @h2("team-members.not-found.heading")
+            @p("team-members.not-found.p")
         </div>
-
-        @if(paginatedList.pageContent.nonEmpty) {
-
-            @table(
-                caption = Some("common.teamMembers"),
-                captionClasses = "govuk-visually-hidden",
-                id = Some("members"),
-                attrs = Map.empty,
-                headings = tableHeadings,
-                rows = tableRows,
-            )
-
-            @if(paginatedList.paginationMetaData.totalPages > 1) {
-                @GET_pagination(
-                    pagination = paginatedList.paginationMetaData,
-                    baseUrl = controllers.routes.ManageGroupTeamMembersController.showReviewTeamMembersToAdd(group.groupType, group.groupId, None, None),
-                    additionalParams = form.data
-                )
-            }
-
-        } else {
-            <div id="members">
-                @h2("team-members.not-found.heading")
-                @p("team-members.not-found.p")
-            </div>
-        }
-
-        @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewTeamMembersToAdd(group.groupType, group.groupId)) {
-            @radioButtons(
-                field = form("answer"),
-                items = Seq(
-                    RadioData("true", "group.teamMembers.review.yes.label"),
-                    RadioData("false", "common.no.label", id = Some("answer-no"))
-                ),
-                legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
-            )
-
-            @submit_button("save.and.continue.button")
-        }
-
-
     }
+
+    @formWithCSRF(action = routes.ManageGroupTeamMembersController.submitReviewTeamMembersToAdd(group.groupType, group.groupId)) {
+        @radioButtons(
+            field = form("answer"),
+            items = Seq(
+                RadioData("true", "group.teamMembers.review.yes.label"),
+                RadioData("false", "common.no.label", id = Some("answer-no"))
+            ),
+            legend = Some(LegendData(msg = "group.teamMembers.review.radio.legend"))
+        )
+
+        @submit_button("save.and.continue.button")
+    }
+
+}

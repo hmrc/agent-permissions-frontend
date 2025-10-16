@@ -260,7 +260,6 @@ paginated.team-members.for.search=for the search term ‘{0}’
 paginated.team-members.showing.range=Showing {0} to {1} of {2} team members {3}
 paginated.team-members.showing=Showing {0} team members {1}
 paginated.team-members.showing.total=Showing total of {0} team members {1}
-paginated.team-members.showing.in-group=Showing {0} team members {1} in this group
 paginated.team-members.showing.all=Showing all {0} team members
 role.admin=Administrator
 role.standard=Standard

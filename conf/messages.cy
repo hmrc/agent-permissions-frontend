@@ -255,7 +255,6 @@ paginated.clients.showing.tax-group.total=Yn dangos {0} {1} o gleientiaid
 paginated.team-members.for.search=am y term chwilio ‘{0}’
 paginated.team-members.showing=Yn dangos {0}  aelodau''r tîm {1}
 paginated.team-members.showing.total=Yn dangos cyfanswm o {0} aelod o’r tîm {1}
-paginated.team-members.showing.in-group=Yn dangos {0} aelod o’r tîm yn y grŵp hwn
 paginated.team-members.showing.all=Yn dangos pob un o’r {0} o aelodau tîm
 role.admin=Gweinyddwr
 role.standard=Safonol

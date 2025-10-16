@@ -544,8 +544,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Removed clients - Agent services account - GOV.UK"
-        html.select(H1).text() shouldBe "Removed clients"
+        html.title() shouldBe "Removed clients (page 1 of 3) - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "Removed clients (page 1 of 3)"
         html.select(Css.backLink).attr("href") shouldBe "#"
         html.select(Css.backLink).text() shouldBe "Back"
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")

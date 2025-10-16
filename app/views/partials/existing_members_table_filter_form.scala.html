@@ -17,9 +17,10 @@
 @import config.AppConfig
 @import controllers.routes
 @import models.PaginationMetaData
+@import models.accessgroups.GroupSummary
 @import views.html.components.pagination.GET_pagination
 @import views.html.partials.search_and_filter
-@import models.accessgroups.GroupSummary
+@import utils.ViewUtils.paginationShowingRangeHelperText
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
@@ -40,6 +41,10 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @showRemoveLink = @{group.teamMemberCount > 1}
+
+@headingTwo = @{
+    paginationShowingRangeHelperText(paginationMetaData, "paginated.team-members.showing", form.data.get("search"), None, followingMsgString = Some("common.group.in.this"))
+}
 
 @tableHeadings = @{
     Seq[(Html, Map[String, String])](
@@ -81,12 +86,7 @@
         @paginationMetaData.fold {
             @p(msgs("common.total.team-members", teamMembers.length), id = Some("team-members-in-group"))
         }{ paginationMeta =>
-                @h2(
-                    key = msgs("paginated.team-members.showing.in-group",
-                            paginationMetaData.fold(teamMembers.length)(_.totalSize),
-                            filterReminderSubstring(form.data.get("search"), None)
-                    ),
-                )
+            @h2(headingTwo)
         }
 
 

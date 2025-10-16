@@ -21,6 +21,7 @@
 @import models.PaginationMetaData
 @import models.accessgroups.GroupSummary
 @import views.html.partials.existing_group_selectable_clients_table_form
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -41,15 +42,10 @@
     if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {"search"} else {"clients"}
 }
 
-@pageTitle = @{
-withSearchAndErrorPrefix(form.errors.nonEmpty,
-                        msgs("group.client.list.h1"),
-                        form("filter").value,
-                        form("search").value)
-}
+@title = @{ paginationPageTitle(paginationMetaData, msgs("group.client.list.h1")) }
 
 @layout(
-    title = pageTitle,
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, title, form("filter").value, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true
@@ -59,7 +55,7 @@ withSearchAndErrorPrefix(form.errors.nonEmpty,
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1("group.client.list.h1")
+        @h1(title)
         @p("common.group.max.clients")
     </div>
 

@@ -30,7 +30,6 @@
     GET_pagination:GET_pagination,
 )
 
-
 @(
     group: GroupSummary,
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
@@ -50,6 +49,7 @@
     Seq((Html(msgs("group.members.list.table.th3")), Map.empty[String,String])).filter(_ => displayRole) ++
     Seq((Html(msgs("common.actions")), Map.empty[String,String])).filter(_ => showRemoveLink)
 }
+
 @tableRows = @{
     teamMembers.map(member =>
         Seq[Html](

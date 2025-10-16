@@ -21,6 +21,7 @@
 @import views.html.components.pagination.POST_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -69,14 +70,14 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("group.existing.clients.title", group.groupName), None, form("search").value),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, paginationPageTitle(paginationMetaData, msgs("group.existing.clients.title", group.groupName)), None, form("search").value),
     backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.back.manage-groups")))),
     fullWidth = true
 ) {
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1("group.existing.clients.h1")
+        @h1(paginationPageTitle(paginationMetaData, "group.existing.clients.h1"))
     </div>
 
     @inset_text(msgs("tax-group.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))

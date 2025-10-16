@@ -150,9 +150,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Manage clients - Bananas (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
-      html.select(Css.H1).text shouldBe "Manage clients in this group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
       html.select(Css.backLink).text() shouldBe "Back to manage groups page"
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
 
@@ -211,9 +211,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for ‘friendly1’ Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘friendly1’ Manage clients - Bananas (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
-      html.select(Css.H1).text shouldBe "Manage clients in this group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
@@ -263,9 +263,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for ‘nothing’ Manage clients - Bananas - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘nothing’ Manage clients - Bananas (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
-      html.select(Css.H1).text shouldBe "Manage clients in this group"
+      html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
       val tableOfClients = html.select(Css.tableWithId("clients"))
       tableOfClients.isEmpty shouldBe true

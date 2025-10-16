@@ -754,8 +754,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         // then
         status(result) shouldBe OK
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
-        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group"
+        html.title() shouldBe "Review selected clients (page 2 of 3) - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group (page 2 of 3)"
         html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 1
 
         val paginationListItems = html.select(Css.pagination_li)

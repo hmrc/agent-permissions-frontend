@@ -51,7 +51,18 @@
 
 @headingTwo = @{
     val searchReminder = filterReminderSubstring(form.data.get("search"), None)
-    msgs("tax-group.manage.removed.clients.h2", clients.size.toString, displayTaxServiceFromServiceKey(group.service), searchReminder)
+    if (paginationMetaData.get.totalPages <= 1) {
+        msgs("tax-group.manage.removed.clients.h2", clients.size.toString, displayTaxServiceFromServiceKey(group.service), searchReminder)
+    } else {
+        msgs(
+            "tax-group.manage.removed.clients.h2.range",
+            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+            paginationMetaData.get.totalSize,
+            displayTaxServiceFromServiceKey(group.service),
+            searchReminder
+        )
+    }
 }
 
 @layout(

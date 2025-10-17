@@ -48,7 +48,7 @@
     }
 }
 
-@headingTwo(paginationMeta: Option[PaginationMetaData]) = @{
+@headingTwo = @{
     paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.get.search, form.get.filter)
 }
 
@@ -64,7 +64,7 @@
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(title)
         @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
-            @h2(headingTwo(paginationMetaData))
+            @h2(headingTwo)
         }
         @p("common.group.max.clients")
     </div>

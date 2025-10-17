@@ -45,6 +45,18 @@
     excludedClients: Seq[DisplayClient] = Seq.empty
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@headingTwo = @{
+    if (form.data.get("search").exists(_.trim.nonEmpty) /* if a filter was applied */) {
+        if (groupClients.length == 1) {
+            msgs("group.manage.clients.showing.results.one", filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
+        } else {
+            msgs("group.manage.clients.showing.results.many", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
+        }
+    } else {
+        msgs("paginated.clients.showing.tax-group.total", paginationMetaData.fold(groupClients.length)(_.totalSize), group.taxService.fold("")(displayTaxServiceFromServiceKey))
+    }
+}
+
 @tableRows = @{
     groupClients.map(client =>
         Seq(
@@ -86,21 +98,7 @@
 
         @search_and_filter(form, withFilter = false)
 
-        @if(form.data.get("search").exists(_.trim.nonEmpty) /* if a filter was applied */) {
-            @if(groupClients.length == 1) {
-                @h2(
-                    msgs("group.manage.clients.showing.results.one", filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
-                )
-            } else {
-                @h2(
-                    msgs("group.manage.clients.showing.results.many", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
-                )
-            }
-        } else {
-            @h2(
-                msgs("paginated.clients.showing.tax-group.total", paginationMetaData.fold(groupClients.length)(_.totalSize), group.taxService.fold("")(displayTaxServiceFromServiceKey))
-            )
-        }
+        @h2(headingTwo)
 
         <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

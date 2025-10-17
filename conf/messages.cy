@@ -247,7 +247,6 @@ paginated.showing.total.filter-preposition=am yr
 paginated.showing.total.filter-conjunction=a
 paginated.clients.showing=Yn dangos {0} i {1} o {2} o gleientiaid
 paginated.clients.showing.total=Yn dangos cyfanswm o {0} o gleientiaid
-paginated.clients.showing.tax-group.total=Yn dangos {0} {1} o gleientiaid
 paginated.team-members.for.search=am y term chwilio ‘{0}’
 paginated.team-members.showing=Yn dangos {0}  aelodau''r tîm {1}
 paginated.team-members.showing.total=Yn dangos cyfanswm o {0} aelod o’r tîm {1}

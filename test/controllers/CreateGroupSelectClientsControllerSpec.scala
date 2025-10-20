@@ -194,7 +194,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select clients (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+      html.title() shouldBe "Select clients (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
 
       html.select(Css.backLink).text() shouldBe "Back"
@@ -241,7 +241,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for ‘John’ Select clients (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘John’ Select clients (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
 
       // TODO check if we need to add a h2 with filter/search terms
@@ -436,7 +436,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select clients (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
       html.select(Css.errorSummaryLinkWithHref("#clients")).text() shouldBe "You must select at least one client"
 
@@ -467,7 +467,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       // and
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Select clients (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
       html.select(Css.errorSummaryLinkWithHref("#clients")).text() shouldBe "You must select at least one client"
 

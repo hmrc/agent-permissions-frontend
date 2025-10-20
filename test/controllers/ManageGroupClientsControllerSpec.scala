@@ -478,7 +478,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients (page&nbsp;2&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
+      html.title shouldBe "Select clients (page 2 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Carrots"
       html.select(Css.H1).text shouldBe "Select clients (page 2 of 4)"
       html.select("#selected-count-text strong").text shouldBe "2"
@@ -623,8 +623,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select clients (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Select clients (page&nbsp;1&nbsp;of&nbsp;2)"
+        html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
         html
           .select(Css.errorSummaryForField("clients"))
       }
@@ -688,8 +688,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select clients (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients (page&nbsp;1&nbsp;of&nbsp;2)"
+      html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
       html
         .select(Css.errorSummaryForField("clients"))
     }
@@ -756,8 +756,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         // then
         status(result) shouldBe OK
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Review selected clients (page&nbsp;2&nbsp;of&nbsp;3) - Agent services account - GOV.UK"
-        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group (page&nbsp;2&nbsp;of&nbsp;3)"
+        html.title() shouldBe "Review selected clients (page 2 of 3) - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group (page 2 of 3)"
         html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 1
 
         val paginationListItems = html.select(Css.pagination_li)

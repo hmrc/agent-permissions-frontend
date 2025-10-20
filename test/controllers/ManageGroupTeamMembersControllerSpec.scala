@@ -281,7 +281,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
+      html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
@@ -321,7 +321,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for ‘John’ Select team members (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘John’ Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
@@ -353,7 +353,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
+      html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
@@ -434,8 +434,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then - check page content
-      html.title() shouldBe "Error: Select team members (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4)"
+      html.title() shouldBe "Error: Select team members (page 1 of 4) - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
       html
         .select(Css.errorSummaryForField("members"))
     }
@@ -545,10 +545,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
       // and
       html
-        .title() shouldBe "Review selected team members (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+        .title() shouldBe "Review selected team members (page 1 of 2) - Agent services account - GOV.UK"
       html
         .select(H1)
-        .text() shouldBe "You have selected 14 team members to add to the group (page&nbsp;1&nbsp;of&nbsp;2)"
+        .text() shouldBe "You have selected 14 team members to add to the group (page 1 of 2)"
 
       html.select(Css.tableWithId("members")).select("tbody tr").size() shouldBe 10
 

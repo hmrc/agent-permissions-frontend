@@ -150,7 +150,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Manage clients - Bananas (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+      html.title shouldBe "Manage clients - Bananas (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
       html.select(Css.backLink).text() shouldBe "Back to manage groups page"
@@ -211,7 +211,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for ‘friendly1’ Manage clients - Bananas (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘friendly1’ Manage clients - Bananas (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
@@ -263,7 +263,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Filter results for ‘nothing’ Manage clients - Bananas (page&nbsp;1&nbsp;of&nbsp;2) - Agent services account - GOV.UK"
+      html.title shouldBe "Filter results for ‘nothing’ Manage clients - Bananas (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
@@ -544,7 +544,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         status(result) shouldBe OK
 
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Removed clients (page&nbsp;1&nbsp;of&nbsp;3) - Agent services account - GOV.UK"
+        html.title() shouldBe "Removed clients (page 1 of 3) - Agent services account - GOV.UK"
         html.select(H1).text() shouldBe "Removed clients (page 1 of 3)"
         html.select(Css.backLink).attr("href") shouldBe "#"
         html.select(Css.backLink).text() shouldBe "Back"

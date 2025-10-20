@@ -124,7 +124,7 @@ class ManageClientControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       html.title() shouldBe "Manage clients (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Manage clients (page&nbsp;1&nbsp;of&nbsp;4)"
+      html.select(H1).text() shouldBe "Manage clients (page 1 of 4)"
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"
       html.select(Css.backLink).text() shouldBe "Return to manage account"
 

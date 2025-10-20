@@ -133,7 +133,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(Css.H1).text() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4)"
+      html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
 
@@ -196,7 +196,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       html.title() shouldBe "Filter results for ‘John’ Select team members (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(Css.H1).text() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4)"
+      html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
 
       html.select("#filter-description").text() shouldBe "Filter results for ‘John’"
 

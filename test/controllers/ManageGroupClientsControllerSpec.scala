@@ -480,7 +480,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title shouldBe "Select clients (page&nbsp;2&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Carrots"
-      html.select(Css.H1).text shouldBe "Select clients (page&nbsp;2&nbsp;of&nbsp;4)"
+      html.select(Css.H1).text shouldBe "Select clients (page 2 of 4)"
       html.select("#selected-count-text strong").text shouldBe "2"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))

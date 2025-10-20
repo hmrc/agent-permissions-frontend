@@ -284,7 +284,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4) - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Select team members (page&nbsp;1&nbsp;of&nbsp;4)"
+      html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 

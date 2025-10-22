@@ -169,14 +169,19 @@ object ViewUtils {
     }
   }
 
-  def paginationPageTitle(paginationMetaData: Option[PaginationMetaData], mainMsgString: String)(implicit
-    msgs: Messages
+  def paginationPageTitle(paginationMetaData: Option[PaginationMetaData], mainMsgString: String, nowrap: Boolean)(
+    implicit msgs: Messages
   ): String = {
     val totalPages = paginationMetaData.get.totalPages
     if (totalPages <= 1) {
       msgs(mainMsgString)
     } else {
-      msgs(mainMsgString) + " " + msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)
+      val paginatedMsg: String = Seq(
+        if (nowrap) Some("<span style=\"white-space: nowrap;\">") else None,
+        Some(msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)),
+        if (nowrap) Some("</span>") else None
+      ).flatten.mkString("")
+      msgs(mainMsgString) + " " + paginatedMsg
     }
   }
 

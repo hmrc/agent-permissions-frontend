@@ -44,10 +44,10 @@
     else "search"
 }
 
-@title=@{ paginationPageTitle(paginationMetaData, "select.members.list.h1") }
+@title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "select.members.list.h1", nowrap) }
 
 @layout(
-    title = withSearchAndErrorPrefix(form.errors.nonEmpty, title, None, form("search").value),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, title(nowrap = false), None, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true,
@@ -57,7 +57,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(title)
+        @h1(title(nowrap = true))
         @p("group.member.p")
     </div>
 

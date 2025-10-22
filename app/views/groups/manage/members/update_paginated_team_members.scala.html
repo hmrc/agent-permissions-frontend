@@ -44,7 +44,7 @@
 }
 
 @pageTitle = @{
-    withSearchAndErrorPrefix(!form.errors.isEmpty, paginationPageTitle(paginationMetaData, "select.members.list.h1"), None, form("search").value)
+    withSearchAndErrorPrefix(!form.errors.isEmpty, paginationPageTitle(paginationMetaData, "select.members.list.h1", nowrap = false), None, form("search").value)
 }
 
 @layout(
@@ -58,7 +58,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(paginationPageTitle(paginationMetaData, msgs(s"select.members.list.h1", group.groupName)))
+        @h1(paginationPageTitle(paginationMetaData, msgs("select.members.list.h1", group.groupName), nowrap = true))
         @p(s"common.group.max.clients")
     </div>
 

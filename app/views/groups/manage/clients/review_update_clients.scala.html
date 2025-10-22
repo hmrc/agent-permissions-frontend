@@ -64,7 +64,7 @@
     }
 
     @layout(
-        title = paginationPageTitle(Some(paginationMetaData), "group.clients.review.title"),
+        title = paginationPageTitle(Some(paginationMetaData), "group.clients.review.title", nowrap = false),
         backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
         fullWidth = true,
         formErrors = form.errors
@@ -74,7 +74,7 @@
             @if(group.groupName != ""){
                 @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
             }
-            @h1(paginationPageTitle(Some(paginationMetaData), msgs("group.clients.add.review.h1", paginationMetaData.totalSize)))
+            @h1(paginationPageTitle(Some(paginationMetaData), msgs("group.clients.add.review.h1", paginationMetaData.totalSize), nowrap = true))
         </div>
 
         @table(

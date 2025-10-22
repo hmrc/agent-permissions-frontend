@@ -47,7 +47,7 @@
     }
 }
 
-@title= @{ paginationPageTitle(paginationMetaData, "tax-group.manage.removed.clients.h1") }
+@title(nowrap: Boolean)= @{ paginationPageTitle(paginationMetaData, "tax-group.manage.removed.clients.h1", nowrap) }
 
 @headingTwo = @{
     val searchReminder = filterReminderSubstring(form.data.get("search"), None)
@@ -66,7 +66,7 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(form.errors.nonEmpty, title, form("filter").value, form("search").value),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, title(nowrap = false), form("filter").value, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true) {
@@ -75,7 +75,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(title)
+        @h1(title(nowrap = true))
     </div>
 
     @selectable_clients_table_form(

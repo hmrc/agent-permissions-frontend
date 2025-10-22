@@ -41,7 +41,7 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,5,1,5))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@title=@{ paginationPageTitle(paginationMetaData, "group.manage.h1") }
+@title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.manage.h1", nowrap) }
 
 @headingTwo = @{
     val searchTerm = filterGroupSummaryForm.data
@@ -62,11 +62,11 @@
 }
 
 @layout(
-    title = msgs(title), fullWidth = true,
+    title = msgs(title(nowrap = false)), fullWidth = true,
     backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account"))))
 ) {
 
-    @h1(title)
+    @h1(title(nowrap = true))
 
     <div class="govuk-!-width-two-thirds">
     @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id = Some("info"))

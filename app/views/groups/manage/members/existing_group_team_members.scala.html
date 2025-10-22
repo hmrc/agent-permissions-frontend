@@ -38,17 +38,17 @@
     group: GroupSummary
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@pageTitle = @{ paginationPageTitle(Some(paginatedMembers.paginationMetaData), "tax-group.manage.team-members.h1") }
+@pageTitle(nowrap: Boolean) = @{ paginationPageTitle(Some(paginatedMembers.paginationMetaData), "tax-group.manage.team-members.h1", nowrap) }
 
 @layout(
-    title = withSearchAndErrorPrefix(form.errors.nonEmpty, pageTitle, None, form("search").value),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, pageTitle(nowrap = false), None, form("search").value),
     backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.back.manage-groups")))),
     fullWidth = true
 ) {
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(pageTitle)
+        @h1(pageTitle(nowrap = true))
     </div>
 
     @if(paginatedMembers.pageContent.nonEmpty) {

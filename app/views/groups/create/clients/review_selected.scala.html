@@ -73,7 +73,7 @@
 }
 
 @layout(
-    title = paginationPageTitle(paginationMetaData, "group.clients.review.title"),
+    title = paginationPageTitle(paginationMetaData, "group.clients.review.title", nowrap = false),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = form.errors,
     fullWidth = true
@@ -81,7 +81,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(paginationPageTitle(paginationMetaData, firstPartOfHeadingOne))
+        @h1(paginationPageTitle(paginationMetaData, firstPartOfHeadingOne, nowrap = true))
     </div>
 
     @if(clients.nonEmpty) {

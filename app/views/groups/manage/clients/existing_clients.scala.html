@@ -86,14 +86,14 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, paginationPageTitle(paginationMetaData, msgs("group.existing.clients.title", group.groupName)), form("filter").value, form("search").value),
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, paginationPageTitle(paginationMetaData, msgs("group.existing.clients.title", group.groupName), nowrap = false), form("filter").value, form("search").value),
     backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.back.manage-groups")))),
     fullWidth = true
 ) {
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(paginationPageTitle(paginationMetaData, "group.existing.clients.h1"))
+        @h1(paginationPageTitle(paginationMetaData, "group.existing.clients.h1", nowrap = true))
     </div>
 
     @views.html.helper.form(action = routes.ManageGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {

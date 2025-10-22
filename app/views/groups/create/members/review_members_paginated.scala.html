@@ -65,7 +65,7 @@
 }
 
 @layout(
-    title = paginationPageTitle(paginationMetaData, "group.teamMembers.review.title"),
+    title = paginationPageTitle(paginationMetaData, "group.teamMembers.review.title", nowrap = false),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     fullWidth = true,
     formErrors = form.errors
@@ -73,7 +73,7 @@
     
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(paginationPageTitle(paginationMetaData, firstPartOfHeadingOne))
+        @h1(paginationPageTitle(paginationMetaData, firstPartOfHeadingOne, nowrap = true))
     </div>
 
     @if(teamMembers.nonEmpty) {

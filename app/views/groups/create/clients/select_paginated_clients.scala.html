@@ -38,7 +38,7 @@
         paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@title=@{ paginationPageTitle(paginationMetaData, "group.client.list.h1") }
+@title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.client.list.h1", nowrap) }
 
 @errorHref = @{
     if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
@@ -53,7 +53,7 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, title, form("filter").value, form("search").value),
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, title(nowrap = false), form("filter").value, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true) {
@@ -62,7 +62,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(title)
+        @h1(title(nowrap = true))
         @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
             @h2(headingTwo)
         }

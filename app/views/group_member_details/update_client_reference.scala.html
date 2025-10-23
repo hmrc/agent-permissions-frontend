@@ -48,6 +48,8 @@
     @caption(key = msgs("update-client-reference.caption", displayTaxReference))
     @h1("update-client-reference")
 
+    @insetText(key = "update-client-reference.text")
+
     @formWithCSRF(action = routes.ManageClientController.submitUpdateClientReference(client.id)) {
 
     @textbox(
@@ -56,9 +58,6 @@
         labelClasses = "govuk-label--s",
         classes = "govuk-input--width-20"
     )
-
-    @insetText(key = "update-client-reference.text")
-
 
     <div class="govuk-button-group">
         @link_as_button(

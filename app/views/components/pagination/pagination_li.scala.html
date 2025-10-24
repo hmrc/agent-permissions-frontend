@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,18 @@
    additionalParams: Map[String,String] = Map.empty
 )(implicit msgs: Messages)
 
-@if(pagination.currentPageNumber != pageNum) {
- <li class="govuk-pagination__item">
-  <a class="pagination_link" href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}@{additionalParams.map( entry => "&" + entry._1 + "=" + entry._2)}">@{pageNum}</a>
- </li>
-} else {
- <li class="govuk-pagination__item govuk-pagination__item--current">@{pageNum}</li>
+
+@defining(pagination.currentPageNumber == pageNum) { isCurrent =>
+  <li class="govuk-pagination__item@if(isCurrent){ govuk-pagination__item--current}">
+    <a class="pagination_link"
+    href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}@{additionalParams.map(entry => "&" + entry._1 + "=" + entry._2)}"
+    aria-label="@if(isCurrent){
+        msgs("paginated.currentPageLabel", pageNum.toString, pagination.totalPages.toString)
+      }else{
+        msgs("paginated.pageLabel", pageNum.toString, pagination.totalPages.toString)
+    }"
+    @if(isCurrent){aria-current="page"}>
+    @{pageNum}
+    </a>
+  </li>
 }

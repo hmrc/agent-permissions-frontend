@@ -24,6 +24,7 @@
     value: String = "continue",
     classes: String = "submit-as-link",
     id: Option[String] = None,
+    ariaLabel: Option[String] = None,
     attrs: Map[String, String] = Map.empty,
 )(implicit msgs: Messages)
 
@@ -33,4 +34,6 @@
     class="@classes"
     value="@value"
     @id.map(i => { s"id =${i}"})
-    @attrs.map(a => a._1 + "=" + a._2)>@Html(msgs(key))</button>
+    @ariaLabel.foreach(l => s"aria-label=\"$l\"")
+    @attrs.map(a => a._1 + "=" + a._2)
+>@Html(msgs(key))</button>

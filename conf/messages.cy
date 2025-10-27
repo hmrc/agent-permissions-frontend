@@ -10,6 +10,7 @@ assistant.clients.unassigned.p=Mae gennych fynediad at y cleientiaid hyn am nad 
 client-filter.select.label.empty-option=Dewis gwasanaeth treth
 client-filter.select.label=Chwilio yn ôl gwasanaeth treth
 client-filter.text.label=Chwilio drwy gyfeirnod treth neu’r cyfeirnod cleient
+client-filter.text.hint=Enter a client reference or tax reference
 client-reference.updated.h1=Bydd cyfeirnod cleient yn cael ei ddiweddaru'n fuan
 client-reference.updated.p=Rydych wedi gofyn i ni ddiweddaru'r cyfeirnod cleient hwn yn eich cyfrif gwasanaethau asiant. Byddwn yn ei ddiweddaru i {0} yn ystod y ddwy awr nesaf. Ni fyddwn yn newid y cyfeirnod cleient mewn gwasanaethau ar-lein eraill CThEM.
 client.added.to.groups.h1=Cleient wedi’i ychwanegu at grwpiau mynediad

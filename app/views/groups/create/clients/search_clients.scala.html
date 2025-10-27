@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 @import controllers.routes
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukFieldset
 @import uk.gov.hmrc.govukfrontend.views.html.components._
-@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import play.twirl.api.HtmlFormat
 @import views.html.main_layout
 
@@ -46,7 +45,8 @@
         field = form("search"),
         label = msgs("client-filter.text.label"),
         labelClasses = "govuk-label--s",
-        classes = "govuk-input--width-30"
+        classes = "govuk-input--width-30",
+        hint = Some(msgs("client-filter.text.hint"))
     )
 
     @input_select(

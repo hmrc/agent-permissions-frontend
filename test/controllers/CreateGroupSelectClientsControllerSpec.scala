@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,6 +120,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       html.select(Css.labelFor("filter")).text() shouldBe "Search by tax service (optional)"
 
+      html.select("#search-hint").text() shouldBe "Enter a client reference or tax reference"
+      html.select("#search").attr("aria-describedby") should include("search-hint")
     }
 
     "render the client search page with inputs saved in session" in {
@@ -144,6 +146,8 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       // TODO this isn't working
       // html.select("#filter").attr("value") shouldBe "HMRC-MTD-VAT"
 
+      html.select("#search-hint").text() shouldBe "Enter a client reference or tax reference"
+      html.select("#search").attr("aria-describedby") should include("search-hint")
     }
 
   }
@@ -294,6 +298,9 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       buttons.size() shouldBe 1
       html.select("button").get(0).text() shouldBe "Search for clients"
       // there should not be a 'continue' button as there are NO clients currently selected (APB-7378)
+
+      html.select("#search-hint").text() shouldBe "Enter a client reference or tax reference"
+      html.select("#search").attr("aria-describedby") should include("search-hint")
     }
 
     "render with NO Clients after a search returns no results (but some previously selected clients)" in {

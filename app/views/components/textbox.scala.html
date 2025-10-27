@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,10 @@
             content = HtmlContent(msgs(label)),
             isPageHeading = labelIsHeading
         ) else Label(),
-    hint = hint.map(h => Hint(content = HtmlContent(msgs(h)))),
+        hint = hint.map(h => Hint(
+            id = Some(s"${field.id}-hint"),
+            content = HtmlContent(msgs(h))
+        )),
     classes = classes,
     spellcheck = spellcheck,
     attributes = attributes,

@@ -20,25 +20,23 @@
 
 @(pagination: PaginationMetaData, pageNum: Int)(implicit msgs: Messages)
 
-@defining(pagination.currentPageNumber == pageNum) { isCurrent =>
-    @if(isCurrent) {
-        <li class="govuk-pagination__item govuk-pagination__item--current">
-            <span
-              class = "pagination__link"
-              aria-current="page"
-              aria-label="@msgs("pagination.currentPageLabel", pageNum.toString, pagination.totalPages.toString)"
-            >@{pageNum}</span>
-        </li>
-    } else {
-        <li class="govuk-pagination__item">
-            @submit_as_link(
-                key = pageNum.toString,
-                value = s"${PAGINATION_BUTTON}_${pageNum}",
-                classes = "pagination__link",
-                ariaLabel = Option(msgs("pagination.pageLabel", pageNum.toString, pagination.totalPages.toString))
-                )
-            )
-        </li>
-    }
+@if(pagination.currentPageNumber == pageNum) {
+  <li class="govuk-pagination__item govuk-pagination__item--current">
+    <span
+      class = "pagination__link"
+      aria-current="page"
+      aria-label="@msgs("pagination.currentPageLabel", pageNum.toString, pagination.totalPages.toString)"
+    >@{pageNum}</span>
+  </li>
+} else {
+  <li class="govuk-pagination__item">
+    @submit_as_link(
+      key = pageNum.toString,
+      value = s"${PAGINATION_BUTTON}_${pageNum}",
+      classes = "pagination__link",
+      ariaLabel = Option(msgs("pagination.pageLabel", pageNum.toString, pagination.totalPages.toString))
+    )
+  </li>
 }
+
 

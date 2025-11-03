@@ -49,15 +49,21 @@
     if (form.data.get("search").exists(_.trim.nonEmpty)) {
         paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), None)
     } else {
-        msgs(
-            "paginated.clients.showing.tax-group",
-            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-            paginationMetaData.get.totalSize,
-            group.taxService.fold("")(displayTaxServiceFromServiceKey)
-        )
+        if (paginationMetaData.get.totalPages <= 1) {
+            msgs("paginated.clients.showing.tax-group.total", paginationMetaData.get.totalSize, group.taxService.fold("")(displayTaxServiceFromServiceKey))
+        } else {
+            msgs(
+                "paginated.clients.showing.tax-group.range",
+                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+                paginationMetaData.get.totalSize,
+                group.taxService.fold("")(displayTaxServiceFromServiceKey)
+            )
+        }
     }
 }
+
+@headingTwoQ = @{ paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), None) }
 
 @tableRows = @{
     groupClients.map(client =>

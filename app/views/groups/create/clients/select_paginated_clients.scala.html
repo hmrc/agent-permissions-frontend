@@ -63,13 +63,17 @@
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(title(nowrap = true))
-        @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
-            @h2(headingTwo)
-        }
         @p("common.group.max.clients")
     </div>
 
-    @selectable_clients_table_form(clients, form, formAction, paginationMetaData, submitButtonKey = "save.and.continue.button")
+    @selectable_clients_table_form(
+        clients,
+        form,
+        formAction,
+        paginationMetaData,
+        submitButtonKey = "save.and.continue.button",
+        resultsSummary = Some(headingTwo)
+    )
 
 }
 

@@ -43,14 +43,7 @@
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.manage.h1", nowrap) }
 
-@headingTwo = @{
-    val searchTerm = filterGroupSummaryForm.data
-        .get("search")
-        .filter(_.nonEmpty)
-        .map(term => s"‘$term’")
-        .getOrElse(msgs("group.manage.showing.access-groups-substring"))
-    paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", formSearch = Some(searchTerm))
-}
+@headingTwo = @{ paginationShowingRangeHelperText(paginationMetaData, "paginated.access-groups.showing", formSearch = filterGroupSummaryForm.data.get("search")) }
 
 @groupTypeTag(isCustomGroup: Boolean) = {
     @govukTag(

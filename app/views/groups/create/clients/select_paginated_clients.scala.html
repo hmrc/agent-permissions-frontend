@@ -49,7 +49,11 @@
 }
 
 @headingTwo = @{
-    paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.get.search, form.get.filter)
+    if (form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
+        paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.get.search, form.get.filter)
+    } else {
+        paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many")
+    }
 }
 
 @layout(

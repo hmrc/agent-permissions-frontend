@@ -194,12 +194,6 @@ object ViewUtils {
   )(implicit
     msgs: Messages
   ): String = {
-    println("AAAAAAAA")
-    println(paginationMetaData)
-    println(mainMsgString)
-    println(formSearch)
-    println(formFilter)
-    println(followingMsgString)
     val followingString =
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
     if (paginationMetaData.get.totalPages <= 1) {

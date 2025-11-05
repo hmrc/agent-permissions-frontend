@@ -51,7 +51,9 @@
 
 @headingTwo = @{
     val searchReminder = filterReminderSubstring(form.data.get("search"), None)
-    if (paginationMetaData.get.totalPages <= 1) {
+    if (paginationMetaData.get.totalSize == 1) {
+        msgs("tax-group.manage.removed.clients.h2.one", displayTaxServiceFromServiceKey(group.service), searchReminder)
+    } else if (paginationMetaData.get.totalPages <= 1) {
         msgs("tax-group.manage.removed.clients.h2", clients.size.toString, displayTaxServiceFromServiceKey(group.service), searchReminder)
     } else {
         msgs(

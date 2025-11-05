@@ -277,6 +277,7 @@ tax-group.clients.confirm.p1=Os byddwch yn tynnu {0} o'r grŵp hwn bydd yn effei
 tax-group.clients.tax.info=Mae hwn yn grŵp gwasanaeth treth sy'n diweddaru'n awtomatig. Bydd cleientiaid newydd yn cael eu hychwanegu cyn gynted ag y byddant yn eich awdurdodi i reoli eu {0}. Bydd cleientiaid hefyd yn cael eu dileu os byddwch yn canslo'ch awdurdodiad i reoli eu {0}.
 tax-group.manage.removed.clients.h1=Cleientiaid wedi'u dileu
 tax-group.manage.removed.clients.h2=Yn dangos {0} o gleientiaid {1} sydd wedi’u dileu
+tax-group.manage.removed.clients.h2.one=TODO
 tax-group.manage.removed.clients.h2.range=Yn dangos {0} i {1} o {2} o gleientiaid {3} wedi’u dileu ar gyfer {4}
 tax-group.manage.removed.clients.not-found.back=Yn ôl i gleientiaid grŵp treth
 tax-group.manage.removed.clients.not-found.p=Nid oes unrhyw gleientiaid eithriedig ar gyfer y grŵp hwn

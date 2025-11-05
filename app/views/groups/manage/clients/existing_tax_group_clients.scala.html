@@ -49,7 +49,9 @@
     if (form.data.get("search").exists(_.trim.nonEmpty)) {
         paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), None)
     } else {
-        if (paginationMetaData.get.totalPages <= 1) {
+        if (paginationMetaData.get.totalSize == 1) {
+            msgs("paginated.clients.showing.tax-group.one", group.taxService.fold("")(displayTaxServiceFromServiceKey))
+        } else if (paginationMetaData.get.totalPages <= 1) {
             msgs("paginated.clients.showing.tax-group.total", paginationMetaData.get.totalSize, group.taxService.fold("")(displayTaxServiceFromServiceKey))
         } else {
             msgs(

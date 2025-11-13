@@ -18,6 +18,7 @@
 @import views.html.main_layout
 @import views.html.partials.details_team_members_table_filter_form
 @import models.PaginationMetaData
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
         layout: main_layout,
@@ -33,9 +34,11 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.manage.members.h1", nowrap) }
+
 @layout(
     title = withSearchAndErrorPrefix(!form.errors.isEmpty,
-                                     msgs("group.manage.members.h1"),
+                                     title(nowrap = false),
                                      None,
                                      form("search").value),
     backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
@@ -45,7 +48,7 @@
     @summaryErrors(form.errors, Some("search"))
 
     <div class="govuk-!-width-two-thirds">
-        @h1("group.manage.members.h1")
+        @h1(title(nowrap = true))
         @p(html = Some(Html(msgs("group.manage.members.p", "/tax-and-scheme-management/users?origin=Agent"))))
     </div>
 

@@ -22,7 +22,8 @@
 @import views.html.partials.search_and_filter
 @import views.html.components.pagination.POST_pagination
 @import models.accessgroups.GroupSummary
-@import utils.ViewUtils
+@import utils.ViewUtils.filterReminderSubstring
+@import utils.ViewUtils.paginationShowingRangeHelperText
 
 @this(
         layout: main_layout,
@@ -55,6 +56,10 @@
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @hasClientsAlreadyInGroup = @{clients.exists(_.alreadyInGroup)}
+
+@headingTwo = @{
+    paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), form.data.get("filter"))
+}
 
 @tableHeadings = @{
     Seq[(Html, Map[String, String])](
@@ -110,14 +115,7 @@
             </legend>
 
             @if(form.data.contains("search") || form.data.contains("filter")) {
-                @h2({
-                    // display logic specified in APB-7104
-                    val filterReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), form.data.get("filter"))
-                    if(clients.length == 1)
-                        msgs("group.manage.clients.showing.results.one", filterReminder)
-                    else
-                        msgs("group.manage.clients.showing.results.many", clients.length, filterReminder)
-                })
+                @h2(headingTwo)
                 <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
             }
 

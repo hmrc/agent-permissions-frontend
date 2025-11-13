@@ -131,9 +131,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
 
@@ -175,7 +175,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(Css.backLink).attr("href") shouldBe "#"
       html.select(Css.backLink).text() shouldBe "Back"
     }
@@ -194,9 +194,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Filter results for ‘John’ Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Filter results for ‘John’ Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
 
       html.select("#filter-description").text() shouldBe "Filter results for ‘John’"
 
@@ -232,9 +232,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       val html = Jsoup.parse(contentAsString(result))
 
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
 
       // No table
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
@@ -361,9 +361,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
       html
         .select(Css.errorSummaryLinkWithHref("#add-member-0"))
         .text() shouldBe "You must select at least one team member"
@@ -399,9 +399,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       // and
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(Css.H1).text() shouldBe "Select team members"
+      html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
       html.select(Css.errorSummaryLinkWithHref("#members")).text() shouldBe "You must select at least one team member"
 
     }
@@ -638,9 +638,11 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Error: Review selected team members - Agent services account - GOV.UK"
+      html.title() shouldBe "Error: Review selected team members (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
-      html.select(H1).text() shouldBe "You have selected 11 team members to add to the group"
+      html
+        .select(H1)
+        .text() shouldBe "You have selected 11 team members to add to the group (page 1 of 2)"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
       table.select("thead th").size() shouldBe 4

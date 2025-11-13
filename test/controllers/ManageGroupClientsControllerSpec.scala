@@ -209,7 +209,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
       expectPutSessionItem(CLIENT_FILTER_INPUT, "HMRC-MTD-VAT")
       expectGetPaginatedClientsForCustomGroup(grpId)(1, 20)(
-        (displayClients.take(1), PaginationMetaData(lastPage = true, firstPage = true, 0, 1, 10, 1, 10))
+        (displayClients.take(1), PaginationMetaData(lastPage = true, firstPage = true, 1, 1, 10, 1, 10))
       )
 
       implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
@@ -230,7 +230,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.title shouldBe "Filter results for ‘friendly1’ and ‘VAT’ Manage clients - Bananas - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group"
-      html.select("#filter-description").text shouldBe "Showing 1 client for ‘friendly1’ and ‘VAT’ in this group"
+      html
+        .select("#filter-description")
+        .text shouldBe "Showing total of 1 client for ‘friendly1’ and ‘VAT’ in this group"
 
       val clientsTable = html.select(Css.tableWithId("clients"))
       val th = clientsTable.select("thead th")
@@ -476,9 +478,9 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title shouldBe "Select clients - Agent services account - GOV.UK"
+      html.title shouldBe "Select clients (page 2 of 4) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Carrots"
-      html.select(Css.H1).text shouldBe "Select clients"
+      html.select(Css.H1).text shouldBe "Select clients (page 2 of 4)"
       html.select("#selected-count-text strong").text shouldBe "2"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
@@ -621,8 +623,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         val html = Jsoup.parse(contentAsString(result))
 
         // then
-        html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-        html.select(Css.H1).text() shouldBe "Select clients"
+        html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
+        html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
         html
           .select(Css.errorSummaryForField("clients"))
       }
@@ -686,8 +688,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then
-      html.title() shouldBe "Error: Select clients - Agent services account - GOV.UK"
-      html.select(Css.H1).text() shouldBe "Select clients"
+      html.title() shouldBe "Error: Select clients (page 1 of 2) - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
       html
         .select(Css.errorSummaryForField("clients"))
     }
@@ -754,8 +756,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         // then
         status(result) shouldBe OK
         val html = Jsoup.parse(contentAsString(result))
-        html.title() shouldBe "Review selected clients - Agent services account - GOV.UK"
-        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group"
+        html.title() shouldBe "Review selected clients (page 2 of 3) - Agent services account - GOV.UK"
+        html.select(H1).text() shouldBe "You have selected 3 clients to add to the group (page 2 of 3)"
         html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 1
 
         val paginationListItems = html.select(Css.pagination_li)

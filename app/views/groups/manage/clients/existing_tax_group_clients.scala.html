@@ -21,6 +21,7 @@
 @import views.html.components.pagination.POST_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
+@import utils.ViewUtils.{ paginationPageTitle, paginationShowingRangeHelperText }
 
 @this(
     layout: main_layout,
@@ -43,6 +44,26 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10)),
     excludedClients: Seq[DisplayClient] = Seq.empty
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@headingTwo = @{
+    if (form.data.get("search").exists(_.trim.nonEmpty)) {
+        paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), None)
+    } else {
+        if (paginationMetaData.get.totalSize == 1) {
+            msgs("paginated.clients.showing.tax-group.one", group.taxService.fold("")(displayTaxServiceFromServiceKey))
+        } else if (paginationMetaData.get.totalPages <= 1) {
+            msgs("paginated.clients.showing.tax-group.total", paginationMetaData.get.totalSize, group.taxService.fold("")(displayTaxServiceFromServiceKey))
+        } else {
+            msgs(
+                "paginated.clients.showing.tax-group.range",
+                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+                paginationMetaData.get.totalSize,
+                group.taxService.fold("")(displayTaxServiceFromServiceKey)
+            )
+        }
+    }
+}
 
 @tableRows = @{
     groupClients.map(client =>
@@ -69,14 +90,14 @@
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("group.existing.clients.title", group.groupName), None, form("search").value),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, paginationPageTitle(paginationMetaData, msgs("group.existing.clients.title", group.groupName), nowrap = false), None, form("search").value),
     backLink = Some(BackLink(href = routes.ManageGroupController.showManageGroups(None, None).url, content = Text(msgs("common.back.manage-groups")))),
     fullWidth = true
 ) {
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1("group.existing.clients.h1")
+        @h1(paginationPageTitle(paginationMetaData, "group.existing.clients.h1", nowrap = true))
     </div>
 
     @inset_text(msgs("tax-group.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))
@@ -85,21 +106,7 @@
 
         @search_and_filter(form, withFilter = false)
 
-        @if(form.data.get("search").exists(_.trim.nonEmpty) /* if a filter was applied */) {
-            @if(groupClients.length == 1) {
-                @h2(
-                    msgs("group.manage.clients.showing.results.one", filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
-                )
-            } else {
-                @h2(
-                    msgs("group.manage.clients.showing.results.many", paginationMetaData.fold(groupClients.length)(_.totalSize), filterReminderSubstring(form.data.get("search"), form.data.get("filter")))
-                )
-            }
-        } else {
-            @h2(
-                msgs("paginated.clients.showing.tax-group.total", paginationMetaData.fold(groupClients.length)(_.totalSize), group.taxService.fold("")(displayTaxServiceFromServiceKey))
-            )
-        }
+        @h2(headingTwo)
 
         <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

@@ -19,6 +19,7 @@
 @import models.PaginationMetaData
 @import views.html.main_layout
 @import views.html.partials.selectable_team_members_table_form
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -43,12 +44,10 @@
     else "search"
 }
 
-@pageTitle = @{
-    withSearchAndErrorPrefix(form.errors.nonEmpty, msgs(s"select.members.list.h1", groupName), None, form("search").value)
-}
+@title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "select.members.list.h1", nowrap) }
 
 @layout(
-    title = pageTitle,
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, title(nowrap = false), None, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true,
@@ -58,7 +57,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(msgs(s"select.members.list.h1", groupName))
+        @h1(title(nowrap = true))
         @p("group.member.p")
     </div>
 

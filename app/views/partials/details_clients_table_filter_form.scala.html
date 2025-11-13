@@ -19,6 +19,7 @@
 @import views.html.partials.search_and_filter
 @import views.html.components.pagination.GET_pagination
 @import models.PaginatedList
+@import utils.ViewUtils.paginationShowingRangeHelperText
 
 @this(
     p: p, h1: h1, h2: h2, span: span, a: a,
@@ -34,6 +35,10 @@
     form: Form[SearchFilter],
     formAction: Call = routes.ManageClientController.submitPageOfClients,
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+    @tableHeading(paginationMeta: PaginationMetaData) = @{
+        paginationShowingRangeHelperText(Some(paginationMeta), "paginated.clients.showing", form.data.get("search"), form.data.get("filter"))
+    }
 
     @tableRows = @{
         paginatedList.pageContent.map(client =>
@@ -58,12 +63,7 @@
         @search_and_filter(form, true)
 
         @if(paginatedList.pageContent.nonEmpty) {
-            @h2(key = msgs("paginated.clients.showing.total",
-                            paginatedList.paginationMetaData.totalSize,
-                            filterReminderSubstring(form.data.get("search"), form.data.get("filter"))
-                            ),
-                id = Some("filter-results-info")
-            )
+            @h2(key = tableHeading(paginatedList.paginationMetaData), id = Some("filter-results-info"))
 
             @table(
                 caption = Some("common.clients"),

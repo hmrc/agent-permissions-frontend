@@ -19,7 +19,7 @@
 @import models.accessgroups.GroupSummary
 @import views.html.main_layout
 @import views.html.partials.existing_group_selectable_team_members_table_form
-@import utils.ViewUtils
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -44,19 +44,8 @@
 }
 
 @pageTitle = @{
-    withSearchAndErrorPrefix(!form.errors.isEmpty, msgs(s"select.members.list.h1", group.groupName), None, form
-            ("search").value)
+    withSearchAndErrorPrefix(!form.errors.isEmpty, paginationPageTitle(paginationMetaData, "select.members.list.h1", nowrap = false), None, form("search").value)
 }
-
-@resultsSummary = @{
-    if (form.data.get("search").exists(_.trim.nonEmpty)) {
-        val searchReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), None)
-        msgs("paginated.team-members.showing", teamMembers.size.toString, searchReminder)
-    } else {
-        msgs("paginated.team-members.showing.all", teamMembers.size.toString)
-    }
-}
-
 
 @layout(
     title = pageTitle,
@@ -69,7 +58,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(msgs(s"select.members.list.h1", group.groupName))
+        @h1(paginationPageTitle(paginationMetaData, msgs("select.members.list.h1", group.groupName), nowrap = true))
         @p(s"common.group.max.clients")
     </div>
 
@@ -77,8 +66,7 @@
         teamMembers,
         form,
         controllers.routes.ManageGroupTeamMembersController.submitAddTeamMembers( group.groupType, group.groupId),
-        paginationMetaData,
-        resultsSummary = Some(resultsSummary)
+        paginationMetaData
     )
 
 }

@@ -174,7 +174,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for ‘John 1’ Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
-      html.select(H2).get(1).text shouldBe "Showing 1 team members for ‘John 1’ in this group"
+      html.select(H2).get(1).text shouldBe "Showing total of 1 team member for ‘John 1’ in this group"
 
       val trs = html.select(Css.tableWithId("members")).select("tbody tr")
 
@@ -204,7 +204,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for ‘hn2@ab’ Manage team members in this group - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Manage team members in this group"
-      html.select(H2).get(1).text shouldBe "Showing 1 team members for ‘hn2@ab’ in this group"
+      html.select(H2).get(1).text shouldBe "Showing total of 1 team member for ‘hn2@ab’ in this group"
 
       val trs =
         html.select(Css.tableWithId("members")).select("tbody tr")
@@ -283,8 +283,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -314,8 +314,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Filter results for ‘John’ Select team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Filter results for ‘John’ Select team members (page 1 of 4) - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -346,8 +346,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       // then
       status(result) shouldBe OK
       val html = Jsoup.parse(contentAsString(result))
-      html.title() shouldBe "Select team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -416,8 +416,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // then - check page content
-      html.title() shouldBe "Error: Select team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "Select team members"
+      html.title() shouldBe "Error: Select team members (page 1 of 4) - Agent services account - GOV.UK"
+      html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
       html
         .select(Css.errorSummaryForField("members"))
     }
@@ -526,8 +526,11 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
 
       // and
-      html.title() shouldBe "Review selected team members - Agent services account - GOV.UK"
-      html.select(H1).text() shouldBe "You have selected 14 team members to add to the group"
+      html
+        .title() shouldBe "Review selected team members (page 1 of 2) - Agent services account - GOV.UK"
+      html
+        .select(H1)
+        .text() shouldBe "You have selected 14 team members to add to the group (page 1 of 2)"
 
       html.select(Css.tableWithId("members")).select("tbody tr").size() shouldBe 10
 

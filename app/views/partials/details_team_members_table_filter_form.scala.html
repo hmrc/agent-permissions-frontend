@@ -16,9 +16,10 @@
 
 @import config.AppConfig
 @import controllers.routes
-@import models.PaginationMetaData
 @import views.html.components.pagination.GET_pagination
 @import views.html.partials.search_and_filter
+@import models.PaginationMetaData
+@import utils.ViewUtils.paginationShowingRangeHelperText
 
 @this(
         p: p, h1: h1, h2: h2, span: span, a: a,
@@ -35,6 +36,14 @@
     form: Form[SearchFilter],
     paginationMetaData: Option[PaginationMetaData]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+    @tableHeading(paginationMeta: PaginationMetaData) = @{
+        if(form.data.nonEmpty && form.data.get("search").isDefined) {
+            paginationShowingRangeHelperText(Some(paginationMeta), "paginated.team-members.showing", formSearch = form.data.get("search"))
+        } else {
+            paginationShowingRangeHelperText(Some(paginationMeta), "paginated.team-members.showing")
+        }
+    }
 
     @tableRows = @{
         teamMembers.map(member =>
@@ -67,19 +76,7 @@
             @paginationMetaData.fold {
                 @p(msgs("common.total.team-members", teamMembers.length), id = Some("team-members-in-group"))
             } { paginationMeta =>
-
-                @if(form.data.nonEmpty && form.data.get("search").isDefined) {
-                    @h2(key = msgs("paginated.team-members.showing.total",
-                                    paginationMeta.totalSize,
-                                    filterReminderSubstring(form.data.get("search"), None)
-                                    ),
-                    id = Some("filter-results-info")
-                    )
-                } else {
-                    @h2(key = msgs("paginated.team-members.showing.total", paginationMeta.totalSize, filterReminderSubstring(None, None)),
-                    id = Some("filter-results-info")
-                    )
-                }
+                @h2(key = tableHeading(paginationMeta), id = Some("filter-results-info"))
             }
 
             @table(

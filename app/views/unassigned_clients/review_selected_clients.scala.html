@@ -20,6 +20,7 @@
 @import views.components.models._
 @import models.PaginationMetaData
 @import views.html.components.pagination.GET_pagination
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -40,6 +41,14 @@
     form: Form[Boolean],
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+
+@firstPartOfHeadingOne = @{
+    if (paginationMetaData.get.totalSize == 1) {
+        msgs("group.clients.review.h1.singular")
+    } else {
+        msgs("group.clients.review.h1", paginationMetaData.get.totalSize)
+    }
+}
 
     @tableRows = @{
         clients.map(client => {
@@ -62,7 +71,7 @@
     }
 
 @layout(
-    title = msgs("group.clients.review.title"),
+    title = paginationPageTitle(paginationMetaData, "group.clients.review.title", nowrap = false),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = form.errors,
     fullWidth = true
@@ -70,12 +79,7 @@
 
         <div class="govuk-!-width-two-thirds">
             @caption(key = "unassigned-clients.h1")
-            @if(paginationMetaData.get.totalSize == 1){
-                @h1(msgs("group.clients.review.h1.singular"))
-            } else {
-                @h1(msgs("group.clients.review.h1", paginationMetaData.get.totalSize))
-            }
-
+            @h1(paginationPageTitle(paginationMetaData, firstPartOfHeadingOne, nowrap = true))
             @p("unassigned-clients.review.p")
         </div>
 

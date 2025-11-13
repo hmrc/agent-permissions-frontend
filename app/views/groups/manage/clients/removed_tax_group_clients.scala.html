@@ -21,7 +21,8 @@
 @import views.html.main_layout
 @import models.PaginationMetaData
 @import models.accessgroups.TaxGroup
-@import utils.ViewUtils
+@import utils.ViewUtils.filterReminderSubstring
+@import utils.ViewUtils.paginationPageTitle
 
 @this(
     layout: main_layout,
@@ -46,13 +47,28 @@
     }
 }
 
-@resultsSummary = @{
-    val searchReminder = ViewUtils.filterReminderSubstring(form.data.get("search"), None)
-    msgs("tax-group.manage.removed.clients.h2", clients.size.toString, displayTaxServiceFromServiceKey(group.service), searchReminder)
+@title(nowrap: Boolean)= @{ paginationPageTitle(paginationMetaData, "tax-group.manage.removed.clients.h1", nowrap) }
+
+@headingTwo = @{
+    val searchReminder = filterReminderSubstring(form.data.get("search"), None)
+    if (paginationMetaData.get.totalSize == 1) {
+        msgs("tax-group.manage.removed.clients.h2.one", displayTaxServiceFromServiceKey(group.service), searchReminder)
+    } else if (paginationMetaData.get.totalPages <= 1) {
+        msgs("tax-group.manage.removed.clients.h2", clients.size.toString, displayTaxServiceFromServiceKey(group.service), searchReminder)
+    } else {
+        msgs(
+            "tax-group.manage.removed.clients.h2.range",
+            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+            paginationMetaData.get.totalSize,
+            displayTaxServiceFromServiceKey(group.service),
+            searchReminder
+        )
+    }
 }
 
 @layout(
-    title = withSearchAndErrorPrefix(form.errors.nonEmpty, msgs("tax-group.manage.removed.clients.h1"), form("filter").value, form("search").value),
+    title = withSearchAndErrorPrefix(form.errors.nonEmpty, title(nowrap = false), form("filter").value, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true) {
@@ -61,7 +77,7 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1("tax-group.manage.removed.clients.h1")
+        @h1(title(nowrap = true))
     </div>
 
     @selectable_clients_table_form(
@@ -73,7 +89,7 @@
         showFilter = false,
         displayTaxService = false,
         submitButtonKey = "tax-group.manage.removed.clients.submit",
-        resultsSummary = Some(resultsSummary)
+        resultsSummary = Some(headingTwo)
     )
 
 }

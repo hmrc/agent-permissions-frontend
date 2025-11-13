@@ -17,6 +17,7 @@
 package utils
 
 import config.AppConfig
+import models.PaginationMetaData
 import play.api.i18n.Messages
 
 object ViewUtils {
@@ -160,11 +161,61 @@ object ViewUtils {
       formSearch.filter(_.nonEmpty).toSeq,
       formFilter.filter(_.nonEmpty).map(displayTaxServiceFromServiceKey).toSeq
     ).flatten.filter(_.trim.nonEmpty).map(term => s"‘$term’")
-    val `for` = msgs("paginated.clients.showing.total.filter-preposition")
-    val and = msgs("paginated.clients.showing.total.filter-conjunction")
+    val `for` = msgs("paginated.showing.total.filter-preposition")
+    val and = msgs("paginated.showing.total.filter-conjunction")
     filterTerms match {
       case Nil   => ""
       case terms => (s"${`for`} " + filterTerms.mkString(s" $and ")).trim
+    }
+  }
+
+  def paginationPageTitle(paginationMetaData: Option[PaginationMetaData], mainMsgString: String, nowrap: Boolean)(
+    implicit msgs: Messages
+  ): String = {
+    val totalPages = paginationMetaData.get.totalPages
+    if (totalPages <= 1) {
+      msgs(mainMsgString)
+    } else {
+      val paginatedMsg: String = Seq(
+        if (nowrap) Some("<span style=\"white-space: nowrap;\">") else None,
+        Some(msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)),
+        if (nowrap) Some("</span>") else None
+      ).flatten.mkString("")
+      msgs(mainMsgString) + " " + paginatedMsg
+    }
+  }
+
+  def paginationShowingRangeHelperText(
+    paginationMetaData: Option[PaginationMetaData],
+    mainMsgString: String,
+    formSearch: Option[String] = None,
+    formFilter: Option[String] = None,
+    followingMsgString: Option[String] = None
+  )(implicit
+    msgs: Messages
+  ): String = {
+    val followingString =
+      filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
+    (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
+      case (true, _) =>
+        msgs(
+          s"$mainMsgString.one",
+          followingString
+        )
+      case (false, true) =>
+        msgs(
+          s"$mainMsgString.total",
+          paginationMetaData.get.totalSize,
+          followingString
+        )
+      case (false, false) =>
+        msgs(
+          s"$mainMsgString.range",
+          (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+          (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+          paginationMetaData.get.totalSize,
+          followingString
+        )
     }
   }
 }

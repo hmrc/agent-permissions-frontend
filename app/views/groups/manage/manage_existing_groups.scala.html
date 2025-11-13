@@ -23,6 +23,7 @@
 @import views.html.components.pagination.GET_pagination
 @import views.html.main_layout
 @import views.html.partials.search_and_filter
+@import utils.ViewUtils.{ paginationPageTitle, paginationShowingRangeHelperText }
 
 @this(
     layout: main_layout, govukTag : GovukTag,
@@ -40,6 +41,10 @@
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,5,1,5))
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.manage.h1", nowrap) }
+
+@headingTwo = @{ paginationShowingRangeHelperText(paginationMetaData, "paginated.access-groups.showing", formSearch = filterGroupSummaryForm.data.get("search")) }
+
 @groupTypeTag(isCustomGroup: Boolean) = {
     @govukTag(
         Tag(
@@ -50,11 +55,11 @@
 }
 
 @layout(
-    title = msgs("group.manage.h1"), fullWidth = true,
+    title = msgs(title(nowrap = false)), fullWidth = true,
     backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account"))))
 ) {
 
-    @h1("group.manage.h1")
+    @h1(title(nowrap = true))
 
     <div class="govuk-!-width-two-thirds">
     @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id = Some("info"))
@@ -69,10 +74,7 @@
     }
 
     @if(summaries.nonEmpty) {
-        @h2({
-            val searchTerm = filterGroupSummaryForm.data.get("search").filter(_.nonEmpty).map(term => s"‘$term’")getOrElse(msgs("group.manage.showing.access-groups-substring"))
-            if(summaries.length == 1) msgs("group.manage.showing.one", searchTerm) else msgs("common.showing.results.many", summaries.length, searchTerm)
-        })
+        @h2(headingTwo)
     }
 
     <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

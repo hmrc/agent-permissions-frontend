@@ -20,7 +20,7 @@
 @import views.html.partials.selectable_clients_table_form
 @import views.html.main_layout
 @import models.PaginationMetaData
-@import utils.ViewUtils.displayTaxServiceFromServiceKey
+@import utils.ViewUtils._
 
 @this(
         layout: main_layout,
@@ -38,6 +38,7 @@
         paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.client.list.h1", nowrap) }
 
 @errorHref = @{
     if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
@@ -47,21 +48,16 @@
     }
 }
 
-@searchParamMsg = @{
-    if(form.get.search.getOrElse("").nonEmpty && form.get.filter.getOrElse("").nonEmpty) {
-        msgs("group.client.list.2.h2", paginationMetaData.get.totalSize, form.get.search.get, displayTaxServiceFromServiceKey(form.get.filter.get))
-    }
-    else {
-        val txt =
-            if(form.get.filter.getOrElse("").nonEmpty)
-                displayTaxServiceFromServiceKey(form.get.filter.get)
-            else
-                form.get.search.get
-        msgs("common.showing.results.many", paginationMetaData.get.totalSize, txt)
+@headingTwo = @{
+    if (form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
+        paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.get.search, form.get.filter)
+    } else {
+        paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many")
     }
 }
+
 @layout(
-    title = withSearchAndErrorPrefix(!form.errors.isEmpty, msgs("group.client.list.h1"), form("filter").value, form("search").value),
+    title = withSearchAndErrorPrefix(!form.errors.isEmpty, title(nowrap = false), form("filter").value, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
     formErrors = Seq.empty,
     fullWidth = true) {
@@ -70,14 +66,18 @@
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-        @h1(msgs("group.client.list.h1", groupName))
-        @if(form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
-            @h2(searchParamMsg)
-        }
+        @h1(title(nowrap = true))
         @p("common.group.max.clients")
     </div>
 
-    @selectable_clients_table_form(clients, form, formAction, paginationMetaData, submitButtonKey = "save.and.continue.button")
+    @selectable_clients_table_form(
+        clients,
+        form,
+        formAction,
+        paginationMetaData,
+        submitButtonKey = "save.and.continue.button",
+        resultsSummary = Some(headingTwo)
+    )
 
 }
 

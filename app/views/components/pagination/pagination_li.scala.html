@@ -25,8 +25,8 @@
    additionalParams: Map[String,String] = Map.empty
 )(implicit msgs: Messages)
 
-@ariaLabel = @{
-    if (pagination.currentPageNumber == pageNum) {
+@ariaLabel(isCurrent: Boolean) = @{
+    if (isCurrent) {
         msgs("paginated.currentPageLabel", pageNum, pagination.totalPages)
     } else {
         msgs("paginated.pageLabel", pageNum, pagination.totalPages)
@@ -37,10 +37,11 @@
 @defining(pagination.currentPageNumber == pageNum) { isCurrent =>
   <li class="govuk-pagination__item@if(isCurrent){ govuk-pagination__item--current}">
     <a class="pagination_link"
-    href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}@{additionalParams.map(entry => "&" + entry._1 + "=" + entry._2)}"
-    aria-label="@ariaLabel"
-    @if(isCurrent){aria-current="page"}>
-    @{pageNum}
+       href="@{baseUrl}?page=@{pageNum}&pageSize=@{pagination.pageSize}@{additionalParams.map(entry => "&" + entry._1 + "=" + entry._2)}"
+      aria-label="@{ ariaLabel(isCurrent) }"
+      @if(isCurrent){aria-current="page"}
+    >
+      @{pageNum}
     </a>
   </li>
 }

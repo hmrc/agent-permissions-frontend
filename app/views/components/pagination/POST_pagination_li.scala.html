@@ -16,12 +16,12 @@
 
 @import models.PaginationMetaData
 
-@this(submit_as_link: submit_as_link)
+@this()
 
 @(pagination: PaginationMetaData, pageNum: Int)(implicit msgs: Messages)
 
-@ariaLabel = @{
-    if (pagination.currentPageNumber == pageNum) {
+@ariaLabel(isCurrent: Boolean) = @{
+    if (isCurrent) {
         msgs("paginated.currentPageLabel", pageNum, pagination.totalPages)
     } else {
         msgs("paginated.pageLabel", pageNum, pagination.totalPages)
@@ -32,7 +32,7 @@
   <li class="govuk-pagination__item govuk-pagination__item--current">
     <span
       class="pagination__link"
-      aria-label="@ariaLabel"
+      aria-label="@{ ariaLabel(isCurrent = true) }"
       aria-current="page"
     >@{pageNum}</span>
   </li>
@@ -43,7 +43,7 @@
       name="submit"
       class="pagination__link"
       value="@{s"${PAGINATION_BUTTON}_${pageNum}"}"
-      aria-label="@ariaLabel"
+      aria-label="@{ ariaLabel(isCurrent = false) }"
     >
       @pageNum
     </button>

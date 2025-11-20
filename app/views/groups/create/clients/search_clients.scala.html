@@ -41,6 +41,14 @@
     continueAction: Option[Call] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@title=@{
+    if (isFailedSearch) {
+        msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value))
+    } else {
+        msgs("group.client.search.h1")
+    }
+}
+
 @fieldsetLegend = @{
     if (isFailedSearch) {
         Legend(
@@ -73,24 +81,14 @@
     )
 }
 
-@title=@{
-    if (isFailedSearch) {
-        msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value))
-    } else {
-        msgs("group.client.search.h1")
-    }
-}
-
 @layout(
     title = title,
     formErrors = form.errors,
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
     @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
-    @if(isFailedSearch) {
-        @h1(msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)))
-    } else {
-        @h1(msgs("group.client.search.h1"))
+    @h1(title)
+    @if(!isFailedSearch) {
         @p(html = Some(Html(msgs("group.client.search.p", groupName))))
     }
     @* 'Continue' form (continue with selected clients without searching) - (shown optionally) - button is defined inside other form for design reasons (APB-7378) *@

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,8 +141,14 @@ class ManageClientControllerSpec extends BaseSpec {
 
       val paginationItems = html.select(Css.pagination_li)
       paginationItems.size() shouldBe 4
-      paginationItems.select("a").get(0).text() shouldBe "2"
-      paginationItems.select("a").get(0).attr("href") startsWith "/agent-permissions/manage-clients?page=2"
+
+      val currentLink = paginationItems.select("a[aria-current=page]").first()
+      currentLink.text() shouldBe "1"
+      currentLink.attr("href") should include("page=1")
+
+      val nextLink = paginationItems.select("a").get(1)
+      nextLink.text() shouldBe "2"
+      nextLink.attr("href") should include("page=2")
 
       html
         .select(".hmrc-report-technical-issue")

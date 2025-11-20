@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,38 @@
 
 @import models.PaginationMetaData
 
-@this(submit_as_link: submit_as_link)
+@this()
 
 @(pagination: PaginationMetaData, pageNum: Int)(implicit msgs: Messages)
 
-@if(pagination.currentPageNumber != pageNum) {
-    <li class="govuk-pagination__item">
-        @submit_as_link(
-            key = pageNum.toString,
-            value = s"${PAGINATION_BUTTON}_${pageNum}",
-            classes = "pagination__link"
-        )
-    </li>
-} else {
-    <li class="govuk-pagination__item govuk-pagination__item--current">@{pageNum}</li>
+@ariaLabel(isCurrent: Boolean) = @{
+    if (isCurrent) {
+        msgs("paginated.currentPageLabel", pageNum, pagination.totalPages)
+    } else {
+        msgs("paginated.pageLabel", pageNum, pagination.totalPages)
+    }
 }
+
+@if(pagination.currentPageNumber == pageNum) {
+  <li class="govuk-pagination__item govuk-pagination__item--current">
+    <span
+      class="pagination__link"
+      aria-label="@{ ariaLabel(isCurrent = true) }"
+      aria-current="page"
+    >@{pageNum}</span>
+  </li>
+} else {
+  <li class="govuk-pagination__item">
+    <button
+      type="submit"
+      name="submit"
+      class="pagination__link"
+      value="@{s"${PAGINATION_BUTTON}_${pageNum}"}"
+      aria-label="@{ ariaLabel(isCurrent = false) }"
+    >
+      @pageNum
+    </button>
+  </li>
+}
+
+

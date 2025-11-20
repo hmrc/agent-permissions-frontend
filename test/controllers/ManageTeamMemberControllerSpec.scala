@@ -141,8 +141,14 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
 
       val paginationItems = html.select(Css.pagination_li)
       paginationItems.size() shouldBe 4
-      paginationItems.select("a").get(0).text() shouldBe "2"
-      paginationItems.select("a").get(0).attr("href") startsWith "/agent-permissions/manage-team-members?page=2"
+
+      val currentLink = paginationItems.select("a[aria-current=page]").first()
+      currentLink.text() shouldBe "1"
+      currentLink.attr("href") should include("page=1")
+
+      val nextLink = paginationItems.select("a").get(1)
+      nextLink.text() shouldBe "2"
+      nextLink.attr("href") should include("page=2")
     }
 
   }

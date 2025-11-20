@@ -41,7 +41,7 @@
     continueAction: Option[Call] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@title=@{
+@title = @{
     if (isFailedSearch) {
         msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value))
     } else {

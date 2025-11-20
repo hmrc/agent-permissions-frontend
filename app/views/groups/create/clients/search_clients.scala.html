@@ -41,6 +41,22 @@
     continueAction: Option[Call] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@fieldsetLegend = @{
+    if (isFailedSearch) {
+        Legend(
+            content = Text(msgs("common.search-again")),
+            classes = "govuk-fieldset__legend--l",
+            isPageHeading = false
+        )
+    } else {
+        Legend(
+            content = Text(msgs("group.client.search.h1")),
+            classes = "govuk-fieldset__legend--l",
+            isPageHeading = true
+        )
+    }
+}
+
 @fieldsetHtml = {
     @textbox(
         field = form("search"),
@@ -74,6 +90,9 @@
         @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)))
     }
+    @if(!isFailedSearch) {
+        @p(html = Some(Html(msgs("group.client.search.p", groupName))))
+    }
     @* 'Continue' form (continue with selected clients without searching) - (shown optionally) - button is defined inside other form for design reasons (APB-7378) *@
     @if(continueAction.isDefined) {
         @formWithCSRF(action = continueAction.get, Symbol("id") -> "continueForm")(Html(""))
@@ -82,14 +101,8 @@
     @formWithCSRF(action = searchAction) {
         @if(!isFailedSearch) { @caption(key = groupName, hiddenKey = Some("group.caption.access-group")) }
         @govukFieldset(Fieldset(
-            legend = Some(Legend(
-                content = if (isFailedSearch) Text(msgs("common.search-again")) else Text(msgs("group.client.search.h1")),
-                classes = "govuk-fieldset__legend--l",
-                isPageHeading = !isFailedSearch)),
-            html = HtmlFormat.fill(Seq(
-                if (isFailedSearch) Html("") /* APB-7378 */ else p(html = Some(Html(msgs("group.client.search.p", groupName)))),
-                fieldsetHtml
-            ))
+            legend = Some(fieldsetLegend),
+            html = fieldsetHtml
         ))
         <div class="govuk-button-group">
             @submit_button("group.client.search.h1")

@@ -51,8 +51,8 @@
     } else {
         Legend(
             content = Text(msgs("group.client.search.h1")),
-            classes = "govuk-fieldset__legend--l",
-            isPageHeading = true
+            classes = "govuk-visually-hidden",
+            isPageHeading = false
         )
     }
 }
@@ -86,11 +86,11 @@
     formErrors = form.errors,
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
+    @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
     @if(isFailedSearch) {
-        @caption(key = groupName, hiddenKey = Some("group.caption.access-group"))
         @h1(msgs("common.no-results-for", filterReminderSubstring(form("search").value, form("filter").value)))
-    }
-    @if(!isFailedSearch) {
+    } else {
+        @h1(msgs("group.client.search.h1"))
         @p(html = Some(Html(msgs("group.client.search.p", groupName))))
     }
     @* 'Continue' form (continue with selected clients without searching) - (shown optionally) - button is defined inside other form for design reasons (APB-7378) *@
@@ -99,7 +99,6 @@
     }
     @* Search form *@
     @formWithCSRF(action = searchAction) {
-        @if(!isFailedSearch) { @caption(key = groupName, hiddenKey = Some("group.caption.access-group")) }
         @govukFieldset(Fieldset(
             legend = Some(fieldsetLegend),
             html = fieldsetHtml

@@ -74,7 +74,7 @@
     <input type="hidden" name="pageSize" value="@paginationMetaData.get.pageSize"/>
     @if(teamMembers.nonEmpty) {
         <div class="@formGroupClasses">
-            @* Once fully migrated, we should be able to remove the below three lines fully *@
+            @* TODO: Once fully migrated, we should be able to remove the below three lines fully *@
             @if(withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value) != "" && !resultsSummary.isDefined) {
                 @h2(key = withSearchPrefix(str = "", formFilter = None, formSearch = form("search").value), id = Some("filter-description"))
             }

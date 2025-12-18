@@ -59,6 +59,14 @@
     )
 }
 
+@headingTwo = @{
+    if (form.value.isDefined && (form.get.filter.isDefined || form.get.search.isDefined)) {
+        paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing", form.get.search, form.get.filter)
+    } else {
+        paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing")
+    }
+}
+
 @layout(title = pageTitle,
     backLink = Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account")))),
     fullWidth = true) {
@@ -78,7 +86,8 @@
             paginationMetaData,
             showSearch = true,
             showFilter = true,
-            submitButtonKey = "common.details.assign-to-custom-group.zero"
+            submitButtonKey = "common.details.assign-to-custom-group.zero",
+            resultsSummary = Some(headingTwo)
         )
     } else {
         @if(form("filter").value == None && form("search").value == None) {

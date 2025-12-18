@@ -25,7 +25,7 @@
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, span: span, a: a,
+    p: p, h1: h1, h2: h2, span: span, a: a,
     caption: caption,
     link_as_button: link_as_button,
     table: table,
@@ -44,24 +44,28 @@
     paginationMetaData: PaginationMetaData = PaginationMetaData(true,true,0,1,10,1,10)
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @tableRows = @{
-        clients.map(client =>
-            Seq(
-                Html(client.name),
-                Html(displayObfuscatedReference(client.name, client.hmrcRef)),
-                Html(displayTaxServiceFromServiceKey(client.taxService)),
-                Html(
-                    a(
-                        key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
-                            html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
-                        ).toString
-                        ).toString,
-                        href = routes.ManageGroupClientsController.showConfirmRemoveFromSelectedClients(group.groupId, client.id).url
+@headingTwo = @{
+    paginationShowingRangeHelperText(Some(paginationMetaData), "paginated.clients.showing")
+}
+
+@tableRows = @{
+    clients.map(client =>
+        Seq(
+            Html(client.name),
+            Html(displayObfuscatedReference(client.name, client.hmrcRef)),
+            Html(displayTaxServiceFromServiceKey(client.taxService)),
+            Html(
+                a(
+                    key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
+                        html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
                     ).toString
-                )
+                    ).toString,
+                    href = routes.ManageGroupClientsController.showConfirmRemoveFromSelectedClients(group.groupId, client.id).url
+                ).toString
             )
         )
-    }
+    )
+}
 
     @layout(
         title = paginationPageTitle(Some(paginationMetaData), "group.clients.review.title", nowrap = false),
@@ -76,6 +80,8 @@
             }
             @h1(paginationPageTitle(Some(paginationMetaData), msgs("group.clients.add.review.h1", paginationMetaData.totalSize), nowrap = true))
         </div>
+
+        @h2(key = headingTwo)
 
         @table(
             caption = Some("common.clients"),

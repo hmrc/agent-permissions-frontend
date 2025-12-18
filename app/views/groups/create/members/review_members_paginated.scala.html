@@ -24,7 +24,7 @@
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, span: span, a: a,
+    p: p, h1: h1, h2: h2, span: span, a: a,
     caption: caption,
     link_as_button: link_as_button,
     table: table,
@@ -45,6 +45,10 @@
     )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @firstPartOfHeadingOne = @{ msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize) }
+
+@tableHeading(paginationMeta: Option[PaginationMetaData]) = @{
+    paginationShowingRangeHelperText(paginationMeta, "paginated.team-members.showing")
+}
 
 @tableRows = @{
     teamMembers.map(teamMember =>
@@ -77,6 +81,8 @@
     </div>
 
     @if(teamMembers.nonEmpty) {
+        @h2(key = tableHeading(paginationMetaData))
+
         @table(
             caption = Some("common.teamMembers"),
             captionClasses = "govuk-visually-hidden",

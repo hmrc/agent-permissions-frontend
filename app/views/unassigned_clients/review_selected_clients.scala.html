@@ -24,7 +24,7 @@
 
 @this(
     layout: main_layout,
-    p: p, h1: h1, span: span, a: a,
+    p: p, h1: h1, h2: h2, span: span, a: a,
     caption: caption,
     link_as_button: link_as_button,
     table: table,
@@ -48,6 +48,10 @@
     } else {
         msgs("group.clients.review.h1", paginationMetaData.get.totalSize)
     }
+}
+
+@tableHeading(paginationMeta: Option[PaginationMetaData]) = @{
+    paginationShowingRangeHelperText(paginationMeta, "paginated.clients.showing")
 }
 
     @tableRows = @{
@@ -84,6 +88,8 @@
         </div>
 
         @if(clients.nonEmpty) {
+            @h2(key = tableHeading(paginationMetaData), id = Some("filter-results-info"))
+
             @table(
                 caption = Some("common.clients"),
                 captionClasses = "govuk-visually-hidden",
@@ -99,8 +105,8 @@
 
             @if(paginationMetaData.exists(_.totalPages > 1)) {
                 @GET_pagination(
-                pagination = paginationMetaData.get,
-                baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
+                    pagination = paginationMetaData.get,
+                    baseUrl = Call("GET", request.path)) @* Points to the same URL as was used to serve the present page *@
             }
         }
 

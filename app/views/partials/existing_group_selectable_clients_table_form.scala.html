@@ -114,6 +114,7 @@
                 @msgs("group.client.list.h1")
             </legend>
 
+            @ * TODO: Pass this in as resultsSummary: Option[String] from update_clients_paginated * @
             @if(form.data.contains("search") || form.data.contains("filter")) {
                 @h2(headingTwo)
                 <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">

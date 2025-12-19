@@ -244,8 +244,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for ‘John’ Select clients (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
 
-      // TODO: FIX
-      html.select(Css.H2).text() shouldBe "Filter results for ‘John'"
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 25 of 40 results for ‘John’"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4

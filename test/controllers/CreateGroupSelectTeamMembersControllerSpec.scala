@@ -198,8 +198,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
 
-//      TODO: FIX
-      html.select(Css.H2).text() shouldBe "Filter results for ‘John’"
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 10 of 40 team members for ‘John’"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4

@@ -44,6 +44,10 @@
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.client.list.h1", nowrap) }
 
+@headingTwo = @{
+    paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), form.data.get("filter"))
+}
+
 @layout(
     title = withSearchAndErrorPrefix(form.errors.nonEmpty, title(nowrap = false), form("filter").value, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
@@ -64,7 +68,8 @@
         form,
         paginationMetaData = paginationMetaData,
         backLinkHref = Some(routes.ManageGroupClientsController.showSearchClientsToAdd(group.groupId).url),
-        group = group
+        group = group,
+        resultsSummary = Some(headingTwo)
     )
 
 }

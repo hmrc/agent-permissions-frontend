@@ -56,6 +56,15 @@ object ViewUtils {
       case s                           => throw new Exception(s"str: '$s' is not a value for a tax service")
     }
 
+  def displayTaxService(serviceKey: String, lowercaseForCbc: Boolean = false)(implicit mgs: Messages): String = {
+    val text = displayTaxServiceFromServiceKey(serviceKey)
+
+    if (lowercaseForCbc && serviceKey.contains("HMRC-CBC"))
+      text.toLowerCase
+    else
+      text
+  }
+
   // can only display full taxId if no name
   def displayObfuscatedReference(name: String, taxId: String)(implicit msgs: Messages): String =
     if (name.isEmpty) taxId else msgs("ending.in", taxId.substring(taxId.length - 4))

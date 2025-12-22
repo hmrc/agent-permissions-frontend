@@ -100,7 +100,7 @@
         @h1(paginationPageTitle(paginationMetaData, "group.existing.clients.h1", nowrap = true))
     </div>
 
-    @inset_text(msgs("tax-group.clients.tax.info", displayTaxServiceFromServiceKey(group.taxService.get)))
+    @inset_text(msgs("tax-group.clients.tax.info", displayTaxService(group.taxService.get, lowercaseForCbc = true)))
 
     @views.html.helper.form(action = routes.ManageTaxGroupClientsController.showExistingGroupClients(group.groupId, None, None)) {
 

@@ -98,8 +98,8 @@
         serviceUrl = Some(appConfig.agentServicesAccountManageAccountUrl),
         signOutUrl = if(isSignedIn) Some(routes.SignOutController.signOut().url) else None
     ),
-    banners = Banners(
-        phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl)),
+    banners = uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage.Banners(
+        phaseBanner = Some(standardBetaBanner(appConfig.betaFeedbackUrl))
     ),
     backLink = backLink,
     isWelshTranslationAvailable = true,

@@ -47,11 +47,11 @@ POST pagination is used when we want to persist selections/deselection between p
 
 ### Running the tests
 
-    sbt "test;IntegrationTest/test"
+    sbt "test;it/test"
 
 ### Running the tests with coverage
 
-    sbt "clean;coverageOn;test;IntegrationTest/test;coverageReport"
+    sbt "clean;coverageOn;test;it/test;coverageReport"
 
 ### Automated testing
 This service is tested by the following automated test repositories:

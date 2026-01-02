@@ -49,6 +49,8 @@
 
 @title(nowrap: Boolean)= @{ paginationPageTitle(paginationMetaData, "tax-group.manage.removed.clients.h1", nowrap) }
 
+@* TODO: Can headingTwo be rewritten to entirely use paginationShowingRangeHelperText *@
+
 @headingTwo = @{
     val searchReminder = filterReminderSubstring(form.data.get("search"), None)
     if (paginationMetaData.get.totalSize == 1) {

@@ -51,6 +51,7 @@
     if (form.data.get("search").exists(_.trim.nonEmpty)) {
         paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), None)
     } else {
+        val newHeadingTwo = paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing.tax-group", additionalParam = group.taxService.map(displayTaxServiceFromServiceKey))
         if (paginationMetaData.get.totalSize == 1) {
             msgs("paginated.clients.showing.tax-group.one", group.taxService.fold("")(displayTaxServiceFromServiceKey))
         } else if (paginationMetaData.get.totalPages <= 1) {

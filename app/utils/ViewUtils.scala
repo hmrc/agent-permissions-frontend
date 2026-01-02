@@ -199,7 +199,9 @@ object ViewUtils {
     mainMsgString: String,
     formSearch: Option[String] = None,
     formFilter: Option[String] = None,
-    followingMsgString: Option[String] = None
+    followingMsgString: Option[String] = None,
+    additionalParam: Option[String] = None
+// TODO: Would need additionalParam: Option[String] = None to then be added above followingMsgString - how best to write this
   )(implicit
     msgs: Messages
   ): String = {

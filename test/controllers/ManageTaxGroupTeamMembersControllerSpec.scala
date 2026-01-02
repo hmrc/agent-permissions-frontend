@@ -286,6 +286,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
+      //      TODO: TEST H2
+
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
       trs.size() shouldBe 5
@@ -316,6 +318,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Filter results for ‘John’ Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
+
+      //      TODO: TEST H2
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -348,6 +352,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
+
+      //      TODO: TEST H2
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -531,6 +537,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       html
         .select(H1)
         .text() shouldBe "You have selected 14 team members to add to the group (page 1 of 2)"
+
+      //      TODO: TEST H2
 
       html.select(Css.tableWithId("members")).select("tbody tr").size() shouldBe 10
 

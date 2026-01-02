@@ -9,7 +9,6 @@ object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"       %% s"bootstrap-frontend-$playVer"            % bootstrapVer,
     "uk.gov.hmrc.mongo" %% s"hmrc-mongo-$playVer"                    % mongoVer,
-//    TODO: Investigate version upgrade wrt build
     "uk.gov.hmrc"       %% s"play-frontend-hmrc-$playVer"            % "12.25.0",
     "uk.gov.hmrc"       %% s"play-conditional-form-mapping-$playVer" % "3.4.0",
     "uk.gov.hmrc"       %% s"crypto-json-$playVer"                   % "8.4.0",

@@ -156,6 +156,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).text() shouldBe "Back to manage groups page"
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
 
+      //      TODO: TEST H2
+
       val ths = html.select(Css.tableWithId("clients")).select("thead th")
       ths.size() shouldBe 3
       ths.get(0).text() shouldBe "Client reference"
@@ -215,6 +217,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
+      //      TODO: TEST H2
+
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
       th.size() shouldBe 3
@@ -266,6 +270,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.title shouldBe "Filter results for ‘nothing’ Manage clients - Bananas (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
+
+      //      TODO: TEST H2
 
       val tableOfClients = html.select(Css.tableWithId("clients"))
       tableOfClients.isEmpty shouldBe true
@@ -548,6 +554,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(H1).text() shouldBe "Removed clients (page 1 of 3)"
         html.select(Css.backLink).attr("href") shouldBe "#"
         html.select(Css.backLink).text() shouldBe "Back"
+
+        //      TODO: TEST H2
+
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         ths.size() shouldBe 3
         ths.get(0).text shouldBe "Select client"

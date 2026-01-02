@@ -45,6 +45,8 @@
     excludedClients: Seq[DisplayClient] = Seq.empty
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@* TODO: Can headingTwo be rewritten to entirely use paginationShowingRangeHelperText *@
+
 @headingTwo = @{
     if (form.data.get("search").exists(_.trim.nonEmpty)) {
         paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), None)
@@ -77,9 +79,12 @@
                     msgs("tax-group.client.excluded")
                 } else {
                     a(
-                        key = Html(msgs("common.remove") + span(classes = Some("govuk-visually-hidden"),
-                            html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
-                        ).toString
+                        key = Html(
+                            msgs("common.remove") +
+                            span(
+                                classes = Some("govuk-visually-hidden"),
+                                html = Some(Html(msgs(displayNameOrFullReference(client.name, client.hmrcRef))))
+                            ).toString
                         ).toString,
                         href = routes.ManageTaxGroupClientsController.showConfirmRemoveClient(group.groupId, client.id).url
                     ).toString

@@ -209,58 +209,49 @@ object ViewUtils {
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
     (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
       case (true, _) =>
-        additionalParam
-          .map { ap =>
-            msgs(
-              s"$mainMsgString.one",
-              ap,
-              followingString
-            )
-          }
-          .getOrElse(
-            msgs(
-              s"$mainMsgString.one",
-              followingString
-            )
+        val params: List[String] = if (additionalParam.isEmpty) {
+          List(
+            followingString
           )
+        } else {
+          List(
+            additionalParam.get,
+            followingString
+          )
+        }
+        msgs(s"$mainMsgString.one", params: _*)
       case (false, true) =>
-        additionalParam
-          .map { ap =>
-            msgs(
-              s"$mainMsgString.total",
-              paginationMetaData.get.totalSize,
-              ap,
-              followingString
-            )
-          }
-          .getOrElse(
-            msgs(
-              s"$mainMsgString.total",
-              paginationMetaData.get.totalSize,
-              followingString
-            )
+        val params: List[String] = if (additionalParam.isEmpty) {
+          List(
+            paginationMetaData.get.totalSize.toString,
+            followingString
           )
+        } else {
+          List(
+            paginationMetaData.get.totalSize.toString,
+            additionalParam.get,
+            followingString
+          )
+        }
+        msgs(s"$mainMsgString.total", params: _*)
       case (false, false) =>
-        additionalParam
-          .map { ap =>
-            msgs(
-              s"$mainMsgString.range",
-              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-              paginationMetaData.get.totalSize,
-              ap,
-              followingString
-            )
-          }
-          .getOrElse(
-            msgs(
-              s"$mainMsgString.range",
-              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-              paginationMetaData.get.totalSize,
-              followingString
-            )
+        val params: List[String] = if (additionalParam.isEmpty) {
+          List(
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1).toString,
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize).toString,
+            paginationMetaData.get.totalSize.toString,
+            followingString
           )
+        } else {
+          List(
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1).toString,
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize).toString,
+            paginationMetaData.get.totalSize.toString,
+            additionalParam.get,
+            followingString
+          )
+        }
+        msgs(s"$mainMsgString.range", params: _*)
     }
   }
 }

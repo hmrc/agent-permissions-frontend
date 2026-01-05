@@ -209,24 +209,58 @@ object ViewUtils {
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
     (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
       case (true, _) =>
-        msgs(
-          s"$mainMsgString.one",
-          followingString
-        )
+        additionalParam
+          .map { ap =>
+            msgs(
+              s"$mainMsgString.one",
+              ap,
+              followingString
+            )
+          }
+          .getOrElse(
+            msgs(
+              s"$mainMsgString.one",
+              followingString
+            )
+          )
       case (false, true) =>
-        msgs(
-          s"$mainMsgString.total",
-          paginationMetaData.get.totalSize,
-          followingString
-        )
+        additionalParam
+          .map { ap =>
+            msgs(
+              s"$mainMsgString.total",
+              paginationMetaData.get.totalSize,
+              ap,
+              followingString
+            )
+          }
+          .getOrElse(
+            msgs(
+              s"$mainMsgString.total",
+              paginationMetaData.get.totalSize,
+              followingString
+            )
+          )
       case (false, false) =>
-        msgs(
-          s"$mainMsgString.range",
-          (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-          (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-          paginationMetaData.get.totalSize,
-          followingString
-        )
+        additionalParam
+          .map { ap =>
+            msgs(
+              s"$mainMsgString.range",
+              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+              paginationMetaData.get.totalSize,
+              ap,
+              followingString
+            )
+          }
+          .getOrElse(
+            msgs(
+              s"$mainMsgString.range",
+              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
+              (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
+              paginationMetaData.get.totalSize,
+              followingString
+            )
+          )
     }
   }
 }

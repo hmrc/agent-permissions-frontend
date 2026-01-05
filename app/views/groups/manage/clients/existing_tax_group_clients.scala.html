@@ -45,31 +45,12 @@
     excludedClients: Seq[DisplayClient] = Seq.empty
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-@* TODO: Can headingTwo be rewritten to entirely use paginationShowingRangeHelperText *@
-
 @headingTwo = @{
     if (form.data.get("search").exists(_.trim.nonEmpty)) {
         paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), None)
     } else {
-        val newHeadingTwo = paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing.tax-group", additionalParam = group.taxService.map(displayTaxServiceFromServiceKey))
-        if (paginationMetaData.get.totalSize == 1) {
-            msgs("paginated.clients.showing.tax-group.one", group.taxService.fold("")(displayTaxServiceFromServiceKey))
-        } else if (paginationMetaData.get.totalPages <= 1) {
-            msgs("paginated.clients.showing.tax-group.total", paginationMetaData.get.totalSize, group.taxService.fold("")(displayTaxServiceFromServiceKey))
-        } else {
-            msgs(
-                "paginated.clients.showing.tax-group.range",
-                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-                (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-                paginationMetaData.get.totalSize,
-                group.taxService.fold("")(displayTaxServiceFromServiceKey)
-            )
-        }
+        paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing.tax-group", additionalParam = group.taxService.map(displayTaxServiceFromServiceKey))
     }
-}
-
-@newHeadingTwo = @{
-    paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing.tax-group", additionalParam = group.taxService.map(displayTaxServiceFromServiceKey))
 }
 
 @tableRows = @{
@@ -117,8 +98,6 @@
         @search_and_filter(form, withFilter = false)
 
         @h2(headingTwo)
-
-        @h2(newHeadingTwo)
 
         <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

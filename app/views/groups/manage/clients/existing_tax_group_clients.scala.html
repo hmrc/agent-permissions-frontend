@@ -68,6 +68,10 @@
     }
 }
 
+@newHeadingTwo = @{
+    paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing.tax-group", additionalParam = group.taxService.map(displayTaxServiceFromServiceKey))
+}
+
 @tableRows = @{
     groupClients.map(client =>
         Seq(
@@ -113,6 +117,8 @@
         @search_and_filter(form, withFilter = false)
 
         @h2(headingTwo)
+
+        @h2(newHeadingTwo)
 
         <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

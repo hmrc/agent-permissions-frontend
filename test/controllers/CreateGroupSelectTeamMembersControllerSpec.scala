@@ -139,8 +139,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       html.select(paragraphs).get(0).text() shouldBe "Select team members for this access groups by ticking the boxes."
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(1).text() shouldBe "TBD"
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 10 of 40 team members"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -239,8 +238,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "This access group is XYZ"
       html.select(Css.H1).text() shouldBe "Select team members (page 1 of 4)"
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(1).text() shouldBe "TBD"
+      html.select(Css.H2).get(1).text() shouldBe "No filter results for ‘’"
 
       // No table
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
@@ -650,8 +648,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
         .select(H1)
         .text() shouldBe "You have selected 11 team members to add to the group (page 1 of 2)"
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(1).text() shouldBe "TBD"
+      html.select(Css.H2).get(2).text() shouldBe "Showing 1 to 10 of 11 team members"
 
       val table = html.select(Css.tableWithId("selected-team-members"))
       table.select("thead th").size() shouldBe 4

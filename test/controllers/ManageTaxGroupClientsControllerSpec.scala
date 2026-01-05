@@ -156,8 +156,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).text() shouldBe "Back to manage groups page"
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(1).text() shouldBe "TBD"
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 3 of 40 VAT clients"
 
       val ths = html.select(Css.tableWithId("clients")).select("thead th")
       ths.size() shouldBe 3
@@ -218,8 +217,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(1).text() shouldBe "TBD"
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 4 of 40 results for ‘friendly1’"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
@@ -273,8 +271,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.PRE_H1).text shouldBe "This access group is Bananas"
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(1).text() shouldBe "TBD"
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 0 of 40 results for ‘nothing’"
 
       val tableOfClients = html.select(Css.tableWithId("clients"))
       tableOfClients.isEmpty shouldBe true
@@ -558,8 +555,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(Css.backLink).attr("href") shouldBe "#"
         html.select(Css.backLink).text() shouldBe "Back"
 
-        //      TODO: TEST H2
-        html.select(Css.H2).get(1).text() shouldBe "TBD"
+        html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 10 of 25 removed VAT clients"
 
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         ths.size() shouldBe 3

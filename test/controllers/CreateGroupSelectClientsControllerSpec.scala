@@ -199,8 +199,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).text() shouldBe "Back"
       html.select(Css.backLink).attr("href") shouldBe "#"
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(1).text() shouldBe "TBD"
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 20 of 40 results"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4

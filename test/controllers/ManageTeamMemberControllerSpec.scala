@@ -130,8 +130,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       html.select("#filter-button").text() shouldBe "Apply filter" // ‘filter’ (singular) not ‘filters’ - APB-7104
       html.select("#clear-button").text() shouldBe "Clear filter"
 
-      //      TODO: TEST H2
-      html.select(Css.H2).get(0).text() shouldBe "TBD"
+      html.select(Css.H2).get(0).text() shouldBe "Showing 1 to 5 of 40 team members for ‘ab’"
 
       val th = html.select(Css.tableWithId("members")).select("thead th")
       th.size() shouldBe 3

@@ -285,6 +285,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
@@ -327,6 +328,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
@@ -361,6 +363,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
@@ -557,6 +560,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
         .text() shouldBe "You have selected 14 team members to add to the group (page 1 of 2)"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       html.select(Css.tableWithId("members")).select("tbody tr").size() shouldBe 10
 

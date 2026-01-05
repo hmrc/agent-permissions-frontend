@@ -484,6 +484,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
       html.select("#selected-count-text strong").text shouldBe "2"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
@@ -762,6 +763,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
         html.select(H1).text() shouldBe "You have selected 3 clients to add to the group (page 2 of 3)"
 
         //      TODO: TEST H2
+        html.select(Css.H2).get(1).text() shouldBe "TBD"
+
         html.select(Css.tableWithId("clients")).select("tbody tr").size() shouldBe 1
 
         val paginationListItems = html.select(Css.pagination_li)

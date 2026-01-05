@@ -157,6 +157,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).attr("href") shouldBe "/agent-permissions/manage-access-groups"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val ths = html.select(Css.tableWithId("clients")).select("thead th")
       ths.size() shouldBe 3
@@ -218,6 +219,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val th = html.select(Css.tableWithId("clients")).select("thead th")
       val trs = html.select(Css.tableWithId("clients")).select("tbody tr")
@@ -272,6 +274,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       html.select(Css.H1).text shouldBe "Manage clients in this group (page 1 of 2)"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val tableOfClients = html.select(Css.tableWithId("clients"))
       tableOfClients.isEmpty shouldBe true
@@ -556,6 +559,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         html.select(Css.backLink).text() shouldBe "Back"
 
         //      TODO: TEST H2
+        html.select(Css.H2).get(1).text() shouldBe "TBD"
 
         val ths = html.select(Css.tableWithId("multi-select-table")).select("thead th")
         ths.size() shouldBe 3

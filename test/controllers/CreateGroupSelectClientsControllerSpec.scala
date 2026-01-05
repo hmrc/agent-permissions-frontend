@@ -200,6 +200,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.select(Css.backLink).attr("href") shouldBe "#"
 
       //      TODO: TEST H2
+      html.select(Css.H2).get(1).text() shouldBe "TBD"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")
       th.size() shouldBe 4
@@ -245,7 +246,6 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for ‘John’ Select clients (page 1 of 2) - Agent services account - GOV.UK"
       html.select(Css.H1).text() shouldBe "Select clients (page 1 of 2)"
 
-      //      TODO: H2 TESTED HERE!!!
       html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 25 of 40 results for ‘John’"
 
       val th = html.select(Css.tableWithId("multi-select-table")).select("thead th")

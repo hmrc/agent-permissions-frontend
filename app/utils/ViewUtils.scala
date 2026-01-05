@@ -204,24 +204,24 @@ object ViewUtils {
   )(implicit
     msgs: Messages
   ): String = {
-    val (key, initialMsgParams) =
+    val (keySuffix, initialMsgParams) =
       (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
         case (true, _) =>
-          (s"$mainMsgString.one", List.empty)
+          ("one", List.empty)
         case (false, true) =>
-          (s"$mainMsgString.total", List(paginationMetaData.get.totalSize.toString))
+          ("total", List(paginationMetaData.get.totalSize.toString))
         case (false, false) =>
           val initialMsgParams = List(
             ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1).toString,
             ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize).toString,
             paginationMetaData.get.totalSize.toString
           )
-          (s"$mainMsgString.range", initialMsgParams)
+          ("range", initialMsgParams)
       }
     val additionalParamList = additionalParam.map(List(_)).getOrElse(List.empty)
     val followingString =
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
     val msgParams = initialMsgParams ++ additionalParamList :+ followingString
-    msgs(key, msgParams: _*)
+    msgs(s"$mainMsgString.$keySuffix", msgParams: _*)
   }
 }

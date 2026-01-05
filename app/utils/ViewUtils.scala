@@ -201,57 +201,27 @@ object ViewUtils {
     formFilter: Option[String] = None,
     followingMsgString: Option[String] = None,
     additionalParam: Option[String] = None
-// TODO: Would need additionalParam: Option[String] = None to then be added above followingMsgString - how best to write this
   )(implicit
     msgs: Messages
   ): String = {
+    val (key, initialMsgParams) =
+      (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
+        case (true, _) =>
+          (s"$mainMsgString.one", List.empty)
+        case (false, true) =>
+          (s"$mainMsgString.total", List(paginationMetaData.get.totalSize.toString))
+        case (false, false) =>
+          val initialMsgParams = List(
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1).toString,
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize).toString,
+            paginationMetaData.get.totalSize.toString
+          )
+          (s"$mainMsgString.range", initialMsgParams)
+      }
+    val additionalParamList = additionalParam.map(List(_)).getOrElse(List.empty)
     val followingString =
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
-    (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
-      case (true, _) =>
-        val params: List[String] = if (additionalParam.isEmpty) {
-          List(
-            followingString
-          )
-        } else {
-          List(
-            additionalParam.get,
-            followingString
-          )
-        }
-        msgs(s"$mainMsgString.one", params: _*)
-      case (false, true) =>
-        val params: List[String] = if (additionalParam.isEmpty) {
-          List(
-            paginationMetaData.get.totalSize.toString,
-            followingString
-          )
-        } else {
-          List(
-            paginationMetaData.get.totalSize.toString,
-            additionalParam.get,
-            followingString
-          )
-        }
-        msgs(s"$mainMsgString.total", params: _*)
-      case (false, false) =>
-        val params: List[String] = if (additionalParam.isEmpty) {
-          List(
-            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1).toString,
-            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize).toString,
-            paginationMetaData.get.totalSize.toString,
-            followingString
-          )
-        } else {
-          List(
-            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1).toString,
-            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize).toString,
-            paginationMetaData.get.totalSize.toString,
-            additionalParam.get,
-            followingString
-          )
-        }
-        msgs(s"$mainMsgString.range", params: _*)
-    }
+    val msgParams = initialMsgParams ++ additionalParamList :+ followingString
+    msgs(key, msgParams: _*)
   }
 }

@@ -50,21 +50,7 @@
 @title(nowrap: Boolean)= @{ paginationPageTitle(paginationMetaData, "tax-group.manage.removed.clients.h1", nowrap) }
 
 @headingTwo = @{
-    val searchReminder = filterReminderSubstring(form.data.get("search"), None)
-    if (paginationMetaData.get.totalSize == 1) {
-        msgs("tax-group.manage.removed.clients.h2.one", displayTaxServiceFromServiceKey(group.service), searchReminder)
-    } else if (paginationMetaData.get.totalPages <= 1) {
-        msgs("tax-group.manage.removed.clients.h2", clients.size.toString, displayTaxServiceFromServiceKey(group.service), searchReminder)
-    } else {
-        msgs(
-            "tax-group.manage.removed.clients.h2.range",
-            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-            (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-            paginationMetaData.get.totalSize,
-            displayTaxServiceFromServiceKey(group.service),
-            searchReminder
-        )
-    }
+    paginationShowingRangeHelperText(paginationMetaData, "tax-group.manage.removed.clients.h2", form.data.get("search"), None, additionalParam = Some(displayTaxServiceFromServiceKey(group.service)))
 }
 
 @layout(

@@ -199,32 +199,29 @@ object ViewUtils {
     mainMsgString: String,
     formSearch: Option[String] = None,
     formFilter: Option[String] = None,
-    followingMsgString: Option[String] = None
+    followingMsgString: Option[String] = None,
+    additionalParam: Option[String] = None
   )(implicit
     msgs: Messages
   ): String = {
+    val (keySuffix, initialMsgParams) =
+      (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
+        case (true, _) =>
+          ("one", List.empty)
+        case (false, true) =>
+          ("total", List(paginationMetaData.get.totalSize.toString))
+        case (false, false) =>
+          val initialMsgParams = List(
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1).toString,
+            ((paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize).toString,
+            paginationMetaData.get.totalSize.toString
+          )
+          ("range", initialMsgParams)
+      }
+    val additionalParamList = additionalParam.map(List(_)).getOrElse(List.empty)
     val followingString =
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
-    (paginationMetaData.get.totalSize == 1, paginationMetaData.get.totalPages <= 1) match {
-      case (true, _) =>
-        msgs(
-          s"$mainMsgString.one",
-          followingString
-        )
-      case (false, true) =>
-        msgs(
-          s"$mainMsgString.total",
-          paginationMetaData.get.totalSize,
-          followingString
-        )
-      case (false, false) =>
-        msgs(
-          s"$mainMsgString.range",
-          (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + 1,
-          (paginationMetaData.get.currentPageNumber - 1) * paginationMetaData.get.pageSize + paginationMetaData.get.currentPageSize,
-          paginationMetaData.get.totalSize,
-          followingString
-        )
-    }
+    val msgParams = initialMsgParams ++ additionalParamList :+ followingString
+    msgs(s"$mainMsgString.$keySuffix", msgParams: _*)
   }
 }

@@ -39,30 +39,34 @@
         form: Form[Boolean]
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
-    @tableHeadings = @{
-        var ths: Seq[(Html, Map[String, String])] = Seq(
-            (Html(msgs("group.members.list.table.th1")), Map.empty),
-            (Html(msgs("group.members.list.table.th2")), Map.empty)
+@headingTwo = @{
+    paginationShowingRangeHelperText(Some(paginatedList.paginationMetaData), "paginated.team-members.showing")
+}
+
+@tableHeadings = @{
+    var ths: Seq[(Html, Map[String, String])] = Seq(
+        (Html(msgs("group.members.list.table.th1")), Map.empty),
+        (Html(msgs("group.members.list.table.th2")), Map.empty)
+    )
+    if(paginatedList.pageContent.size > 1) {
+        ths = ths :+ (Html(msgs("common.actions")), Map.empty[String, String])
+    }
+    ths
+}
+
+@tableRows = @{
+    paginatedList.pageContent.map(teamMember => {
+        var row: Seq[Html] = Seq(
+            Html(teamMember.name),
+            Html(teamMember.email)
         )
         if(paginatedList.pageContent.size > 1) {
-            ths = ths :+ (Html(msgs("common.actions")), Map.empty[String, String])
+            var removeLink = routes.ManageGroupTeamMembersController.showConfirmRemoveFromTeamMembersToAdd( group.groupType,group.groupId, teamMember.id).url
+            row = row :+ (Html(a(key = msgs("common.remove"), href = removeLink).toString))
         }
-        ths
-    }
-
-    @tableRows = @{
-        paginatedList.pageContent.map(teamMember => {
-            var row: Seq[Html] = Seq(
-                Html(teamMember.name),
-                Html(teamMember.email)
-            )
-            if(paginatedList.pageContent.size > 1) {
-                var removeLink = routes.ManageGroupTeamMembersController.showConfirmRemoveFromTeamMembersToAdd( group.groupType,group.groupId, teamMember.id).url
-                row = row :+ (Html(a(key = msgs("common.remove"), href = removeLink).toString))
-            }
-            row
-        })
-    }
+        row
+    })
+}
 
 @layout(
     title = paginationPageTitle(Some(paginatedList.paginationMetaData), "group.teamMembers.review.title", nowrap = false),
@@ -77,6 +81,8 @@
     </div>
 
     @if(paginatedList.pageContent.nonEmpty) {
+
+        @h2(key = headingTwo)
 
         @table(
             caption = Some("common.teamMembers"),

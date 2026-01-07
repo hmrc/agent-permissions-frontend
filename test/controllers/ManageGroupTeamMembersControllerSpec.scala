@@ -284,6 +284,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 5 of 40 team members"
+
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
       th.size() shouldBe 3
@@ -324,6 +326,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html.title() shouldBe "Filter results for ‘John’ Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
 
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 4 of 40 team members for ‘John’"
+
       val trs = html.select(Css.tableWithId("multi-select-table")).select("tbody tr")
 
       trs.size() shouldBe 4
@@ -355,6 +359,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       val html = Jsoup.parse(contentAsString(result))
       html.title() shouldBe "Select team members (page 1 of 4) - Agent services account - GOV.UK"
       html.select(H1).text() shouldBe "Select team members (page 1 of 4)"
+
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 5 of 40 team members"
 
       val tableOfClients = html.select(Css.tableWithId("multi-select-table"))
       val th = tableOfClients.select("thead th")
@@ -549,6 +555,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
       html
         .select(H1)
         .text() shouldBe "You have selected 14 team members to add to the group (page 1 of 2)"
+
+      html.select(Css.H2).get(1).text() shouldBe "Showing 1 to 10 of 14 team members"
 
       html.select(Css.tableWithId("members")).select("tbody tr").size() shouldBe 10
 

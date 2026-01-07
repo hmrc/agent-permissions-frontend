@@ -47,6 +47,14 @@
     withSearchAndErrorPrefix(!form.errors.isEmpty, paginationPageTitle(paginationMetaData, "select.members.list.h1", nowrap = false), None, form("search").value)
 }
 
+@headingTwo = @{
+    if (form.value.isDefined && form.get.search.isDefined) {
+        paginationShowingRangeHelperText(paginationMetaData, "paginated.team-members.showing", form.get.search)
+    } else {
+        paginationShowingRangeHelperText(paginationMetaData, "paginated.team-members.showing")
+    }
+}
+
 @layout(
     title = pageTitle,
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
@@ -66,7 +74,8 @@
         teamMembers,
         form,
         controllers.routes.ManageGroupTeamMembersController.submitAddTeamMembers( group.groupType, group.groupId),
-        paginationMetaData
+        paginationMetaData,
+        resultsSummary = Some(headingTwo)
     )
 
 }

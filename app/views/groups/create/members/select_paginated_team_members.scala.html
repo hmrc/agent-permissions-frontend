@@ -46,6 +46,14 @@
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "select.members.list.h1", nowrap) }
 
+@headingTwo = @{
+    if (form.value.isDefined && form.get.search.isDefined) {
+        paginationShowingRangeHelperText(paginationMetaData, "paginated.team-members.showing", form.get.search)
+    } else {
+        paginationShowingRangeHelperText(paginationMetaData, "paginated.team-members.showing")
+    }
+}
+
 @layout(
     title = withSearchAndErrorPrefix(form.errors.nonEmpty, title(nowrap = false), None, form("search").value),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs)),
@@ -61,7 +69,13 @@
         @p("group.member.p")
     </div>
 
-    @selectable_team_members_table_form(teamMembers, form, formAction, paginationMetaData)
+    @selectable_team_members_table_form(
+        teamMembers,
+        form,
+        formAction,
+        paginationMetaData,
+        resultsSummary = Some(headingTwo)
+    )
 
 }
 

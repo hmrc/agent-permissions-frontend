@@ -52,14 +52,11 @@
     showFilter: Boolean = false,
     backLinkHref:Option[String] = None,
     submitButtonKey: String = "save.and.continue.button",
-    group: GroupSummary
+    group: GroupSummary,
+    resultsSummary: Option[String] = None
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
 @hasClientsAlreadyInGroup = @{clients.exists(_.alreadyInGroup)}
-
-@headingTwo = @{
-    paginationShowingRangeHelperText(paginationMetaData, "common.showing.results.many", form.data.get("search"), form.data.get("filter"))
-}
 
 @tableHeadings = @{
     Seq[(Html, Map[String, String])](
@@ -114,15 +111,15 @@
                 @msgs("group.client.list.h1")
             </legend>
 
-            @if(form.data.contains("search") || form.data.contains("filter")) {
-                @h2(headingTwo)
-                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-            }
-
             @if(form.hasGlobalErrors) {
                 <p id="clients-error" class="govuk-error-message">
                     <span class="govuk-visually-hidden">@msgs("error-prefix")</span> @msgs("error.select-clients.empty")
                 </p>
+            }
+
+            @resultsSummary.map { summary =>
+                @h2(summary)
+                <hr aria-hidden="true" class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
             }
 
             @if(totalResults > 1) {

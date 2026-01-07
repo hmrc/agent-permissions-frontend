@@ -142,11 +142,11 @@
 
         }
 
-    @if(paginationMetaData.get.totalPages > 1) {
-        @GET_pagination(
-        pagination = paginationMetaData.get,
-        baseUrl = routes.ManageGroupController.showManageGroups(None,None))
-    }
+        @if(paginationMetaData.get.totalPages > 1) {
+            @GET_pagination(
+            pagination = paginationMetaData.get,
+            baseUrl = routes.ManageGroupController.showManageGroups(None,None))
+        }
 
     } else {
         @h2("group.manage.no.groups.h3", classes = Some("govuk-!-margin-top-5"))

@@ -70,6 +70,7 @@ class ManageTaxGroupClientsController @Inject() (
       val taxServiceName = if (group.service == "HMRC-TERS") "TRUST" else group.service
       searchFilter.submit.fold( // fresh page load or pagination reload
         for {
+          _                <- sessionCacheService.delete(CLIENT_SEARCH_INPUT) // This line ensures any values for CLIENT_SEARCH_INPUT set on the Excluded page are not retained when using the back button to navigate back to the Clients page
           _                <- sessionCacheService.put(CLIENT_FILTER_INPUT, taxServiceName)
           paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
         } yield {

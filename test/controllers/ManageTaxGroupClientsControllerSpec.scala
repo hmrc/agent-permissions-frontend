@@ -29,7 +29,7 @@ import play.api.Application
 import play.api.Play.materializer
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
@@ -40,7 +40,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDateTime.MIN
-import java.util.Base64
+import java.util.{Base64, UUID}
 
 class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
@@ -59,7 +59,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.secure().next(5), "Rob the Agent")
 
   val taxGroup: TaxGroup = TaxGroup(
     GroupId.random(),
@@ -106,8 +106,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
   private val chars: List[Char] = List.range('a', 'z')
   private val excludedClientsList: List[Client] = chars.map(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"John $i"))
-  val excludedClients = excludedClientsList.toSet
-  val excludedDisplayClients = excludedClients.map(fromClient(_))
+  val excludedClients: Set[Client] = excludedClientsList.toSet
+  val excludedDisplayClients: Set[DisplayClient] = excludedClients.map(fromClient(_))
 
   val encodedDisplayClients: Seq[String] =
     displayClients.map(client => Base64.getEncoder.encodeToString(Json.toJson(client).toString.getBytes))
@@ -125,7 +125,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
   private val ctrlRoute: ReverseManageTaxGroupClientsController = routes.ManageTaxGroupClientsController
-  val taxGroupId = taxGroup.id
+  val taxGroupId: UUID = taxGroup.id
 
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
@@ -139,10 +139,11 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     "render correctly the first page of CLIENTS in tax group, with no query params" in {
       // given
       expectAuthOkOptedInReady()
-      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Set(fakeClients(0)))
+      val taxGroupWithExcluded = taxGroup.copy(excludedClients = Set(fakeClients.head))
       expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
+      expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
-      expectGetPageOfClients(taxGroup.arn, 1, 20)(displayClients)
+      expectGetPageOfClients(taxGroup.arn)(displayClients)
 
       // when
       val result = controller.showExistingGroupClients(taxGroupWithExcluded.id, None, None)(request)
@@ -197,9 +198,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       expectGetTaxGroupById(taxGroupId, Some(taxGroupWithExcluded))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "friendly1")
-      expectGetPageOfClients(taxGroup.arn, 1, 20)(pageOfClients)
+      expectGetPageOfClients(taxGroup.arn)(pageOfClients)
 
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           "?submit=filter&search=friendly1&filter=HMRC-MTD-VAT"
@@ -225,7 +226,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       trs.size() shouldBe 4
 
       val row1Cells = trs.get(0).select("td")
-      val johnV = pageOfClients(0)
+      val johnV = pageOfClients.head
       johnV.name shouldBe "John v"
       row1Cells.get(0).text() shouldBe johnV.name
       row1Cells.get(2).text() shouldBe "Remove John v"
@@ -249,11 +250,11 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       expectGetTaxGroupById(taxGroupId, Some(taxGroup))
       expectPutSessionItem(CLIENT_FILTER_INPUT, taxGroup.service)
       expectPutSessionItem(CLIENT_SEARCH_INPUT, "nothing") // not matching
-      expectGetPageOfClients(taxGroup.arn, 1, 20)(Seq.empty[DisplayClient])
+      expectGetPageOfClients(taxGroup.arn)(Seq.empty[DisplayClient])
 
       val NON_MATCHING_SEARCH = "nothing"
 
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           s"?submit=$FILTER_BUTTON&search=$NON_MATCHING_SEARCH&filter=HMRC-MTD-VAT"
@@ -290,7 +291,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
       expectDeleteSessionItem(CLIENT_SEARCH_INPUT)
 
       // and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           s"?submit=$CLEAR_BUTTON"
@@ -314,7 +315,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
       val pageNumber = 2
       // and we have PAGINATION_BUTTON filter in query params
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupClients(taxGroupId, None, None).url +
           s"?submit=${PAGINATION_BUTTON}_$pageNumber"
@@ -568,9 +569,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
         val row1Cells = trs.get(0).select("td")
         val row1Checkbox = row1Cells.get(0).select("input")
         row1Checkbox.attr("name") shouldBe "clients[]"
-        row1Checkbox.attr("value") shouldBe currentPageOfClients(0).id
+        row1Checkbox.attr("value") shouldBe currentPageOfClients.head.id
         row1Cells.get(1).text shouldBe "John a"
-        row1Cells.get(1).text shouldBe currentPageOfClients(0).name
+        row1Cells.get(1).text shouldBe currentPageOfClients.head.name
         row1Cells.get(2).text shouldBe "ending in 678a"
 
         val row10Cells = trs.get(9).select("td")
@@ -650,7 +651,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         val updatePayload = UpdateTaxServiceGroupRequest(
           excludedClients =
-            Some(excludedClients -- Set(currentPageOfClients.head, currentPageOfClients.last).map(toClient(_)))
+            Some(excludedClients -- Set(currentPageOfClients.head, currentPageOfClients.last).map(toClient))
         )
         expectAuthOkOptedInReady()
         expectGetTaxGroupById(taxGroupWithExcludedId, Some(taxGroupWithExcluded))

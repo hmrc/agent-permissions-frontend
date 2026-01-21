@@ -16,4 +16,8 @@
 
 package models
 
-case class SearchFilter(search: Option[String], filter: Option[String], submit: Option[String])
+case class SearchFilter(
+  search: Option[String], // The term typed inside the search text field
+  filter: Option[String],
+  submit: Option[String] // The type of button clicked: Apply Filer, Clear Filter
+)

@@ -17,12 +17,14 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.CUSTOM
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.TeamMember.toAgentUser
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{AgentUser, CustomGroup, GroupSummary, UserDetails}
 import models.{AddTeamMembersToGroup, GroupId, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils.random
 import org.jsoup.Jsoup
@@ -31,9 +33,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{GroupService, SessionCacheService, TeamMemberService}
-import models.accessgroups.optin.OptedInReady
-import models.accessgroups.{AgentUser, CustomGroup, GroupSummary, UserDetails}
+import services.{AgentSuspensionService, GroupService, SessionCacheService, TeamMemberService}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -45,8 +45,8 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
@@ -75,7 +75,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionCacheService
         )
       )

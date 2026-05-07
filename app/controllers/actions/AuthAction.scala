@@ -17,16 +17,15 @@
 package controllers.actions
 
 import config.AppConfig
-import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
+import connectors.AgentPermissionsConnector
 import controllers._
-import models.Arn
+import models.{Arn, SuspensionDetails}
 import play.api.libs.json.Reads
 import play.api.mvc.Results.{Forbidden, Redirect}
 import play.api.mvc.{Request, RequestHeader, Result}
 import play.api.{Configuration, Environment, Logging}
-import services.SessionCacheService
+import services.{AgentSuspensionService, SessionCacheService}
 import sttp.model.Uri.UriContext
-import models.SuspensionDetails
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
@@ -43,7 +42,7 @@ class AuthAction @Inject() (
   val env: Environment,
   val config: Configuration,
   agentPermissionsConnector: AgentPermissionsConnector,
-  agentAssuranceConnector: AgentAssuranceConnector,
+  agentSuspensionService: AgentSuspensionService,
   sessionCacheService: SessionCacheService
 ) extends AuthorisedFunctions with Logging {
 
@@ -151,7 +150,7 @@ class AuthAction @Inject() (
       case Some(status) if !status =>
         body(None)
       case _ =>
-        agentAssuranceConnector
+        agentSuspensionService
           .getSuspensionDetails()
           .flatMap {
             case suspensionDetails: SuspensionDetails if !suspensionDetails.suspensionStatus =>

@@ -17,9 +17,10 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
+import connectors.AgentPermissionsConnector
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
+import models.accessgroups.optin.OptedInReady
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
@@ -27,8 +28,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{GroupService, SessionCacheService}
-import models.accessgroups.optin.OptedInReady
+import services.{AgentSuspensionService, GroupService, SessionCacheService}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -36,8 +36,8 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   private val groupName = "XYZ"
@@ -51,7 +51,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionCacheService
         )
       )

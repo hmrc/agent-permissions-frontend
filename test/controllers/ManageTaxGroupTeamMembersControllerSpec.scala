@@ -17,12 +17,14 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToTaxServiceGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToTaxServiceGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.TAX_SERVICE
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.TeamMember.toAgentUser
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{AgentUser, GroupSummary, TaxGroup, UserDetails}
 import models.{AddTeamMembersToGroup, GroupId, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
 import org.jsoup.Jsoup
@@ -31,9 +33,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{GroupService, SessionCacheService, TaxGroupService, TeamMemberService}
-import models.accessgroups.optin.OptedInReady
-import models.accessgroups.{AgentUser, GroupSummary, TaxGroup, UserDetails}
+import services._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -45,8 +45,8 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   implicit lazy val agentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val agentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit lazy val sessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
@@ -79,7 +79,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
           env,
           conf,
           agentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           sessionCacheService
         )
       )

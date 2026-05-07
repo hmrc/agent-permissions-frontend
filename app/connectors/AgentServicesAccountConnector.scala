@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,34 +17,31 @@
 package connectors
 
 import config.AppConfig
+import models.SuspensionDetails
 import play.api.http.Status.OK
 import play.api.libs.json.JsDefined
-import models.SuspensionDetails
-import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
-import uk.gov.hmrc.play.bootstrap.metrics.Metrics
+import uk.gov.hmrc.http.client.HttpClientV2
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-class AgentAssuranceConnector @Inject() (http: HttpClientV2)(implicit
-  val metrics: Metrics,
-  ec: ExecutionContext,
-  appConfig: AppConfig
-) {
+@Singleton
+class AgentServicesAccountConnector @Inject() (http: HttpClientV2)(implicit appConfig: AppConfig, ec: ExecutionContext) {
 
   def getSuspensionDetails()(implicit hc: HeaderCarrier): Future[SuspensionDetails] = {
-    val url = url"${appConfig.agentAssuranceBaseUrl}/agent-assurance/agent-record-with-checks"
+    val url = url"${appConfig.agentServicesAccountBaseUrl}/agent-services-account/agent-record-with-checks"
     http.get(url).execute[HttpResponse].map { response =>
       response.status match {
         case OK =>
           response.json \ "suspensionDetails" match {
             case JsDefined(json) => json.as[SuspensionDetails]
-            case _               => SuspensionDetails(suspensionStatus = false, None)
+            case _ => SuspensionDetails(suspensionStatus = false, None)
           }
         case _ =>
           throw UpstreamErrorResponse(s"Error ${response.status} unable to get suspension details", response.status)
       }
     }
   }
+
 }

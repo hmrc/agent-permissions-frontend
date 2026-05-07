@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
+import connectors.AgentPermissionsConnector
 import controllers.actions.AuthAction
 import helpers.BaseSpec
 import models.accessgroups.optin.{OptedInReady, OptedOutEligible, OptedOutSingleUser}
@@ -25,7 +25,7 @@ import play.api.Application
 import play.api.http.Status.SEE_OTHER
 import play.api.test.Helpers._
 import repository.SessionCacheRepository
-import services.InMemorySessionCacheService
+import services.{AgentSuspensionService, InMemorySessionCacheService}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
@@ -33,8 +33,8 @@ class RootControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
   lazy val sessioncacheRepo: SessionCacheRepository = new SessionCacheRepository(mongoComponent, timestampSupport)
 
@@ -47,7 +47,7 @@ class RootControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionService
         )
       )

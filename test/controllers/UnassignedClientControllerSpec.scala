@@ -17,11 +17,13 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.{AuthAction, SessionAction}
 import forms.SelectGroupsForm
 import helpers.Css._
 import helpers.{BaseSpec, Css}
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{Client, GroupSummary}
 import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
 import org.scalatest.BeforeAndAfterEach
@@ -30,9 +32,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{ClientService, GroupService, InMemorySessionCacheService, SessionCacheService}
-import models.accessgroups.optin.OptedInReady
-import models.accessgroups.{Client, GroupSummary}
+import services._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -42,8 +42,8 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit val mockGroupService: GroupService = mock[GroupService]
   implicit val mockSessionService: InMemorySessionCacheService =
     new InMemorySessionCacheService(Map("optinStatus" -> OptedInReady))
@@ -63,7 +63,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionService
         )
       )

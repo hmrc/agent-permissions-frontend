@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.AbstractModule
 import config.AppConfig
-import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
+import connectors.AgentPermissionsConnector
 import controllers.actions.AuthAction
 import helpers.BaseSpec
 import org.jsoup.Jsoup
@@ -26,7 +26,7 @@ import play.api.Application
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.SessionCacheService
+import services.{AgentSuspensionService, SessionCacheService}
 import sttp.model.Uri.UriContext
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.SessionKeys
@@ -35,8 +35,8 @@ class SignOutControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
@@ -48,7 +48,7 @@ class SignOutControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionCacheService
         )
       )

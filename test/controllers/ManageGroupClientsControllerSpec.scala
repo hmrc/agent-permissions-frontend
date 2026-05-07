@@ -17,11 +17,13 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddMembersToAccessGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector}
+import connectors.{AddMembersToAccessGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
-import models.{AddClientsToGroup, DisplayClient, GroupId, TeamMember}
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups._
+import models._
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
@@ -32,9 +34,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
 import services._
-import models.PaginationMetaData
-import models.accessgroups.optin.OptedInReady
-import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup, UserDetails}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -48,8 +47,8 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit val mockSessionCacheOps: SessionCacheOperationsService = mock[SessionCacheOperationsService]
   implicit lazy val mockGroupService: GroupService = mock[GroupService]
@@ -94,7 +93,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionCacheService
         )
       )

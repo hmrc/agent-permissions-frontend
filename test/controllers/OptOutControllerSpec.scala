@@ -17,17 +17,16 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
+import connectors.AgentPermissionsConnector
 import controllers.actions.AuthAction
 import helpers.{BaseSpec, Css}
-import models.accessgroups.optin.OptinStatus
+import models.accessgroups.optin._
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.{OptinService, SessionCacheService}
-import models.accessgroups.optin._
+import services.{AgentSuspensionService, OptinService, SessionCacheService}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.SessionKeys
 
@@ -35,8 +34,8 @@ class OptOutControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit lazy val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
   implicit lazy val mockOptinService: OptinService = mock[OptinService]
 
@@ -50,7 +49,7 @@ class OptOutControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionCacheService
         )
       )

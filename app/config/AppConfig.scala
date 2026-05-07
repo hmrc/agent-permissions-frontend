@@ -41,6 +41,7 @@ trait AppConfig {
   def agentServicesAccountYourAssistantAccountUrl: String
   def agentPermissionsBaseUrl: String
   def agentUserClientDetailsBaseUrl: String
+  def agentServicesAccountBaseUrl: String
   def agentAssuranceBaseUrl: String
   def sessionCacheExpiryDuration: Duration
   def userTimeoutCountdown: Int
@@ -49,6 +50,7 @@ trait AppConfig {
   val signOut: String
   val signInUrl: String
   val selfExternalUrl: String
+  val enableAgentRecordViaAsa: Boolean
 }
 
 @Singleton
@@ -90,4 +92,8 @@ class AppConfigImpl @Inject() (val servicesConfig: ServicesConfig, environment: 
 
   lazy val userTimeout: Int = servicesConfig.getInt("timeout.duration")
   lazy val userTimeoutCountdown: Int = servicesConfig.getInt("timeout.countDown")
+
+  val agentServicesAccountBaseUrl: String = servicesConfig.baseUrl("agent-services-account")
+
+  override val enableAgentRecordViaAsa: Boolean = servicesConfig.getBoolean("features.enable-agent-record-via-asa")
 }

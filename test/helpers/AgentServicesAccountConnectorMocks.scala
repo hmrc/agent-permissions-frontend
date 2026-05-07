@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package helpers
 
-import connectors.AgentAssuranceConnector
+import connectors.AgentServicesAccountConnector
 import models.SuspensionDetails
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
@@ -24,23 +24,18 @@ import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.Future
 
-trait AgentAssuranceConnectorMocks extends AnyWordSpec with MockFactory {
+trait AgentServicesAccountConnectorMocks extends AnyWordSpec with MockFactory {
 
-  def expectGetSuspensionDetailsFromAgentAssurance(
-    suspensionStatus: Boolean = false,
-    regimes: Option[Set[String]] = None
-  )(implicit
-    agentAssuranceConnector: AgentAssuranceConnector
+  def expectGetSuspensionDetailsFromAgentServicesAccount(suspensionStatus: Boolean = false, regimes: Option[Set[String]] = None)(implicit
+                                                                                                         agentServicesAccountConnector: AgentServicesAccountConnector
   ): Unit =
-    (agentAssuranceConnector
+    (agentServicesAccountConnector
       .getSuspensionDetails()(_: HeaderCarrier))
       .expects(*)
       .returning(Future successful SuspensionDetails(suspensionStatus, regimes))
 
-  def expectGetSuspensionDetailsErrorFromAgentAssurance(implicit
-    agentAssuranceConnector: AgentAssuranceConnector
-  ): Unit =
-    (agentAssuranceConnector
+  def expectGetSuspensionDetailsErrorFromAgentServicesAccount(implicit agentServicesAccountConnector: AgentServicesAccountConnector): Unit =
+    (agentServicesAccountConnector
       .getSuspensionDetails()(_: HeaderCarrier))
       .expects(*)
       .throwing(UpstreamErrorResponse.apply("error", 503))

@@ -18,30 +18,30 @@ package controllers.actions
 
 import com.google.inject.AbstractModule
 import config.AppConfig
-import connectors.{AgentAssuranceConnector, AgentPermissionsConnector}
-import helpers.{AgentAssuranceConnectorMocks, BaseSpec}
+import connectors.AgentPermissionsConnector
+import helpers.BaseSpec
 import play.api.Application
 import play.api.http.Status.{FORBIDDEN, OK, SEE_OTHER}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation}
-import services.{InMemorySessionCacheService, SessionCacheService}
+import services.{AgentSuspensionService, InMemorySessionCacheService, SessionCacheService}
 import uk.gov.hmrc.auth.core.{AuthConnector, InsufficientEnrolments, MissingBearerToken, UnsupportedAuthProvider}
 
 import scala.concurrent.Future
 
-class AuthActionSpec extends BaseSpec with AgentAssuranceConnectorMocks {
+class AuthActionSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit val mockSessionService: InMemorySessionCacheService = new InMemorySessionCacheService()
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
     override def configure(): Unit = {
       bind(classOf[AuthConnector]).toInstance(mockAuthConnector)
       bind(classOf[AgentPermissionsConnector]).toInstance(mockAgentPermissionsConnector)
-      bind(classOf[AgentAssuranceConnector]).toInstance(mockAgentAssuranceConnector)
+      bind(classOf[AgentSuspensionService]).toInstance(mockAgentSuspensionService)
       bind(classOf[SessionCacheService]).toInstance(mockSessionService)
     }
   }

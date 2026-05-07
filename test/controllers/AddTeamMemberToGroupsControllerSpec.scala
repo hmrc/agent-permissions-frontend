@@ -17,11 +17,12 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AddOneTeamMemberToGroupRequest, AgentAssuranceConnector, AgentPermissionsConnector}
+import connectors.{AddOneTeamMemberToGroupRequest, AgentPermissionsConnector}
 import controllers.actions.AuthAction
 import forms.AddGroupsToClientForm
 import helpers.{BaseSpec, Css}
 import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{GroupSummary, UserDetails}
 import models.{GroupId, TeamMember}
 import org.jsoup.Jsoup
 import play.api.Application
@@ -29,8 +30,7 @@ import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, redirectLocation}
-import services.{GroupService, SessionCacheService, TaxGroupService, TeamMemberService}
-import models.accessgroups.{GroupSummary, UserDetails}
+import services._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -38,8 +38,8 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
 
   implicit lazy val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit lazy val mockAgentPermissionsConnector: AgentPermissionsConnector = mock[AgentPermissionsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
@@ -54,7 +54,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionCacheService
         )
       )

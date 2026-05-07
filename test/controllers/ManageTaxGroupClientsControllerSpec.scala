@@ -17,11 +17,13 @@
 package controllers
 
 import com.google.inject.AbstractModule
-import connectors.{AgentAssuranceConnector, AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
+import connectors.{AgentPermissionsConnector, AgentUserClientDetailsConnector, UpdateTaxServiceGroupRequest}
 import controllers.actions.AuthAction
 import helpers.Css._
 import helpers.{BaseSpec, Css}
 import models.DisplayClient.{fromClient, toClient}
+import models.accessgroups.optin.OptedInReady
+import models.accessgroups.{AgentUser, Client, TaxGroup, UserDetails}
 import models.{DisplayClient, GroupId, TeamMember}
 import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
@@ -33,9 +35,7 @@ import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
 import repository.SessionCacheRepository
-import services.{ClientService, GroupService, SessionCacheService, TaxGroupService}
-import models.accessgroups.optin.OptedInReady
-import models.accessgroups.{AgentUser, Client, TaxGroup, UserDetails}
+import services._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -49,8 +49,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     mock[AgentPermissionsConnector]
   implicit lazy val mockAgentUserClientDetailsConnector: AgentUserClientDetailsConnector =
     mock[AgentUserClientDetailsConnector]
-  implicit lazy val mockAgentAssuranceConnector: AgentAssuranceConnector =
-    mock[AgentAssuranceConnector]
+  implicit lazy val mockAgentSuspensionService: AgentSuspensionService =
+    mock[AgentSuspensionService]
   implicit val groupService: GroupService = mock[GroupService]
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockClientService: ClientService = mock[ClientService]
@@ -84,7 +84,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
           env,
           conf,
           mockAgentPermissionsConnector,
-          mockAgentAssuranceConnector,
+          mockAgentSuspensionService,
           mockSessionCacheService
         )
       )

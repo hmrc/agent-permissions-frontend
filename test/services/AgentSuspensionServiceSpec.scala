@@ -28,11 +28,12 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 
-class AgentSuspensionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite  with ScalaFutures with AgentAssuranceConnectorMocks with AgentServicesAccountConnectorMocks {
+class AgentSuspensionServiceSpec
+    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with AgentAssuranceConnectorMocks
+    with AgentServicesAccountConnectorMocks {
 
   implicit val mockAgentAssuranceConnector: AgentAssuranceConnector = mock[AgentAssuranceConnector]
   implicit val mockAgentServicesAccountConnector: AgentServicesAccountConnector = mock[AgentServicesAccountConnector]
-
 
   "Get agent suspension details from agent services account" should {
 
@@ -83,13 +84,11 @@ class AgentSuspensionServiceSpec extends AnyWordSpec with Matchers with GuiceOne
 
     implicit lazy val fakeApplication: Application = appBuilder.build()
 
-
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
 
     val service = new AgentSuspensionService(mockAgentAssuranceConnector, mockAgentServicesAccountConnector, appConfig)
-
 
     "return empty suspension details when not suspended" in {
 

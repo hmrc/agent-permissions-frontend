@@ -26,14 +26,13 @@ import scala.concurrent.Future
 
 @Singleton
 class AgentSuspensionService @Inject() (
-                                         agentAssuranceConnector: AgentAssuranceConnector,
-                                         agentServicesAccountConnector: AgentServicesAccountConnector, appConfig: AppConfig){
+  agentAssuranceConnector: AgentAssuranceConnector,
+  agentServicesAccountConnector: AgentServicesAccountConnector,
+  appConfig: AppConfig
+) {
 
-  def getSuspensionDetails()(implicit hc: HeaderCarrier): Future[SuspensionDetails] = {
-
+  def getSuspensionDetails()(implicit hc: HeaderCarrier): Future[SuspensionDetails] =
     if (appConfig.enableAgentRecordViaAsa) agentServicesAccountConnector.getSuspensionDetails()
     else agentAssuranceConnector.getSuspensionDetails()
-
-  }
 
 }

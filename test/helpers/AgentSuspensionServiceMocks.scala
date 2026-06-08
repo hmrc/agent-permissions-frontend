@@ -27,7 +27,7 @@ import scala.concurrent.Future
 trait AgentSuspensionServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectGetSuspensionDetails(suspensionStatus: Boolean = false, regimes: Option[Set[String]] = None)(implicit
-                                                                                                         agentSuspensionService: AgentSuspensionService
+    agentSuspensionService: AgentSuspensionService
   ): Unit =
     (agentSuspensionService
       .getSuspensionDetails()(_: HeaderCarrier))

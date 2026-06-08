@@ -26,15 +26,20 @@ import scala.concurrent.Future
 
 trait AgentServicesAccountConnectorMocks extends AnyWordSpec with MockFactory {
 
-  def expectGetSuspensionDetailsFromAgentServicesAccount(suspensionStatus: Boolean = false, regimes: Option[Set[String]] = None)(implicit
-                                                                                                         agentServicesAccountConnector: AgentServicesAccountConnector
+  def expectGetSuspensionDetailsFromAgentServicesAccount(
+    suspensionStatus: Boolean = false,
+    regimes: Option[Set[String]] = None
+  )(implicit
+    agentServicesAccountConnector: AgentServicesAccountConnector
   ): Unit =
     (agentServicesAccountConnector
       .getSuspensionDetails()(_: HeaderCarrier))
       .expects(*)
       .returning(Future successful SuspensionDetails(suspensionStatus, regimes))
 
-  def expectGetSuspensionDetailsErrorFromAgentServicesAccount(implicit agentServicesAccountConnector: AgentServicesAccountConnector): Unit =
+  def expectGetSuspensionDetailsErrorFromAgentServicesAccount(implicit
+    agentServicesAccountConnector: AgentServicesAccountConnector
+  ): Unit =
     (agentServicesAccountConnector
       .getSuspensionDetails()(_: HeaderCarrier))
       .expects(*)

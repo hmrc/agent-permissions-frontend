@@ -27,7 +27,10 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AgentServicesAccountConnector @Inject() (http: HttpClientV2)(implicit appConfig: AppConfig, ec: ExecutionContext) {
+class AgentServicesAccountConnector @Inject() (http: HttpClientV2)(implicit
+  appConfig: AppConfig,
+  ec: ExecutionContext
+) {
 
   def getSuspensionDetails()(implicit hc: HeaderCarrier): Future[SuspensionDetails] = {
     val url = url"${appConfig.agentServicesAccountBaseUrl}/agent-services-account/agent-record-with-checks"
@@ -36,7 +39,7 @@ class AgentServicesAccountConnector @Inject() (http: HttpClientV2)(implicit appC
         case OK =>
           response.json \ "suspensionDetails" match {
             case JsDefined(json) => json.as[SuspensionDetails]
-            case _ => SuspensionDetails(suspensionStatus = false, None)
+            case _               => SuspensionDetails(suspensionStatus = false, None)
           }
         case _ =>
           throw UpstreamErrorResponse(s"Error ${response.status} unable to get suspension details", response.status)

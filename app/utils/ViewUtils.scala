@@ -30,7 +30,7 @@ object ViewUtils {
       ("HMRC-PPT-ORG", mgs("tax-service.ppt")),
       ("TRUST", mgs("tax-service.trusts")) // TODO update to HMRC-TERS
     ) ++
-      (if (appConfig.cbcEnabled) Seq(("HMRC-CBC", mgs("tax-service.cbc"))) else Seq.empty) ++
+      Seq(("HMRC-CBC", mgs("tax-service.cbc"))) ++
       (if (appConfig.pillar2Enabled) Seq(("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2"))) else Seq.empty)
 
     filters.sortBy(x => (x._2))

@@ -94,7 +94,7 @@ class OptInControllerSpec extends BaseSpec {
 
       val phaseBanner = html.select("div.govuk-phase-banner")
       phaseBanner.isEmpty shouldBe false
-      phaseBanner.select("a").text shouldBe "give your feedback by email"
+      phaseBanner.select("a").text shouldBe "give your feedback (opens in new tab)"
       phaseBanner.select("a").attr("href") shouldBe "http://localhost:9250/contact/beta-feedback?service=AOSS"
 
       html.select(Css.backLink).attr("href") shouldBe "http://localhost:9401/agent-services-account/manage-account"

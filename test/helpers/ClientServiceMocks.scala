@@ -62,7 +62,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
   )(implicit clientService: ClientService): Unit =
     (clientService
       .getUnassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
-        using _: Request[?],
+        using
+        _: Request[?],
         _: HeaderCarrier,
         _: ExecutionContext
       ))
@@ -101,7 +102,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
   ): Unit =
     (clientService
       .updateClientReference(_: Arn, _: DisplayClient, _: String)(
-        using _: Request[?],
+        using
+        _: Request[?],
         _: HeaderCarrier,
         _: ExecutionContext
       ))
@@ -160,7 +162,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
     (
       clientService
         .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
-          using _: Request[?],
+          using
+          _: Request[?],
           _: HeaderCarrier,
           _: ExecutionContext
         )

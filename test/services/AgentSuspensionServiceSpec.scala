@@ -43,7 +43,6 @@ class AgentSuspensionServiceSpec
         .configure("auditing.enabled" -> false)
         .configure("metrics.enabled" -> true)
         .configure("metrics.jvm" -> false)
-        .configure("features.enable-agent-record-via-asa" -> true)
 
     implicit lazy val fakeApplication: Application = appBuilder.build()
 
@@ -72,40 +71,4 @@ class AgentSuspensionServiceSpec
     }
   }
 
-  "Get agent suspension details from agent assurance" should {
-
-    def appBuilder =
-      GuiceApplicationBuilder()
-        .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
-        .configure("auditing.enabled" -> false)
-        .configure("metrics.enabled" -> true)
-        .configure("metrics.jvm" -> false)
-        .configure("features.enable-agent-record-via-asa" -> false)
-
-    implicit lazy val fakeApplication: Application = appBuilder.build()
-
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
-
-    val service = new AgentSuspensionService(mockAgentAssuranceConnector, mockAgentServicesAccountConnector, appConfig)
-
-    "return empty suspension details when not suspended" in {
-
-      expectGetSuspensionDetailsFromAgentAssurance()
-
-      val result = service.getSuspensionDetails().futureValue
-
-      result shouldBe SuspensionDetails(suspensionStatus = false, regimes = None)
-    }
-
-    "return suspension details when suspended" in {
-
-      expectGetSuspensionDetailsFromAgentAssurance(suspensionStatus = true, regimes = Some(Set("AGSV")))
-
-      val result = service.getSuspensionDetails().futureValue
-
-      result shouldBe SuspensionDetails(suspensionStatus = true, regimes = Some(Set("AGSV")))
-    }
-  }
 }

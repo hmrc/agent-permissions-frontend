@@ -44,22 +44,22 @@ class OptInStatusAction @Inject() (
   def isEligibleToOptIn(arn: Arn)(
     body: OptinStatus => Future[Result]
   )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(request, hc, ec)
+    eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(using request, hc, ec)
 
   def isOptedIn(arn: Arn)(
     body: OptinStatus => Future[Result]
   )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isOptedIn)(arn)(body)(request, hc, ec)
+    eligibleFor(controllers.isOptedIn)(arn)(body)(using request, hc, ec)
 
   def isOptedInComplete(arn: Arn)(
     body: OptinStatus => Future[Result]
   )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isOptedInComplete)(arn)(body)(request, hc, ec)
+    eligibleFor(controllers.isOptedInComplete)(arn)(body)(using request, hc, ec)
 
   def isOptedOut(arn: Arn)(
     body: OptinStatus => Future[Result]
   )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isOptedOut)(arn)(body)(request, hc, ec)
+    eligibleFor(controllers.isOptedOut)(arn)(body)(using request, hc, ec)
 
   def isOptedInWithSessionItem[T](dataKey: DataKey[T])(arn: Arn)(
     body: Option[T] => Future[Result]

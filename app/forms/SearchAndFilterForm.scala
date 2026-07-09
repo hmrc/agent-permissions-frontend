@@ -27,6 +27,6 @@ object SearchAndFilterForm {
       "search" -> optional(text.transform[String](_.trim, x => x)),
       "filter" -> optional(text.transform[String](_.trim, x => x)),
       "submit" -> optional(text)
-    )(SearchFilter.apply)(SearchFilter.unapply)
+    )(SearchFilter.apply)(o => Some(Tuple.fromProductTyped(o)))
   )
 }

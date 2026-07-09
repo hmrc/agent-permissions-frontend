@@ -29,7 +29,7 @@ object AddClientsToGroupForm {
       "filter"  -> optional(text),
       "clients" -> optional(seq(text)),
       "submit"  -> text
-    )(AddClientsToGroup.apply)(AddClientsToGroup.unapply)
+    )(AddClientsToGroup.apply)(o => Some(Tuple.fromProductTyped(o)))
       .verifying(
         "error.select-clients.empty",
         data =>

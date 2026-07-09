@@ -256,7 +256,8 @@ class CreateGroupSelectTeamMembersController @Inject() (
                                 YesNoForm.form(),
                                 groupName,
                                 member,
-                                formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember()
+                                formAction =
+                                  routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember()
                               )
                             ).toFuture
                           )

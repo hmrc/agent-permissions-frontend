@@ -131,7 +131,7 @@ class OptOutControllerSpec extends BaseSpec {
 
   s"POST to submitDoYouWantToOptOut on url ${routes.OptOutController.submitDoYouWantToOptOut().url}" should {
 
-    s"redirect to ${routes.OptOutController.showYouHaveOptedOut} page with answer 'true'" in {
+    s"redirect to ${routes.OptOutController.showYouHaveOptedOut()} page with answer 'true'" in {
       authOk()
       expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedInSingleUser)
       expectOptOut(arn)
@@ -152,7 +152,7 @@ class OptOutControllerSpec extends BaseSpec {
       expectGetSessionItem[OptinStatus](OPT_IN_STATUS, OptedInSingleUser)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut}")
+        FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -165,7 +165,7 @@ class OptOutControllerSpec extends BaseSpec {
     "render correct error messages when form not filled in" in {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut}")
+        FakeRequest("POST", s"${routes.OptOutController.submitDoYouWantToOptOut()}")
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 

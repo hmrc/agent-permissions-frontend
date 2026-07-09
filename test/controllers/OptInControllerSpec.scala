@@ -201,13 +201,13 @@ class OptInControllerSpec extends BaseSpec {
 
   s"POST ${routes.OptInController.submitDoYouWantToOptIn().url}" should {
 
-    s"redirect to '${routes.OptInController.showYouHaveOptedIn}' page with answer 'true'" in {
+    s"redirect to '${routes.OptInController.showYouHaveOptedIn()}' page with answer 'true'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -228,7 +228,7 @@ class OptInControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -246,7 +246,7 @@ class OptInControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn()}")
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 

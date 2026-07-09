@@ -51,7 +51,7 @@ class TaxGroupServiceSpec extends BaseSpec {
       // given
       val payload = CreateTaxServiceGroupRequest("blah", None, "blah")
       (mockAgentPermissionsConnector
-        .createTaxServiceGroup(_: Arn)(_: CreateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .createTaxServiceGroup(_: Arn)(_: CreateTaxServiceGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *, *)
         .returning(Future successful "123456")
         .once()
@@ -86,7 +86,7 @@ class TaxGroupServiceSpec extends BaseSpec {
       )
 
       (mockAgentPermissionsConnector
-        .getTaxServiceGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
+        .getTaxServiceGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, *, *)
         .returning(Future successful Some(expectedGroup))
         .once()
@@ -107,7 +107,7 @@ class TaxGroupServiceSpec extends BaseSpec {
       val groupId = GroupId.random()
 
       (mockAgentPermissionsConnector
-        .deleteTaxGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
+        .deleteTaxGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, *, *)
         .returning(Future successful Done)
         .once()
@@ -129,7 +129,7 @@ class TaxGroupServiceSpec extends BaseSpec {
       val payload = UpdateTaxServiceGroupRequest(groupName = Some("Bangers & Mash"))
 
       (mockAgentPermissionsConnector
-        .updateTaxGroup(_: GroupId, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .updateTaxGroup(_: GroupId, _: UpdateTaxServiceGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, payload, *, *)
         .returning(Future successful Done)
         .once()
@@ -153,6 +153,7 @@ class TaxGroupServiceSpec extends BaseSpec {
 
       (mockAgentPermissionsConnector
         .addOneTeamMemberToTaxGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(
+          using
           _: HeaderCarrier,
           _: ExecutionContext
         ))
@@ -177,7 +178,10 @@ class TaxGroupServiceSpec extends BaseSpec {
       val payload = AddMembersToTaxServiceGroupRequest(teamMembers = Some(Set(AgentUser("whatever", "Joseph Blogs"))))
 
       (mockAgentPermissionsConnector
-        .addMembersToTaxGroup(_: GroupId, _: AddMembersToTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .addMembersToTaxGroup(_: GroupId, _: AddMembersToTaxServiceGroupRequest)(using
+          _: HeaderCarrier,
+          _: ExecutionContext
+        ))
         .expects(groupId, payload, *, *)
         .returning(Future successful Done)
         .once()

@@ -33,7 +33,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
 
   def expectHttpClientGet[A](response: A)(implicit mockHttpClient: HttpClientV2, @unused hc: HeaderCarrier): Unit = {
     (mockHttpClient
-      .get(_: URL)(_: HeaderCarrier))
+      .get(_: URL)(using _: HeaderCarrier))
       .expects(*, *)
       .returns(mockRequestBuilder)
 
@@ -48,7 +48,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     @unused hc: HeaderCarrier
   ): Unit = {
     (mockHttpClient
-      .get(_: URL)(_: HeaderCarrier))
+      .get(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
@@ -66,8 +66,8 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     def stripQuery(url: URL): String = s"${url.getProtocol}://${url.getHost}:${url.getPort}${url.getPath}"
 
     (mockHttpClient
-      .get(_: URL)(_: HeaderCarrier))
-      .expects(where((url: URL, _: HeaderCarrier) => stripQuery(url) == expectedUrlPath))
+      .get(_: URL)(using _: HeaderCarrier))
+      .expects(where((url: URL, using _: HeaderCarrier) => stripQuery(url) == expectedUrlPath))
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
@@ -80,7 +80,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     response: A
   )(implicit mockHttpClient: HttpClientV2, @unused hc: HeaderCarrier): Unit = {
     (mockHttpClient
-      .post(_: URL)(_: HeaderCarrier))
+      .post(_: URL)(using _: HeaderCarrier))
       .expects(*, *)
       .returns(mockRequestBuilder)
 
@@ -97,7 +97,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     writes: Writes[I]
   ): Unit = {
     (mockHttpClient
-      .post(_: URL)(_: HeaderCarrier))
+      .post(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
@@ -118,7 +118,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     @unused ec: ExecutionContext
   ): Unit = {
     (mockHttpClient
-      .put(_: URL)(_: HeaderCarrier))
+      .put(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
@@ -135,7 +135,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     writes: Writes[I]
   ): Unit = {
     (mockHttpClient
-      .patch(_: URL)(_: HeaderCarrier))
+      .patch(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
@@ -155,7 +155,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     @unused hc: HeaderCarrier
   ): Unit = {
     (mockHttpClient
-      .delete(_: URL)(_: HeaderCarrier))
+      .delete(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 

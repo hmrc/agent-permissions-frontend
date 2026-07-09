@@ -32,7 +32,7 @@ trait TeamMemberServiceMocks extends AnyWordSpec with MockFactory {
     teamMemberService: TeamMemberService
   ): Unit =
     (teamMemberService
-      .savePageOfTeamMembers(_: AddTeamMembersToGroup)(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .savePageOfTeamMembers(_: AddTeamMembersToGroup)(using _: HeaderCarrier, _: ExecutionContext, _: Request[?]))
       .expects(formData, *, *, *)
       .returning(Future successful teamMembers)
 
@@ -52,21 +52,21 @@ trait TeamMemberServiceMocks extends AnyWordSpec with MockFactory {
       )
     )
     (teamMemberService
-      .getPageOfTeamMembers(_: Arn)(_: Int, _: Int)(_: HeaderCarrier, _: ExecutionContext, _: Request[_]))
+      .getPageOfTeamMembers(_: Arn)(_: Int, _: Int)(using _: HeaderCarrier, _: ExecutionContext, _: Request[?]))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }
 
   def expectLookupTeamMember(arn: Arn)(teamMember: TeamMember)(implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
-      .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .lookupTeamMember(_: Arn)(_: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, teamMember.id, *, *)
       .returning(Future successful Some(teamMember))
       .once()
 
   def expectLookupTeamMemberNone(arn: Arn)(implicit teamMemberService: TeamMemberService): Unit =
     (teamMemberService
-      .lookupTeamMember(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .lookupTeamMember(_: Arn)(_: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful None)
       .once()

@@ -57,6 +57,7 @@ class ClientServiceSpec extends BaseSpec {
 
       (mockAgentUserClientDetailsConnector
         .getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
+          using
           _: HeaderCarrier,
           _: ExecutionContext
         ))
@@ -95,6 +96,7 @@ class ClientServiceSpec extends BaseSpec {
       (
         mockAgentPermissionsConnector
           .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
+            using
             _: HeaderCarrier,
             _: ExecutionContext
           )
@@ -151,6 +153,7 @@ class ClientServiceSpec extends BaseSpec {
       // given
       (mockAgentPermissionsConnector
         .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
+          using
           _: HeaderCarrier,
           _: ExecutionContext
         ))

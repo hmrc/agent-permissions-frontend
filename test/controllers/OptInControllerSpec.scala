@@ -297,7 +297,7 @@ class OptInControllerSpec extends BaseSpec {
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
-        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getAgencyDetails(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(*, *, *)
         .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 
@@ -339,7 +339,7 @@ class OptInControllerSpec extends BaseSpec {
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
-        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getAgencyDetails(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(*, *, *)
         .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 
@@ -380,7 +380,7 @@ class OptInControllerSpec extends BaseSpec {
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
-        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getAgencyDetails(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(*, *, *)
         .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 

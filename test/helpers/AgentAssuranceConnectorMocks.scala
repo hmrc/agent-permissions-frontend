@@ -33,7 +33,7 @@ trait AgentAssuranceConnectorMocks extends AnyWordSpec with MockFactory {
     agentAssuranceConnector: AgentAssuranceConnector
   ): Unit =
     (agentAssuranceConnector
-      .getSuspensionDetails()(_: HeaderCarrier))
+      .getSuspensionDetails()(using _: HeaderCarrier))
       .expects(*)
       .returning(Future successful SuspensionDetails(suspensionStatus, regimes))
 
@@ -41,7 +41,7 @@ trait AgentAssuranceConnectorMocks extends AnyWordSpec with MockFactory {
     agentAssuranceConnector: AgentAssuranceConnector
   ): Unit =
     (agentAssuranceConnector
-      .getSuspensionDetails()(_: HeaderCarrier))
+      .getSuspensionDetails()(using _: HeaderCarrier))
       .expects(*)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 

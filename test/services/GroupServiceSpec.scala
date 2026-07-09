@@ -65,7 +65,7 @@ class GroupServiceSpec extends BaseSpec {
       )
 
       (mockAgentPermissionsConnector
-        .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getGroupSummaries(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful groupSummaries)
         .once()
@@ -85,7 +85,7 @@ class GroupServiceSpec extends BaseSpec {
       val groupSummary = GroupSummary(GroupId.random(), "Carrots", Some(1), 1)
 
       (mockAgentPermissionsConnector
-        .getCustomSummary(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
+        .getCustomSummary(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(groupSummary.groupId, *, *)
         .returning(Future successful Some(groupSummary))
         .once()
@@ -107,7 +107,7 @@ class GroupServiceSpec extends BaseSpec {
         }
 
       (mockAgentPermissionsConnector
-        .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getGroupSummaries(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful groupSummaries)
         .once()
@@ -138,7 +138,7 @@ class GroupServiceSpec extends BaseSpec {
         }
 
       (mockAgentPermissionsConnector
-        .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getGroupSummaries(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(arn, *, *)
         .returning(Future successful groupSummaries)
         .once()
@@ -187,6 +187,7 @@ class GroupServiceSpec extends BaseSpec {
       (
         mockAgentPermissionsConnector
           .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
+            using
             _: HeaderCarrier,
             _: ExecutionContext
           )
@@ -237,6 +238,7 @@ class GroupServiceSpec extends BaseSpec {
       (
         mockAgentPermissionsConnector
           .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
+            using
             _: HeaderCarrier,
             _: ExecutionContext
           )
@@ -354,7 +356,7 @@ class GroupServiceSpec extends BaseSpec {
       val payload = AddMembersToAccessGroupRequest(None, None)
 
       (mockAgentPermissionsConnector
-        .addMembersToGroup(_: GroupId, _: AddMembersToAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .addMembersToGroup(_: GroupId, _: AddMembersToAccessGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(grpId, payload, *, *)
         .returning(Future successful Done)
 
@@ -377,7 +379,7 @@ class GroupServiceSpec extends BaseSpec {
       val expectedClient = DisplayClient("hmrc", "Bob", "VAT", "ident")
 
       (mockAgentPermissionsConnector
-        .getGroupsForClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+        .getGroupsForClient(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(arn, expectedClient.enrolmentKey, *, *)
         .returning(Future successful groupSummaries)
         .once()
@@ -403,7 +405,7 @@ class GroupServiceSpec extends BaseSpec {
       val agentUser = toAgentUser(member)
 
       (mockAgentPermissionsConnector
-        .getGroupsForTeamMember(_: Arn, _: AgentUser)(_: HeaderCarrier, _: ExecutionContext))
+        .getGroupsForTeamMember(_: Arn, _: AgentUser)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(arn, agentUser, *, *)
         .returning(Future successful Option(groupSummaries))
         .once()
@@ -454,7 +456,10 @@ class GroupServiceSpec extends BaseSpec {
       val payload = AddOneTeamMemberToGroupRequest(agent)
 
       (mockAgentPermissionsConnector
-        .addOneTeamMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .addOneTeamMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(using
+          _: HeaderCarrier,
+          _: ExecutionContext
+        ))
         .expects(groupId, payload, *, *)
         .returning(Future successful Done)
         .once()
@@ -476,7 +481,7 @@ class GroupServiceSpec extends BaseSpec {
       val clientId = UUID.randomUUID().toString
 
       (mockAgentPermissionsConnector
-        .removeClientFromGroup(_: GroupId, _: String)(_: HeaderCarrier, _: ExecutionContext))
+        .removeClientFromGroup(_: GroupId, _: String)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, clientId, *, *)
         .returning(Future successful Done)
         .once()
@@ -499,7 +504,7 @@ class GroupServiceSpec extends BaseSpec {
       val memberId = UUID.randomUUID().toString
 
       (mockAgentPermissionsConnector
-        .removeTeamMemberFromGroup(_: GroupId, _: String, _: Boolean)(_: HeaderCarrier, _: ExecutionContext))
+        .removeTeamMemberFromGroup(_: GroupId, _: String, _: Boolean)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(groupId, memberId, true, *, *)
         .returning(Future successful Done)
         .once()

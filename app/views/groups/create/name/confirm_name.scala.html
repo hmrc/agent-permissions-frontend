@@ -39,7 +39,7 @@
 ) {
     @h1("group.confirm.h1")
 
-    @formWithCSRF(action = routes.CreateGroupSelectNameController.submitConfirmGroupName) {
+    @formWithCSRF(action = routes.CreateGroupSelectNameController.submitConfirmGroupName()) {
 
         @radioButtons(
             field = form("answer"),

@@ -36,7 +36,7 @@
 ) {
     @h1(msgs("group.tax-service.review.h1", displayTaxServiceFromServiceKey(taxServiceGroupType)))
 
-    @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType) {
+    @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitReviewTaxServiceGroupType()) {
 
         @radioButtons(
             field = form("answer"),

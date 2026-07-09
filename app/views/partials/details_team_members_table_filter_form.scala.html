@@ -63,7 +63,7 @@
         )
     }
 
-    @formWithCSRF(action = routes.ManageTeamMemberController.submitPageOfTeamMembers) {
+    @formWithCSRF(action = routes.ManageTeamMemberController.submitPageOfTeamMembers()) {
 
         @search_and_filter(
             form,

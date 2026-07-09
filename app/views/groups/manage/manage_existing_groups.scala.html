@@ -65,7 +65,7 @@
     @p("group.manage.p", classes = Some("govuk-!-margin-bottom-9"), id = Some("info"))
     </div>
 
-    @formWithCSRF(routes.ManageGroupController.submitManageGroups) {
+    @formWithCSRF(routes.ManageGroupController.submitManageGroups()) {
         @search_and_filter(
             filterGroupSummaryForm,
             withFilter = false,

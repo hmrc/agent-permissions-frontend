@@ -43,7 +43,7 @@
         id = Some("tsg-inset")
     )
 
-    @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitSelectTaxServiceGroupType) {
+    @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitSelectTaxServiceGroupType()) {
 
         @input_select(
             field = form("taxType"),

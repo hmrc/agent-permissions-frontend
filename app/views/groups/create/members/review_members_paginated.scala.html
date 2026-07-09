@@ -40,7 +40,7 @@
     teamMembers: Seq[TeamMember],
     groupName: String,
     form: Form[Boolean],
-    formAction: Call =  routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers,
+    formAction: Call =  routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers(),
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
     )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 

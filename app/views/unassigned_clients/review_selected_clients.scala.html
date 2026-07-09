@@ -110,7 +110,7 @@
             }
         }
 
-        @formWithCSRF(action =routes.UnassignedClientController.submitSelectedUnassignedClients) {
+        @formWithCSRF(action =routes.UnassignedClientController.submitSelectedUnassignedClients()) {
             @radioButtons(
                 field = form("answer"),
                 items = Seq(

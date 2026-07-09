@@ -34,7 +34,7 @@
     @h1("unassigned.client.no.groups.h1")
     @p("unassigned.client.no.groups.p")
 
-    @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients) {
+    @formWithCSRF(action = routes.UnassignedClientController.submitSelectGroupsForSelectedUnassignedClients()) {
         @submit_button(messageKey = "group.type.h1", name = "createNew", value = "true")
     }
 }

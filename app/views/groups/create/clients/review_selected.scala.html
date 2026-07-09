@@ -111,7 +111,7 @@
         }
     }
 
-    @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitReviewSelectedClients) {
+    @formWithCSRF(action = routes.CreateGroupSelectClientsController.submitReviewSelectedClients()) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

@@ -39,7 +39,7 @@
 
     @h1("group.create.name.h1")
 
-    @formWithCSRF(action = routes.CreateGroupSelectNameController.submitGroupName) {
+    @formWithCSRF(action = routes.CreateGroupSelectNameController.submitGroupName()) {
 
         @textbox(field = form("name"), label = "group.create.name.label")
 

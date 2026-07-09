@@ -82,7 +82,7 @@
         @selectable_clients_table_form(
             unassignedClients,
             form,
-            routes.UnassignedClientController.submitAddUnassignedClients,
+            routes.UnassignedClientController.submitAddUnassignedClients(),
             paginationMetaData,
             showSearch = true,
             showFilter = true,
@@ -93,7 +93,7 @@
         @if(form("filter").value == None && form("search").value == None) {
             @h2("unassigned-clients.none")
         } else {
-            @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients) {
+            @formWithCSRF(action = routes.UnassignedClientController.submitAddUnassignedClients()) {
                 @search_and_filter(form, true)
             }
 

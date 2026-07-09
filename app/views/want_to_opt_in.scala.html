@@ -34,7 +34,7 @@
     formErrors = form.errors,
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
 ) {
-    @formWithCSRF(action = routes.OptInController.submitDoYouWantToOptIn) {
+    @formWithCSRF(action = routes.OptInController.submitDoYouWantToOptIn()) {
         @radioButtons(
             field = form("answer"),
             items = Seq(

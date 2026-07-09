@@ -33,7 +33,7 @@
 @(
     paginatedList: PaginatedList[DisplayClient],
     form: Form[SearchFilter],
-    formAction: Call = routes.ManageClientController.submitPageOfClients,
+    formAction: Call = routes.ManageClientController.submitPageOfClients(),
 )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
     @tableHeading(paginationMeta: PaginationMetaData) = @{

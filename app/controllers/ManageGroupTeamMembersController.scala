@@ -49,10 +49,10 @@ class ManageGroupTeamMembersController @Inject() (
   confirm_deselect_member: confirm_deselect_member,
   update_paginated_team_members: update_paginated_team_members,
   review_update_team_members: review_update_team_members
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import groupAction._

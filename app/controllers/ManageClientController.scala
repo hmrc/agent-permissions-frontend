@@ -45,10 +45,10 @@ class ManageClientController @Inject() (
   update_client_reference_complete: update_client_reference_complete,
   client_not_found: client_not_found,
   optInStatusAction: OptInStatusAction
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._

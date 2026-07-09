@@ -39,7 +39,7 @@ class OptInController @Inject() (
   start_optIn: start,
   want_to_opt_in: want_to_opt_in,
   you_have_opted_in: you_have_opted_in
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport {
 
   import authAction._

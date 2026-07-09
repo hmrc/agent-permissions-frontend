@@ -41,7 +41,7 @@ class AddClientToGroupsController @Inject() (
   groupService: GroupService,
   select_groups: select_groups,
   confirm_added: confirm_added
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport with Logging {
 
   import clientAction._

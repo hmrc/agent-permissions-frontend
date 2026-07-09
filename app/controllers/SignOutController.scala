@@ -31,7 +31,7 @@ class SignOutController @Inject() (
   mcc: MessagesControllerComponents,
   you_have_been_timed_out: you_have_been_timed_out,
   you_have_signed_out: you_have_signed_out
-)(implicit val appConfig: AppConfig, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport {
 
   private def signOutWithContinue(continue: String) = {

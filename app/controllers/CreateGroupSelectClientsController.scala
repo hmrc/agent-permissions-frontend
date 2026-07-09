@@ -44,10 +44,10 @@ class CreateGroupSelectClientsController @Inject() (
   val sessionCacheOps: SessionCacheOperationsService,
   val groupService: GroupService,
   clientService: ClientService
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import groupAction._

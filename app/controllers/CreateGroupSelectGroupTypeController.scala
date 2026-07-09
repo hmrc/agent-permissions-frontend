@@ -45,7 +45,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
   select_group_tax_type: select_group_tax_type,
   review_group_type: review_group_type,
   exceed_group_selection: exceed_group_selection
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport with Logging {
 
   val ctrlRoutes: ReverseCreateGroupSelectGroupTypeController = controllers.routes.CreateGroupSelectGroupTypeController

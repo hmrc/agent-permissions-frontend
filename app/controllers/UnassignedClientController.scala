@@ -53,7 +53,7 @@ class UnassignedClientController @Inject() (
   no_access_groups: no_access_groups,
   clients_added_to_groups_complete: clients_added_to_groups_complete,
   confirm_remove_client: confirm_remove_client
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._

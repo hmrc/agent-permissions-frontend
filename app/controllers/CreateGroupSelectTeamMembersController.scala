@@ -50,7 +50,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
   tax_group_created: tax_group_created,
   select_paginated_team_members: select_paginated_team_members,
   review_members_paginated: review_members_paginated
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction.isAuthorisedAgent

@@ -42,7 +42,7 @@ class AssistantViewOnlyController @Inject() (
   sessionCacheOps: SessionCacheOperationsService,
   unassigned_client_list: unassigned_client_list,
   existing_group_client_list: existing_group_client_list
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._

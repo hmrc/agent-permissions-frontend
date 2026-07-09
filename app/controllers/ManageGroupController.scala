@@ -48,10 +48,10 @@ class ManageGroupController @Inject() (
   rename_group_complete: rename_group_complete,
   confirm_delete_group: confirm_delete_group,
   delete_group_complete: delete_group_complete
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._

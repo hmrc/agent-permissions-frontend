@@ -51,10 +51,10 @@ class ManageGroupClientsController @Inject() (
   confirm_remove_client: confirm_remove_client,
   existing_clients: existing_clients,
   search_clients: search_clients
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import groupAction._

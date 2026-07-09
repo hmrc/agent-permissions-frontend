@@ -39,10 +39,10 @@ class ManageTeamMemberController @Inject() (
   optInStatusAction: OptInStatusAction,
   manage_team_members: manage_team_members,
   team_member_details: team_member_details
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._

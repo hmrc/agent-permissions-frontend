@@ -49,10 +49,10 @@ class ManageTaxGroupClientsController @Inject() (
   removed_tax_group_clients: removed_tax_group_clients,
   confirm_remove_client: confirm_remove_client,
   excluded_clients_not_found: excluded_clients_not_found
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import groupAction._

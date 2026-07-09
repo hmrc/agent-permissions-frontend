@@ -27,8 +27,8 @@ sealed abstract class Service(
   val id: String,
   val invitationIdPrefix: Char,
   val enrolmentKey: String,
-  val supportedSuppliedClientIdType: ClientIdType[_ <: TaxIdentifier],
-  val supportedClientIdType: ClientIdType[_ <: TaxIdentifier]
+  val supportedSuppliedClientIdType: ClientIdType[? <: TaxIdentifier],
+  val supportedClientIdType: ClientIdType[? <: TaxIdentifier]
 ) {
   override def toString: String = this.id
 

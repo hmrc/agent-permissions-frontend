@@ -37,7 +37,7 @@
     form: Form[SearchFilter],
     groupName: String,
     isFailedSearch: Boolean = false, // Setting this flag displays the page in 'failed search mode' i.e. after a search was already attempted which returned no results.
-    searchAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients,
+    searchAction: Call = routes.CreateGroupSelectClientsController.submitSearchClients(),
     continueAction: Option[Call] = None
 )(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 

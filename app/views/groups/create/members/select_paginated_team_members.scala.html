@@ -34,7 +34,7 @@
     groupName: String,
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
-    formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers,
+    formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers(),
     paginationMetaData: Option[PaginationMetaData] = None
 )(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 

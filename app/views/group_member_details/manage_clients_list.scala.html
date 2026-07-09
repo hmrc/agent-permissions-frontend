@@ -32,7 +32,7 @@
 @(
     paginatedList: PaginatedList[DisplayClient],
     form: Form[SearchFilter],
-    formAction: Call = routes.ManageClientController.submitPageOfClients,
+    formAction: Call = routes.ManageClientController.submitPageOfClients(),
 )(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(Some(paginatedList.paginationMetaData), "group.manage.clients", nowrap) }

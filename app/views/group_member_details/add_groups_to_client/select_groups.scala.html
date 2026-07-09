@@ -35,7 +35,7 @@
         groupsForClient: Seq[GroupSummary],
         availableGroups: Seq[GroupSummary] = Seq.empty,
         client: DisplayClient,
-        form: Form[_]
+        form: Form[?]
 )(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @h1Text = @{

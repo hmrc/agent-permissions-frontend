@@ -57,7 +57,7 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .getGroupSummaries(_: Arn)(_: Request[?], using _: HeaderCarrier, _: ExecutionContext))
+      .getGroupSummaries(_: Arn)(using _: Request[?], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future.successful(groups))
       .once()
@@ -67,8 +67,8 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
   )(implicit groupService: GroupService): Unit =
     (groupService
       .getPaginatedGroupSummaries(_: Arn, _: String)(_: Int, _: Int)(
-        _: Request[?],
-        using _: HeaderCarrier,
+        using _: Request[?],
+        _: HeaderCarrier,
         _: ExecutionContext
       ))
       .expects(arn, filterTerm, page, pageSize, *, *, *)
@@ -82,8 +82,8 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
   ], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
     (groupService
       .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int)(
-        _: Request[?],
-        using _: HeaderCarrier,
+        using _: Request[?],
+        _: HeaderCarrier,
         _: ExecutionContext
       ))
       .expects(groupId, page, pageSize, *, *, *)
@@ -94,7 +94,7 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     teamMember: TeamMember
   )(groupsAlreadyAssociatedToMember: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .groupSummariesForTeamMember(_: Arn, _: TeamMember)(_: Request[?], _: ExecutionContext, using _: HeaderCarrier))
+      .groupSummariesForTeamMember(_: Arn, _: TeamMember)(using _: Request[?], _: ExecutionContext, _: HeaderCarrier))
       .expects(arn, teamMember, *, *, *)
       .returning(Future.successful(groupsAlreadyAssociatedToMember))
       .once()
@@ -103,7 +103,7 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     client: DisplayClient
   )(groupsAlreadyAssociatedToClient: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .groupSummariesForClient(_: Arn, _: DisplayClient)(_: Request[?], _: ExecutionContext, using _: HeaderCarrier))
+      .groupSummariesForClient(_: Arn, _: DisplayClient)(using _: Request[?], _: ExecutionContext, _: HeaderCarrier))
       .expects(arn, client, *, *, *)
       .returning(Future.successful(groupsAlreadyAssociatedToClient))
       .once()

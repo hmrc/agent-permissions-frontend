@@ -30,7 +30,7 @@ trait OptInServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectOptOut(arn: Arn)(implicit optinService: OptinService): Unit =
     (optinService
-      .optOut(_: Arn)(_: Request[?], using _: HeaderCarrier, _: ExecutionContext))
+      .optOut(_: Arn)(using _: Request[?], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Done)
       .once()

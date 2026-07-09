@@ -62,8 +62,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
   )(implicit clientService: ClientService): Unit =
     (clientService
       .getUnassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
-        _: Request[?],
-        using _: HeaderCarrier,
+        using _: Request[?],
+        _: HeaderCarrier,
         _: ExecutionContext
       ))
       .expects(arn, page, pageSize, search, filter, *, *, *)
@@ -101,8 +101,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
   ): Unit =
     (clientService
       .updateClientReference(_: Arn, _: DisplayClient, _: String)(
-        _: Request[?],
-        using _: HeaderCarrier,
+        using _: Request[?],
+        _: HeaderCarrier,
         _: ExecutionContext
       ))
       .expects(arn, client, newName, *, *, *)
@@ -132,7 +132,7 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
         PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length)
     )
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[?], using _: HeaderCarrier, _: ExecutionContext))
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(using _: Request[?], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }
@@ -160,8 +160,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
     (
       clientService
         .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
-          _: Request[?],
-          using _: HeaderCarrier,
+          using _: Request[?],
+          _: HeaderCarrier,
           _: ExecutionContext
         )
       )
@@ -177,7 +177,7 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
       paginationMetaData = PaginationMetaData(lastPage = false, firstPage = false, 0, 0, 0, 0, 0)
     )
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[?], using _: HeaderCarrier, _: ExecutionContext))
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(using _: Request[?], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }

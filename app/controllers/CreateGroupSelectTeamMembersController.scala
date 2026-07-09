@@ -59,9 +59,6 @@ class CreateGroupSelectTeamMembersController @Inject() (
   import sessionAction.withSessionItem
 
   private val controller: ReverseCreateGroupSelectTeamMembersController = routes.CreateGroupSelectTeamMembersController
-  private val selectClientsController: ReverseCreateGroupSelectClientsController =
-    routes.CreateGroupSelectClientsController
-  private val selectNameController: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
   private val PAGE_SIZE = 10
 
@@ -236,7 +233,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
   }
 
   def showConfirmRemoveTeamMember(memberId: Option[String]): Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, arn) =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem(SELECTED_TEAM_MEMBERS) { selectedMembers =>
         for {
           // if clientId is not provided as a query parameter, check the CLIENT_TO_REMOVE session value.

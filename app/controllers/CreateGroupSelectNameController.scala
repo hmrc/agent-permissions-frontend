@@ -51,7 +51,7 @@ class CreateGroupSelectNameController @Inject() (
   private val controller: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
-    withGroupTypeAndAuthorised { (groupType, _) =>
+    withGroupTypeAndAuthorised { (_, _) =>
       withSessionItem[String](GROUP_NAME) { maybeName =>
         Ok(
           choose_name(

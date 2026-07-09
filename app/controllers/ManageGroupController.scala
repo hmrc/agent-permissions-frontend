@@ -185,7 +185,7 @@ class ManageGroupController @Inject() (
   }
 
   def showDeleteGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), summary)).toFuture
     }
   }

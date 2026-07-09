@@ -68,7 +68,7 @@ class ManageGroupClientsController @Inject() (
     page: Option[Int] = None,
     pageSize: Option[Int] = None
   ): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
       searchFilter.submit.fold( // fresh page load or pagination reload
         groupService
@@ -295,7 +295,7 @@ class ManageGroupClientsController @Inject() (
 
   def showConfirmRemoveFromSelectedClients(groupId: GroupId, clientId: String): Action[AnyContent] = Action.async {
     implicit request =>
-      withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, arn: Arn) =>
+      withGroupSummaryForAuthorisedOptedAgent(groupId) { (groupSummary: GroupSummary, _: Arn) =>
         withSessionItem(SELECTED_CLIENTS) { selectedClients =>
           selectedClients.getOrElse(Seq.empty).find(_.id == clientId) match {
             // if the user tries to go back after removing the selected client, take them to search clients instead

@@ -174,7 +174,7 @@ object ViewUtils {
     val and = msgs("paginated.showing.total.filter-conjunction")
     filterTerms match {
       case Nil   => ""
-      case terms => (s"${`for`} " + filterTerms.mkString(s" $and ")).trim
+      case terms => (s"${`for`} " + terms.mkString(s" $and ")).trim
     }
   }
 

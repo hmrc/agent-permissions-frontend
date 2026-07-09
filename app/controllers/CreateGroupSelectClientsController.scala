@@ -58,7 +58,7 @@ class CreateGroupSelectClientsController @Inject() (
   private val REVIEW_SELECTED_PAGE_SIZE = 10
 
   def showSearchClients: Action[AnyContent] = Action.async { implicit request =>
-    withGroupNameAndAuthorised { (groupName, _, arn) =>
+    withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem[String](CLIENT_FILTER_INPUT) { clientFilterTerm =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { clientSearchTerm =>
           Ok(

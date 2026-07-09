@@ -16,39 +16,24 @@
 
 package services
 
-import config.AppConfig
-import connectors.{AgentAssuranceConnector, AgentServicesAccountConnector}
+import connectors.AgentServicesAccountConnector
 import helpers.{AgentAssuranceConnectorMocks, AgentServicesAccountConnectorMocks}
 import models.SuspensionDetails
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AgentSuspensionServiceSpec
     extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with AgentAssuranceConnectorMocks
     with AgentServicesAccountConnectorMocks {
 
-  implicit val mockAgentAssuranceConnector: AgentAssuranceConnector = mock[AgentAssuranceConnector]
   implicit val mockAgentServicesAccountConnector: AgentServicesAccountConnector = mock[AgentServicesAccountConnector]
 
   "Get agent suspension details from agent services account" should {
 
-    def appBuilder =
-      GuiceApplicationBuilder()
-        .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
-        .configure("auditing.enabled" -> false)
-        .configure("metrics.enabled" -> true)
-        .configure("metrics.jvm" -> false)
-
-    implicit lazy val fakeApplication: Application = appBuilder.build()
-
-    val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
-
-    val service = new AgentSuspensionService(mockAgentAssuranceConnector, mockAgentServicesAccountConnector, appConfig)
+    val service = new AgentSuspensionService(mockAgentServicesAccountConnector)
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
 

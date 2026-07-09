@@ -164,8 +164,7 @@ class ManageTaxGroupClientsController @Inject() (
                             .messages("tax-group.client.removed.confirm", clientToRemove.name, clientLink)
                         )
                     }
-                } else
-                  Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
+                } else Redirect(controller.showExistingGroupClients(groupId, None, None)).toFuture
             )
         )
       }
@@ -197,8 +196,7 @@ class ManageTaxGroupClientsController @Inject() (
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { maybeSearch =>
-          if (group.excludedClients.isEmpty)
-            Ok(excluded_clients_not_found(group)).toFuture
+          if (group.excludedClients.isEmpty) Ok(excluded_clients_not_found(group)).toFuture
           else {
             val paginatedList =
               paginationOfExcludedClients(group.excludedClients, page, pageSize, maybeSearch, maybeSelected)

@@ -222,6 +222,6 @@ object ViewUtils {
     val followingString =
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
     val msgParams = initialMsgParams ++ additionalParamList :+ followingString
-    msgs(s"$mainMsgString.$keySuffix", msgParams *)
+    msgs(s"$mainMsgString.$keySuffix", msgParams*)
   }
 }

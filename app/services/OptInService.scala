@@ -52,10 +52,10 @@ class OptInServiceImpl @Inject() (
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done] =
-    optingTo(agentPermissionsConnector.optIn(_, lang))(arn)(request, hc, ec)
+    optingTo(agentPermissionsConnector.optIn(_, lang))(arn)(using request, hc, ec)
 
   def optOut(arn: Arn)(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
-    optingTo(agentPermissionsConnector.optOut)(arn)(request, hc, ec)
+    optingTo(agentPermissionsConnector.optOut)(arn)(using request, hc, ec)
 
   private def optingTo(
     func: Arn => Future[Done]

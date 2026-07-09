@@ -68,8 +68,8 @@ class AppConfigImpl @Inject() (val servicesConfig: ServicesConfig, environment: 
   private val basGatewayFrontendExternalUrl: String = servicesConfig.getString("bas-gateway-frontend.external-url")
   private val signOutPath: String = servicesConfig.getString("bas-gateway-frontend.sign-out.path")
   private val signInPath: String = servicesConfig.getString("bas-gateway-frontend.sign-in.path")
-  override lazy val signOut: String = s"$basGatewayFrontendExternalUrl$signOutPath"
-  override lazy val signInUrl: String = s"$basGatewayFrontendExternalUrl$signInPath"
+  override val signOut: String = s"$basGatewayFrontendExternalUrl$signOutPath"
+  override val signInUrl: String = s"$basGatewayFrontendExternalUrl$signInPath"
   override val selfExternalUrl: String = servicesConfig.getString("self.external-url")
 
   val agentServicesAccountExternalUrl: String =

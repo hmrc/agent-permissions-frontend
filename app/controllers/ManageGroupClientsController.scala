@@ -73,7 +73,7 @@ class ManageGroupClientsController @Inject() (
       searchFilter.submit.fold( // fresh page load or pagination reload
         groupService
           .getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20))
-          .map { paginatedList: (Seq[DisplayClient], PaginationMetaData) =>
+          .map { (paginatedList: (Seq[DisplayClient], PaginationMetaData)) =>
             Ok(
               existing_clients(
                 group = groupSummary,

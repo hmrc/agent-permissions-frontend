@@ -100,7 +100,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
           Ok(exceed_group_selection())
         else {
           Ok(
-            select_group_tax_type(formWithFilledValue(TaxServiceGroupTypeForm.form, sel.map(TaxServiceGroupType)), info)
+            select_group_tax_type(formWithFilledValue(TaxServiceGroupTypeForm.form, sel.map(TaxServiceGroupType.apply)), info)
           )
         }
     }

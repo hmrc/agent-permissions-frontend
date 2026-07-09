@@ -256,7 +256,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
                                 YesNoForm.form(),
                                 groupName,
                                 member,
-                                formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
+                                formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember()
                               )
                             ).toFuture
                           )
@@ -283,7 +283,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
                       formWithErrors,
                       groupName,
                       maybeTeamMember.get,
-                      formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember
+                      formAction = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember()
                     )
                   ).toFuture,
                 (yes: Boolean) =>

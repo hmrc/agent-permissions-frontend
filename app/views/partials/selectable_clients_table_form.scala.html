@@ -52,7 +52,7 @@
     backLinkHref:Option[String] = None,
     submitButtonKey: String = "common.continue",
     resultsSummary: Option[String] = None
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     clients.zipWithIndex.map(client =>

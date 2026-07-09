@@ -61,7 +61,7 @@ abstract class POSTPaginationHandler[FormData](sessionCacheService: SessionCache
 
   val checkSubmitTypeForm: Form[String] = Form(single("submit" -> text))
 
-  def handlePost(implicit ec: ExecutionContext, request: Request[_], formBinding: FormBinding): Future[Result] =
+  def handlePost(implicit ec: ExecutionContext, request: Request[?], formBinding: FormBinding): Future[Result] =
     emptyForm
       .bindFromRequest()
       .fold(
@@ -106,7 +106,7 @@ abstract class POSTPaginatedSearchableClientSelectHandler(
   val reloadCall: (Option[Int], Option[String], Option[String]) => Call
   val onContinue: AddClientsToGroup => Future[Result]
 
-  def handlePost(implicit ec: ExecutionContext, request: Request[_], formBinding: FormBinding): Future[Result] =
+  def handlePost(implicit ec: ExecutionContext, request: Request[?], formBinding: FormBinding): Future[Result] =
     new POSTPaginationHandler[AddClientsToGroup](sessionCacheService) {
       val emptyForm: Form[AddClientsToGroup] = AddClientsToGroupForm.form()
       val renderPage: Form[AddClientsToGroup] => Future[Result] = self.renderPage

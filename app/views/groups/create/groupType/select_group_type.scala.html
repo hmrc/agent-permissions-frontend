@@ -27,7 +27,7 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[Boolean], origin: Option[String])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(form: Form[Boolean], origin: Option[String])(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @backLinkSelector = @{
     if (origin.getOrElse("") == "manage-account") {

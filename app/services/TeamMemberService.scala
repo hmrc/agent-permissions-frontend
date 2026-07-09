@@ -37,7 +37,7 @@ trait TeamMemberService {
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    request: Request[_]
+    request: Request[?]
   ): Future[PaginatedList[TeamMember]]
 
   def lookupTeamMember(arn: Arn)(
@@ -104,7 +104,7 @@ class TeamMemberServiceImpl @Inject() (
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    request: Request[_]
+    request: Request[?]
   ): Future[PaginatedList[TeamMember]] =
     for {
       searchTerm    <- sessionCacheService.get(TEAM_MEMBER_SEARCH_INPUT)

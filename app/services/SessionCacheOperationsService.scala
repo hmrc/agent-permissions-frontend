@@ -28,7 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SessionCacheOperationsService @Inject() (val sessionCacheService: SessionCacheService) extends GroupMemberOps {
 
   def saveSearch(searchTerm: Option[String], filterTerm: Option[String])(implicit
-    request: Request[_],
+    request: Request[?],
     ec: ExecutionContext
   ): Future[Unit] =
     if (searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty) {

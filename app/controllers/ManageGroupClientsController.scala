@@ -363,7 +363,7 @@ class ManageGroupClientsController @Inject() (
     groupSummary: GroupSummary,
     form: Form[AddClientsToGroup],
     paginatedClients: PaginatedList[DisplayClient]
-  )(implicit request: Request[_]): Result =
+  )(implicit request: Request[?]): Result =
     Ok(
       update_clients_paginated(
         clients = paginatedClients.pageContent,
@@ -397,7 +397,7 @@ class ManageGroupClientsController @Inject() (
     groupSummary: GroupSummary,
     paginatedList: PaginatedList[DisplayClient],
     form: Form[Boolean]
-  )(implicit request: Request[_]): Result =
+  )(implicit request: Request[?]): Result =
     Ok(
       review_update_clients(
         paginatedList.pageContent,

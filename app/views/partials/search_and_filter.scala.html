@@ -29,7 +29,7 @@
     searchLabelKey: String  = "client-filter.text.label",
     filterLabelKey: String  = "client-filter.select.label",
     emptyFilterOptionKey: String  = "client-filter.select.label.empty-option"
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @applyButtonKey = @{if (withFilter) "filter.apply" else "filter.apply.singular" }
 @clearButtonKey = @{if (withFilter) "filter.clear" else "filter.clear.singular" }

@@ -31,7 +31,7 @@
     groupName: String,
     teamMember: TeamMember,
     formAction: Call
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @title = @{msgs("common.deselect.member", teamMember.name)}
 

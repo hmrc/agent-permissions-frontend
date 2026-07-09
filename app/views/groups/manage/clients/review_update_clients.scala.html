@@ -42,7 +42,7 @@
     group: GroupSummary,
     form: Form[Boolean],
     paginationMetaData: PaginationMetaData = PaginationMetaData(true,true,0,1,10,1,10)
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @headingTwo = @{
     paginationShowingRangeHelperText(Some(paginationMetaData), "paginated.clients.showing")

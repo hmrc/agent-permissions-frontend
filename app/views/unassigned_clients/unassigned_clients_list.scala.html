@@ -38,7 +38,7 @@
     unassignedClients: Seq[DisplayClient],
     form: Form[AddClientsToGroup],
     paginationMetaData: Option[PaginationMetaData]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "unassigned-clients.h1", nowrap) }
 

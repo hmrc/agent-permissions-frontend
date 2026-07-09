@@ -29,7 +29,7 @@
 @(
     form: Form[TaxServiceGroupType],
     clientCountByTaxService: Map[String, Int]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("group.tax-service.h1"),

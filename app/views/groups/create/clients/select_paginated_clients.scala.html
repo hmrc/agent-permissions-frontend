@@ -36,7 +36,7 @@
         form: Form[AddClientsToGroup],
         formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
         paginationMetaData: Option[PaginationMetaData] = None
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.client.list.h1", nowrap) }
 

@@ -33,7 +33,7 @@
     filterForm: Form[SearchFilter],
     formAction: Call,
     paginationMetaData: Option[PaginationMetaData] = None
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @pageTitle = @{
     withSearchAndErrorPrefix(

@@ -43,27 +43,27 @@ class OptInStatusAction @Inject() (
 
   def isEligibleToOptIn(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(request, hc, ec)
 
   def isOptedIn(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedIn)(arn)(body)(request, hc, ec)
 
   def isOptedInComplete(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedInComplete)(arn)(body)(request, hc, ec)
 
   def isOptedOut(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     eligibleFor(controllers.isOptedOut)(arn)(body)(request, hc, ec)
 
   def isOptedInWithSessionItem[T](dataKey: DataKey[T])(arn: Arn)(
     body: Option[T] => Future[Result]
-  )(implicit reads: Reads[T], request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit reads: Reads[T], request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     sessionCacheService.get[OptinStatus](OPT_IN_STATUS).flatMap {
       case Some(status) if status == OptedInReady =>
         sessionCacheService
@@ -83,7 +83,7 @@ class OptInStatusAction @Inject() (
 
   private def eligibleFor(predicate: OptinStatus => Boolean)(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     sessionCacheService
       .get[OptinStatus](OPT_IN_STATUS)
       .flatMap {
@@ -102,7 +102,7 @@ class OptInStatusAction @Inject() (
 
   private def initialiseSession(
     arn: Arn
-  )(implicit request: Request[_], writes: Writes[OptinStatus], hc: HeaderCarrier, ec: ExecutionContext) =
+  )(implicit request: Request[?], writes: Writes[OptinStatus], hc: HeaderCarrier, ec: ExecutionContext) =
     agentPermissionsConnector
       .getOptInStatus(arn)
       .flatMap {

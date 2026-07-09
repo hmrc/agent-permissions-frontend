@@ -35,7 +35,7 @@
     formAction: Call = routes.CreateGroupSelectClientsController.submitConfirmRemoveClient,
     legendKey: String = "common.remove.client",
     hintKey: Option[String] = None,
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
     @title = @{msgs(legendKey, clientToRemove.name)}
 

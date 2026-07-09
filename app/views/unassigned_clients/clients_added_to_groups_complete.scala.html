@@ -19,7 +19,7 @@
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, ul: ul, a: a, govukPanel: GovukPanel)
 
-@(groupsAddedTo: Seq[String])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(groupsAddedTo: Seq[String])(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(title = msgs("clients.assigned.complete.h1")) {
 

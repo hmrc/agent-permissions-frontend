@@ -19,7 +19,7 @@
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, a:a)
 
-@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@()(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(title = msgs("you-have-opted-out.h1")) {
     @h1("you-have-opted-out.h1")

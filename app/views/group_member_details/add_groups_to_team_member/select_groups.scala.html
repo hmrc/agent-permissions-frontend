@@ -36,7 +36,7 @@
     availableGroups: Seq[GroupSummary] = Seq.empty,
     teamMember: TeamMember,
     form: Form[_]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @h1Text = @{msgs(if(availableGroups.isEmpty) "common.select.groups.none.h1" else "member.select.groups.h1", teamMember.name)}
 

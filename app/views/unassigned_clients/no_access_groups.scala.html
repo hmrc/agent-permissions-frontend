@@ -25,7 +25,7 @@
         formWithCSRF: FormWithCSRF
 )
 
-@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@()(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("unassigned.client.no.groups.h1"),

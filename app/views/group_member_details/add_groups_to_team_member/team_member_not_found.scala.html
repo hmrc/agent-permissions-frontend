@@ -19,7 +19,7 @@
 
 @this(layout: main_layout, h1: h1, p: p, a_button: link_as_button)
 
-@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@()(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(title = msgs("group.not.found.error.h1")) {
 

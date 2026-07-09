@@ -43,7 +43,7 @@
     form: Form[SearchFilter],
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10)),
     excludedClients: Seq[DisplayClient] = Seq.empty
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @headingTwo = @{
     if (form.data.get("search").exists(_.trim.nonEmpty)) {

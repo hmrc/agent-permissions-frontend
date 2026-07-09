@@ -20,7 +20,7 @@
 
 @this(POST_pagination_li: POST_pagination_li)
 
-@(pagination: PaginationMetaData)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(pagination: PaginationMetaData)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 <nav class="govuk-pagination" role="navigation" aria-label="@msgs("paginated.navigationLabel")" id="pagination-nav">
 

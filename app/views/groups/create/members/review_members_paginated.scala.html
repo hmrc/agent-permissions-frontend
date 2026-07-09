@@ -42,7 +42,7 @@
     form: Form[Boolean],
     formAction: Call =  routes.CreateGroupSelectTeamMembersController.submitReviewSelectedTeamMembers(),
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
-    )(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+    )(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @firstPartOfHeadingOne = @{ msgs("group.teamMembers.review.h1", paginationMetaData.get.totalSize) }
 

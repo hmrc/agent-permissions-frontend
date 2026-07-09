@@ -37,7 +37,7 @@
         paginatedList: PaginatedList[TeamMember],
         group: GroupSummary,
         form: Form[Boolean]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @headingTwo = @{
     paginationShowingRangeHelperText(Some(paginatedList.paginationMetaData), "paginated.team-members.showing")

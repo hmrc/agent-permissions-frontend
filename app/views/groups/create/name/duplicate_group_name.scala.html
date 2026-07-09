@@ -18,7 +18,7 @@
 
 @this(layout: main_layout, h1: h1, p: p, button: link_as_button)
 
-@(accessGroupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(accessGroupName: String)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("access-group-name-exists.title"),

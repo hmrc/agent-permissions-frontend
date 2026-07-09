@@ -32,7 +32,7 @@
         govukErrorSummary: GovukErrorSummary
 )
 
-@(form: Form[SelectGroups], groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(form: Form[SelectGroups], groups: Seq[GroupSummary] = Seq.empty)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @heading = @{
     if(groups.nonEmpty) "unassigned.client.assign.h1" else "unassigned.client.no.custom-groups.h1"

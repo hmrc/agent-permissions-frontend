@@ -20,7 +20,7 @@
 @this(layout: main_layout, h1: h1, a: a, span: span)
 
 
-@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@()(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 
 @layout(title = msgs("signout.h1"), hasTimeout = false) {

@@ -35,7 +35,7 @@
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
     paginationMetaData: Option[PaginationMetaData]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
     @tableHeading(paginationMeta: PaginationMetaData) = @{
         if(form.data.nonEmpty && form.data.get("search").isDefined) {

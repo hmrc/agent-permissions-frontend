@@ -19,7 +19,7 @@
 
 @this(layout: main_layout, h1: h1, p: p, a_button: link_as_button)
 
-@(isAssistant: Boolean = false)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(isAssistant: Boolean = false)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @buttonLinkHref = @{if(isAssistant) appConfig.agentServicesAccountYourAssistantAccountUrl else routes.ManageGroupController.showManageGroups(None,None).url}
 

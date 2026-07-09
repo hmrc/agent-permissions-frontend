@@ -109,7 +109,7 @@ class ManageTaxGroupClientsController @Inject() (
     group: TaxGroup,
     paginatedClients: PaginatedList[DisplayClient],
     form: Form[SearchFilter]
-  )(implicit request: Request[_]): Result = {
+  )(implicit request: Request[?]): Result = {
     val excludedClients = group.excludedClients.map(fromClient(_)).toSeq
     Ok(
       existing_tax_group_clients(
@@ -177,7 +177,7 @@ class ManageTaxGroupClientsController @Inject() (
     groupId: GroupId,
     clientToRemove: DisplayClient,
     formWithErrors: Form[Boolean]
-  )(implicit request: MessagesRequest[_]): Result =
+  )(implicit request: MessagesRequest[?]): Result =
     Ok(
       confirm_remove_client(
         formWithErrors,
@@ -218,7 +218,7 @@ class ManageTaxGroupClientsController @Inject() (
     group: TaxGroup,
     paginatedList: PaginatedList[DisplayClient],
     form: Form[AddClientsToGroup]
-  )(implicit request: Request[_]): Result =
+  )(implicit request: Request[?]): Result =
     Ok(
       removed_tax_group_clients(
         group = group,
@@ -323,7 +323,7 @@ class ManageTaxGroupClientsController @Inject() (
     currentPageClients: Option[Seq[DisplayClient]],
     formData: AddClientsToGroup,
     excludedClients: Set[Client]
-  )(implicit request: Request[_], hc: HeaderCarrier): Future[Int] = {
+  )(implicit request: Request[?], hc: HeaderCarrier): Future[Int] = {
     val clientsToUnexclude = clientsSelectedIncludingCurrentPage(maybeSelected, currentPageClients, formData)
     val clients: Set[Client] = excludedClients -- clientsToUnexclude.map(toClient)
     val updateRequest = UpdateTaxServiceGroupRequest(excludedClients = Option(clients))

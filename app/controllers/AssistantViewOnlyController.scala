@@ -148,7 +148,7 @@ class AssistantViewOnlyController @Inject() (
   }
 
   private def updateSearchFilter(redirectTo: Call, ignoreTaxService: Boolean = false)(implicit
-    request: Request[_]
+    request: Request[?]
   ): Future[Result] = {
     val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
     searchFilter.submit match {

@@ -32,7 +32,7 @@
     groupName: String,
     teamMember: TeamMember,
     formAction: Call = routes.CreateGroupSelectTeamMembersController.submitConfirmRemoveTeamMember()
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @title = @{msgs("common.remove.member", teamMember.name)}
 

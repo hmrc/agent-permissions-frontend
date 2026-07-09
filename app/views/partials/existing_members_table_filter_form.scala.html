@@ -38,7 +38,7 @@
     formAction: Call,
     paginationMetaData: Option[PaginationMetaData],
     displayRole: Boolean = true
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @showRemoveLink = @{group.teamMemberCount > 1}
 

@@ -34,7 +34,7 @@
     paginatedList: PaginatedList[DisplayClient],
     form: Form[SearchFilter],
     formAction: Call = routes.ManageClientController.submitPageOfClients(),
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
     @tableHeading(paginationMeta: PaginationMetaData) = @{
         paginationShowingRangeHelperText(Some(paginationMeta), "paginated.clients.showing", form.data.get("search"), form.data.get("filter"))

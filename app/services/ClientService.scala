@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait ClientService {
 
   def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]]
@@ -43,7 +43,7 @@ trait ClientService {
   def getPaginatedClientsToAddToGroup(
     id: GroupId
   )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(GroupSummary, PaginatedList[DisplayClient])]
@@ -51,7 +51,7 @@ trait ClientService {
   def getUnassignedClients(
     arn: Arn
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]]
@@ -69,7 +69,7 @@ trait ClientService {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[DisplayClient]]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done]
@@ -88,7 +88,7 @@ class ClientServiceImpl @Inject() (
 ) extends ClientService with GroupMemberOps {
 
   def getPaginatedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]] =
@@ -113,7 +113,7 @@ class ClientServiceImpl @Inject() (
   def getPaginatedClientsToAddToGroup(
     id: GroupId
   )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(GroupSummary, PaginatedList[DisplayClient])] =
@@ -140,7 +140,7 @@ class ClientServiceImpl @Inject() (
   def getUnassignedClients(
     arn: Arn
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]] =
@@ -179,7 +179,7 @@ class ClientServiceImpl @Inject() (
     } yield es3AsDisplayClients
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done] = {

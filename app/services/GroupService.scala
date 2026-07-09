@@ -42,7 +42,7 @@ trait GroupService {
   def getCustomSummary(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getPaginatedClientsForCustomGroup(groupId: GroupId)(page: Int, pageSize: Int)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(Seq[DisplayClient], PaginationMetaData)]
@@ -54,7 +54,7 @@ trait GroupService {
   def createGroup(arn: Arn, groupName: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    request: Request[_]
+    request: Request[?]
   ): Future[Done]
 
   def updateGroup(groupId: GroupId, group: UpdateAccessGroupRequest)(implicit
@@ -66,22 +66,22 @@ trait GroupService {
 
   def getGroupSummaries(
     arn: Arn
-  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def getPaginatedGroupSummaries(arn: Arn, filterTerm: String = "")(page: Int = 1, pageSize: Int = 5)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[GroupSummary]]
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)(implicit
-    request: Request[_],
+    request: Request[?],
     ec: ExecutionContext,
     hc: HeaderCarrier
   ): Future[Seq[GroupSummary]]
 
   def groupSummariesForTeamMember(arn: Arn, teamMember: TeamMember)(implicit
-    request: Request[_],
+    request: Request[?],
     ec: ExecutionContext,
     hc: HeaderCarrier
   ): Future[Seq[GroupSummary]]
@@ -128,7 +128,7 @@ class GroupServiceImpl @Inject() (
     agentPermissionsConnector.getCustomSummary(id)
 
   def getPaginatedClientsForCustomGroup(groupId: GroupId)(page: Int, pageSize: Int)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(Seq[DisplayClient], PaginationMetaData)] =
@@ -155,11 +155,11 @@ class GroupServiceImpl @Inject() (
 
   def getGroupSummaries(
     arn: Arn
-  )(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] =
+  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] =
     agentPermissionsConnector.getGroupSummaries(arn)
 
   def getPaginatedGroupSummaries(arn: Arn, filterTerm: String = "")(page: Int = 1, pageSize: Int = 5)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[GroupSummary]] =
@@ -171,7 +171,7 @@ class GroupServiceImpl @Inject() (
   def createGroup(arn: Arn, groupName: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    request: Request[_]
+    request: Request[?]
   ): Future[Done] =
     for {
       clients <-
@@ -184,14 +184,14 @@ class GroupServiceImpl @Inject() (
     } yield Done
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)(implicit
-    request: Request[_],
+    request: Request[?],
     ec: ExecutionContext,
     hc: HeaderCarrier
   ): Future[Seq[GroupSummary]] =
     agentPermissionsConnector.getGroupsForClient(arn, client.enrolmentKey)
 
   def groupSummariesForTeamMember(arn: Arn, teamMember: TeamMember)(implicit
-    request: Request[_],
+    request: Request[?],
     ec: ExecutionContext,
     hc: HeaderCarrier
   ): Future[Seq[GroupSummary]] = {

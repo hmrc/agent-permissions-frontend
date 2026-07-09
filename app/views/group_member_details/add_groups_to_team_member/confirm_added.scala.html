@@ -20,7 +20,7 @@
 
 @this(layout: main_layout, h2: h2, p: p, ul: ul, a: a, govukPanel: GovukPanel)
 
-@(tm: TeamMember, groupsAddedTo: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(tm: TeamMember, groupsAddedTo: Seq[GroupSummary])(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(title = msgs("member.added.to.groups.title", tm.name, groupsAddedTo.map(_.groupName).mkString(","))) {
 

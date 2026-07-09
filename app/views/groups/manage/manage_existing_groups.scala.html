@@ -39,7 +39,7 @@
     summaries: Seq[GroupSummary],
     filterGroupSummaryForm: Form[SearchFilter],
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,5,1,5))
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.manage.h1", nowrap) }
 

@@ -71,7 +71,7 @@ class UnassignedClientController @Inject() (
     pageSize: Option[Int] = None,
     search: Option[String] = None,
     filter: Option[String] = None
-  )(implicit request: Request[_]): Future[Result] =
+  )(implicit request: Request[?]): Future[Result] =
     for {
       maybeSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
       unmarkedPaginatedClients <- clientService.getUnassignedClients(arn)(

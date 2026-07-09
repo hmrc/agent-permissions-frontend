@@ -44,7 +44,7 @@
     formAction: Call = routes.CreateGroupSelectTeamMembersController.submitSelectedTeamMembers(),
     paginationMetaData: Option[PaginationMetaData] = None,
     resultsSummary: Option[String] = None
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     teamMembers.zipWithIndex.map{ case(member, idx) =>

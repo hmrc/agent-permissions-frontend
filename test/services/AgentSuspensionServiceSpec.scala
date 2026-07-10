@@ -16,40 +16,23 @@
 
 package services
 
-import config.AppConfig
-import connectors.{AgentAssuranceConnector, AgentServicesAccountConnector}
-import helpers.{AgentAssuranceConnectorMocks, AgentServicesAccountConnectorMocks}
+import connectors.AgentServicesAccountConnector
+import helpers.AgentServicesAccountConnectorMocks
 import models.SuspensionDetails
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AgentSuspensionServiceSpec
-    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with AgentAssuranceConnectorMocks
-    with AgentServicesAccountConnectorMocks {
+    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with AgentServicesAccountConnectorMocks {
 
-  implicit val mockAgentAssuranceConnector: AgentAssuranceConnector = mock[AgentAssuranceConnector]
   implicit val mockAgentServicesAccountConnector: AgentServicesAccountConnector = mock[AgentServicesAccountConnector]
 
   "Get agent suspension details from agent services account" should {
 
-    def appBuilder =
-      GuiceApplicationBuilder()
-        .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
-        .configure("auditing.enabled" -> false)
-        .configure("metrics.enabled" -> true)
-        .configure("metrics.jvm" -> false)
-        .configure("features.enable-agent-record-via-asa" -> true)
-
-    implicit lazy val fakeApplication: Application = appBuilder.build()
-
-    val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
-
-    val service = new AgentSuspensionService(mockAgentAssuranceConnector, mockAgentServicesAccountConnector, appConfig)
+    val service = new AgentSuspensionService(mockAgentServicesAccountConnector)
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -72,40 +55,4 @@ class AgentSuspensionServiceSpec
     }
   }
 
-  "Get agent suspension details from agent assurance" should {
-
-    def appBuilder =
-      GuiceApplicationBuilder()
-        .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
-        .configure("auditing.enabled" -> false)
-        .configure("metrics.enabled" -> true)
-        .configure("metrics.jvm" -> false)
-        .configure("features.enable-agent-record-via-asa" -> false)
-
-    implicit lazy val fakeApplication: Application = appBuilder.build()
-
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
-
-    val service = new AgentSuspensionService(mockAgentAssuranceConnector, mockAgentServicesAccountConnector, appConfig)
-
-    "return empty suspension details when not suspended" in {
-
-      expectGetSuspensionDetailsFromAgentAssurance()
-
-      val result = service.getSuspensionDetails().futureValue
-
-      result shouldBe SuspensionDetails(suspensionStatus = false, regimes = None)
-    }
-
-    "return suspension details when suspended" in {
-
-      expectGetSuspensionDetailsFromAgentAssurance(suspensionStatus = true, regimes = Some(Set("AGSV")))
-
-      val result = service.getSuspensionDetails().futureValue
-
-      result shouldBe SuspensionDetails(suspensionStatus = true, regimes = Some(Set("AGSV")))
-    }
-  }
 }

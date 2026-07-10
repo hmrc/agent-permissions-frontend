@@ -367,7 +367,8 @@ class ManageGroupTeamMembersController @Inject() (
                       )
                     ).toFuture,
                   (yes: Boolean) =>
-                    if yes then Redirect(controller.showExistingGroupTeamMembers(group.groupId, groupType, None)).toFuture
+                    if yes then
+                      Redirect(controller.showExistingGroupTeamMembers(group.groupId, groupType, None)).toFuture
                     else {
                       val agents = membersToAdd.map(toAgentUser(_)).toSet
                       for

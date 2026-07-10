@@ -200,8 +200,7 @@ class GroupServiceImpl @Inject() (
       case Some(gs) => gs
       case None     => Seq.empty
     }
-    for
-      g <- groupSummaries
+    for g <- groupSummaries
     yield g
   }
 

@@ -209,8 +209,7 @@ class ManageGroupController @Inject() (
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- groupService.deleteGroup(groupId)
               yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
-            } else
-              Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
+            } else Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
         )
     }
   }
@@ -228,8 +227,7 @@ class ManageGroupController @Inject() (
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- taxGroupService.deleteGroup(groupId)
               yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
-            } else
-              Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
+            } else Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
         )
     }
   }

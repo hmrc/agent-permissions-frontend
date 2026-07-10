@@ -146,8 +146,7 @@ class CreateGroupSelectClientsController @Inject() (
           .bindFromRequest()
           .fold(
             formWithErrors =>
-              for
-                paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
+              for paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
               yield Ok(
                 select_paginated_clients(
                   clients = paginatedClients.pageContent,
@@ -166,8 +165,7 @@ class CreateGroupSelectClientsController @Inject() (
                     if nowSelectedClients.nonEmpty then {
                       Redirect(controller.showReviewSelectedClients(None, None)).toFuture
                     } else { // render page with empty client error
-                      for
-                        paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
+                      for paginatedClients <- clientService.getPaginatedClients(arn)(1, CLIENT_PAGE_SIZE)
                       yield Ok(
                         select_paginated_clients(
                           paginatedClients.pageContent,

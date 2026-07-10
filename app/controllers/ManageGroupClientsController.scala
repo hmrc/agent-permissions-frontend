@@ -270,9 +270,8 @@ class ManageGroupClientsController @Inject() (
                         if nowSelectedClients.nonEmpty then {
                           Redirect(controller.showReviewSelectedClients(groupId, None, None)).toFuture
                         } else { // display empty error
-                          for
-                            paginatedClients <- clientService
-                                                  .getPaginatedClientsToAddToGroup(groupId)(1, 20, search, filter)
+                          for paginatedClients <- clientService
+                                                    .getPaginatedClientsToAddToGroup(groupId)(1, 20, search, filter)
                           yield renderUpdateClientsPaginated(
                             groupSummary,
                             AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),

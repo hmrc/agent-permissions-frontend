@@ -72,8 +72,7 @@ class OptOutController @Inject() (
                 optInService
                   .optOut(arn)
                   .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut().url))
-              } else
-                Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+              } else Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
           )
       }
     }

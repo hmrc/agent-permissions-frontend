@@ -59,10 +59,8 @@ object ViewUtils {
   def displayTaxService(serviceKey: String, lowercaseForCbc: Boolean = false)(implicit mgs: Messages): String = {
     val text = displayTaxServiceFromServiceKey(serviceKey)
 
-    if lowercaseForCbc && serviceKey.contains("HMRC-CBC") then
-      text.toLowerCase
-    else
-      text
+    if lowercaseForCbc && serviceKey.contains("HMRC-CBC") then text.toLowerCase
+    else text
   }
 
   // can only display full taxId if no name

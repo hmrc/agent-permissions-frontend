@@ -45,11 +45,11 @@ class SessionCacheServiceSpec extends BaseSpec {
 
   "delete" should {
     "delete given key from session cache repo" in {
-      (for {
+      (for
         _ <- sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq(DisplayClient("whatever", "", "", "")))
         _ <- sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "searchTerm")
         _ <- service.delete(CLIENT_SEARCH_INPUT)
-      } yield ()).futureValue
+      yield ()).futureValue
 
       sessionCacheRepo.getFromSession(SELECTED_CLIENTS).futureValue shouldBe defined
       sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe empty
@@ -58,12 +58,12 @@ class SessionCacheServiceSpec extends BaseSpec {
 
   "deleteAll" should {
     "delete all given keys from session cache repo" in {
-      (for {
+      (for
         _ <- sessionCacheRepo.putSession(SELECTED_CLIENTS, Seq(DisplayClient("whatever", "", "", "")))
         _ <- sessionCacheRepo.putSession(CLIENT_SEARCH_INPUT, "searchTerm")
         _ <- sessionCacheRepo.putSession(CLIENT_FILTER_INPUT, "filterTerm")
         _ <- service.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
-      } yield ()).futureValue
+      yield ()).futureValue
 
       sessionCacheRepo.getFromSession(SELECTED_CLIENTS).futureValue shouldBe defined
       sessionCacheRepo.getFromSession(CLIENT_SEARCH_INPUT).futureValue shouldBe empty

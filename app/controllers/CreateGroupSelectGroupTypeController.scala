@@ -96,8 +96,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
         info <- clientService.getAvailableTaxServiceClientCount(arn)
         sel  <- sessionCacheService.get(GROUP_SERVICE_TYPE)
       yield
-        if info.isEmpty then
-          Ok(exceed_group_selection())
+        if info.isEmpty then Ok(exceed_group_selection())
         else {
           Ok(
             select_group_tax_type(
@@ -126,9 +125,8 @@ class CreateGroupSelectGroupTypeController @Inject() (
                   .groupNameCheck(arn, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
                   .flatMap(nameAvailable =>
                     if nameAvailable then
-                      for
-                        _ <- sessionCacheService
-                               .put[String](GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
+                      for _ <- sessionCacheService
+                                 .put[String](GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
                       yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType())
                     else {
                       Redirect(ctrlRoutes.showReviewTaxServiceGroupType()).toFuture

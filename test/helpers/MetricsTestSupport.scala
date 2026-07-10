@@ -36,16 +36,14 @@ trait MetricsTestSupport {
 
   def givenCleanMetricRegistry(): Unit = {
     val registry = metrics.defaultRegistry
-    for (metric <- registry.getMetrics.keySet().iterator().asScala)
-      registry.remove(metric)
+    for metric <- registry.getMetrics.keySet().iterator().asScala do registry.remove(metric)
     metricsRegistry = registry
   }
 
   def verifyTimerExistsAndBeenUpdated(metric: String): Assertion = {
     val timers = metricsRegistry.getTimers
     val metrics = timers.get(s"Timer-$metric")
-    if (metrics == null)
-      throw new Exception(s"Metric [$metric] not found, try one of ${timers.keySet()}")
+    if metrics == null then throw new Exception(s"Metric [$metric] not found, try one of ${timers.keySet()}")
     metrics.getCount should be >= 1L
   }
 

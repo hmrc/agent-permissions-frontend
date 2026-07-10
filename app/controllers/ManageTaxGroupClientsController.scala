@@ -235,8 +235,7 @@ class ManageTaxGroupClientsController @Inject() (
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[Seq[DisplayClient]](CURRENT_PAGE_CLIENTS) { currentPageClients =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { maybeSearch =>
-            if group.excludedClients.isEmpty then
-              Ok(excluded_clients_not_found(group)).toFuture
+            if group.excludedClients.isEmpty then Ok(excluded_clients_not_found(group)).toFuture
             else {
               AddClientsToGroupForm
                 .form()
@@ -244,8 +243,7 @@ class ManageTaxGroupClientsController @Inject() (
                 .fold(
                   formWithErrors =>
                     // if there are already selected clients you shouldn't have to select on current page.
-                    if
-                      formWithErrors.data.get("submit").contains(CONTINUE_BUTTON) && maybeSelected
+                    if formWithErrors.data.get("submit").contains(CONTINUE_BUTTON) && maybeSelected
                         .getOrElse(Nil)
                         .nonEmpty
                     then {
@@ -267,8 +265,7 @@ class ManageTaxGroupClientsController @Inject() (
                       renderRemovedTaxGroupClients(group, paginatedList, formWithErrors).toFuture
                     },
                   (formData: AddClientsToGroup) =>
-                    if group.excludedClients.isEmpty then
-                      Ok(excluded_clients_not_found(group)).toFuture
+                    if group.excludedClients.isEmpty then Ok(excluded_clients_not_found(group)).toFuture
                     else {
                       formData.submit match {
                         // a button was clicked

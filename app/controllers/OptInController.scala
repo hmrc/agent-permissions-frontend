@@ -75,8 +75,7 @@ class OptInController @Inject() (
                 optInService
                   .optIn(arn, lang)
                   .map(_ => Redirect(routes.OptInController.showYouHaveOptedIn().url))
-              else
-                Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+              else Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
             }
           )
       }

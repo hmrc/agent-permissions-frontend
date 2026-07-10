@@ -58,7 +58,6 @@ trait GroupMemberOps {
 
       // add selected items to session
       _ <- sessionCacheService.put[Seq[T]](selectedKey, toSave.distinct)
-
     yield ()
 
 }

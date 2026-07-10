@@ -126,7 +126,9 @@ class ClientServiceImpl @Inject() (
           .map(dc => if existingSelectedClientIds.contains(dc.id) then dc.copy(selected = true) else dc)
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
       clientsMarkedAsSelected =
-        tuple._2.pageContent.map(dc => if existingSelectedClientIds.contains(dc.id) then dc.copy(selected = true) else dc)
+        tuple._2.pageContent.map(dc =>
+          if existingSelectedClientIds.contains(dc.id) then dc.copy(selected = true) else dc
+        )
       x = (
             tuple._1,
             PaginatedList[DisplayClient](

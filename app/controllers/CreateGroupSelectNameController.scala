@@ -105,17 +105,14 @@ class CreateGroupSelectNameController @Inject() (
                 .groupNameCheck(arn, groupName)
                 .flatMap(nameAvailable =>
                   if nameAvailable then {
-                    for
-                      _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true)
+                    for _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true)
                     yield
                       if groupType == CUSTOM_GROUP then {
                         Redirect(routes.CreateGroupSelectClientsController.showSearchClients())
                       } else Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None))
-                  } else
-                    Redirect(controller.showAccessGroupNameExists()).toFuture
+                  } else Redirect(controller.showAccessGroupNameExists()).toFuture
                 )
-            else
-              Redirect(controller.showGroupName().url).toFuture
+            else Redirect(controller.showGroupName().url).toFuture
         )
     }
   }

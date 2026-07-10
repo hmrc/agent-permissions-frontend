@@ -149,7 +149,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           s"name $i",
           Some(i * 3),
           i * 4,
-          taxService = if (i % 2 == 0) Some("VAT") else None
+          taxService = if i % 2 == 0 then Some("VAT") else None
         )
       )
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(groupSummaries)

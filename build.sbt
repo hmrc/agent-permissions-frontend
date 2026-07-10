@@ -27,8 +27,6 @@ TwirlKeys.templateImports ++= Seq(
 
 val scalaCOptions = Seq(
 //  "-Werror",
-  "-new-syntax",
-  "-rewrite",
   "-Wconf:msg=Flag.*repeatedly:s", // silence warnings about compiler options being invoked repeatedly
   "-feature",
   "-Wconf:src=target/.*:s", // silence warnings from compiled files

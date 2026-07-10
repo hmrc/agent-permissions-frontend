@@ -163,7 +163,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitGroupName().url)
-          .withFormUrlEncodedBody("name" -> RandomStringUtils.randomAlphanumeric(51))
+          .withFormUrlEncodedBody("name" -> RandomStringUtils.secure.nextAlphanumeric(51))
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 

@@ -26,7 +26,7 @@ import models.TeamMember.toAgentUser
 import models.accessgroups.optin.OptedInReady
 import models.accessgroups.{AgentUser, GroupSummary, TaxGroup, UserDetails}
 import models.{AddTeamMembersToGroup, GroupId, TeamMember}
-import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
@@ -53,7 +53,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   implicit val teamMemberService: TeamMemberService = mock[TeamMemberService]
 
   val groupId = GroupId.random()
-  private val agentUser: AgentUser = AgentUser(randomAlphanumeric(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.secure.nextAlphanumeric(5), "Rob the Agent")
   val taxGroup: TaxGroup = new TaxGroup(
     groupId,
     arn,

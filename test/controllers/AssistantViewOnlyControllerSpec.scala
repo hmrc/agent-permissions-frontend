@@ -100,7 +100,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
   private val agentUser: AgentUser =
-    AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+    AgentUser(RandomStringUtils.secure.next(5), "Rob the Agent")
 
   val accessGroup: CustomGroup =
     CustomGroup(

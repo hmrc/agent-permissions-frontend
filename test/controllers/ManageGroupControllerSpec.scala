@@ -51,7 +51,7 @@ class ManageGroupControllerSpec extends BaseSpec {
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   val groupId: GroupId = GroupId.random()
-  private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.secure.next(5), "Rob the Agent")
 
   val accessGroup: CustomGroup = CustomGroup(
     GroupId.random(),

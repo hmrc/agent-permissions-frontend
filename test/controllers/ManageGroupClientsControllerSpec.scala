@@ -57,7 +57,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
   lazy val sessionCacheRepo: SessionCacheRepository =
     new SessionCacheRepository(mongoComponent, timestampSupport)
 
-  private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.secure.next(5), "Rob the Agent")
   val accessGroup: CustomGroup = CustomGroup(
     GroupId.random(),
     arn,

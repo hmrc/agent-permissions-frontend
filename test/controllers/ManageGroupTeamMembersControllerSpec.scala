@@ -26,7 +26,7 @@ import models.TeamMember.toAgentUser
 import models.accessgroups.optin.OptedInReady
 import models.accessgroups.{AgentUser, CustomGroup, GroupSummary, UserDetails}
 import models.{AddTeamMembersToGroup, GroupId, TeamMember}
-import org.apache.commons.lang3.RandomStringUtils.random
+import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
@@ -52,7 +52,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
   implicit val mockTeamMemberService: TeamMemberService = mock[TeamMemberService]
 
   val groupId = GroupId.random()
-  private val agentUser: AgentUser = AgentUser(random(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.secure.next(5), "Rob the Agent")
   val customGroup: CustomGroup = CustomGroup(
     groupId,
     arn,

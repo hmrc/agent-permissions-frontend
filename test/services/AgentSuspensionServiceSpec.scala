@@ -17,7 +17,7 @@
 package services
 
 import connectors.AgentServicesAccountConnector
-import helpers.{AgentAssuranceConnectorMocks, AgentServicesAccountConnectorMocks}
+import helpers.AgentServicesAccountConnectorMocks
 import models.SuspensionDetails
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -26,8 +26,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AgentSuspensionServiceSpec
-    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with AgentAssuranceConnectorMocks
-    with AgentServicesAccountConnectorMocks {
+    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with AgentServicesAccountConnectorMocks {
 
   implicit val mockAgentServicesAccountConnector: AgentServicesAccountConnector = mock[AgentServicesAccountConnector]
 

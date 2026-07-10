@@ -41,7 +41,7 @@ class AgentSuspensionServiceSpec
       GuiceApplicationBuilder()
         .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
         .configure("auditing.enabled" -> false)
-        .configure("metrics.enabled" -> true)
+        .configure("metrics.enabled" -> false)
         .configure("metrics.jvm" -> false)
         .configure("features.enable-agent-record-via-asa" -> true)
 
@@ -78,7 +78,7 @@ class AgentSuspensionServiceSpec
       GuiceApplicationBuilder()
         .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
         .configure("auditing.enabled" -> false)
-        .configure("metrics.enabled" -> true)
+        .configure("metrics.enabled" -> false)
         .configure("metrics.jvm" -> false)
         .configure("features.enable-agent-record-via-asa" -> false)
 

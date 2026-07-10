@@ -112,7 +112,7 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
       .returns(Future.successful(output))
   }
 
-  def expectHttpClientPut[I, O](expectedUrl: URL, input: I, output: O)(implicit
+  def expectHttpClientPut[I, O](expectedUrl: URL, @unused input: I, output: O)(implicit
     mockHttpClient: HttpClientV2,
     @unused hc: HeaderCarrier,
     @unused ec: ExecutionContext

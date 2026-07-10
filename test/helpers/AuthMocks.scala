@@ -59,7 +59,7 @@ trait AuthMocks extends AnyWordSpec with MockFactory {
     authAction: AuthAction
   ): CallHandler4[Arn => Future[Result], ExecutionContext, Request[?], AppConfig, Future[Result]] =
     (authAction
-      .isAuthorisedAgent(_: Arn => Future[Result])(_: ExecutionContext, _: Request[?], _: AppConfig))
+      .isAuthorisedAgent(_: Arn => Future[Result])(using _: ExecutionContext, _: Request[?], _: AppConfig))
       .expects(*, *, *, *)
       .returning(futureResult)
 

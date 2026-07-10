@@ -22,16 +22,17 @@ import org.scalatest.{Assertion, Suite}
 import play.api.Application
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
-import scala.jdk.CollectionConverters._
+import scala.compiletime.uninitialized
+import scala.jdk.CollectionConverters.*
 
 trait MetricsTestSupport {
-  self: Suite with Matchers =>
+  self: Suite & Matchers =>
 
   def app: Application
 
   implicit val metrics: Metrics = app.injector.instanceOf[Metrics]
 
-  private var metricsRegistry: MetricRegistry = _
+  private var metricsRegistry: MetricRegistry = uninitialized
 
   def givenCleanMetricRegistry(): Unit = {
     val registry = metrics.defaultRegistry

@@ -41,7 +41,7 @@ class ErrorHandlerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuit
 
   "standard error endpoint" should {
     "render HTML" in {
-      val html: Html = await(handler.standardErrorTemplate("title", "heading", "message")(fakeRequest))
+      val html: Html = await(handler.standardErrorTemplate("title", "heading", "message")(using fakeRequest))
       html.contentType shouldBe "text/html"
     }
   }

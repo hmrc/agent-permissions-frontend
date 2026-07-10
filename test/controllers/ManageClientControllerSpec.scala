@@ -158,7 +158,7 @@ class ManageClientControllerSpec extends BaseSpec {
         .text() shouldBe "Is this page not working properly? (opens in new tab)"
       html
         .select(".hmrc-report-technical-issue")
-        .attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
+        .attr("href") `startsWith` "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
 
     }
 

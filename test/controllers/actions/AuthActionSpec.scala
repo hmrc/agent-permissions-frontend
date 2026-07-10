@@ -60,7 +60,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(MissingBearerToken())
 
         val result =
-          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           "http://localhost:9099/bas-gateway/sign-in?continue_url=http://localhost:9452/&origin=agent-permissions-frontend"
@@ -95,7 +95,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(InsufficientEnrolments())
 
         val result =
-          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
         status(result) shouldBe FORBIDDEN
       }
 
@@ -105,7 +105,7 @@ class AuthActionSpec extends BaseSpec {
           expectAuthorisationFails(UnsupportedAuthProvider())
 
           val result =
-            authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
+            authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
           status(result) shouldBe FORBIDDEN
         }
       }

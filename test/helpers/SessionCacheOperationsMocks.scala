@@ -30,7 +30,7 @@ trait SessionCacheOperationsMocks extends AnyWordSpec with MockFactory {
     sessionCacheOps: SessionCacheOperationsService
   ): Unit =
     (sessionCacheOps
-      .savePageOfClientsForCreateGroup(_: AddClientsToGroup)(_: ExecutionContext, _: Request[?]))
+      .savePageOfClientsForCreateGroup(_: AddClientsToGroup)(using _: ExecutionContext, _: Request[?]))
       .expects(formData, *, *)
       .returning(Future successful members)
 
@@ -38,7 +38,7 @@ trait SessionCacheOperationsMocks extends AnyWordSpec with MockFactory {
     implicit sessionCacheOps: SessionCacheOperationsService
   ): Unit =
     (sessionCacheOps
-      .saveClientsToAddToExistingGroup(_: AddClientsToGroup)(_: ExecutionContext, _: Request[?]))
+      .saveClientsToAddToExistingGroup(_: AddClientsToGroup)(using _: ExecutionContext, _: Request[?]))
       .expects(formData, *, *)
       .returning(Future successful members)
 
@@ -46,7 +46,7 @@ trait SessionCacheOperationsMocks extends AnyWordSpec with MockFactory {
     sessionCacheOps: SessionCacheOperationsService
   ): Unit =
     (sessionCacheOps
-      .saveSearch(_: Option[String], _: Option[String])(_: Request[?], _: ExecutionContext))
+      .saveSearch(_: Option[String], _: Option[String])(using _: Request[?], _: ExecutionContext))
       .expects(searchTerm, filterTerm, *, *)
       .returning(Future.successful(()))
       .once()

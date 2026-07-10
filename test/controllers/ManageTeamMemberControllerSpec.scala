@@ -28,6 +28,7 @@ import models.{GroupId, TeamMember}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{AgentSuspensionService, GroupService, SessionCacheService, TeamMemberService}
@@ -163,10 +164,11 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectDeleteSessionItem(TEAM_MEMBER_SEARCH_INPUT)
 
       // and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
-        .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
+          .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
+          .withHeaders("Authorization" -> "Bearer XYZ")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       // when
       val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)
@@ -183,13 +185,14 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
       expectPutSessionItem(TEAM_MEMBER_SEARCH_INPUT, dude)
 
       // and we have CLEAR filter in query params
-      implicit val requestWithQueryParams = FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
-        .withFormUrlEncodedBody(
-          "submit" -> FILTER_BUTTON,
-          "search" -> dude
-        )
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(POST, ctrlRoute.submitPageOfTeamMembers().url)
+          .withFormUrlEncodedBody(
+            "submit" -> FILTER_BUTTON,
+            "search" -> dude
+          )
+          .withHeaders("Authorization" -> "Bearer XYZ")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       // when
       val result = controller.submitPageOfTeamMembers()(requestWithQueryParams)

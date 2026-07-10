@@ -620,9 +620,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None)}’ page with answer ‘false'" in {
 
-      implicit val request = FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
-        .withFormUrlEncodedBody("answer" -> "false")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
+          .withFormUrlEncodedBody("answer" -> "false")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
@@ -639,9 +640,10 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showAddTeamMembers(CUSTOM, groupId, None)}’ page with answer ‘true'" in {
 
-      implicit val request = FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
@@ -655,7 +657,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -681,7 +683,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, CUSTOM, None).url}’ when no SELECTED_TEAM_MEMBERS in session" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(CUSTOM, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")

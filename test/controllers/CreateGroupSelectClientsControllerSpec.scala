@@ -337,13 +337,14 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       s"button is Continue and redirect to ${ctrlRoute.showReviewSelectedClients(None, None).url}" in {
 
-        implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
-          .withSession(SessionKeys.sessionId -> "session-x")
-          .withFormUrlEncodedBody(
-            "clients[]" -> displayClientsIds.head,
-            "clients[]" -> displayClientsIds.last,
-            "submit"    -> CONTINUE_BUTTON
-          )
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+          FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
+            .withSession(SessionKeys.sessionId -> "session-x")
+            .withFormUrlEncodedBody(
+              "clients[]" -> displayClientsIds.head,
+              "clients[]" -> displayClientsIds.last,
+              "submit"    -> CONTINUE_BUTTON
+            )
         expectAuthOkArnAllowedOptedInReadyWithGroupName()
         expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
         val formData = AddClientsToGroup(
@@ -360,7 +361,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       s"button is pagination_2 and redirect to ${ctrlRoute.showSelectClients(Some(2), Some(20)).url}" in {
 
-        implicit val request =
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
@@ -388,7 +389,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       s"bad submit (not continue or page number) redirect to ${ctrlRoute.showSearchClients().url}" in {
 
-        implicit val request =
+        implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
           FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
             .withSession(SessionKeys.sessionId -> "session-x")
             .withFormUrlEncodedBody(
@@ -418,12 +419,13 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     "display error when button is Continue, no clients were selected" in {
 
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
-        .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "clients[]" -> "",
-          "submit"    -> CONTINUE_BUTTON
-        )
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "clients[]" -> "",
+            "submit"    -> CONTINUE_BUTTON
+          )
 
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, Seq.empty) // with no preselected
@@ -444,12 +446,13 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     "display error when button is Continue and DESELECTION mean that nothing is now selected" in {
       // given
-      implicit val request = FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
-        .withSession(SessionKeys.sessionId -> "session-x")
-        .withFormUrlEncodedBody(
-          "clients[]" -> "",
-          "submit"    -> CONTINUE_BUTTON
-        )
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitSelectedClients().url)
+          .withSession(SessionKeys.sessionId -> "session-x")
+          .withFormUrlEncodedBody(
+            "clients[]" -> "",
+            "submit"    -> CONTINUE_BUTTON
+          )
 
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       // this currently selected member will be unselected as part of the post
@@ -476,7 +479,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
     "redirect to createGroup when POSTED without groupName in Session" in {
 
       // given
-      implicit val request = FakeRequest(
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest(
         "POST",
         ctrlRoute.submitSelectedClients().url
       ).withFormUrlEncodedBody("submit" -> CONTINUE_BUTTON)
@@ -603,7 +606,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     s"redirect to ‘${routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None).url}’ page with answer ‘false'" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -622,7 +625,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showSearchClients().url}’ page with answer ‘true'" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -640,7 +643,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showSearchClients().url}’ with no SELECTED in session" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -656,7 +659,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -676,7 +679,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     s"render errors when continuing with 0 selected clients in session" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -730,9 +733,10 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val clientToRemove = displayClients.head
 
-      implicit val request = FakeRequest("POST", s"${controller.submitConfirmRemoveClient}")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitConfirmRemoveClient}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkArnAllowedOptedInReadyWithGroupName()
       expectGetSessionItem(SELECTED_CLIENTS, displayClients)
@@ -750,7 +754,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
       val clientToRemove = displayClients.head
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -767,7 +771,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showSearchClients().url}’ with no CLIENT_TO_REMOVE in session" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewSelectedClients()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -783,7 +787,7 @@ class CreateGroupSelectClientsControllerSpec extends BaseSpec {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitConfirmRemoveClient()}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")

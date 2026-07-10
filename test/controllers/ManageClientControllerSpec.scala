@@ -27,6 +27,7 @@ import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{AgentSuspensionService, ClientService, GroupService, SessionCacheService}
@@ -189,7 +190,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectPutSessionItem(CLIENT_FILTER_INPUT, "")
 
       val url = ctrlRoute.submitPageOfClients().url
-      implicit val fakeRequest = FakeRequest(POST, url)
+      implicit val fakeRequest: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest(POST, url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withFormUrlEncodedBody("search" -> "friendly1", "submit" -> FILTER_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -209,7 +210,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectDeleteSessionItem(CLIENT_FILTER_INPUT)
 
       // and we have CLEAR filter in query params
-      implicit val fakeRequest =
+      implicit val fakeRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
           .withHeaders("Authorization" -> "Bearer XYZ")
           .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
@@ -228,7 +229,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
 
       // and we have CLEAR filter in query params
-      implicit val fakeRequest =
+      implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
         FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
           .withHeaders("Authorization" -> "Bearer XYZ")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -393,10 +394,11 @@ class ManageClientControllerSpec extends BaseSpec {
       expectPutSessionItem(CLIENT_REFERENCE, newClientReference)
       expectUpdateClientReference(arn, expectedClient, newClientReference)
 
-      implicit val request = FakeRequest(POST, ctrlRoute.submitUpdateClientReference(expectedClient.id).url)
-        .withFormUrlEncodedBody("clientRef" -> newClientReference)
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(POST, ctrlRoute.submitUpdateClientReference(expectedClient.id).url)
+          .withFormUrlEncodedBody("clientRef" -> newClientReference)
+          .withHeaders("Authorization" -> "Bearer XYZ")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       // when
       val result = controller.submitUpdateClientReference(expectedClient.id)(request)

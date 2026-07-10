@@ -601,7 +601,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None)}’ page with answer ‘false'" in {
 
       val endpoint = s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}"
-      implicit val request = FakeRequest("POST", endpoint)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST", endpoint)
         .withFormUrlEncodedBody("answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -621,9 +621,10 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None)}’ page with answer ‘true'" in {
 
-      implicit val request = FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
@@ -637,7 +638,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -663,7 +664,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url}’ when no SELECTED_TEAM_MEMBERS in session" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")

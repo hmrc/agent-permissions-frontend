@@ -30,7 +30,7 @@ class AgentServicesAccountConnectorSpec extends BaseSpec with HttpClientMocks wi
 
   implicit val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
   implicit val requestBuilder: RequestBuilder = mock[RequestBuilder]
-  val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val appConfig: AppConfig = fakeApplication().injector.instanceOf[AppConfig]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -38,10 +38,10 @@ class AgentServicesAccountConnectorSpec extends BaseSpec with HttpClientMocks wi
       bind(classOf[HttpClientV2]).toInstance(mockHttpClient)
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.build()
+  override implicit def fakeApplication(): Application = appBuilder.build()
 
   val connector: AgentServicesAccountConnector =
-    fakeApplication.injector.instanceOf[AgentServicesAccountConnector]
+    fakeApplication().injector.instanceOf[AgentServicesAccountConnector]
 
   "getSuspensionDetails" should {
 

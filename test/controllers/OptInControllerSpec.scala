@@ -70,12 +70,12 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val controller: OptInController = fakeApplication.injector.instanceOf[OptInController]
+  val controller: OptInController = fakeApplication().injector.instanceOf[OptInController]
 
   s"GET ${routes.OptInController.start().url}" should {
 

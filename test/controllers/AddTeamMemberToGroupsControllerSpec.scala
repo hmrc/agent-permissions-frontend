@@ -66,10 +66,10 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
   }
 
-  private val controller = fakeApplication.injector.instanceOf[AddTeamMemberToGroupsController]
+  private val controller = fakeApplication().injector.instanceOf[AddTeamMemberToGroupsController]
   private val ctrlRoute: ReverseAddTeamMemberToGroupsController = routes.AddTeamMemberToGroupsController
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val userDetails: Seq[UserDetails] = (1 to 5)

@@ -34,12 +34,12 @@ class SessionCacheServiceSpec extends BaseSpec {
       bind(classOf[SessionCacheRepository]).toInstance(sessionCacheRepo)
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val service = fakeApplication.injector.instanceOf[SessionCacheService]
+  val service = fakeApplication().injector.instanceOf[SessionCacheService]
 
   // TODO test get, put
 

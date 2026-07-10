@@ -43,14 +43,14 @@ class AgentUserClientDetailsConnectorSpec
       bind(classOf[HttpClientV2]).toInstance(mockHttpClient)
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .build()
 
   val connector: AgentUserClientDetailsConnector =
-    fakeApplication.injector.instanceOf[AgentUserClientDetailsConnectorImpl]
+    fakeApplication().injector.instanceOf[AgentUserClientDetailsConnectorImpl]
 
-  val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val appConfig: AppConfig = fakeApplication().injector.instanceOf[AppConfig]
 
   private val expectedClient: Client = Client(enrolmentKey = "HMRC-MTD-IT~MTDITID~XX12345", friendlyName = "Rapunzel")
   "get client" should {

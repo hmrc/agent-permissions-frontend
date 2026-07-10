@@ -49,10 +49,10 @@ class CreateGroupSelectGroupTypeControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
+  override implicit def fakeApplication(): Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val controller: CreateGroupSelectGroupTypeController =
-    fakeApplication.injector.instanceOf[CreateGroupSelectGroupTypeController]
+    fakeApplication().injector.instanceOf[CreateGroupSelectGroupTypeController]
   private val ctrlRoute: ReverseCreateGroupSelectGroupTypeController = routes.CreateGroupSelectGroupTypeController
   private val VAT = "HMRC-MTD-VAT"
 

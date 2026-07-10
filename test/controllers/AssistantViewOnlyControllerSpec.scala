@@ -85,7 +85,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
@@ -129,7 +129,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     Set.empty
   )
 
-  val controller: AssistantViewOnlyController = fakeApplication.injector.instanceOf[AssistantViewOnlyController]
+  val controller: AssistantViewOnlyController = fakeApplication().injector.instanceOf[AssistantViewOnlyController]
   private val ctrlRoute: ReverseAssistantViewOnlyController = routes.AssistantViewOnlyController
 
   def AssistantAuthOk(): Unit = {

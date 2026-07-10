@@ -45,9 +45,9 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
       bind(classOf[HttpClientV2]).toInstance(mockHttpClient)
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.build()
+  override implicit def fakeApplication(): Application = appBuilder.build()
 
-  val connector: AgentPermissionsConnector = fakeApplication.injector.instanceOf[AgentPermissionsConnectorImpl]
+  val connector: AgentPermissionsConnector = fakeApplication().injector.instanceOf[AgentPermissionsConnectorImpl]
   val groupName: String = "my fav%& clients"
   val encodedGroupName = URLEncoder.encode(groupName, UTF_8.name)
 

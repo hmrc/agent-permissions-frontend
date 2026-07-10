@@ -61,10 +61,11 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
-  val controller: CreateGroupSelectNameController = fakeApplication.injector.instanceOf[CreateGroupSelectNameController]
+  val controller: CreateGroupSelectNameController =
+    fakeApplication().injector.instanceOf[CreateGroupSelectNameController]
 
   private val ctrlRoute: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 

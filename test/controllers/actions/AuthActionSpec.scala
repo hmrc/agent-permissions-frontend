@@ -46,12 +46,12 @@ class AuthActionSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .build()
 
-  val authAction: AuthAction = fakeApplication.injector.instanceOf[AuthAction]
-  implicit val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val authAction: AuthAction = fakeApplication().injector.instanceOf[AuthAction]
+  implicit val appConfig: AppConfig = fakeApplication().injector.instanceOf[AppConfig]
 
   "Auth Action" when {
     "the user hasn't logged in" should {

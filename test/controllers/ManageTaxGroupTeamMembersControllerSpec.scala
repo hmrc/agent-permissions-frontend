@@ -92,7 +92,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
@@ -113,7 +113,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   val teamMembers2: Seq[TeamMember] = userDetails2.map(TeamMember.fromUserDetails)
 
   val controller: ManageGroupTeamMembersController =
-    fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
+    fakeApplication().injector.instanceOf[ManageGroupTeamMembersController]
   private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
   def expectAuthOkOptedInReady(): Unit = {

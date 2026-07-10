@@ -97,7 +97,7 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val fakeClients: Seq[Client] =
@@ -121,7 +121,8 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
-  val controller: ManageTaxGroupClientsController = fakeApplication.injector.instanceOf[ManageTaxGroupClientsController]
+  val controller: ManageTaxGroupClientsController =
+    fakeApplication().injector.instanceOf[ManageTaxGroupClientsController]
 
   val enrolmentKey: String = "HMRC-MTD-VAT~VRN~123456780"
   private val ctrlRoute: ReverseManageTaxGroupClientsController = routes.ManageTaxGroupClientsController

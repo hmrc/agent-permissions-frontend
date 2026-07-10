@@ -38,10 +38,10 @@ class OptinServiceSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
-  val service = fakeApplication.injector.instanceOf[OptInServiceImpl]
+  val service = fakeApplication().injector.instanceOf[OptInServiceImpl]
 
   "Opt out" should {
     "call opt out" in {

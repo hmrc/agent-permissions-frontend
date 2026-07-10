@@ -58,9 +58,9 @@ class OptOutControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
+  override implicit def fakeApplication(): Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
-  val controller: OptOutController = fakeApplication.injector.instanceOf[OptOutController]
+  val controller: OptOutController = fakeApplication().injector.instanceOf[OptOutController]
 
   def authOk(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)

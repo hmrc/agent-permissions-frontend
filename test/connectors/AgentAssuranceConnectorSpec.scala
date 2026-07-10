@@ -29,7 +29,7 @@ class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocks with Age
 
   implicit val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
   implicit val requestBuilder: RequestBuilder = mock[RequestBuilder]
-  val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val appConfig: AppConfig = fakeApplication().injector.instanceOf[AppConfig]
 
   override def moduleWithOverrides: AbstractModule = new AbstractModule() {
 
@@ -37,10 +37,10 @@ class AgentAssuranceConnectorSpec extends BaseSpec with HttpClientMocks with Age
       bind(classOf[HttpClientV2]).toInstance(mockHttpClient)
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.build()
+  override implicit def fakeApplication(): Application = appBuilder.build()
 
   val connector: AgentAssuranceConnector =
-    fakeApplication.injector.instanceOf[AgentAssuranceConnector]
+    fakeApplication().injector.instanceOf[AgentAssuranceConnector]
 
   "getSuspensionDetails" should {
 

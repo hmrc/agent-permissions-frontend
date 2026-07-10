@@ -76,7 +76,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
@@ -88,7 +88,7 @@ class UnassignedClientControllerSpec extends BaseSpec with BeforeAndAfterEach {
   val groupSummaries: Seq[GroupSummary] =
     (1 to 3).map(i => GroupSummary(GroupId.random(), s"with none setname $i", Some(i * 3), i * 4))
 
-  val controller: UnassignedClientController = fakeApplication.injector.instanceOf[UnassignedClientController]
+  val controller: UnassignedClientController = fakeApplication().injector.instanceOf[UnassignedClientController]
 
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)

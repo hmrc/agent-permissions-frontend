@@ -68,12 +68,12 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val controller: ManageTeamMemberController = fakeApplication.injector.instanceOf[ManageTeamMemberController]
+  val controller: ManageTeamMemberController = fakeApplication().injector.instanceOf[ManageTeamMemberController]
 
   val agentUsers: Set[AgentUser] = (1 to 5).map(i => AgentUser(id = s"John $i", name = s"John $i name")).toSet
 

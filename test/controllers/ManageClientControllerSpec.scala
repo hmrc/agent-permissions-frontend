@@ -68,13 +68,13 @@ class ManageClientControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
   val controller: ManageClientController =
-    fakeApplication.injector.instanceOf[ManageClientController]
+    fakeApplication().injector.instanceOf[ManageClientController]
 
   val fakeClients: Seq[Client] =
     List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))

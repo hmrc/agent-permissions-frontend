@@ -107,7 +107,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val fakeClients: Seq[Client] =
@@ -127,7 +127,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
 
   val teamMembers: Seq[TeamMember] = userDetails.map(TeamMember.fromUserDetails)
 
-  val controller: ManageGroupClientsController = fakeApplication.injector.instanceOf[ManageGroupClientsController]
+  val controller: ManageGroupClientsController = fakeApplication().injector.instanceOf[ManageGroupClientsController]
   private val ctrlRoute: ReverseManageGroupClientsController = routes.ManageGroupClientsController
   private val grpId: GroupId = accessGroup.id
 

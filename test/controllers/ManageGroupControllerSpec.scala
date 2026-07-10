@@ -100,7 +100,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
@@ -132,7 +132,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 
-  val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
+  val controller: ManageGroupController = fakeApplication().injector.instanceOf[ManageGroupController]
   private val ctrlRoute: ReverseManageGroupController = routes.ManageGroupController
 
   s"GET ${ctrlRoute.showManageGroups(None, None).url}" should {

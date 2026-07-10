@@ -41,7 +41,7 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
     SessionKeys.sessionId -> sessionId
   )
 
-  private implicit val crypto: Encrypter with Decrypter = SymmetricCryptoFactory.aesCrypto(
+  private implicit val crypto: Encrypter & Decrypter = SymmetricCryptoFactory.aesCrypto(
     "oaJdbtyXIUyd+hHefKbMUqtehotAG99pH0bqpkSuQ/Q="
   )
 

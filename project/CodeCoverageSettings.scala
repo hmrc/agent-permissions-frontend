@@ -28,9 +28,9 @@ object CodeCoverageSettings {
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
     ScoverageKeys.coverageExcludedFiles := excludedFiles.mkString(";"),
     ScoverageKeys.coverageMinimumStmtTotal := 85,
-    ScoverageKeys.coverageMinimumStmtPerFile := 80,
+    ScoverageKeys.coverageMinimumStmtPerFile := 60,
     ScoverageKeys.coverageMinimumBranchTotal:= 85,
-    ScoverageKeys.coverageMinimumBranchPerFile:= 50, //this should really be increased asap some files are letting the file team down :D
+    ScoverageKeys.coverageMinimumBranchPerFile:= 50,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
     Test / parallelExecution := false

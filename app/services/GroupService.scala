@@ -132,26 +132,26 @@ class GroupServiceImpl @Inject() (
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(Seq[DisplayClient], PaginationMetaData)] =
-    for {
+    for
       searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
       filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
       list <-
         agentPermissionsConnector.getPaginatedClientsForCustomGroup(groupId)(page, pageSize, searchTerm, filterTerm)
       displayList = list.pageContent.map(client => DisplayClient.fromClient(client))
-    } yield (displayList, list.paginationMetaData)
+    yield (displayList, list.paginationMetaData)
 
   // Compares users in group with users on ARN & fetches missing details (email & cred role)
   def getTeamMembersFromGroup(arn: Arn)(
     teamMembersInGroup: Seq[TeamMember] = Seq.empty
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] =
-    for {
+    for
       ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
       ugsAsTeamMembers = ugsUsers.map(TeamMember.fromUserDetails)
       groupTeamMembers = ugsAsTeamMembers
                            .filter(tm => teamMembersInGroup.map(_.userId).contains(tm.userId))
                            .sortBy(_.name)
       groupTeamMembersSelected = groupTeamMembers.map(_.copy(alreadyInGroup = true))
-    } yield groupTeamMembersSelected
+    yield groupTeamMembersSelected
 
   def getGroupSummaries(
     arn: Arn
@@ -163,17 +163,17 @@ class GroupServiceImpl @Inject() (
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[GroupSummary]] =
-    for {
+    for
       summaries <- agentPermissionsConnector.getGroupSummaries(arn)
       filteredSummaries = summaries.filter(_.groupName.toLowerCase.contains(filterTerm.toLowerCase))
-    } yield PaginatedListBuilder.build[GroupSummary](page, pageSize, filteredSummaries)
+    yield PaginatedListBuilder.build[GroupSummary](page, pageSize, filteredSummaries)
 
   def createGroup(arn: Arn, groupName: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
     request: Request[?]
   ): Future[Done] =
-    for {
+    for
       clients <-
         sessionCacheService.get(SELECTED_CLIENTS).map(_.map(_.map(client => Client(client.enrolmentKey, client.name))))
       agentUsers <- sessionCacheService.get(SELECTED_TEAM_MEMBERS).map(_.map(_.map(tm => toAgentUser(tm))))
@@ -181,7 +181,7 @@ class GroupServiceImpl @Inject() (
       _ <- agentPermissionsConnector.createGroup(arn)(groupRequest)
       _ <- sessionCacheService.deleteAll(creatingGroupKeys)
       _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
-    } yield Done
+    yield Done
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)(implicit
     request: Request[?],
@@ -200,9 +200,9 @@ class GroupServiceImpl @Inject() (
       case Some(gs) => gs
       case None     => Seq.empty
     }
-    for {
+    for
       g <- groupSummaries
-    } yield g
+    yield g
   }
 
   def updateGroup(groupId: GroupId, group: UpdateAccessGroupRequest)(implicit

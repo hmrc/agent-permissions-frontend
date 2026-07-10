@@ -1,5 +1,5 @@
-import uk.gov.hmrc.{DefaultBuildSettings, SbtAutoBuildPlugin}
-import CodeCoverageSettings.{settings}
+import CodeCoverageSettings.settings
+import uk.gov.hmrc.DefaultBuildSettings
 
 val appName = "agent-permissions-frontend"
 
@@ -27,6 +27,8 @@ TwirlKeys.templateImports ++= Seq(
 
 val scalaCOptions = Seq(
 //  "-Werror",
+  "-new-syntax",
+  "-rewrite",
   "-Wconf:msg=Flag.*repeatedly:s", // silence warnings about compiler options being invoked repeatedly
   "-feature",
   "-Wconf:src=target/.*:s", // silence warnings from compiled files

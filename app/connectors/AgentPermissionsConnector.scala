@@ -649,7 +649,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done] = {
-    val typeOfGroup = if (isCustom) "groups" else "tax-group"
+    val typeOfGroup = if isCustom then "groups" else "tax-group"
     val url: URL = url"$agentPermissionsUrl/$typeOfGroup/$groupId/members/$memberId"
     http.delete(url).execute[HttpResponse].map { response =>
       response.status match {

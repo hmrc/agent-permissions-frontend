@@ -100,15 +100,15 @@ class CreateGroupSelectNameController @Inject() (
         .fold(
           formWithErrors => Ok(confirm_name(formWithErrors, groupName)).toFuture,
           (nameIsCorrect: Boolean) =>
-            if (nameIsCorrect)
+            if nameIsCorrect then
               groupService
                 .groupNameCheck(arn, groupName)
                 .flatMap(nameAvailable =>
-                  if (nameAvailable) {
-                    for {
+                  if nameAvailable then {
+                    for
                       _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true)
-                    } yield
-                      if (groupType == CUSTOM_GROUP) {
+                    yield
+                      if groupType == CUSTOM_GROUP then {
                         Redirect(routes.CreateGroupSelectClientsController.showSearchClients())
                       } else Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None))
                   } else

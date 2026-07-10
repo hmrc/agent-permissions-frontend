@@ -63,7 +63,7 @@ class AuthAction @Inject() (
               credRole match {
                 case Some(User) | Some(Admin) =>
                   agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
-                    if (isArnAllowed) {
+                    if isArnAllowed then {
                       body(arn)
                     } else {
                       logger.warn("ARN is not on allowed list")
@@ -97,7 +97,7 @@ class AuthAction @Inject() (
               credRole match {
                 case Some(Assistant) =>
                   agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
-                    if (isArnAllowed) {
+                    if isArnAllowed then {
                       body(arn)
                     } else {
                       logger.warn("ARN is not on allowed list")

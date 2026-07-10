@@ -86,7 +86,7 @@ class AddClientToGroupsController @Inject() (
               }
             },
           validForm =>
-            if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
+            if validForm.contains(AddGroupsToClientForm.NoneValue) then {
               Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
             } else {
               val groupIds: Seq[GroupId] = validForm.map(GroupId.fromString)

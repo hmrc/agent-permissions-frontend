@@ -25,9 +25,9 @@ import java.util.Base64
 
 class CryptoProviderModule extends Module {
 
-  def aesCryptoInstance(configuration: Configuration): Encrypter & Decrypter = if (
+  def aesCryptoInstance(configuration: Configuration): Encrypter & Decrypter = if
     configuration.underlying.getBoolean("fieldLevelEncryption.enable")
-  )
+  then
     SymmetricCryptoFactory.aesCryptoFromConfig("fieldLevelEncryption", configuration.underlying)
   else
     NoCrypto

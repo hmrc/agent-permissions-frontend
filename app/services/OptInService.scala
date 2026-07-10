@@ -60,11 +60,11 @@ class OptInServiceImpl @Inject() (
   private def optingTo(
     func: Arn => Future[Done]
   )(arn: Arn)(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
-    for {
+    for
       _           <- func(arn)
       maybeStatus <- agentPermissionsConnector.getOptInStatus(arn)
       status = maybeStatus.getOrElse(throw new RuntimeException(s"could not get optin-status from backend"))
       _ <- sessionCacheRepository.putSession[OptinStatus](OPT_IN_STATUS, status)
-    } yield Done
+    yield Done
 
 }

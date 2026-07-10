@@ -31,7 +31,7 @@ trait GroupMemberOps {
     selectedKey: DataKey[Seq[T]],
     filteredKey: DataKey[Seq[T]]
   )(implicit request: Request[Any], ec: ExecutionContext, reads: Reads[Seq[T]], writes: Writes[Seq[T]]): Future[Unit] =
-    for {
+    for
       // ALL the existing selected items, whether visible to user or not
       currentlySelectedInSession <- sessionCacheService.get[Seq[T]](selectedKey).map(_.map(_.toList))
 
@@ -59,6 +59,6 @@ trait GroupMemberOps {
       // add selected items to session
       _ <- sessionCacheService.put[Seq[T]](selectedKey, toSave.distinct)
 
-    } yield ()
+    yield ()
 
 }

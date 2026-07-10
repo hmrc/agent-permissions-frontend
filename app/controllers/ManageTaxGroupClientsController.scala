@@ -67,26 +67,26 @@ class ManageTaxGroupClientsController @Inject() (
   ): Action[AnyContent] = Action.async { implicit request =>
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-      val taxServiceName = if (group.service == "HMRC-TERS") "TRUST" else group.service
+      val taxServiceName = if group.service == "HMRC-TERS" then "TRUST" else group.service
       searchFilter.submit.fold( // fresh page load or pagination reload
-        for {
+        for
           _ <-
             sessionCacheService.delete(
               CLIENT_SEARCH_INPUT
             ) // This line ensures any values for CLIENT_SEARCH_INPUT set on the Excluded page are not retained when using the back button to navigate back to the Clients page
           _                <- sessionCacheService.put(CLIENT_FILTER_INPUT, taxServiceName)
           paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
-        } yield {
+        yield {
           val form = SearchAndFilterForm.form()
           renderGroupClientsWithExcluded(group, paginatedClients, form)
         }
       ) { // a button was clicked
         case FILTER_BUTTON =>
-          for {
+          for
             _                <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
             _                <- sessionCacheService.put(CLIENT_FILTER_INPUT, taxServiceName)
             paginatedClients <- clientService.getPaginatedClients(group.arn)(page.getOrElse(1), pageSize.getOrElse(20))
-          } yield {
+          yield {
             val form = SearchAndFilterForm.form().fill(searchFilter)
             renderGroupClientsWithExcluded(group, paginatedClients, form)
           }
@@ -95,7 +95,7 @@ class ManageTaxGroupClientsController @Inject() (
             .delete(CLIENT_SEARCH_INPUT)
             .map(_ => Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20))))
         case button =>
-          if (button.startsWith(PAGINATION_BUTTON)) {
+          if button.startsWith(PAGINATION_BUTTON) then {
             val pageToShow = button.replace(s"${PAGINATION_BUTTON}_", "").toInt
             Redirect(controller.showExistingGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
           } else { // bad submit
@@ -150,7 +150,7 @@ class ManageTaxGroupClientsController @Inject() (
             .fold(
               formWithErrors => renderConfirmRemoveClient(group, groupId, clientToRemove, formWithErrors).toFuture,
               (yes: Boolean) =>
-                if (yes) {
+                if yes then {
                   val updateRequest = UpdateTaxServiceGroupRequest(
                     excludedClients = Option(group.excludedClients + toClient(clientToRemove))
                   )
@@ -196,7 +196,7 @@ class ManageTaxGroupClientsController @Inject() (
     withTaxGroupForAuthorisedOptedAgent(groupId) { (group: TaxGroup, _: Arn) =>
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[String](CLIENT_SEARCH_INPUT) { maybeSearch =>
-          if (group.excludedClients.isEmpty) Ok(excluded_clients_not_found(group)).toFuture
+          if group.excludedClients.isEmpty then Ok(excluded_clients_not_found(group)).toFuture
           else {
             val paginatedList =
               paginationOfExcludedClients(group.excludedClients, page, pageSize, maybeSearch, maybeSelected)
@@ -235,7 +235,7 @@ class ManageTaxGroupClientsController @Inject() (
       withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelected =>
         withSessionItem[Seq[DisplayClient]](CURRENT_PAGE_CLIENTS) { currentPageClients =>
           withSessionItem[String](CLIENT_SEARCH_INPUT) { maybeSearch =>
-            if (group.excludedClients.isEmpty)
+            if group.excludedClients.isEmpty then
               Ok(excluded_clients_not_found(group)).toFuture
             else {
               AddClientsToGroupForm
@@ -244,11 +244,11 @@ class ManageTaxGroupClientsController @Inject() (
                 .fold(
                   formWithErrors =>
                     // if there are already selected clients you shouldn't have to select on current page.
-                    if (
+                    if
                       formWithErrors.data.get("submit").contains(CONTINUE_BUTTON) && maybeSelected
                         .getOrElse(Nil)
                         .nonEmpty
-                    ) {
+                    then {
                       updateExcludedClients(
                         groupId,
                         maybeSelected,
@@ -267,7 +267,7 @@ class ManageTaxGroupClientsController @Inject() (
                       renderRemovedTaxGroupClients(group, paginatedList, formWithErrors).toFuture
                     },
                   (formData: AddClientsToGroup) =>
-                    if (group.excludedClients.isEmpty)
+                    if group.excludedClients.isEmpty then
                       Ok(excluded_clients_not_found(group)).toFuture
                     else {
                       formData.submit match {
@@ -293,7 +293,7 @@ class ManageTaxGroupClientsController @Inject() (
                             .delete(CLIENT_SEARCH_INPUT)
                             .map(_ => Redirect(controller.showExcludedClients(groupId, Some(1), Some(10))))
                         case button =>
-                          if (button.startsWith(PAGINATION_BUTTON)) {
+                          if button.startsWith(PAGINATION_BUTTON) then {
                             val totalSelectedClients =
                               clientsSelectedIncludingCurrentPage(maybeSelected, currentPageClients, formData)
                             sessionCacheService
@@ -325,10 +325,10 @@ class ManageTaxGroupClientsController @Inject() (
     val clientsToUnexclude = clientsSelectedIncludingCurrentPage(maybeSelected, currentPageClients, formData)
     val clients: Set[Client] = excludedClients -- clientsToUnexclude.map(toClient)
     val updateRequest = UpdateTaxServiceGroupRequest(excludedClients = Option(clients))
-    for {
+    for
       _ <- taxGroupService.updateGroup(groupId, updateRequest)
       _ <- sessionCacheService.delete(SELECTED_CLIENTS)
-    } yield clientsToUnexclude.size
+    yield clientsToUnexclude.size
   }
 
   private def paginationOfExcludedClients(
@@ -341,12 +341,12 @@ class ManageTaxGroupClientsController @Inject() (
     var sortedExcludedClients = excludedClients.map(fromClient(_)).toSeq.sortBy(_.name)
     val pge = page.getOrElse(1)
     val pgSize = pageSize.getOrElse(10)
-    if (maybeSearch.isDefined) {
+    if maybeSearch.isDefined then {
       val lowerCaseSearch = maybeSearch.get.toLowerCase
       sortedExcludedClients = sortedExcludedClients
         .filter(dc => dc.name.toLowerCase.contains(lowerCaseSearch) || dc.hmrcRef.toLowerCase.contains(lowerCaseSearch))
     }
-    if (maybeSelected.getOrElse(Seq.empty[DisplayClient]).nonEmpty) {
+    if maybeSelected.getOrElse(Seq.empty[DisplayClient]).nonEmpty then {
       sortedExcludedClients =
         sortedExcludedClients.map(dc => dc.copy(selected = maybeSelected.get.map(_.id).contains(dc.id)))
     }

@@ -78,7 +78,7 @@ case class DisplayClient(
   alreadyInGroup: Boolean = false
 ) extends Selectable {
   // TODO problematic assumption about where the 'key' identifier (hmrcRef) is in an enrolmentKey
-  val enrolmentKey: String = if (taxService == "HMRC-CBC-ORG") {
+  val enrolmentKey: String = if taxService == "HMRC-CBC-ORG" then {
     s"$taxService~cbcId~$hmrcRef~$enrolmentKeyExtra"
   } else { s"$taxService~$enrolmentKeyExtra~$hmrcRef" }
   val id: String = EncryptionUtil.encryptEnrolmentKey(enrolmentKey)
@@ -103,10 +103,10 @@ case object DisplayClient {
     val keyElements = client.enrolmentKey.split('~')
     val taxService = keyElements.head
     // very hacky!!
-    val enrolmentKeyExtra = if (keyElements.head.contains("HMRC-CBC-ORG")) {
+    val enrolmentKeyExtra = if keyElements.head.contains("HMRC-CBC-ORG") then {
       s"${keyElements(3)}~${keyElements(4)}" // saves the UTR for later
     } else keyElements(1)
-    val hmrcRef = if (keyElements.head.contains("HMRC-CBC-ORG")) {
+    val hmrcRef = if keyElements.head.contains("HMRC-CBC-ORG") then {
       keyElements(2) // cbcId not UTR
     } else keyElements.last
 

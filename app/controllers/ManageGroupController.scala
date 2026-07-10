@@ -105,7 +105,7 @@ class ManageGroupController @Inject() (
             sessionCacheService
               .get(GROUP_SEARCH_INPUT)
               .flatMap { search =>
-                if (searchFilter.search == search) {
+                if searchFilter.search == search then {
                   Redirect(controller.showManageGroups(Some(pageToShow.toInt), None)).toFuture
                 } else {
                   sessionCacheService
@@ -142,11 +142,11 @@ class ManageGroupController @Inject() (
         .fold(
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = true)).toFuture,
           (newName: String) =>
-            for {
+            for
               _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
               patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
               _ <- groupService.updateGroup(groupId, patchRequestBody)
-            } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
+            yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
         )
     }
   }
@@ -159,11 +159,11 @@ class ManageGroupController @Inject() (
         .fold(
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = false)).toFuture,
           (newName: String) =>
-            for {
+            for
               _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
               patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
               _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
-            } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
+            yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
         )
     }
   }
@@ -204,11 +204,11 @@ class ManageGroupController @Inject() (
         .fold(
           formWithErrors => Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
           (answer: Boolean) =>
-            if (answer) {
-              for {
+            if answer then {
+              for
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- groupService.deleteGroup(groupId)
-              } yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
+              yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
             } else
               Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
         )
@@ -223,11 +223,11 @@ class ManageGroupController @Inject() (
         .fold(
           formWithErrors => Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
           (answer: Boolean) =>
-            if (answer) {
-              for {
+            if answer then {
+              for
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- taxGroupService.deleteGroup(groupId)
-              } yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
+              yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
             } else
               Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
         )

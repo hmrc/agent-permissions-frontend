@@ -113,9 +113,9 @@ class CreateGroupSelectTeamMembersController @Inject() (
               teamMemberService
                 .savePageOfTeamMembers(formData)
                 .flatMap { nowSelectedMembers =>
-                  if (formData.submit == CONTINUE_BUTTON) {
+                  if formData.submit == CONTINUE_BUTTON then {
                     // check selected there are still selections after saving
-                    if (nowSelectedMembers.nonEmpty) {
+                    if nowSelectedMembers.nonEmpty then {
                       Redirect(controller.showReviewSelectedTeamMembers(None, None)).toFuture
                     } else {
                       // render page with empty selection error
@@ -135,7 +135,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
                           )
                         )
                     }
-                  } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
+                  } else if formData.submit.startsWith(PAGINATION_BUTTON) then {
                     val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                     Redirect(controller.showSelectTeamMembers(Some(pageToShow), Some(PAGE_SIZE))).toFuture
                   } else {
@@ -198,11 +198,11 @@ class CreateGroupSelectTeamMembersController @Inject() (
                     )
                   ).toFuture,
                 (yes: Boolean) =>
-                  if (yes)
+                  if yes then
                     Redirect(controller.showSelectTeamMembers(None, None)).toFuture
                   else {
                     sessionCacheService.put(CONFIRM_TEAM_MEMBERS_SELECTED, yes).flatMap { _ =>
-                      if (members.isEmpty) { // throw empty error (would prefer redirect to showSelectTeamMembers)
+                      if members.isEmpty then { // throw empty error (would prefer redirect to showSelectTeamMembers)
                         Ok(
                           review_members_paginated(
                             teamMembers = list.pageContent,
@@ -235,7 +235,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
   def showConfirmRemoveTeamMember(memberId: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem(SELECTED_TEAM_MEMBERS) { selectedMembers =>
-        for {
+        for
           // if clientId is not provided as a query parameter, check the CLIENT_TO_REMOVE session value.
           // This is to enable the welsh language switch to work correctly.
           maybeMemberId: Option[String] <- memberId match {
@@ -259,7 +259,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
                             ).toFuture
                           )
                     }
-        } yield result
+        yield result
       }
     }
   }
@@ -268,7 +268,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
     withGroupNameAndAuthorised { (groupName, _, _) =>
       withSessionItem[TeamMember](MEMBER_TO_REMOVE) { maybeTeamMember =>
         withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelectedTeamMembers =>
-          if (maybeTeamMember.isEmpty || maybeSelectedTeamMembers.isEmpty) {
+          if maybeTeamMember.isEmpty || maybeSelectedTeamMembers.isEmpty then {
             Redirect(controller.showSelectTeamMembers(None, None)).toFuture
           } else {
             YesNoForm
@@ -285,7 +285,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
                     )
                   ).toFuture,
                 (yes: Boolean) =>
-                  if (yes) {
+                  if yes then {
                     val clientsMinusRemoved = maybeSelectedTeamMembers.get.filterNot(_ == maybeTeamMember.get)
                     sessionCacheService
                       .put(SELECTED_TEAM_MEMBERS, clientsMinusRemoved)
@@ -318,11 +318,11 @@ class CreateGroupSelectTeamMembersController @Inject() (
           taxGroupService
             .createGroup(arn, req)
             .flatMap(_ =>
-              for {
+              for
                 _ <- sessionCacheService.put(NAME_OF_GROUP_CREATED, groupName)
                 _ <- sessionCacheService.deleteAll(creatingGroupKeys)
                 _ <- sessionCacheService.delete(GROUP_TYPE)
-              } yield Redirect(controller.showTaxGroupCreated())
+              yield Redirect(controller.showTaxGroupCreated())
             )
         }
       }

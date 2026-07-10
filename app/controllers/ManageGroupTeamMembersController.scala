@@ -141,12 +141,12 @@ class ManageGroupTeamMembersController @Inject() (
                     )
                   ).toFuture,
                 (yes: Boolean) =>
-                  if (yes) {
-                    for {
+                  if yes then {
+                    for
                       _ <- groupService
                              .removeTeamMemberFromGroup(groupId, teamMemberToRemove.userId.get, isCustom(groupType))
                       _ <- sessionCacheService.delete(MEMBER_TO_REMOVE)
-                    } yield Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
+                    yield Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
                       .flashing("success" -> request.messages("client.removed.confirm", teamMemberToRemove.name))
                   } else Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None)).toFuture
               )
@@ -159,7 +159,7 @@ class ManageGroupTeamMembersController @Inject() (
     Action.async { implicit request =>
       withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
         val teamMembers = agentUsersInGroupAsTeamMembers(group)
-        val result = for {
+        val result = for
           existingMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
           maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
           pageMembersForArn <-
@@ -171,7 +171,7 @@ class ManageGroupTeamMembersController @Inject() (
                     .map(member => member.copy(alreadyInGroup = existingMembers.map(_.id).contains(member.id)))
                 )
               )
-        } yield (pageMembersForArn: PaginatedList[TeamMember], maybeFilterTerm, existingMembers)
+        yield (pageMembersForArn: PaginatedList[TeamMember], maybeFilterTerm, existingMembers)
         result.map { result =>
           val teamMembersSearchTerm = result._2
           Ok(
@@ -219,9 +219,9 @@ class ManageGroupTeamMembersController @Inject() (
                 teamMemberService
                   .savePageOfTeamMembers(formData)
                   .flatMap { nowSelectedMembers =>
-                    if (formData.submit == CONTINUE_BUTTON) {
+                    if formData.submit == CONTINUE_BUTTON then {
                       // check selected there are still selections after saving
-                      if (nowSelectedMembers.nonEmpty) {
+                      if nowSelectedMembers.nonEmpty then {
                         Redirect(controller.showReviewTeamMembersToAdd(groupType, groupId, None, None)).toFuture
                       } else {
                         // render page with empty selection error
@@ -242,7 +242,7 @@ class ManageGroupTeamMembersController @Inject() (
                             )
                           )
                       }
-                    } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
+                    } else if formData.submit.startsWith(PAGINATION_BUTTON) then {
                       val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                       Redirect(controller.showAddTeamMembers(groupType, groupId, Option(pageToShow))).toFuture
                     } else Redirect(controller.showAddTeamMembers(groupType, groupId, None)).toFuture
@@ -307,12 +307,12 @@ class ManageGroupTeamMembersController @Inject() (
                     )
                   ).toFuture,
                 (yes: Boolean) =>
-                  if (yes) {
+                  if yes then {
                     val remainingTeamMembers = maybeSelectedMembers.getOrElse(Nil).filterNot(tm => tm.id == memberId)
-                    for {
+                    for
                       _ <- sessionCacheService.put(SELECTED_TEAM_MEMBERS, remainingTeamMembers)
                       _ <- sessionCacheService.delete(MEMBER_TO_REMOVE)
-                    } yield remainingTeamMembers.size match {
+                    yield remainingTeamMembers.size match {
                       case 0 => Redirect(controller.showAddTeamMembers(groupType, groupId, None))
                       case _ => Redirect(controller.showReviewTeamMembersToAdd(groupType, groupId, None, None))
                     }
@@ -367,11 +367,11 @@ class ManageGroupTeamMembersController @Inject() (
                       )
                     ).toFuture,
                   (yes: Boolean) =>
-                    if (yes) Redirect(controller.showExistingGroupTeamMembers(group.groupId, groupType, None)).toFuture
+                    if yes then Redirect(controller.showExistingGroupTeamMembers(group.groupId, groupType, None)).toFuture
                     else {
                       val agents = membersToAdd.map(toAgentUser(_)).toSet
-                      for {
-                        _ <- if (isCustom(groupType)) {
+                      for
+                        _ <- if isCustom(groupType) then {
                                val addMembersRequest = AddMembersToAccessGroupRequest(teamMembers = Some(agents))
                                groupService.addMembersToGroup(groupId, addMembersRequest)
                              } else {
@@ -381,7 +381,7 @@ class ManageGroupTeamMembersController @Inject() (
                                )
                              }
                         _ <- sessionCacheService.delete(SELECTED_TEAM_MEMBERS)
-                      } yield Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
+                      yield Redirect(controller.showExistingGroupTeamMembers(groupId, groupType, None))
                         .flashing(
                           "success" -> request.messages("group.teamMembers.added.flash.message", membersToAdd.size)
                         )

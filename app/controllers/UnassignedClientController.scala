@@ -72,7 +72,7 @@ class UnassignedClientController @Inject() (
     search: Option[String] = None,
     filter: Option[String] = None
   )(implicit request: Request[?]): Future[Result] =
-    for {
+    for
       maybeSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
       unmarkedPaginatedClients <- clientService.getUnassignedClients(arn)(
                                     page.getOrElse(1),
@@ -83,7 +83,7 @@ class UnassignedClientController @Inject() (
       markedPaginatedClients =
         unmarkedPaginatedClients.copy(
           pageContent = unmarkedPaginatedClients.pageContent.map(c =>
-            if (maybeSelectedClients.isEmpty) c
+            if maybeSelectedClients.isEmpty then c
             else c.copy(selected = maybeSelectedClients.get.map(_.id).contains(c.id))
           )
         )
@@ -92,7 +92,7 @@ class UnassignedClientController @Inject() (
                             Some(Map("totalSelected" -> JsNumber(totalClientsSelected)))
                           ) // This extra data is needed to display correct 'selected' count in front-end
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, markedPaginatedClients.pageContent)
-    } yield {
+    yield {
       val defaultFormData: AddClientsToGroup = AddClientsToGroup()
       Ok(
         unassigned_clients_list(
@@ -106,7 +106,7 @@ class UnassignedClientController @Inject() (
   def showUnassignedClients(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        for {
+        for
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
           result <- renderUnassignedClients(
@@ -116,7 +116,7 @@ class UnassignedClientController @Inject() (
                       search = search,
                       filter = filter
                     )
-        } yield result
+        yield result
       }
     }
   }
@@ -126,11 +126,11 @@ class UnassignedClientController @Inject() (
       isOptedInComplete(arn) { _ =>
         new POSTPaginatedSearchableClientSelectHandler(sessionCacheService, sessionCacheOps) {
           val renderPage: Form[AddClientsToGroup] => Future[Result] = formData =>
-            for {
+            for
               search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
               filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
               result <- renderUnassignedClients(arn, form = formData, page = Some(1), search = search, filter = filter)
-            } yield result
+            yield result
           val reloadCall: (Option[Int], Option[String], Option[String]) => Call = { case (pageNumber, _, _) =>
             controller.showUnassignedClients(pageNumber)
           }
@@ -205,7 +205,7 @@ class UnassignedClientController @Inject() (
       isOptedInComplete(arn) { _ =>
         withSessionItem[DisplayClient](CLIENT_TO_REMOVE) { maybeClient =>
           withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { maybeSelectedClients =>
-            if (maybeClient.isEmpty || maybeSelectedClients.isEmpty) {
+            if maybeClient.isEmpty || maybeSelectedClients.isEmpty then {
               Redirect(controller.showUnassignedClients(None)).toFuture
             } else {
               YesNoForm
@@ -222,7 +222,7 @@ class UnassignedClientController @Inject() (
                       )
                     ).toFuture,
                   (yes: Boolean) =>
-                    if (yes) {
+                    if yes then {
                       val clientsMinusRemoved = maybeSelectedClients.get.filterNot(_ == maybeClient.get)
                       sessionCacheService
                         .put(SELECTED_CLIENTS, clientsMinusRemoved)
@@ -259,7 +259,7 @@ class UnassignedClientController @Inject() (
                     sessionCacheService
                       .put(CONFIRM_CLIENTS_SELECTED, selectMoreClients)
                       .map(_ =>
-                        if (selectMoreClients) {
+                        if selectMoreClients then {
                           Redirect(controller.showUnassignedClients())
                         } else {
                           Redirect(controller.showSelectGroupsForSelectedUnassignedClients())
@@ -278,7 +278,7 @@ class UnassignedClientController @Inject() (
         groupService
           .getGroupSummaries(arn)
           .map(groups =>
-            if (groups.isEmpty) {
+            if groups.isEmpty then {
               Ok(no_access_groups())
             } else {
               Ok(
@@ -313,7 +313,7 @@ class UnassignedClientController @Inject() (
               case SelectGroups.CreateNew => Redirect(routes.CreateGroupSelectNameController.showGroupName()).toFuture
               case SelectGroups.NoneOfTheAbove => Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
               case SelectGroups.SelectedGroups(groups) =>
-                for {
+                for
                   allGroups <- groupService.getGroupSummaries(arn)
                   groupsToAddTo = allGroups.filter(groupSummary => groups.contains(groupSummary.groupId.toString))
                   _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
@@ -334,7 +334,7 @@ class UnassignedClientController @Inject() (
                                   Redirect(controller.showConfirmClientsAddedToGroups())
                                 }
                             }
-                } yield result
+                yield result
             }
           )
       }

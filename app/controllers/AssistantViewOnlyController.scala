@@ -54,12 +54,12 @@ class AssistantViewOnlyController @Inject() (
   def showUnassignedClientsViewOnly(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
-        for {
+        for
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
           unassignedClients <-
             clientService.getUnassignedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE, search, filter)
-        } yield Ok(
+        yield Ok(
           unassigned_client_list(
             unassignedClients.pageContent,
             SearchAndFilterForm.form().fill(SearchFilter(search, filter, None)),
@@ -83,12 +83,12 @@ class AssistantViewOnlyController @Inject() (
     implicit request =>
       withGroupForAuthorisedAssistant(groupId) { (group: AccessGroup, _: Arn) =>
         val summary = GroupSummary.of(group)
-        for {
+        for
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
           list <-
             groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize = CLIENTS_PAGE_SIZE)
-        } yield Ok(
+        yield Ok(
           existing_group_client_list(
             clients = list._1,
             summary = summary,
@@ -113,17 +113,17 @@ class AssistantViewOnlyController @Inject() (
     implicit request =>
       withGroupForAuthorisedAssistant(groupId, isCustom = false) { (group: AccessGroup, arn: Arn) =>
         val summary = GroupSummary.of(group)
-        for {
+        for
           // needs Tax service saved to session on page load
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-          filter = if (summary.taxService.getOrElse("") == "HMRC-TERS") {
+          filter = if summary.taxService.getOrElse("") == "HMRC-TERS" then {
                      Some("TRUST")
                    } else {
                      summary.taxService
                    }
           _    <- sessionCacheOps.saveSearch(search, filter)
           list <- clientService.getPaginatedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE)
-        } yield Ok(
+        yield Ok(
           existing_group_client_list(
             clients = list.pageContent,
             summary = summary,
@@ -153,7 +153,7 @@ class AssistantViewOnlyController @Inject() (
     val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
     searchFilter.submit match {
       case Some(CLEAR_BUTTON) =>
-        if (ignoreTaxService) {
+        if ignoreTaxService then {
           sessionCacheService.delete(CLIENT_SEARCH_INPUT).map { _ =>
             Redirect(redirectTo)
           }
@@ -163,15 +163,15 @@ class AssistantViewOnlyController @Inject() (
           }
         }
       case Some(FILTER_BUTTON) =>
-        if (ignoreTaxService) {
+        if ignoreTaxService then {
           sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse("")).map { _ =>
             Redirect(redirectTo)
           }
         } else {
-          for {
+          for
             _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
             _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
-          } yield Redirect(redirectTo)
+          yield Redirect(redirectTo)
         }
       case _ => Future.successful(BadRequest)
     }

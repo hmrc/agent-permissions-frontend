@@ -31,20 +31,20 @@ class SessionCacheOperationsService @Inject() (val sessionCacheService: SessionC
     request: Request[?],
     ec: ExecutionContext
   ): Future[Unit] =
-    if (searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty) {
+    if searchTerm.getOrElse("").isEmpty && filterTerm.getOrElse("").isEmpty then {
       sessionCacheService.deleteAll(Seq(CLIENT_SEARCH_INPUT, CLIENT_FILTER_INPUT))
     } else {
-      for {
+      for
         _ <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchTerm.getOrElse(""))
         _ <- sessionCacheService.put(CLIENT_FILTER_INPUT, filterTerm.getOrElse(""))
-      } yield ()
+      yield ()
     }
 
   /** This is only used for CREATING groups and adding clients as you can't unselect from an existing group */
   def savePageOfClientsForCreateGroup(
     formData: AddClientsToGroup
   )(implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] =
-    for {
+    for
       _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
       _ <- formData.filter.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
       existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
@@ -58,13 +58,13 @@ class SessionCacheOperationsService @Inject() (val sessionCacheService: SessionC
                              .filterNot(cl => idsToRemove.contains(cl.id))
                              .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
-    } yield newSelectedClients
+    yield newSelectedClients
 
   /** This is only used for CREATING groups and adding clients as you can't unselect from an existing group */
   def saveClientsToAddToExistingGroup(
     formData: AddClientsToGroup
   )(implicit ec: ExecutionContext, request: Request[Any]): Future[Seq[DisplayClient]] =
-    for {
+    for
       _ <- formData.search.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_SEARCH_INPUT, term))
       _ <- formData.filter.fold(Future.successful(("", "")))(term => sessionCacheService.put(CLIENT_FILTER_INPUT, term))
       existingSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS).map(_.getOrElse(Seq.empty))
@@ -78,6 +78,6 @@ class SessionCacheOperationsService @Inject() (val sessionCacheService: SessionC
                              .distinct
                              .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_CLIENTS, newSelectedClients)
-    } yield newSelectedClients
+    yield newSelectedClients
 
 }

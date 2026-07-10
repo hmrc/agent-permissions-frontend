@@ -60,11 +60,11 @@ class ManageClientController @Inject() (
   def showPageOfClients(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val eventualTuple = for {
+        val eventualTuple = for
           search  <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter  <- sessionCacheService.get(CLIENT_FILTER_INPUT)
           clients <- clientService.getPaginatedClients(arn)(page.getOrElse(1), 10)
-        } yield (search, filter, clients)
+        yield (search, filter, clients)
         eventualTuple.map { tuple =>
           val (search, filter, clients) = (tuple._1, tuple._2, tuple._3)
           val form = SearchAndFilterForm.form().fill(SearchFilter(search, filter, None))
@@ -82,10 +82,10 @@ class ManageClientController @Inject() (
           Redirect(controller.showPageOfClients(None)).toFuture
         ) {
           case CLEAR_BUTTON =>
-            val eventualDone = for {
+            val eventualDone = for
               _ <- sessionCacheService.delete(CLIENT_SEARCH_INPUT)
               _ <- sessionCacheService.delete(CLIENT_FILTER_INPUT)
-            } yield Done
+            yield Done
             eventualDone.map(_ => Redirect(controller.showPageOfClients(None)))
           case FILTER_BUTTON =>
             sessionCacheService
@@ -143,10 +143,10 @@ class ManageClientController @Inject() (
               .fold(
                 formWithErrors => Ok(update_client_reference(client, formWithErrors)),
                 (newName: String) => {
-                  for {
+                  for
                     _ <- sessionCacheService.put[String](CLIENT_REFERENCE, newName)
                     _ <- clientService.updateClientReference(arn, client, newName)
-                  } yield ()
+                  yield ()
                   Redirect(routes.ManageClientController.showClientReferenceUpdatedComplete(clientId))
                 }
               )

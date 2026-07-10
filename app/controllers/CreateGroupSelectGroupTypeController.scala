@@ -58,11 +58,11 @@ class CreateGroupSelectGroupTypeController @Inject() (
   def showSelectGroupType(origin: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        for {
+        for
           _             <- sessionCacheService.deleteAll(sessionKeys)
           mGroupTypeStr <- sessionCacheService.get(GROUP_TYPE)
           mGroupTypeBool = mGroupTypeStr.map(_ == CUSTOM_GROUP)
-        } yield Ok(select_group_type(formWithFilledValue(YesNoForm.form(), mGroupTypeBool), origin))
+        yield Ok(select_group_type(formWithFilledValue(YesNoForm.form(), mGroupTypeBool), origin))
       }
     }
   }
@@ -76,7 +76,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
           .fold(
             formWithErrors => Ok(select_group_type(formWithErrors, None)).toFuture,
             (isCustomGroupType: Boolean) =>
-              if (isCustomGroupType) {
+              if isCustomGroupType then {
                 sessionCacheService
                   .put(GROUP_TYPE, CUSTOM_GROUP)
                   .map(_ => Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()))
@@ -92,11 +92,11 @@ class CreateGroupSelectGroupTypeController @Inject() (
 
   def showSelectTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
     withGroupTypeAndAuthorised { (_, arn) =>
-      for {
+      for
         info <- clientService.getAvailableTaxServiceClientCount(arn)
         sel  <- sessionCacheService.get(GROUP_SERVICE_TYPE)
-      } yield
-        if (info.isEmpty)
+      yield
+        if info.isEmpty then
           Ok(exceed_group_selection())
         else {
           Ok(
@@ -125,11 +125,11 @@ class CreateGroupSelectGroupTypeController @Inject() (
                 groupService
                   .groupNameCheck(arn, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
                   .flatMap(nameAvailable =>
-                    if (nameAvailable)
-                      for {
+                    if nameAvailable then
+                      for
                         _ <- sessionCacheService
                                .put[String](GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
-                      } yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType())
+                      yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType())
                     else {
                       Redirect(ctrlRoutes.showReviewTaxServiceGroupType()).toFuture
                     }
@@ -167,7 +167,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
             },
           (continue: Boolean) =>
             {
-              if (continue) {
+              if continue then {
                 Redirect(routes.CreateGroupSelectNameController.showGroupName())
               } else {
                 Redirect(ctrlRoutes.showSelectGroupType())

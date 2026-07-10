@@ -78,7 +78,7 @@ class GroupAction @Inject() (
   ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        if (isCustom) {
+        if isCustom then {
           groupService
             .getGroup(groupId)
             .flatMap(_.fold(groupNotFound())(customGroup => callback(customGroup, arn)))
@@ -100,7 +100,7 @@ class GroupAction @Inject() (
   ): Future[Result] =
     authAction.isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        if (isCustom) {
+        if isCustom then {
           groupService
             .getCustomSummary(groupId)
             .flatMap(_.fold(groupNotFound())(callback(_, arn)))
@@ -188,7 +188,7 @@ class GroupAction @Inject() (
   ): Future[Result] =
     authAction.isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
-        if (isCustom) {
+        if isCustom then {
           groupService
             .getGroup(groupId)
             .flatMap(_.fold(groupNotFound(isAssistant = true))(customGroup => callback(customGroup, arn)))

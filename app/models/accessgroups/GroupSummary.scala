@@ -29,7 +29,7 @@ case class GroupSummary(
 ) {
   def isTaxGroup: Boolean = taxService.isDefined
   def isCustomGroup: Boolean = taxService.isEmpty
-  def groupType: String = if (isTaxGroup) "tax" else "custom" // used for url context paths
+  def groupType: String = if isTaxGroup then "tax" else "custom" // used for url context paths
 }
 
 object GroupSummary {

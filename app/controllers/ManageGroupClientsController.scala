@@ -85,11 +85,11 @@ class ManageGroupClientsController @Inject() (
           }
       ) { // a button was clicked
         case FILTER_BUTTON =>
-          for {
+          for
             _             <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
             _             <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
             paginatedList <- groupService.getPaginatedClientsForCustomGroup(groupId)(1, pageSize.getOrElse(20))
-          } yield Ok(
+          yield Ok(
             existing_clients(
               group = groupSummary,
               groupClients = paginatedList._1,
@@ -102,7 +102,7 @@ class ManageGroupClientsController @Inject() (
             .deleteAll(clientFilteringKeys)
             .map(_ => Redirect(controller.showExistingGroupClients(groupId, Some(1), Some(20))))
         case button =>
-          if (button.startsWith(PAGINATION_BUTTON)) {
+          if button.startsWith(PAGINATION_BUTTON) then {
             val pageToShow = button.replace(s"${PAGINATION_BUTTON}_", "").toInt
             Redirect(controller.showExistingGroupClients(groupId, Some(pageToShow), Some(20))).toFuture
           } else { // bad submit
@@ -158,12 +158,12 @@ class ManageGroupClientsController @Inject() (
                   )
                 ).toFuture,
               (yes: Boolean) =>
-                if (yes) {
-                  for {
+                if yes then {
+                  for
                     // could remove the last client in a group! remove link is hidden, but route still valid
                     _ <- groupService.removeClientFromGroup(groupId, clientToRemove.enrolmentKey)
                     _ <- sessionCacheService.delete(CLIENT_TO_REMOVE)
-                  } yield Redirect(redirectLink)
+                  yield Redirect(redirectLink)
                     .flashing("success" -> request.messages("client.removed.confirm", clientToRemove.name))
                 } else Redirect(redirectLink).toFuture
             )
@@ -218,7 +218,7 @@ class ManageGroupClientsController @Inject() (
             clientService
               .getPaginatedClientsToAddToGroup(groupId)(page.getOrElse(1), pageSize.getOrElse(20), search, filter)
               .flatMap { case (groupSummary, paginatedClients) =>
-                if (paginatedClients.pageContent.isEmpty) { // if the search failed (no results) (APB-7378)
+                if paginatedClients.pageContent.isEmpty then { // if the search failed (no results) (APB-7378)
                   withSessionItem[Seq[DisplayClient]](SELECTED_CLIENTS) { selectedClients =>
                     val canContinue = selectedClients.exists(_.nonEmpty)
                     Future.successful(
@@ -228,7 +228,7 @@ class ManageGroupClientsController @Inject() (
                           groupName = groupSummary.groupName,
                           isFailedSearch = true,
                           searchAction = controller.submitSearchClientsToAdd(groupId),
-                          continueAction = if (canContinue) Some(controller.submitAddClients(groupId)) else None
+                          continueAction = if canContinue then Some(controller.submitAddClients(groupId)) else None
                         )
                       )
                     )
@@ -265,21 +265,21 @@ class ManageGroupClientsController @Inject() (
                   sessionCacheOps
                     .saveClientsToAddToExistingGroup(formData)
                     .flatMap(nowSelectedClients =>
-                      if (formData.submit == CONTINUE_BUTTON) {
+                      if formData.submit == CONTINUE_BUTTON then {
                         // checks selected clients from session cache AFTER saving (removed de-selections)
-                        if (nowSelectedClients.nonEmpty) {
+                        if nowSelectedClients.nonEmpty then {
                           Redirect(controller.showReviewSelectedClients(groupId, None, None)).toFuture
                         } else { // display empty error
-                          for {
+                          for
                             paginatedClients <- clientService
                                                   .getPaginatedClientsToAddToGroup(groupId)(1, 20, search, filter)
-                          } yield renderUpdateClientsPaginated(
+                          yield renderUpdateClientsPaginated(
                             groupSummary,
                             AddClientsToGroupForm.form().withError("clients", "error.select-clients.empty"),
                             paginatedClients._2
                           )
                         }
-                      } else if (formData.submit.startsWith(PAGINATION_BUTTON)) {
+                      } else if formData.submit.startsWith(PAGINATION_BUTTON) then {
                         val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
                         Redirect(controller.showAddClients(groupId, Some(pageToShow), Some(20))).toFuture
                       } else { // bad submit
@@ -341,13 +341,13 @@ class ManageGroupClientsController @Inject() (
                       )
                     ).toFuture,
                   (yes: Boolean) =>
-                    if (yes) {
+                    if yes then {
                       val remainingClients =
                         maybeSelectedClients.getOrElse(Nil).filterNot(dc => clientToRemove.id == dc.id)
-                      for {
+                      for
                         _ <- sessionCacheService.put(SELECTED_CLIENTS, remainingClients)
                         _ <- sessionCacheService.delete(CLIENT_TO_REMOVE)
-                      } yield remainingClients.size match {
+                      yield remainingClients.size match {
                         case 0 => Redirect(controller.showSearchClientsToAdd(group.groupId))
                         case _ => Redirect(redirectLink)
                       }
@@ -421,16 +421,16 @@ class ManageGroupClientsController @Inject() (
               .fold(
                 formWithErrors => renderReviewUpdateClients(groupSummary, paginatedList, formWithErrors).toFuture,
                 (selectMoreClients: Boolean) =>
-                  if (selectMoreClients)
+                  if selectMoreClients then
                     sessionCacheService
                       .deleteAll(clientFilteringKeys)
                       .map(_ => Redirect(controller.showSearchClientsToAdd(groupId)))
                   else {
                     val toSave = clients.map(dc => Client(dc.enrolmentKey, dc.name)).toSet
-                    val x = for {
+                    val x = for
                       _ <- sessionCacheService.deleteAll(managingGroupKeys)
                       _ <- groupService.addMembersToGroup(groupId, AddMembersToAccessGroupRequest(None, Some(toSave)))
-                    } yield ()
+                    yield ()
                     x.map(_ =>
                       Redirect(controller.showExistingGroupClients(groupId, None, None))
                         .flashing("success" -> request.messages("common.clients.added", toSave.size))

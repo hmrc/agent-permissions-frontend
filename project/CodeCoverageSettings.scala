@@ -1,7 +1,7 @@
 import sbt.Setting
 import scoverage.ScoverageKeys
-import sbt._
-import sbt.Keys._
+import sbt.*
+import sbt.Keys.*
 object CodeCoverageSettings {
 
   private val excludedPackages: Seq[String] = Seq(
@@ -24,7 +24,7 @@ object CodeCoverageSettings {
     ".*TimeoutController.*",
   )
 
-  val settings: Seq[Setting[_]] = Seq(
+  val settings: Seq[Setting[?]] = Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
     ScoverageKeys.coverageExcludedFiles := excludedFiles.mkString(";"),
     ScoverageKeys.coverageMinimumStmtTotal := 85,

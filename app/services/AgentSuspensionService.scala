@@ -32,7 +32,7 @@ class AgentSuspensionService @Inject() (
 ) {
 
   def getSuspensionDetails()(implicit hc: HeaderCarrier): Future[SuspensionDetails] =
-    if (appConfig.enableAgentRecordViaAsa) agentServicesAccountConnector.getSuspensionDetails()
+    if appConfig.enableAgentRecordViaAsa then agentServicesAccountConnector.getSuspensionDetails()
     else agentAssuranceConnector.getSuspensionDetails()
 
 }

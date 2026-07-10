@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import connectors.{AddMembersToTaxServiceGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.TAX_SERVICE
 import controllers.actions.AuthAction
-import helpers.Css._
+import helpers.Css.*
 import helpers.{BaseSpec, Css}
 import models.TeamMember.toAgentUser
 import models.accessgroups.optin.OptedInReady
@@ -30,10 +30,10 @@ import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
-import services._
+import services.*
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -155,7 +155,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     "render with name/email searchTerm set" in {
       // given
 
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url +
           "?submit=filter&search=John+1"
@@ -186,7 +186,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with email searchTerm set" in {
       // given
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
@@ -217,7 +217,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with filter that matches nothing" in {
       // given
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
@@ -248,7 +248,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with CLEAR_BUTTON" in {
       // given
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")

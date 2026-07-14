@@ -49,7 +49,6 @@ trait AppConfig {
   val signOut: String
   val signInUrl: String
   val selfExternalUrl: String
-  val enableAgentRecordViaAsa: Boolean
 }
 
 @Singleton
@@ -93,5 +92,4 @@ class AppConfigImpl @Inject() (val servicesConfig: ServicesConfig, environment: 
 
   val agentServicesAccountBaseUrl: String = servicesConfig.baseUrl("agent-services-account")
 
-  override val enableAgentRecordViaAsa: Boolean = servicesConfig.getBoolean("features.enable-agent-record-via-asa")
 }

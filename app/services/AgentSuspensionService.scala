@@ -16,8 +16,7 @@
 
 package services
 
-import config.AppConfig
-import connectors.{AgentAssuranceConnector, AgentServicesAccountConnector}
+import connectors.AgentServicesAccountConnector
 import models.SuspensionDetails
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -26,13 +25,10 @@ import scala.concurrent.Future
 
 @Singleton
 class AgentSuspensionService @Inject() (
-  agentAssuranceConnector: AgentAssuranceConnector,
-  agentServicesAccountConnector: AgentServicesAccountConnector,
-  appConfig: AppConfig
+  agentServicesAccountConnector: AgentServicesAccountConnector
 ) {
 
   def getSuspensionDetails()(implicit hc: HeaderCarrier): Future[SuspensionDetails] =
-    if appConfig.enableAgentRecordViaAsa then agentServicesAccountConnector.getSuspensionDetails()
-    else agentAssuranceConnector.getSuspensionDetails()
+    agentServicesAccountConnector.getSuspensionDetails()
 
 }

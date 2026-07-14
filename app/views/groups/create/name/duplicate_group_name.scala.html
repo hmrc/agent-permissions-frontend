@@ -20,6 +20,18 @@
 
 @(accessGroupName: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
 
+@creatingGroup = @{
+    request.path == routes.CreateGroupSelectNameController.showAccessGroupNameExists().url
+}
+
+@renamingTaxGroup = @{
+    request.path == routes.ManageGroupController.showTaxGroupNameExists().url
+}
+
+@renamingCustomGroup =  @{
+    request.path == routes.ManageGroupController.showCustomGroupNameExists().url
+}
+
 @layout(
     title = msgs("access-group-name-exists.title"),
     backLink = Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
@@ -29,9 +41,15 @@
 
     @p(msgs("access-group-name-exists.p", accessGroupName))
 
-    @button(
-        key = msgs("access-group-name-exists.button"),
-        href = routes.CreateGroupSelectNameController.showGroupName().url
-    )
-
+    @if(creatingGroup) {
+        @button(
+            key = msgs("access-group-name-exists.button"),
+            href = routes.CreateGroupSelectNameController.showGroupName().url
+        )
+    }  else {
+        @button(
+            key = msgs("access-group-name-exists.button"),
+            href = routes.ManageGroupController.showManageGroups(None, None).url
+        )
+    }
 }

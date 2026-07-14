@@ -28,6 +28,7 @@ import services.{GroupService, TaxGroupService}
 import models.Arn
 import models.accessgroups.GroupSummary
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import views.html.groups.create.name.duplicate_group_name
 import views.html.groups.manage.delete._
 import views.html.groups.manage.manage_existing_groups
 import views.html.groups.manage.rename._
@@ -47,7 +48,8 @@ class ManageGroupController @Inject() (
   rename_group: rename_group,
   rename_group_complete: rename_group_complete,
   confirm_delete_group: confirm_delete_group,
-  delete_group_complete: delete_group_complete
+  delete_group_complete: delete_group_complete,
+  duplicate_group_name: duplicate_group_name
 )(
   implicit val appConfig: AppConfig,
   ec: ExecutionContext,
@@ -135,36 +137,73 @@ class ManageGroupController @Inject() (
   }
 
   def submitRenameGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
       GroupNameForm
         .form()
         .bindFromRequest()
         .fold(
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = true)).toFuture,
           (newName: String) =>
-            for {
-              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
-              patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
-              _ <- groupService.updateGroup(groupId, patchRequestBody)
-            } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
+            groupService.groupNameCheck(arn, newName).flatMap { nameAvailable =>
+              if (nameAvailable)
+                for {
+                  _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
+                  patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
+                  _ <- groupService.updateGroup(groupId, patchRequestBody)
+                } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
+              else {
+                for {
+                  _ <- sessionCacheService.put[String](GROUP_NAME, newName)
+                } yield Redirect(routes.ManageGroupController.showCustomGroupNameExists())
+              }
+            }
         )
     }
   }
 
+  def showCustomGroupNameExists(): Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        sessionCacheService
+          .get[String](GROUP_NAME)
+          .map(newName => Ok(duplicate_group_name(newName.getOrElse(""))))
+      }
+    }
+  }
+
+
   def submitRenameTaxGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, _: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, arn: Arn) =>
       GroupNameForm
         .form()
         .bindFromRequest()
         .fold(
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = false)).toFuture,
           (newName: String) =>
-            for {
-              _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
-              patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
-              _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
-            } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
+            groupService.groupNameCheck(arn, newName).flatMap { nameAvailable =>
+              if (nameAvailable)
+                for {
+                  _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
+                  patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
+                  _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
+                } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
+              else {
+                for {
+                  _ <- sessionCacheService.put[String](GROUP_NAME, newName)
+                } yield Redirect(routes.ManageGroupController.showTaxGroupNameExists())
+              }
+            }
         )
+    }
+  }
+
+  def showTaxGroupNameExists(): Action[AnyContent] = Action.async { implicit request =>
+    isAuthorisedAgent { arn =>
+      isOptedIn(arn) { _ =>
+        sessionCacheService
+          .get[String](GROUP_NAME)
+          .map(newName => Ok(duplicate_group_name(newName.getOrElse(""))))
+      }
     }
   }
 

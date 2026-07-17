@@ -15,6 +15,7 @@
  *@
 
 @import config.AppConfig
+@import models.GroupId
 
 @this(layout: main_layout, h1: h1, p: p, button: link_as_button)
 
@@ -22,14 +23,6 @@
 
 @creatingGroup = @{
     request.path == routes.CreateGroupSelectNameController.showAccessGroupNameExists().url
-}
-
-@renamingTaxGroup = @{
-    request.path == routes.ManageGroupController.showTaxGroupNameExists().url
-}
-
-@renamingCustomGroup =  @{
-    request.path == routes.ManageGroupController.showCustomGroupNameExists().url
 }
 
 @layout(
@@ -46,7 +39,7 @@
             key = msgs("access-group-name-exists.button"),
             href = routes.CreateGroupSelectNameController.showGroupName().url
         )
-    }  else {
+    } else {
         @button(
             key = msgs("access-group-name-exists.button"),
             href = routes.ManageGroupController.showManageGroups(None, None).url

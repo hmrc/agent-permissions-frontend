@@ -166,7 +166,8 @@ class ManageGroupController @Inject() (
       isOptedIn(arn) { _ =>
         sessionCacheService
           .get[String](GROUP_NAME)
-          .map(newName => Ok(duplicate_group_name(newName.getOrElse(""))))
+          .map(newName => Ok(duplicate_group_name(newName.getOrElse("")
+          )))
       }
     }
   }
@@ -202,7 +203,8 @@ class ManageGroupController @Inject() (
       isOptedIn(arn) { _ =>
         sessionCacheService
           .get[String](GROUP_NAME)
-          .map(newName => Ok(duplicate_group_name(newName.getOrElse(""))))
+          .map(newName => Ok(duplicate_group_name(newName.getOrElse("")
+          )))
       }
     }
   }

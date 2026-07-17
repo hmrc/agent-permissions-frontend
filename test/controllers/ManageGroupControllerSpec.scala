@@ -509,6 +509,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
+      expectGroupNameCheckOK(arn, "New Group Name")
       expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"), None, None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -581,6 +582,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGroupNameCheckOK(arn, "New Group Name")
       expectUpdateTaxGroup(groupId, UpdateTaxServiceGroupRequest(groupName = Some("New Group Name")))
       expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
 

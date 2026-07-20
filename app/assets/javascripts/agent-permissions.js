@@ -4,7 +4,6 @@
     const selectedCountContainerEl = document.querySelector('#selected-count-text')
     const selectedCountMessageEl = document.querySelector('#selected-count-message')
     const checkBoxElements = document.querySelectorAll('input[type="checkbox"]:not(#checkboxes-all)')
-    // TODO: 11849 Bug introduced where checked=false rather than true for selected check box!!!
     if(selectedCountContainerEl && checkBoxElements.length) {
         const syncSelectedState = () => selectAllEl.checked = [...checkBoxElements].every(option => option.checked)
         const countOnThisPage = () => [...checkBoxElements].filter(option => option.checked).length

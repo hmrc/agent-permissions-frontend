@@ -557,6 +557,27 @@ class ManageGroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
+    "redirect when new name given already exists" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
+      expectGroupNameCheckConflict(arn, "Duplicate Name")
+      expectPutSessionItem(GROUP_NAME, "Duplicate Name")
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitRenameGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "Duplicate Name")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      // when
+      val result = controller.submitRenameGroup(groupId)(request)
+
+      // then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showCustomGroupNameExists().url
+    }
+
     "render errors when no group name is specified" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -629,6 +650,27 @@ class ManageGroupControllerSpec extends BaseSpec {
       html
         .select(Css.linkStyledAsButton)
         .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
+    }
+
+    "redirect when new name given already exists" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGroupNameCheckConflict(arn, "Duplicate Name")
+      expectPutSessionItem(GROUP_NAME, "Duplicate Name")
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitRenameTaxGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "Duplicate Name")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      // when
+      val result = controller.submitRenameTaxGroup(groupId)(request)
+
+      // then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showTaxGroupNameExists().url
     }
 
     "render errors when no group name is specified" in {

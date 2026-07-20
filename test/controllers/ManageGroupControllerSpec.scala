@@ -649,6 +649,48 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
+  s"GET ${ctrlRoute.showTaxGroupNameExists().url}" should {
+
+    "render correctly the tax group name exists page" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetSessionItem(GROUP_NAME, "Duplicate Name")
+
+      // when
+      val result = controller.showTaxGroupNameExists()(request)
+
+      // then
+      status(result) shouldBe OK
+
+      // and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group name already exists - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group name already exists"
+      html.select(Css.paragraphs).text().contains("Duplicate Name") shouldBe true
+    }
+  }
+
+  s"GET ${ctrlRoute.showCustomGroupNameExists().url}" should {
+
+    "render correctly the custom group name exists page" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetSessionItem(GROUP_NAME, "Duplicate Name")
+
+      // when
+      val result = controller.showCustomGroupNameExists()(request)
+
+      // then
+      status(result) shouldBe OK
+
+      // and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group name already exists - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group name already exists"
+      html.select(Css.paragraphs).text().contains("Duplicate Name") shouldBe true
+    }
+  }
+
   s"GET ${ctrlRoute.showGroupRenamed(groupId).url}" should {
 
     "render correctly the custom group renamed page" in {

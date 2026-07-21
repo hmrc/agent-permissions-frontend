@@ -161,7 +161,10 @@ class ManageGroupController @Inject() (
     }
   }
 
-  def showCustomGroupNameExists(): Action[AnyContent] = Action.async { implicit request =>
+  def showCustomGroupNameExists(): Action[AnyContent] =
+    showGroupNameExists()
+
+  private def showGroupNameExists(): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         sessionCacheService
@@ -198,16 +201,9 @@ class ManageGroupController @Inject() (
     }
   }
 
-  def showTaxGroupNameExists(): Action[AnyContent] = Action.async { implicit request =>
-    isAuthorisedAgent { arn =>
-      isOptedIn(arn) { _ =>
-        sessionCacheService
-          .get[String](GROUP_NAME)
-          .map(newName => Ok(duplicate_group_name(newName.getOrElse("")
-          )))
-      }
-    }
-  }
+  def showTaxGroupNameExists(): Action[AnyContent] =
+    showGroupNameExists()
+
 
   def showGroupRenamed(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>

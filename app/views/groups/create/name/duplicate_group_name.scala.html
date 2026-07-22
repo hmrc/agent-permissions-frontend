@@ -34,15 +34,14 @@
 
     @p(msgs("access-group-name-exists.p", accessGroupName))
 
-    @if(creatingGroup) {
-        @button(
-            key = msgs("access-group-name-exists.button"),
-            href = routes.CreateGroupSelectNameController.showGroupName().url
-        )
-    } else {
-        @button(
-            key = msgs("access-group-name-exists.button"),
-            href = routes.ManageGroupController.showManageGroups(None, None).url
-        )
-    }
+
+    @button(
+        key = msgs("access-group-name-exists.button"),
+        href = if(!creatingGroup) {
+            routes.ManageGroupController.showManageGroups(None, None).url
+        } else {
+            routes.CreateGroupSelectNameController.showGroupName().url
+        }
+
+    )
 }

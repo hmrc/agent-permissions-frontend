@@ -63,6 +63,7 @@ package object controllers {
   val SUSPENSION_STATUS: DataKey[Boolean] = DataKey("SUSPENSION_STATUS")
 
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
+  val GROUP_NAME_ALREADY_EXISTING: DataKey[String] = DataKey("groupName")
   val GROUP_NAME_CONFIRMED: DataKey[Boolean] = DataKey("groupNameConfirmed")
 
   val SELECTED_CLIENTS: DataKey[Seq[DisplayClient]] = DataKey("SELECTED_CLIENTS")

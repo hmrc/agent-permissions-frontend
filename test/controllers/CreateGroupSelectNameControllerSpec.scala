@@ -331,7 +331,6 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
         .select(Css.linkStyledAsButton)
         .attr("href") should contain
         oneOf (s"${ctrlRoute.showGroupName().url}", s"${routes.ManageGroupController.showManageGroups(None, None).url}")
-
     }
   }
 

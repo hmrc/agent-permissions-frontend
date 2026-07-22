@@ -153,7 +153,7 @@ class ManageGroupController @Inject() (
                 } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
               else {
                 for {
-                  _ <- sessionCacheService.put[String](GROUP_NAME, newName)
+                  _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
                 } yield Redirect(routes.ManageGroupController.showCustomGroupNameExists())
               }
             }
@@ -168,9 +168,8 @@ class ManageGroupController @Inject() (
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         sessionCacheService
-          .get[String](GROUP_NAME)
-          .map(newName => Ok(duplicate_group_name(newName.getOrElse("")
-          )))
+          .get[String](GROUP_NAME_ALREADY_EXISTING).
+          map(newName => Ok(duplicate_group_name(newName.getOrElse(""))))
       }
     }
   }
@@ -193,7 +192,7 @@ class ManageGroupController @Inject() (
                 } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
               else {
                 for {
-                  _ <- sessionCacheService.put[String](GROUP_NAME, newName)
+                  _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
                 } yield Redirect(routes.ManageGroupController.showTaxGroupNameExists())
               }
             }

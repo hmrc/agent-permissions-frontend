@@ -562,7 +562,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
       expectGroupNameCheckConflict(arn, "Duplicate Name")
-      expectPutSessionItem(GROUP_NAME, "Duplicate Name")
+      expectPutSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitRenameGroup(groupId).url)
@@ -657,7 +657,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGroupNameCheckConflict(arn, "Duplicate Name")
-      expectPutSessionItem(GROUP_NAME, "Duplicate Name")
+      expectPutSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitRenameTaxGroup(groupId).url)
@@ -696,7 +696,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the tax group name exists page" in {
       // given
       expectAuthOkOptedInReady()
-      expectGetSessionItem(GROUP_NAME, "Duplicate Name")
+      expectGetSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
 
       // when
       val result = controller.showTaxGroupNameExists()(request)
@@ -717,7 +717,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     "render correctly the custom group name exists page" in {
       // given
       expectAuthOkOptedInReady()
-      expectGetSessionItem(GROUP_NAME, "Duplicate Name")
+      expectGetSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
 
       // when
       val result = controller.showCustomGroupNameExists()(request)

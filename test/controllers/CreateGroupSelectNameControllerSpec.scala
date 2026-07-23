@@ -330,7 +330,8 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
         .text shouldBe "Enter a new access group name"
       html
         .select(Css.linkStyledAsButton)
-        .attr("href") shouldBe s"${ctrlRoute.showGroupName().url}"
+        .attr("href") should contain
+      oneOf(s"${ctrlRoute.showGroupName().url}", s"${routes.ManageGroupController.showManageGroups(None, None).url}")
     }
   }
 

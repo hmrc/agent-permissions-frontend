@@ -55,10 +55,12 @@ POST    /manage-access-groups             controllers.ManageGroupController.subm
 
 GET     /rename-custom-group/:groupId     controllers.ManageGroupController.showRenameGroup(groupId: models.GroupId)
 POST    /rename-custom-group/:groupId     controllers.ManageGroupController.submitRenameGroup(groupId: models.GroupId)
+GET     /rename-custom-group-name-exists  controllers.ManageGroupController.showCustomGroupNameExists()
 GET     /custom-group-renamed/:groupId    controllers.ManageGroupController.showGroupRenamed(groupId: models.GroupId)
 
 GET     /rename-tax-group/:groupId        controllers.ManageGroupController.showRenameTaxGroup(groupId: models.GroupId)
 POST    /rename-tax-group/:groupId        controllers.ManageGroupController.submitRenameTaxGroup(groupId: models.GroupId)
+GET     /rename-tax-group-name-exists     controllers.ManageGroupController.showTaxGroupNameExists()
 GET     /tax-group-renamed/:groupId       controllers.ManageGroupController.showTaxGroupRenamed(groupId: models.GroupId)
 
 GET     /delete-custom-group/:groupId        controllers.ManageGroupController.showDeleteGroup(groupId: models.GroupId)

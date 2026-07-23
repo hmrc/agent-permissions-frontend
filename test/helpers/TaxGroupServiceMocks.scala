@@ -42,7 +42,7 @@ trait TaxGroupServiceMocks extends AnyWordSpec with MockFactory {
       "HMRC-PILLAR2-ORG" -> numberOfEachService(5)
     )
     (taxGroupService
-      .getTaxGroupClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getTaxGroupClientCount(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful data)
       .once()
@@ -50,14 +50,14 @@ trait TaxGroupServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectCreateTaxGroup(arn: Arn)(implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
-      .createGroup(_: Arn, _: CreateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .createGroup(_: Arn, _: CreateTaxServiceGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future.successful("PPT or whatever"))
       .once()
 
   def expectDeleteTaxGroup(id: GroupId)(implicit taxGroupService: TaxGroupService): Unit =
     (taxGroupService
-      .deleteGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
+      .deleteGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future.successful(Done))
       .once()
@@ -66,7 +66,7 @@ trait TaxGroupServiceMocks extends AnyWordSpec with MockFactory {
     taxGroupService: TaxGroupService
   ): Unit =
     (taxGroupService
-      .getGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful maybeGroup)
 
@@ -74,7 +74,7 @@ trait TaxGroupServiceMocks extends AnyWordSpec with MockFactory {
     taxGroupService: TaxGroupService
   ): Unit =
     (taxGroupService
-      .updateGroup(_: GroupId, _: UpdateTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .updateGroup(_: GroupId, _: UpdateTaxServiceGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future.successful(Done))
       .once()
@@ -83,7 +83,7 @@ trait TaxGroupServiceMocks extends AnyWordSpec with MockFactory {
     taxGroupService: TaxGroupService
   ): Unit =
     (taxGroupService
-      .addOneMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .addOneMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 
@@ -91,7 +91,10 @@ trait TaxGroupServiceMocks extends AnyWordSpec with MockFactory {
     taxGroupService: TaxGroupService
   ): Unit =
     (taxGroupService
-      .addMembersToGroup(_: GroupId, _: AddMembersToTaxServiceGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .addMembersToGroup(_: GroupId, _: AddMembersToTaxServiceGroupRequest)(using
+        _: HeaderCarrier,
+        _: ExecutionContext
+      ))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 

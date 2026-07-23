@@ -32,7 +32,7 @@
     form: Form[Boolean],
     group: GroupSummary,
     isCustom: Boolean = true
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @formAction = @{
     if(isCustom) routes.ManageGroupController.submitDeleteGroup(group.groupId)

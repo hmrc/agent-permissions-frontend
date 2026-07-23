@@ -34,7 +34,7 @@ case class SuspensionDetails(suspensionStatus: Boolean, regimes: Option[Set[Stri
 
   val suspendedRegimes: Set[String] =
     regimes.fold(Set.empty[String]) { rs =>
-      if (rs.contains("ALL") || rs.contains("AGSV")) SuspensionDetails.validSuspensionRegimes
+      if rs.contains("ALL") || rs.contains("AGSV") then SuspensionDetails.validSuspensionRegimes
       else rs
     }
 

@@ -39,10 +39,10 @@ class ManageTeamMemberController @Inject() (
   optInStatusAction: OptInStatusAction,
   manage_team_members: manage_team_members,
   team_member_details: team_member_details
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._
@@ -55,10 +55,10 @@ class ManageTeamMemberController @Inject() (
   def showPageOfTeamMembers(page: Option[Int] = None): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        val eventualTuple = for {
+        val eventualTuple = for
           search        <- sessionCacheService.get(TEAM_MEMBER_SEARCH_INPUT)
           pageOfMembers <- teamMemberService.getPageOfTeamMembers(arn)(page.getOrElse(1), 10)
-        } yield (search, pageOfMembers)
+        yield (search, pageOfMembers)
         eventualTuple.map { tuple =>
           val (search, paginatedMembers) = (tuple._1, tuple._2)
           Ok(

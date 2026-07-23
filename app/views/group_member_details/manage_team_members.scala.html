@@ -32,7 +32,7 @@
     teamMembers: Seq[TeamMember] = Seq.empty[TeamMember],
     form: Form[SearchFilter],
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true,true,0,1,10,1,10))
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.manage.members.h1", nowrap) }
 

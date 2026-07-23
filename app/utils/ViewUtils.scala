@@ -31,7 +31,7 @@ object ViewUtils {
       ("TRUST", mgs("tax-service.trusts")) // TODO update to HMRC-TERS
     ) ++
       Seq(("HMRC-CBC", mgs("tax-service.cbc"))) ++
-      (if (appConfig.pillar2Enabled) Seq(("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2"))) else Seq.empty)
+      (if appConfig.pillar2Enabled then Seq(("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2"))) else Seq.empty)
 
     filters.sortBy(x => (x._2))
   }
@@ -59,18 +59,16 @@ object ViewUtils {
   def displayTaxService(serviceKey: String, lowercaseForCbc: Boolean = false)(implicit mgs: Messages): String = {
     val text = displayTaxServiceFromServiceKey(serviceKey)
 
-    if (lowercaseForCbc && serviceKey.contains("HMRC-CBC"))
-      text.toLowerCase
-    else
-      text
+    if lowercaseForCbc && serviceKey.contains("HMRC-CBC") then text.toLowerCase
+    else text
   }
 
   // can only display full taxId if no name
   def displayObfuscatedReference(name: String, taxId: String)(implicit msgs: Messages): String =
-    if (name.isEmpty) taxId else msgs("ending.in", taxId.substring(taxId.length - 4))
+    if name.isEmpty then taxId else msgs("ending.in", taxId.substring(taxId.length - 4))
 
   def clientCheckboxLabel(name: String, taxId: String, serviceKey: String)(implicit msgs: Messages): String =
-    if (name.isEmpty) {
+    if name.isEmpty then {
       msgs(
         "group.client.list.table.checkbox.label-missing-reference",
         taxId,
@@ -87,7 +85,7 @@ object ViewUtils {
 
   // for hidden labels, name is preferred
   def displayNameOrFullReference(name: String, taxId: String): String =
-    if (name.isEmpty) {
+    if name.isEmpty then {
       taxId
     } else {
       name
@@ -95,7 +93,7 @@ object ViewUtils {
 
   // we want to translate - included Admin but it should be deprecated?
   def displayTeamMemberRole(role: String)(implicit mgs: Messages): String =
-    if (role == "User" || role == "Admin") {
+    if role == "User" || role == "Admin" then {
       mgs("role.admin")
     } else {
       // role == Assistant
@@ -103,7 +101,7 @@ object ViewUtils {
     }
 
   def withErrorPrefix(hasFormErrors: Boolean, str: String)(implicit mgs: Messages): String = {
-    val errorPrefix = if (hasFormErrors) { mgs("error-prefix") + " " }
+    val errorPrefix = if hasFormErrors then { mgs("error-prefix") + " " }
     else { "" }
     errorPrefix.concat(mgs(str))
   }
@@ -113,24 +111,24 @@ object ViewUtils {
   ): String = {
 
     // the form makes search/filter an option but an empty term is usually "" so .isDefined or .nonEmpty are both unhelpful here
-    val hasOneInput = if (formFilter.getOrElse("") != "" && formSearch.getOrElse("") != "") {
+    val hasOneInput = if formFilter.getOrElse("") != "" && formSearch.getOrElse("") != "" then {
       Some(false)
     } else {
-      if (formFilter.getOrElse("") != "" || formSearch.getOrElse("") != "") {
+      if formFilter.getOrElse("") != "" || formSearch.getOrElse("") != "" then {
         Some(true)
       } else {
         None
       }
     }
 
-    val filterOrSearch = if (formFilter.getOrElse("") != "") {
+    val filterOrSearch = if formFilter.getOrElse("") != "" then {
       displayTaxServiceFromServiceKey(formFilter.get)
     } else {
       formSearch.getOrElse("")
     }
 
-    if (hasOneInput.isDefined) {
-      if (hasOneInput.get) {
+    if hasOneInput.isDefined then {
+      if hasOneInput.get then {
         val prefix = mgs("common.results-for1", filterOrSearch)
         prefix.concat(" " + mgs(str))
       } else {
@@ -150,7 +148,7 @@ object ViewUtils {
     formFilter: Option[String],
     formSearch: Option[String]
   )(implicit mgs: Messages): String =
-    if (hasFormErrors) {
+    if hasFormErrors then {
       withErrorPrefix(hasFormErrors, str)
     } else {
       withSearchPrefix(str, formFilter, formSearch)
@@ -174,7 +172,7 @@ object ViewUtils {
     val and = msgs("paginated.showing.total.filter-conjunction")
     filterTerms match {
       case Nil   => ""
-      case terms => (s"${`for`} " + filterTerms.mkString(s" $and ")).trim
+      case terms => (s"${`for`} " + terms.mkString(s" $and ")).trim
     }
   }
 
@@ -182,13 +180,13 @@ object ViewUtils {
     implicit msgs: Messages
   ): String = {
     val totalPages = paginationMetaData.get.totalPages
-    if (totalPages <= 1) {
+    if totalPages <= 1 then {
       msgs(mainMsgString)
     } else {
       val paginatedMsg: String = Seq(
-        if (nowrap) Some("<span style=\"white-space: nowrap;\">") else None,
+        if nowrap then Some("<span style=\"white-space: nowrap;\">") else None,
         Some(msgs("paginated.title.page.of", paginationMetaData.get.currentPageNumber, totalPages)),
-        if (nowrap) Some("</span>") else None
+        if nowrap then Some("</span>") else None
       ).flatten.mkString("")
       msgs(mainMsgString) + " " + paginatedMsg
     }
@@ -222,6 +220,6 @@ object ViewUtils {
     val followingString =
       filterReminderSubstring(formSearch, formFilter) + followingMsgString.map(key => s" ${msgs(key)}").getOrElse("")
     val msgParams = initialMsgParams ++ additionalParamList :+ followingString
-    msgs(s"$mainMsgString.$keySuffix", msgParams: _*)
+    msgs(s"$mainMsgString.$keySuffix", msgParams*)
   }
 }

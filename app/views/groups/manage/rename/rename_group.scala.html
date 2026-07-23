@@ -33,7 +33,7 @@
     group: GroupSummary,
     groupId: GroupId,
     isCustom: Boolean
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @formAction = @{
     if(isCustom) routes.ManageGroupController.submitRenameGroup(groupId)

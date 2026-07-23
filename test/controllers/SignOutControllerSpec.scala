@@ -57,9 +57,9 @@ class SignOutControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
-  implicit val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
-  val controller: SignOutController = fakeApplication.injector.instanceOf[SignOutController]
+  override implicit def fakeApplication(): Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
+  implicit val appConfig: AppConfig = fakeApplication().injector.instanceOf[AppConfig]
+  val controller: SignOutController = fakeApplication().injector.instanceOf[SignOutController]
 
   def authOk(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)

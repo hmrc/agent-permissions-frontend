@@ -78,7 +78,7 @@ abstract class BaseSpec
     GuiceApplicationBuilder()
       .disable[uk.gov.hmrc.play.bootstrap.metrics.Metrics]
       .configure("auditing.enabled" -> false)
-      .configure("metrics.enabled" -> true)
+      .configure("metrics.enabled" -> false)
       .configure("metrics.jvm" -> false)
       .overrides(moduleWithOverrides)
 

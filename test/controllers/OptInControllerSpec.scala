@@ -70,12 +70,12 @@ class OptInControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
-  val controller: OptInController = fakeApplication.injector.instanceOf[OptInController]
+  val controller: OptInController = fakeApplication().injector.instanceOf[OptInController]
 
   s"GET ${routes.OptInController.start().url}" should {
 
@@ -201,13 +201,13 @@ class OptInControllerSpec extends BaseSpec {
 
   s"POST ${routes.OptInController.submitDoYouWantToOptIn().url}" should {
 
-    s"redirect to '${routes.OptInController.showYouHaveOptedIn}' page with answer 'true'" in {
+    s"redirect to '${routes.OptInController.showYouHaveOptedIn()}' page with answer 'true'" in {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn()}")
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -228,7 +228,7 @@ class OptInControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn()}")
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -246,7 +246,7 @@ class OptInControllerSpec extends BaseSpec {
       expectIsArnAllowed(allowed = true)
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
-        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn}")
+        FakeRequest("POST", s"${routes.OptInController.submitDoYouWantToOptIn()}")
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -297,7 +297,7 @@ class OptInControllerSpec extends BaseSpec {
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
-        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getAgencyDetails(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(*, *, *)
         .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 
@@ -339,7 +339,7 @@ class OptInControllerSpec extends BaseSpec {
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
-        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getAgencyDetails(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(*, *, *)
         .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 
@@ -380,7 +380,7 @@ class OptInControllerSpec extends BaseSpec {
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
-        .getAgencyDetails(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+        .getAgencyDetails(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
         .expects(*, *, *)
         .returning(Future.successful(Some(AgencyDetails(Some("Agency Name"), Some("agency@email.com")))))
 

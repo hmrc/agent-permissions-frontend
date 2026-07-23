@@ -29,7 +29,7 @@
 
 @(
     form: Form[String],
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("group.create.name.h1"),
@@ -39,7 +39,7 @@
 
     @h1("group.create.name.h1")
 
-    @formWithCSRF(action = routes.CreateGroupSelectNameController.submitGroupName) {
+    @formWithCSRF(action = routes.CreateGroupSelectNameController.submitGroupName()) {
 
         @textbox(field = form("name"), label = "group.create.name.label")
 

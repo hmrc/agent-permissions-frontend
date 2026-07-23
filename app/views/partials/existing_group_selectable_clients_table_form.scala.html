@@ -54,7 +54,7 @@
     submitButtonKey: String = "save.and.continue.button",
     group: GroupSummary,
     resultsSummary: Option[String] = None
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @hasClientsAlreadyInGroup = @{clients.exists(_.alreadyInGroup)}
 

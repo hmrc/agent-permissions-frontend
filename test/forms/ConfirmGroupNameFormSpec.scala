@@ -43,7 +43,7 @@ class ConfirmGroupNameFormSpec extends AnyWordSpec with Matchers with GuiceOneAp
     }
 
     "have errors when group name hidden input exceeds max allowed characters" in {
-      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(33), answerField -> "true")
+      val params = Map(groupNameField -> RandomStringUtils.secure.nextAlphanumeric(33), answerField -> "true")
       val validatedForm = ConfirmCreateGroupForm.form("").bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm.errors.length shouldBe 1

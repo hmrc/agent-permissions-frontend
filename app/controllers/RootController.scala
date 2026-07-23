@@ -43,10 +43,8 @@ class RootController @Inject() (
     isAuthorisedAgent { arn =>
       sessionCacheRepository.getFromSession[OptinStatus](OPT_IN_STATUS).flatMap {
         case Some(status) =>
-          if (controllers.isEligibleToOptIn(status))
-            Redirect(routes.OptInController.start().url).toFuture
-          else if (controllers.isOptedIn(status))
-            Redirect(routes.OptOutController.start().url).toFuture
+          if controllers.isEligibleToOptIn(status) then Redirect(routes.OptInController.start().url).toFuture
+          else if controllers.isOptedIn(status) then Redirect(routes.OptOutController.start().url).toFuture
           else {
             logger.warn(s"user was not eligible to opt-In or opt-Out, redirecting to ASA.")
             Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture

@@ -20,7 +20,7 @@
 
 @this(layout: main_layout, p: p, h1: h1, h2: h2, a: a, link_as_button: link_as_button)
 
-@(optinStatus: OptinStatus, email: String)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(optinStatus: OptinStatus, email: String)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @ready = @{optinStatus == OptedInReady}
 

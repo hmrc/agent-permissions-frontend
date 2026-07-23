@@ -26,7 +26,8 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AgentSuspensionServiceSpec
-    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with AgentServicesAccountConnectorMocks {
+    extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures
+    with AgentServicesAccountConnectorMocks {
 
   implicit val mockAgentServicesAccountConnector: AgentServicesAccountConnector = mock[AgentServicesAccountConnector]
 

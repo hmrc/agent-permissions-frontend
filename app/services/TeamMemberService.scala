@@ -37,7 +37,7 @@ trait TeamMemberService {
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    request: Request[_]
+    request: Request[?]
   ): Future[PaginatedList[TeamMember]]
 
   def lookupTeamMember(arn: Arn)(
@@ -68,7 +68,7 @@ class TeamMemberServiceImpl @Inject() (
     formData: AddTeamMembersToGroup
   )(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[Any]): Future[Seq[TeamMember]] = {
 
-    val teamMembersInSession = for {
+    val teamMembersInSession = for
       _ <- formData.search.fold(sessionCacheService.delete(TEAM_MEMBER_SEARCH_INPUT))(term =>
              sessionCacheService.put(TEAM_MEMBER_SEARCH_INPUT, term).map(_ => ())
            )
@@ -83,7 +83,7 @@ class TeamMemberServiceImpl @Inject() (
                                  .filterNot(cl => idsToRemove.contains(cl.id))
                                  .sortBy(_.name)
       _ <- sessionCacheService.put(SELECTED_TEAM_MEMBERS, newSelectedTeamMembers)
-    } yield newSelectedTeamMembers
+    yield newSelectedTeamMembers
     teamMembersInSession.flatMap(_ =>
       formData.submit.trim match {
         case CONTINUE_BUTTON =>
@@ -104,9 +104,9 @@ class TeamMemberServiceImpl @Inject() (
   def getPageOfTeamMembers(arn: Arn)(page: Int = 1, pageSize: Int = 10)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    request: Request[_]
+    request: Request[?]
   ): Future[PaginatedList[TeamMember]] =
-    for {
+    for
       searchTerm    <- sessionCacheService.get(TEAM_MEMBER_SEARCH_INPUT)
       allArnMembers <- getTeamMembersFromConnector(arn)
       filteredMembers = searchTerm.fold(allArnMembers) { term =>
@@ -117,7 +117,7 @@ class TeamMemberServiceImpl @Inject() (
       firstMemberInPage = (page - 1) * pageSize
       lastMemberInPage = page * pageSize
       // because someone might change the filter selection and click last page when there's only 1 page of results.
-      pageOfMembers = if (filteredMembers.size > firstMemberInPage) {
+      pageOfMembers = if filteredMembers.size > firstMemberInPage then {
                         filteredMembers.slice(firstMemberInPage, lastMemberInPage)
                       } else {
                         filteredMembers.slice(0, Math.min(pageSize, filteredMembers.size))
@@ -127,10 +127,10 @@ class TeamMemberServiceImpl @Inject() (
       existingSelectedIds = maybeSelectedTeamMembers.getOrElse(Nil).map(_.id)
       pageOfMembersMarkedSelected =
         pageOfMembers
-          .map(dc => if (existingSelectedIds.contains(dc.id)) dc.copy(selected = true) else dc)
+          .map(dc => if existingSelectedIds.contains(dc.id) then dc.copy(selected = true) else dc)
       totalMembersSelected = maybeSelectedTeamMembers.fold(0)(_.length)
       _ <- sessionCacheService.put(CURRENT_PAGE_TEAM_MEMBERS, pageOfMembersMarkedSelected)
-    } yield PaginatedList[TeamMember](
+    yield PaginatedList[TeamMember](
       pageContent = pageOfMembersMarkedSelected,
       paginationMetaData = PaginationMetaData(
         page == numPages,
@@ -149,10 +149,10 @@ class TeamMemberServiceImpl @Inject() (
   def lookupTeamMember(
     arn: Arn
   )(id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TeamMember]] =
-    for {
+    for
       ugsAsTeamMembers <- getTeamMembersFromConnector(arn)
       maybeTeamMember = ugsAsTeamMembers.find(_.id == id)
-    } yield maybeTeamMember
+    yield maybeTeamMember
 
   def lookupTeamMembers(
     arn: Arn
@@ -164,9 +164,9 @@ class TeamMemberServiceImpl @Inject() (
   private def getTeamMembersFromConnector(
     arn: Arn
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] =
-    for {
+    for
       ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
       ugsAsTeamMembers = ugsUsers.map(TeamMember.fromUserDetails)
-    } yield ugsAsTeamMembers
+    yield ugsAsTeamMembers
 
 }

@@ -31,32 +31,32 @@ trait SessionServiceMocks extends AnyWordSpec with MockFactory {
     service: SessionCacheService
   ): Unit =
     (service
-      .get(_: DataKey[T])(_: Reads[T], _: Request[_]))
+      .get(_: DataKey[T])(using _: Reads[T], _: Request[?]))
       .expects(key, *, *)
       .returning(Future.successful(Some(mockedResponse)))
       .repeat(times)
 
   def expectGetSessionItemNone[T](key: DataKey[T])(implicit service: SessionCacheService): Unit =
     (service
-      .get(_: DataKey[T])(_: Reads[T], _: Request[_]))
+      .get(_: DataKey[T])(using _: Reads[T], _: Request[?]))
       .expects(key, *, *)
       .returning(Future.successful(None))
 
   def expectPutSessionItem[T](key: DataKey[T], value: T)(implicit service: SessionCacheService): Unit =
     (service
-      .put(_: DataKey[T], _: T)(_: Writes[T], _: Request[_], _: ExecutionContext))
+      .put(_: DataKey[T], _: T)(using _: Writes[T], _: Request[?], _: ExecutionContext))
       .expects(key, value, *, *, *)
       .returning(Future.successful(("", "")))
 
   def expectDeleteSessionItem[T](key: DataKey[T])(implicit service: SessionCacheService): Unit =
     (service
-      .delete(_: DataKey[T])(_: Request[_]))
+      .delete(_: DataKey[T])(using _: Request[?]))
       .expects(key, *)
       .returning(Future.successful(None))
 
-  def expectDeleteSessionItems(key: Seq[DataKey[_]])(implicit service: SessionCacheService): Unit =
+  def expectDeleteSessionItems(key: Seq[DataKey[?]])(implicit service: SessionCacheService): Unit =
     (service
-      .deleteAll(_: Seq[DataKey[_]])(_: Request[_], _: ExecutionContext))
+      .deleteAll(_: Seq[DataKey[?]])(using _: Request[?], _: ExecutionContext))
       .expects(key, *, *)
       .returning(Future.successful(None))
 }

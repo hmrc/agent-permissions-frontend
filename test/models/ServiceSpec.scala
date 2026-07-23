@@ -42,11 +42,11 @@ class ServiceSpec extends AnyFlatSpec with Matchers {
     model.equals("") shouldBe false
   }
 
-  it should "Throw execption if invalid Service ID supplied" in {
+  it should "Throw exception if invalid Service ID supplied" in {
     val json = Json.obj("id" -> "HMRC-XXX")
     val ex = intercept[RuntimeException] {
       json.as[Service]
     }
-    ex.getMessage shouldBe "JsResultException(errors:List((,List(JsonValidationError(List(Not a valid service id: HMRC-XXX),List())))))"
+    ex.getMessage shouldBe "JsResultException(errors:List((,List(JsonValidationError(List(Not a valid service id: HMRC-XXX),ArraySeq())))))"
   }
 }

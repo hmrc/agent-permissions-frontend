@@ -72,9 +72,9 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
   }
 
   val controller: CreateGroupSelectTeamMembersController =
-    fakeApplication.injector.instanceOf[CreateGroupSelectTeamMembersController]
+    fakeApplication().injector.instanceOf[CreateGroupSelectTeamMembersController]
 
-  override implicit lazy val fakeApplication: Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
+  override implicit def fakeApplication(): Application = appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   private val groupName = "XYZ"
 

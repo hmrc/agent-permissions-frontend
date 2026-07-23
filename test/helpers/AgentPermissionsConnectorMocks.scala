@@ -38,31 +38,31 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     arn: Arn
   )(optinStatus: OptinStatus)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getOptInStatus(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Some(optinStatus))
 
   def expectOptInStatusError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .getOptInStatus(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getOptInStatus(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
   def expectPostOptInAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .optIn(_: Arn, _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+      .optIn(_: Arn, _: Option[String])(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful Done)
 
   def expectPostOptInError(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .optIn(_: Arn, _: Option[String])(_: HeaderCarrier, _: ExecutionContext))
+      .optIn(_: Arn, _: Option[String])(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
   def expectPostOptOutAccepted(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .optOut(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .optOut(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Done)
 
@@ -70,13 +70,13 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): Unit =
     (agentPermissionsConnector
-      .createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .createGroup(_: Arn)(_: GroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, groupRequest, *, *)
       .returning(Future successful Done)
 
   def expectCreateGroupFails(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .createGroup(_: Arn)(_: GroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .createGroup(_: Arn)(_: GroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .throwing(UpstreamErrorResponse.apply("error", BAD_REQUEST))
 
@@ -84,7 +84,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): Unit =
     (agentPermissionsConnector
-      .getGroupSummaries(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroupSummaries(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful summaries)
 
@@ -98,6 +98,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
   )(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
       .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
+        using
         _: HeaderCarrier,
         _: ExecutionContext
       ))
@@ -113,7 +114,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): Unit =
     (agentPermissionsConnector
-      .getGroupsForClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroupsForClient(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, enrolmentKey, *, *)
       .returning(Future successful groups)
 
@@ -121,7 +122,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): Unit =
     (agentPermissionsConnector
-      .getGroupsForTeamMember(_: Arn, _: AgentUser)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroupsForTeamMember(_: Arn, _: AgentUser)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, agentUser, *, *)
       .returning(Future successful groups)
 
@@ -129,7 +130,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): Unit =
     (agentPermissionsConnector
-      .getGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
+      .getGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful group)
 
@@ -137,7 +138,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     ok: Boolean
   )(arn: Arn, name: String)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .groupNameCheck(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, name, *, *)
       .returning(Future successful ok)
 
@@ -145,7 +146,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): Unit =
     (agentPermissionsConnector
-      .groupNameCheck(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .groupNameCheck(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, name, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
@@ -153,7 +154,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): CallHandler4[GroupId, UpdateAccessGroupRequest, HeaderCarrier, ExecutionContext, Future[Done]] =
     (agentPermissionsConnector
-      .updateGroup(_: GroupId, _: UpdateAccessGroupRequest)(_: HeaderCarrier, _: ExecutionContext))
+      .updateGroup(_: GroupId, _: UpdateAccessGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(id, updateGroupRequest, *, *)
       .returning(Future successful Done)
       .once()
@@ -162,7 +163,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): CallHandler3[GroupId, HeaderCarrier, ExecutionContext, Future[Done]] =
     (agentPermissionsConnector
-      .deleteGroup(_: GroupId)(_: HeaderCarrier, _: ExecutionContext))
+      .deleteGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful Done)
 
@@ -170,7 +171,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): CallHandler3[Arn, HeaderCarrier, ExecutionContext, Future[Map[String, Int]]] =
     (agentPermissionsConnector
-      .getAvailableTaxServiceClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getAvailableTaxServiceClientCount(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Map("HMRC-MTD-IT" -> 1))
       .once()
@@ -179,7 +180,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): CallHandler3[Arn, HeaderCarrier, ExecutionContext, Future[Map[String, Int]]] =
     (agentPermissionsConnector
-      .getTaxGroupClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getTaxGroupClientCount(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Map("HMRC-MTD-IT" -> 1))
       .once()

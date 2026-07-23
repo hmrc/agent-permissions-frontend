@@ -20,7 +20,7 @@
 
 @this(layout: main_layout, p: p, h1: h1, button: link_as_button)
 
-@()(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@()(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("All access groups have been created"),

@@ -46,12 +46,12 @@ class AuthActionSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .build()
 
-  val authAction: AuthAction = fakeApplication.injector.instanceOf[AuthAction]
-  implicit val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
+  val authAction: AuthAction = fakeApplication().injector.instanceOf[AuthAction]
+  implicit val appConfig: AppConfig = fakeApplication().injector.instanceOf[AppConfig]
 
   "Auth Action" when {
     "the user hasn't logged in" should {
@@ -60,7 +60,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(MissingBearerToken())
 
         val result =
-          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
         status(result) shouldBe SEE_OTHER
         redirectLocation(result).get shouldBe
           "http://localhost:9099/bas-gateway/sign-in?continue_url=http://localhost:9452/&origin=agent-permissions-frontend"
@@ -95,7 +95,7 @@ class AuthActionSpec extends BaseSpec {
         expectAuthorisationFails(InsufficientEnrolments())
 
         val result =
-          authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
+          authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
         status(result) shouldBe FORBIDDEN
       }
 
@@ -105,7 +105,7 @@ class AuthActionSpec extends BaseSpec {
           expectAuthorisationFails(UnsupportedAuthProvider())
 
           val result =
-            authAction.isAuthorisedAgent(arn => Future.successful(Ok("")))
+            authAction.isAuthorisedAgent(_ => Future.successful(Ok("")))
           status(result) shouldBe FORBIDDEN
         }
       }

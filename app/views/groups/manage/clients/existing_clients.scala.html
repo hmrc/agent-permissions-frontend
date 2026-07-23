@@ -41,7 +41,7 @@
     groupClients: Seq[DisplayClient],
     form: Form[SearchFilter],
     paginationMetaData: Option[PaginationMetaData] = Some(PaginationMetaData(true, true, 0, 1, 10, 1, 10))
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @headingTwo = @{
     paginationShowingRangeHelperText(paginationMetaData, "paginated.clients.showing", form.data.get("search"), form.data.get("filter"), followingMsgString = Some("common.group.in.this"))

@@ -27,10 +27,10 @@
     formWithCSRF: FormWithCSRF
 )
 
-@(form: Form[Boolean], origin: Option[String])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(form: Form[Boolean], origin: Option[String])(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @backLinkSelector = @{
-    if(origin.getOrElse() == "manage-account") {
+    if (origin.getOrElse("") == "manage-account") {
         Some(BackLink(href = appConfig.agentServicesAccountManageAccountUrl, content = Text(msgs("common.return.manage-account"))))
     } else {
         Some(BackLink.mimicsBrowserBackButtonViaJavaScript(msgs))
@@ -44,7 +44,7 @@
 ) {
     @h1("group.type.h1")
 
-    @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitSelectGroupType) {
+    @formWithCSRF(action = routes.CreateGroupSelectGroupTypeController.submitSelectGroupType()) {
 
         @radioButtons(
             field = form("answer"),

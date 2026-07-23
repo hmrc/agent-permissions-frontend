@@ -1,10 +1,10 @@
-import uk.gov.hmrc.{DefaultBuildSettings, SbtAutoBuildPlugin}
-import CodeCoverageSettings.{settings}
+import CodeCoverageSettings.settings
+import uk.gov.hmrc.DefaultBuildSettings
 
 val appName = "agent-permissions-frontend"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.7.4"
 
 TwirlKeys.templateImports ++= Seq(
   "views.html.components._",
@@ -15,16 +15,11 @@ TwirlKeys.templateImports ++= Seq(
 )
 
 val scalaCOptions = Seq(
-  "-Werror",
-  "-Wdead-code",
-  "-Xlint",
+  "-Wconf:msg=Flag.*repeatedly:s", // silence warnings about compiler options being invoked repeatedly
+  "-feature",
   "-Wconf:src=target/.*:s", // silence warnings from compiled files
-  "-Wconf:src=*html:w", // silence html warnings as they are wrong
-  "-Wconf:cat=deprecation:s",
-  "-Wconf:cat=unused-privates:s",
-  "-Wconf:msg=match may not be exhaustive:is", // summarize warnings about non-exhaustive pattern matching
+  "-Wconf:src=routes/.*:s", // silence warnings from routes files
 )
-
 
 lazy val root = (project in file("."))
   .settings(

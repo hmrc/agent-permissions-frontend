@@ -32,7 +32,7 @@ object AddTeamMembersToGroupForm {
       ),
       "members" -> optional(list(text)),
       "submit"  -> text
-    )(AddTeamMembersToGroup.apply)(AddTeamMembersToGroup.unapply)
+    )(AddTeamMembersToGroup.apply)(o => Some(Tuple.fromProductTyped(o)))
       .verifying(
         "error.select-members.empty",
         data =>

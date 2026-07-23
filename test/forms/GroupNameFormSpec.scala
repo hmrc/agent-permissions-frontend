@@ -49,7 +49,7 @@ class GroupNameFormSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSui
 
     "have errors when length exceeds max allowed characters" in {
       // given
-      val params = Map(groupNameField -> RandomStringUtils.randomAlphanumeric(51))
+      val params = Map(groupNameField -> RandomStringUtils.secure.nextAlphanumeric(51))
       // when
       val form = GroupNameForm.form().bind(params)
       // then

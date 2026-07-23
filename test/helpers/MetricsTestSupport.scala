@@ -22,29 +22,28 @@ import org.scalatest.{Assertion, Suite}
 import play.api.Application
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
-import scala.collection.JavaConverters._
+import scala.compiletime.uninitialized
+import scala.jdk.CollectionConverters.*
 
 trait MetricsTestSupport {
-  self: Suite with Matchers =>
+  self: Suite & Matchers =>
 
   def app: Application
 
   implicit val metrics: Metrics = app.injector.instanceOf[Metrics]
 
-  private var metricsRegistry: MetricRegistry = _
+  private var metricsRegistry: MetricRegistry = uninitialized
 
   def givenCleanMetricRegistry(): Unit = {
     val registry = metrics.defaultRegistry
-    for (metric <- registry.getMetrics.keySet().iterator().asScala)
-      registry.remove(metric)
+    for metric <- registry.getMetrics.keySet().iterator().asScala do registry.remove(metric)
     metricsRegistry = registry
   }
 
   def verifyTimerExistsAndBeenUpdated(metric: String): Assertion = {
     val timers = metricsRegistry.getTimers
     val metrics = timers.get(s"Timer-$metric")
-    if (metrics == null)
-      throw new Exception(s"Metric [$metric] not found, try one of ${timers.keySet()}")
+    if metrics == null then throw new Exception(s"Metric [$metric] not found, try one of ${timers.keySet()}")
     metrics.getCount should be >= 1L
   }
 

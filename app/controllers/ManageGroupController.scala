@@ -50,10 +50,10 @@ class ManageGroupController @Inject() (
   confirm_delete_group: confirm_delete_group,
   delete_group_complete: delete_group_complete,
   duplicate_group_name: duplicate_group_name
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import authAction._
@@ -107,7 +107,7 @@ class ManageGroupController @Inject() (
             sessionCacheService
               .get(GROUP_SEARCH_INPUT)
               .flatMap { search =>
-                if (searchFilter.search == search) {
+                if searchFilter.search == search then {
                   Redirect(controller.showManageGroups(Some(pageToShow.toInt), None)).toFuture
                 } else {
                   sessionCacheService
@@ -146,16 +146,14 @@ class ManageGroupController @Inject() (
           (newName: String) =>
             groupService.groupNameCheck(arn, newName).flatMap { nameAvailable =>
               if (nameAvailable)
-                for {
+                for
                   _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
                   patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
                   _ <- groupService.updateGroup(groupId, patchRequestBody)
-                } yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
-              else {
-                for {
-                  _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
-                } yield Redirect(routes.ManageGroupController.showCustomGroupNameExists())
-              }
+                yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
+              else
+                for _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
+                yield Redirect(routes.ManageGroupController.showCustomGroupNameExists())
             }
         )
     }
@@ -168,12 +166,11 @@ class ManageGroupController @Inject() (
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
         sessionCacheService
-          .get[String](GROUP_NAME_ALREADY_EXISTING).
-          map(newName => Ok(duplicate_group_name(newName.getOrElse(""))))
+          .get[String](GROUP_NAME_ALREADY_EXISTING)
+          .map(newName => Ok(duplicate_group_name(newName.getOrElse(""))))
       }
     }
   }
-
 
   def submitRenameTaxGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom = false) { (summary: GroupSummary, arn: Arn) =>
@@ -184,17 +181,15 @@ class ManageGroupController @Inject() (
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = false)).toFuture,
           (newName: String) =>
             groupService.groupNameCheck(arn, newName).flatMap { nameAvailable =>
-              if (nameAvailable)
-                for {
+              if nameAvailable then
+                for
                   _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
                   patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
                   _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
-                } yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
-              else {
-                for {
-                  _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
-                } yield Redirect(routes.ManageGroupController.showTaxGroupNameExists())
-              }
+                yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
+              else
+                for _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
+                yield Redirect(routes.ManageGroupController.showTaxGroupNameExists())
             }
         )
     }
@@ -202,7 +197,6 @@ class ManageGroupController @Inject() (
 
   def showTaxGroupNameExists(): Action[AnyContent] =
     showGroupNameExists()
-
 
   def showGroupRenamed(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
     withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
@@ -221,7 +215,7 @@ class ManageGroupController @Inject() (
   }
 
   def showDeleteGroup(groupId: GroupId): Action[AnyContent] = Action.async { implicit request =>
-    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, arn: Arn) =>
+    withGroupSummaryForAuthorisedOptedAgent(groupId) { (summary: GroupSummary, _: Arn) =>
       Ok(confirm_delete_group(YesNoForm.form("group.delete.select.error"), summary)).toFuture
     }
   }
@@ -240,13 +234,12 @@ class ManageGroupController @Inject() (
         .fold(
           formWithErrors => Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
           (answer: Boolean) =>
-            if (answer) {
-              for {
+            if answer then {
+              for
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- groupService.deleteGroup(groupId)
-              } yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
-            } else
-              Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
+              yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
+            } else Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
         )
     }
   }
@@ -259,13 +252,12 @@ class ManageGroupController @Inject() (
         .fold(
           formWithErrors => Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
           (answer: Boolean) =>
-            if (answer) {
-              for {
+            if answer then
+              for
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- taxGroupService.deleteGroup(groupId)
-              } yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
-            } else
-              Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
+              yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
+            else Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
         )
     }
   }

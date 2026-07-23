@@ -44,15 +44,15 @@ case class TeamMember(
 }
 
 case object TeamMember {
-  def teamMemberDatabaseFormat(implicit crypto: Encrypter with Decrypter): Format[TeamMember] =
+  def teamMemberDatabaseFormat(implicit crypto: Encrypter & Decrypter): Format[TeamMember] =
     (
-      (__ \ "name").format[String](stringEncrypterDecrypter) and
-        (__ \ "email").format[String](stringEncrypterDecrypter) and
-        (__ \ "userId").formatNullable[String](stringEncrypterDecrypter) and
+      (__ \ "name").format[String](using stringEncrypterDecrypter) and
+        (__ \ "email").format[String](using stringEncrypterDecrypter) and
+        (__ \ "userId").formatNullable[String](using stringEncrypterDecrypter) and
         (__ \ "credentialRole").formatNullable[String] and
         (__ \ "selected").format[Boolean] and
         (__ \ "alreadyInGroup").format[Boolean]
-    )(TeamMember.apply, unlift(TeamMember.unapply))
+    )(TeamMember.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 
   implicit val format: OFormat[TeamMember] = Json.format[TeamMember]
 
@@ -78,7 +78,7 @@ case class DisplayClient(
   alreadyInGroup: Boolean = false
 ) extends Selectable {
   // TODO problematic assumption about where the 'key' identifier (hmrcRef) is in an enrolmentKey
-  val enrolmentKey: String = if (taxService == "HMRC-CBC-ORG") {
+  val enrolmentKey: String = if taxService == "HMRC-CBC-ORG" then {
     s"$taxService~cbcId~$hmrcRef~$enrolmentKeyExtra"
   } else { s"$taxService~$enrolmentKeyExtra~$hmrcRef" }
   val id: String = EncryptionUtil.encryptEnrolmentKey(enrolmentKey)
@@ -86,15 +86,15 @@ case class DisplayClient(
 
 // There's a copy of this in agent-permissions BE
 case object DisplayClient {
-  def displayClientDatabaseFormat(implicit crypto: Encrypter with Decrypter): Format[DisplayClient] =
+  def displayClientDatabaseFormat(implicit crypto: Encrypter & Decrypter): Format[DisplayClient] =
     (
-      (__ \ "hmrcRef").format[String](stringEncrypterDecrypter) and
-        (__ \ "name").format[String](stringEncrypterDecrypter) and
+      (__ \ "hmrcRef").format[String](using stringEncrypterDecrypter) and
+        (__ \ "name").format[String](using stringEncrypterDecrypter) and
         (__ \ "taxService").format[String] and
         (__ \ "enrolmentKeyExtra").format[String] and
         (__ \ "selected").format[Boolean] and
         (__ \ "alreadyInGroup").format[Boolean]
-    )(DisplayClient.apply, unlift(DisplayClient.unapply))
+    )(DisplayClient.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 
   implicit val format: OFormat[DisplayClient] = Json.format[DisplayClient]
 
@@ -103,10 +103,10 @@ case object DisplayClient {
     val keyElements = client.enrolmentKey.split('~')
     val taxService = keyElements.head
     // very hacky!!
-    val enrolmentKeyExtra = if (keyElements.head.contains("HMRC-CBC-ORG")) {
+    val enrolmentKeyExtra = if keyElements.head.contains("HMRC-CBC-ORG") then {
       s"${keyElements(3)}~${keyElements(4)}" // saves the UTR for later
     } else keyElements(1)
-    val hmrcRef = if (keyElements.head.contains("HMRC-CBC-ORG")) {
+    val hmrcRef = if keyElements.head.contains("HMRC-CBC-ORG") then {
       keyElements(2) // cbcId not UTR
     } else keyElements.last
 

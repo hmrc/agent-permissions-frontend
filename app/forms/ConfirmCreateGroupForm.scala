@@ -34,7 +34,7 @@ object ConfirmCreateGroupForm {
       "answer" -> optional(boolean)
         .verifying(errorMessageKey, _.isDefined)
 //        .transform(_.get, (b: Boolean) => Option(b))
-    )(ConfirmGroup.apply)(ConfirmGroup.unapply)
+    )(ConfirmGroup.apply)(o => Some(Tuple.fromProductTyped(o)))
   )
 
 }

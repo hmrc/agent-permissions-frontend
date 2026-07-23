@@ -32,12 +32,12 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[OptInServiceImpl])
 trait OptinService {
   def optIn(arn: Arn, lang: Option[String])(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done]
 
-  def optOut(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def optOut(arn: Arn)(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 
 }
 
@@ -48,23 +48,23 @@ class OptInServiceImpl @Inject() (
 ) extends OptinService {
 
   def optIn(arn: Arn, lang: Option[String])(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done] =
-    optingTo(agentPermissionsConnector.optIn(_, lang))(arn)(request, hc, ec)
+    optingTo(agentPermissionsConnector.optIn(_, lang))(arn)(using request, hc, ec)
 
-  def optOut(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
-    optingTo(agentPermissionsConnector.optOut)(arn)(request, hc, ec)
+  def optOut(arn: Arn)(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    optingTo(agentPermissionsConnector.optOut)(arn)(using request, hc, ec)
 
   private def optingTo(
     func: Arn => Future[Done]
-  )(arn: Arn)(implicit request: Request[_], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
-    for {
+  )(arn: Arn)(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+    for
       _           <- func(arn)
       maybeStatus <- agentPermissionsConnector.getOptInStatus(arn)
       status = maybeStatus.getOrElse(throw new RuntimeException(s"could not get optin-status from backend"))
       _ <- sessionCacheRepository.putSession[OptinStatus](OPT_IN_STATUS, status)
-    } yield Done
+    yield Done
 
 }

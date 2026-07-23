@@ -52,7 +52,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
-  private implicit val crypto: Encrypter with Decrypter = SymmetricCryptoFactory.aesCrypto(
+  private implicit val crypto: Encrypter & Decrypter = SymmetricCryptoFactory.aesCrypto(
     "oaJdbtyXIUyd+hHefKbMUqtehotAG99pH0bqpkSuQ/Q="
   )
 
@@ -85,7 +85,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
@@ -100,7 +100,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     (1 to 3).map(i => GroupSummary(GroupId.random(), s"name $i", Some(i * 3), i * 4))
 
   private val agentUser: AgentUser =
-    AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+    AgentUser(RandomStringUtils.secure.next(5), "Rob the Agent")
 
   val accessGroup: CustomGroup =
     CustomGroup(
@@ -129,7 +129,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
     Set.empty
   )
 
-  val controller: AssistantViewOnlyController = fakeApplication.injector.instanceOf[AssistantViewOnlyController]
+  val controller: AssistantViewOnlyController = fakeApplication().injector.instanceOf[AssistantViewOnlyController]
   private val ctrlRoute: ReverseAssistantViewOnlyController = routes.AssistantViewOnlyController
 
   def AssistantAuthOk(): Unit = {

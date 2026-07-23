@@ -21,7 +21,7 @@ import helpers.{AgentPermissionsConnectorMocks, BaseSpec, HttpClientMocks}
 import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGroup}
 import models.accessgroups.optin.OptedInReady
 import models.{DisplayClient, GroupId}
-import org.apache.commons.lang3.RandomStringUtils.randomAlphabetic
+import org.apache.commons.lang3.RandomStringUtils
 import org.apache.pekko.Done
 import play.api.Application
 import play.api.http.Status._
@@ -45,9 +45,9 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
       bind(classOf[HttpClientV2]).toInstance(mockHttpClient)
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.build()
+  override implicit def fakeApplication(): Application = appBuilder.build()
 
-  val connector: AgentPermissionsConnector = fakeApplication.injector.instanceOf[AgentPermissionsConnectorImpl]
+  val connector: AgentPermissionsConnector = fakeApplication().injector.instanceOf[AgentPermissionsConnectorImpl]
   val groupName: String = "my fav%& clients"
   val encodedGroupName = URLEncoder.encode(groupName, UTF_8.name)
 
@@ -859,7 +859,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     s"return Done when response code is $NO_CONTENT" in {
 
       // given
-      val clientId = randomAlphabetic(10)
+      val clientId = RandomStringUtils.secure.nextAlphabetic(10)
       val groupId = GroupId.random()
       val url: URL = url"http://localhost:9447/agent-permissions/groups/$groupId/clients/$clientId"
       val mockResponse = HttpResponse.apply(NO_CONTENT)
@@ -872,7 +872,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     "throw exception when it fails" in {
 
       // given
-      val clientId = randomAlphabetic(10)
+      val clientId = RandomStringUtils.secure.nextAlphabetic(10)
       val groupId = GroupId.random()
       val url: URL = url"http://localhost:9447/agent-permissions/groups/$groupId/clients/$clientId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR)
@@ -893,7 +893,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     s"return Done when response code is $NO_CONTENT" in {
 
       // given
-      val memberId = randomAlphabetic(10)
+      val memberId = RandomStringUtils.secure.nextAlphabetic(10)
       val groupId = GroupId.random()
       val url: URL = url"http://localhost:9447/agent-permissions/groups/$groupId/members/$memberId"
       val mockResponse = HttpResponse.apply(NO_CONTENT)
@@ -906,7 +906,7 @@ class AgentPermissionsConnectorSpec extends BaseSpec with HttpClientMocks with A
     "throw exception when it fails" in {
 
       // given
-      val memberId = randomAlphabetic(10)
+      val memberId = RandomStringUtils.secure.nextAlphabetic(10)
       val groupId = GroupId.random()
       val url: URL = url"http://localhost:9447/agent-permissions/groups/$groupId/members/$memberId"
       val mockResponse = HttpResponse.apply(INTERNAL_SERVER_ERROR)

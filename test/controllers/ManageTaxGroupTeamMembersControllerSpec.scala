@@ -20,20 +20,20 @@ import com.google.inject.AbstractModule
 import connectors.{AddMembersToTaxServiceGroupRequest, AgentPermissionsConnector, AgentUserClientDetailsConnector}
 import controllers.GroupType.TAX_SERVICE
 import controllers.actions.AuthAction
-import helpers.Css._
+import helpers.Css.*
 import helpers.{BaseSpec, Css}
 import models.TeamMember.toAgentUser
 import models.accessgroups.optin.OptedInReady
 import models.accessgroups.{AgentUser, GroupSummary, TaxGroup, UserDetails}
 import models.{AddTeamMembersToGroup, GroupId, TeamMember}
-import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{OK, SEE_OTHER}
-import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation}
-import services._
+import services.*
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.SessionKeys
 
@@ -53,7 +53,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   implicit val teamMemberService: TeamMemberService = mock[TeamMemberService]
 
   val groupId = GroupId.random()
-  private val agentUser: AgentUser = AgentUser(randomAlphanumeric(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.secure.nextAlphanumeric(5), "Rob the Agent")
   val taxGroup: TaxGroup = new TaxGroup(
     groupId,
     arn,
@@ -92,7 +92,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
@@ -113,7 +113,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
   val teamMembers2: Seq[TeamMember] = userDetails2.map(TeamMember.fromUserDetails)
 
   val controller: ManageGroupTeamMembersController =
-    fakeApplication.injector.instanceOf[ManageGroupTeamMembersController]
+    fakeApplication().injector.instanceOf[ManageGroupTeamMembersController]
   private val ctrlRoute: ReverseManageGroupTeamMembersController = routes.ManageGroupTeamMembersController
 
   def expectAuthOkOptedInReady(): Unit = {
@@ -155,7 +155,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     "render with name/email searchTerm set" in {
       // given
 
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url +
           "?submit=filter&search=John+1"
@@ -186,7 +186,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with email searchTerm set" in {
       // given
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + "?submit=filter&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
@@ -217,7 +217,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with filter that matches nothing" in {
       // given
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + s"?submit=$FILTER_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
@@ -248,7 +248,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     "render with CLEAR_BUTTON" in {
       // given
-      implicit val requestWithQueryParams = FakeRequest(
+      implicit val requestWithQueryParams: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
         GET,
         ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url + s"?submit=$CLEAR_BUTTON&search=hn2@ab"
       ).withHeaders("Authorization" -> "Bearer XYZ")
@@ -601,7 +601,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None)}’ page with answer ‘false'" in {
 
       val endpoint = s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}"
-      implicit val request = FakeRequest("POST", endpoint)
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest("POST", endpoint)
         .withFormUrlEncodedBody("answer" -> "false")
         .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -621,9 +621,10 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showAddTeamMembers(TAX_SERVICE, groupId, None)}’ page with answer ‘true'" in {
 
-      implicit val request = FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
-        .withFormUrlEncodedBody("answer" -> "true")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
+          .withFormUrlEncodedBody("answer" -> "true")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, teamMembers)
@@ -637,7 +638,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"render errors when no radio button selected" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -663,7 +664,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
 
     s"redirect to ‘${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url}’ when no SELECTED_TEAM_MEMBERS in session" in {
 
-      implicit val request =
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", s"${controller.submitReviewTeamMembersToAdd(TAX_SERVICE, groupId)}")
           .withFormUrlEncodedBody("NOTHING" -> "SELECTED")
           .withSession(SessionKeys.sessionId -> "session-x")

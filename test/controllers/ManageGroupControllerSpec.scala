@@ -51,7 +51,7 @@ class ManageGroupControllerSpec extends BaseSpec {
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
   val groupId: GroupId = GroupId.random()
-  private val agentUser: AgentUser = AgentUser(RandomStringUtils.random(5), "Rob the Agent")
+  private val agentUser: AgentUser = AgentUser(RandomStringUtils.secure.next(5), "Rob the Agent")
 
   val accessGroup: CustomGroup = CustomGroup(
     GroupId.random(),
@@ -100,7 +100,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
@@ -132,7 +132,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
   }
 
-  val controller: ManageGroupController = fakeApplication.injector.instanceOf[ManageGroupController]
+  val controller: ManageGroupController = fakeApplication().injector.instanceOf[ManageGroupController]
   private val ctrlRoute: ReverseManageGroupController = routes.ManageGroupController
 
   s"GET ${ctrlRoute.showManageGroups(None, None).url}" should {
@@ -149,7 +149,7 @@ class ManageGroupControllerSpec extends BaseSpec {
           s"name $i",
           Some(i * 3),
           i * 4,
-          taxService = if (i % 2 == 0) Some("VAT") else None
+          taxService = if i % 2 == 0 then Some("VAT") else None
         )
       )
       expectGetPaginatedGroupSummaries(arn, searchTerm)(1, 5)(groupSummaries)

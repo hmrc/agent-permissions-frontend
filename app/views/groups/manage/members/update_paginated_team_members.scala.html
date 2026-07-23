@@ -35,7 +35,7 @@
     form: Form[AddTeamMembersToGroup],
     msgKey: String = "select",
     paginationMetaData: Option[PaginationMetaData] = None
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @errorHref = @{
     if(form.errors.map(error => error.message).contains("error.select-members.empty"))

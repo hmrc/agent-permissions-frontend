@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait ClientService {
 
   def getPaginatedClients(arn: Arn)(page: Int, pageSize: Int)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]]
@@ -43,7 +43,7 @@ trait ClientService {
   def getPaginatedClientsToAddToGroup(
     id: GroupId
   )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(GroupSummary, PaginatedList[DisplayClient])]
@@ -51,7 +51,7 @@ trait ClientService {
   def getUnassignedClients(
     arn: Arn
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]]
@@ -69,7 +69,7 @@ trait ClientService {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[DisplayClient]]
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done]
@@ -88,11 +88,11 @@ class ClientServiceImpl @Inject() (
 ) extends ClientService with GroupMemberOps {
 
   def getPaginatedClients(arn: Arn)(page: Int = 1, pageSize: Int = 20)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]] =
-    for {
+    for
       searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
       filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
       pageOfClients <-
@@ -102,31 +102,33 @@ class ClientServiceImpl @Inject() (
       pageOfClientsMarkedSelected =
         pageOfClients.pageContent
           .map(cl => DisplayClient.fromClient(cl))
-          .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
+          .map(dc => if existingSelectedClientIds.contains(dc.id) then dc.copy(selected = true) else dc)
       totalClientsSelected = maybeSelectedClients.fold(0)(_.length)
       metadataWithExtra = pageOfClients.paginationMetaData.copy(extra =
                             Some(Map("totalSelected" -> JsNumber(totalClientsSelected)))
                           ) // This extra data is needed to display correct 'selected' count in front-end
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
-    } yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
+    yield PaginatedList(pageOfClientsMarkedSelected, metadataWithExtra)
 
   def getPaginatedClientsToAddToGroup(
     id: GroupId
   )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[(GroupSummary, PaginatedList[DisplayClient])] =
-    for {
+    for
       maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)
       existingSelectedClientIds = maybeSelectedClients.getOrElse(Nil).map(_.id)
       tuple <- agentPermissionsConnector.getPaginatedClientsToAddToGroup(id)(page, pageSize, search, filter)
       pageOfClientsMarkedSelected =
         tuple._2.pageContent
-          .map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
+          .map(dc => if existingSelectedClientIds.contains(dc.id) then dc.copy(selected = true) else dc)
       _ <- sessionCacheService.put(CURRENT_PAGE_CLIENTS, pageOfClientsMarkedSelected)
       clientsMarkedAsSelected =
-        tuple._2.pageContent.map(dc => if (existingSelectedClientIds.contains(dc.id)) dc.copy(selected = true) else dc)
+        tuple._2.pageContent.map(dc =>
+          if existingSelectedClientIds.contains(dc.id) then dc.copy(selected = true) else dc
+        )
       x = (
             tuple._1,
             PaginatedList[DisplayClient](
@@ -135,12 +137,12 @@ class ClientServiceImpl @Inject() (
                 .copy(extra = Some(Map("totalSelected" -> JsNumber(maybeSelectedClients.getOrElse(Seq.empty).length))))
             )
           )
-    } yield x
+    yield x
 
   def getUnassignedClients(
     arn: Arn
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]] =
@@ -149,10 +151,10 @@ class ClientServiceImpl @Inject() (
   def lookupClient(
     arn: Arn
   )(clientId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DisplayClient]] =
-    for {
+    for
       es3AsDisplayClients <- getFromEs3AsDisplayClients(arn)
       maybeClient = es3AsDisplayClients.find(_.id == clientId)
-    } yield maybeClient
+    yield maybeClient
 
   def getClient(
     arn: Arn
@@ -173,13 +175,13 @@ class ClientServiceImpl @Inject() (
   private def getFromEs3AsDisplayClients(
     arn: Arn
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayClient]] =
-    for {
+    for
       es3Clients <- agentUserClientDetailsConnector.getClients(arn)
       es3AsDisplayClients = es3Clients.map(client => DisplayClient.fromClient(client))
-    } yield es3AsDisplayClients
+    yield es3AsDisplayClients
 
   def updateClientReference(arn: Arn, displayClient: DisplayClient, newName: String)(implicit
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done] = {

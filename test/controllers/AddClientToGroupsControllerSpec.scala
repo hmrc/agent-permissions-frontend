@@ -67,9 +67,9 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
     }
   }
 
-  private val controller = fakeApplication.injector.instanceOf[AddClientToGroupsController]
+  private val controller = fakeApplication().injector.instanceOf[AddClientToGroupsController]
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val fakeClients: Seq[Client] =

@@ -56,9 +56,9 @@ class RootControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application = appBuilder.build()
+  override implicit def fakeApplication(): Application = appBuilder.build()
 
-  val controller: RootController = fakeApplication.injector.instanceOf[RootController]
+  val controller: RootController = fakeApplication().injector.instanceOf[RootController]
 
   def expectAuthOk(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)

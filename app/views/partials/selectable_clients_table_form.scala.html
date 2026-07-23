@@ -44,7 +44,7 @@
 @(
     clients: Seq[DisplayClient] = Seq.empty[DisplayClient],
     form: Form[AddClientsToGroup],
-    formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients,
+    formAction: Call = routes.CreateGroupSelectClientsController.submitSelectedClients(),
     paginationMetaData: Option[PaginationMetaData] = None,
     showSearch: Boolean = false,
     showFilter: Boolean = false,
@@ -52,7 +52,7 @@
     backLinkHref:Option[String] = None,
     submitButtonKey: String = "common.continue",
     resultsSummary: Option[String] = None
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @tableRows = @{
     clients.zipWithIndex.map(client =>

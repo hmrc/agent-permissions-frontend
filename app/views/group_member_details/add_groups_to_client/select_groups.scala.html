@@ -35,8 +35,8 @@
         groupsForClient: Seq[GroupSummary],
         availableGroups: Seq[GroupSummary] = Seq.empty,
         client: DisplayClient,
-        form: Form[_]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+        form: Form[?]
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @h1Text = @{
     msgs(if(availableGroups.isEmpty) "common.select.groups.none.h1" else "client.select.groups.h1", client.name)

@@ -61,7 +61,7 @@ abstract class POSTPaginationHandler[FormData](sessionCacheService: SessionCache
 
   val checkSubmitTypeForm: Form[String] = Form(single("submit" -> text))
 
-  def handlePost(implicit ec: ExecutionContext, request: Request[_], formBinding: FormBinding): Future[Result] =
+  def handlePost(implicit ec: ExecutionContext, request: Request[?], formBinding: FormBinding): Future[Result] =
     emptyForm
       .bindFromRequest()
       .fold(
@@ -75,11 +75,11 @@ abstract class POSTPaginationHandler[FormData](sessionCacheService: SessionCache
               // The form was submitted using the 'filter' button. Save the filter settings and reload the page.
               case FILTER_BUTTON =>
                 val searchFilter: SearchFilter = SearchAndFilterForm.form().bindFromRequest().get
-                for {
+                for
                   _      <- sessionCacheService.put(CLIENT_SEARCH_INPUT, searchFilter.search.getOrElse(""))
                   _      <- sessionCacheService.put(CLIENT_FILTER_INPUT, searchFilter.filter.getOrElse(""))
                   result <- Future.successful(Redirect(reloadCall(None, searchFilter.search, searchFilter.filter)))
-                } yield result
+                yield result
               // The form was submitted using the 'clear filters' button. Clear the filters and reload the page.
               case CLEAR_BUTTON =>
                 sessionCacheService.deleteAll(clientFilteringKeys).map(_ => Redirect(reloadCall(None, None, None)))
@@ -106,7 +106,7 @@ abstract class POSTPaginatedSearchableClientSelectHandler(
   val reloadCall: (Option[Int], Option[String], Option[String]) => Call
   val onContinue: AddClientsToGroup => Future[Result]
 
-  def handlePost(implicit ec: ExecutionContext, request: Request[_], formBinding: FormBinding): Future[Result] =
+  def handlePost(implicit ec: ExecutionContext, request: Request[?], formBinding: FormBinding): Future[Result] =
     new POSTPaginationHandler[AddClientsToGroup](sessionCacheService) {
       val emptyForm: Form[AddClientsToGroup] = AddClientsToGroupForm.form()
       val renderPage: Form[AddClientsToGroup] => Future[Result] = self.renderPage
@@ -116,7 +116,7 @@ abstract class POSTPaginatedSearchableClientSelectHandler(
       val onContinue: AddClientsToGroup => Future[Result] = { formData =>
         // check selected clients from session cache AFTER saving (removed de-selections)
         sessionCacheService.get(SELECTED_CLIENTS).flatMap { nowSelectedClients =>
-          if (nowSelectedClients.nonEmpty) {
+          if nowSelectedClients.nonEmpty then {
             self.onContinue(formData)
           } else { // render page with empty client error
             renderPage(emptyForm.withError("clients", "error.select-clients.empty"))

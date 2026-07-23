@@ -45,7 +45,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
   select_group_tax_type: select_group_tax_type,
   review_group_type: review_group_type,
   exceed_group_selection: exceed_group_selection
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport with Logging {
 
   val ctrlRoutes: ReverseCreateGroupSelectGroupTypeController = controllers.routes.CreateGroupSelectGroupTypeController
@@ -58,11 +58,11 @@ class CreateGroupSelectGroupTypeController @Inject() (
   def showSelectGroupType(origin: Option[String]): Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
       isOptedIn(arn) { _ =>
-        for {
+        for
           _             <- sessionCacheService.deleteAll(sessionKeys)
           mGroupTypeStr <- sessionCacheService.get(GROUP_TYPE)
           mGroupTypeBool = mGroupTypeStr.map(_ == CUSTOM_GROUP)
-        } yield Ok(select_group_type(formWithFilledValue(YesNoForm.form(), mGroupTypeBool), origin))
+        yield Ok(select_group_type(formWithFilledValue(YesNoForm.form(), mGroupTypeBool), origin))
       }
     }
   }
@@ -76,7 +76,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
           .fold(
             formWithErrors => Ok(select_group_type(formWithErrors, None)).toFuture,
             (isCustomGroupType: Boolean) =>
-              if (isCustomGroupType) {
+              if isCustomGroupType then {
                 sessionCacheService
                   .put(GROUP_TYPE, CUSTOM_GROUP)
                   .map(_ => Redirect(controllers.routes.CreateGroupSelectNameController.showGroupName()))
@@ -92,15 +92,17 @@ class CreateGroupSelectGroupTypeController @Inject() (
 
   def showSelectTaxServiceGroupType: Action[AnyContent] = Action.async { implicit request =>
     withGroupTypeAndAuthorised { (_, arn) =>
-      for {
+      for
         info <- clientService.getAvailableTaxServiceClientCount(arn)
         sel  <- sessionCacheService.get(GROUP_SERVICE_TYPE)
-      } yield
-        if (info.isEmpty)
-          Ok(exceed_group_selection())
+      yield
+        if info.isEmpty then Ok(exceed_group_selection())
         else {
           Ok(
-            select_group_tax_type(formWithFilledValue(TaxServiceGroupTypeForm.form, sel.map(TaxServiceGroupType)), info)
+            select_group_tax_type(
+              formWithFilledValue(TaxServiceGroupTypeForm.form, sel.map(TaxServiceGroupType.apply)),
+              info
+            )
           )
         }
     }
@@ -122,11 +124,10 @@ class CreateGroupSelectGroupTypeController @Inject() (
                 groupService
                   .groupNameCheck(arn, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
                   .flatMap(nameAvailable =>
-                    if (nameAvailable)
-                      for {
-                        _ <- sessionCacheService
-                               .put[String](GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
-                      } yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType())
+                    if nameAvailable then
+                      for _ <- sessionCacheService
+                                 .put[String](GROUP_NAME, ViewUtils.displayTaxServiceFromServiceKey(formData.groupType))
+                      yield Redirect(ctrlRoutes.showReviewTaxServiceGroupType())
                     else {
                       Redirect(ctrlRoutes.showReviewTaxServiceGroupType()).toFuture
                     }
@@ -164,7 +165,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
             },
           (continue: Boolean) =>
             {
-              if (continue) {
+              if continue then {
                 Redirect(routes.CreateGroupSelectNameController.showGroupName())
               } else {
                 Redirect(ctrlRoutes.showSelectGroupType())

@@ -46,7 +46,7 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
       "HMRC-PILLAR2-ORG" -> numberOfEachService(6)
     ).filter { case (_, count) => count != 0 }
     (clientService
-      .getAvailableTaxServiceClientCount(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getAvailableTaxServiceClientCount(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful data)
       .once()
@@ -62,7 +62,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
   )(implicit clientService: ClientService): Unit =
     (clientService
       .getUnassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
-        _: Request[_],
+        using
+        _: Request[?],
         _: HeaderCarrier,
         _: ExecutionContext
       ))
@@ -77,21 +78,21 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectLookupClient(arn: Arn)(client: DisplayClient)(implicit clientService: ClientService): Unit =
     (clientService
-      .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .lookupClient(_: Arn)(_: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.id, *, *)
       .returning(Future successful Some(client))
       .once()
 
   def expectGetClient(arn: Arn)(client: DisplayClient)(implicit clientService: ClientService): Unit =
     (clientService
-      .getClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getClient(_: Arn)(_: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.id, *, *)
       .returning(Future successful Some(client))
       .once()
 
   def expectLookupClientNone(arn: Arn)(implicit clientService: ClientService): Unit =
     (clientService
-      .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .lookupClient(_: Arn)(_: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful None)
       .once()
@@ -100,21 +101,26 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
     clientService: ClientService
   ): Unit =
     (clientService
-      .updateClientReference(_: Arn, _: DisplayClient, _: String)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .updateClientReference(_: Arn, _: DisplayClient, _: String)(
+        using
+        _: Request[?],
+        _: HeaderCarrier,
+        _: ExecutionContext
+      ))
       .expects(arn, client, newName, *, *, *)
       .returning(Future successful Done)
       .once()
 
   def expectLookupClientNotFound(arn: Arn)(clientId: String)(implicit clientService: ClientService): Unit =
     (clientService
-      .lookupClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .lookupClient(_: Arn)(_: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, clientId, *, *)
       .returning(Future successful None)
       .once()
 
   def expectGetClientNotFound(arn: Arn)(clientId: String)(implicit clientService: ClientService): Unit =
     (clientService
-      .getClient(_: Arn)(_: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getClient(_: Arn)(_: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, clientId, *, *)
       .returning(Future successful None)
       .once()
@@ -128,7 +134,7 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
         PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, clients.length)
     )
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(using _: Request[?], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }
@@ -156,7 +162,8 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
     (
       clientService
         .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
-          _: Request[_],
+          using
+          _: Request[?],
           _: HeaderCarrier,
           _: ExecutionContext
         )
@@ -173,7 +180,7 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
       paginationMetaData = PaginationMetaData(lastPage = false, firstPage = false, 0, 0, 0, 0, 0)
     )
     (clientService
-      .getPaginatedClients(_: Arn)(_: Int, _: Int)(_: Request[_], _: HeaderCarrier, _: ExecutionContext))
+      .getPaginatedClients(_: Arn)(_: Int, _: Int)(using _: Request[?], _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, page, pageSize, *, *, *)
       .returning(Future successful paginatedList)
   }

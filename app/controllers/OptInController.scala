@@ -39,7 +39,7 @@ class OptInController @Inject() (
   start_optIn: start,
   want_to_opt_in: want_to_opt_in,
   you_have_opted_in: you_have_opted_in
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport {
 
   import authAction._
@@ -71,12 +71,11 @@ class OptInController @Inject() (
             formWithErrors => Ok(want_to_opt_in(formWithErrors)).toFuture,
             (iWantToOptIn: Boolean) => {
               val lang = request.cookies.get("PLAY_LANG").map(_.value)
-              if (iWantToOptIn)
+              if iWantToOptIn then
                 optInService
                   .optIn(arn, lang)
                   .map(_ => Redirect(routes.OptInController.showYouHaveOptedIn().url))
-              else
-                Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+              else Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
             }
           )
       }

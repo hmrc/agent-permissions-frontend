@@ -40,7 +40,7 @@ class AddTeamMemberToGroupsController @Inject() (
   taxGroupService: TaxGroupService,
   select_groups: select_groups,
   confirm_added: confirm_added
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport with Logging {
 
   import teamMemberAction._
@@ -83,7 +83,7 @@ class AddTeamMemberToGroupsController @Inject() (
               }
             },
           validForm =>
-            if (validForm.contains(AddGroupsToClientForm.NoneValue)) {
+            if validForm.contains(AddGroupsToClientForm.NoneValue) then {
               Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
             } else {
               val agentUser = TeamMember.toAgentUser(tm)
@@ -94,7 +94,7 @@ class AddTeamMemberToGroupsController @Inject() (
                   val groupType = typeAndGroupId(0)
                   val groupId: GroupId = GroupId.fromString(typeAndGroupId(1))
                   groupsAddedTo = groupsAddedTo :+ groupId
-                  if (GroupType.CUSTOM == groupType) {
+                  if GroupType.CUSTOM == groupType then {
                     groupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))
                   } else {
                     taxGroupService.addOneMemberToGroup(groupId, AddOneTeamMemberToGroupRequest(agentUser))

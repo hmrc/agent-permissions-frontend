@@ -24,7 +24,7 @@
 @(
     teamMember: TeamMember,
     teamMemberGroups: Seq[GroupSummary]
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 
 @roleText = @{

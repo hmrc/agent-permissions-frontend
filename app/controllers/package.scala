@@ -30,8 +30,8 @@ package object controllers {
   }
 
   implicit class BooleanFold(boolean: Boolean) {
-    def fold[B](l: B)(r: B => B): B = if (boolean) r(l) else l
-    def foldAny(l: Any)(r: Any => Any): Any = if (boolean) r(l) else l
+    def fold[B](l: B)(r: B => B): B = if boolean then r(l) else l
+    def foldAny(l: Any)(r: Any => Any): Any = if boolean then r(l) else l
   }
 
   def formWithFilledValue[A](form: Form[A], mChoice: Option[A]): Form[A] =

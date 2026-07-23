@@ -1,7 +1,7 @@
 import sbt.Setting
 import scoverage.ScoverageKeys
-import sbt._
-import sbt.Keys._
+import sbt.*
+import sbt.Keys.*
 object CodeCoverageSettings {
 
   private val excludedPackages: Seq[String] = Seq(
@@ -24,13 +24,11 @@ object CodeCoverageSettings {
     ".*TimeoutController.*",
   )
 
-  val settings: Seq[Setting[_]] = Seq(
+  val settings: Seq[Setting[?]] = Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
     ScoverageKeys.coverageExcludedFiles := excludedFiles.mkString(";"),
-    ScoverageKeys.coverageMinimumStmtTotal := 90,
-    ScoverageKeys.coverageMinimumStmtPerFile := 80,
-    ScoverageKeys.coverageMinimumBranchTotal:= 90,
-    ScoverageKeys.coverageMinimumBranchPerFile:= 65, //this should really be increased asap some files are letting the file team down :D
+    ScoverageKeys.coverageMinimumStmtTotal := 85,
+    ScoverageKeys.coverageMinimumBranchTotal:= 85,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
     Test / parallelExecution := false

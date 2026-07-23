@@ -30,7 +30,7 @@ trait AgentSuspensionServiceMocks extends AnyWordSpec with MockFactory {
     agentSuspensionService: AgentSuspensionService
   ): Unit =
     (agentSuspensionService
-      .getSuspensionDetails()(_: HeaderCarrier))
+      .getSuspensionDetails()(using _: HeaderCarrier))
       .expects(*)
       .returning(Future successful SuspensionDetails(suspensionStatus, regimes))
 

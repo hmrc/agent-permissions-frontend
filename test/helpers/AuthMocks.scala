@@ -37,13 +37,13 @@ trait AuthMocks extends AnyWordSpec with MockFactory {
 
   def expectAuthorisationGrantsAccess(response: GrantAccess)(implicit authConnector: AuthConnector): Unit =
     (authConnector
-      .authorise(_: Predicate, _: Retrieval[GrantAccess])(_: HeaderCarrier, _: ExecutionContext))
+      .authorise(_: Predicate, _: Retrieval[GrantAccess])(using _: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future successful response)
 
   def expectAuthorisationFails(throwable: Throwable)(implicit authConnector: AuthConnector): Unit =
     (authConnector
-      .authorise(_: Predicate, _: Retrieval[GrantAccess])(_: HeaderCarrier, _: ExecutionContext))
+      .authorise(_: Predicate, _: Retrieval[GrantAccess])(using _: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future failed throwable)
 
@@ -51,15 +51,15 @@ trait AuthMocks extends AnyWordSpec with MockFactory {
     agentPermissionsConnector: AgentPermissionsConnector
   ): CallHandler2[HeaderCarrier, ExecutionContext, Future[Boolean]] =
     (agentPermissionsConnector
-      .isArnAllowed(_: HeaderCarrier, _: ExecutionContext))
+      .isArnAllowed(using _: HeaderCarrier, _: ExecutionContext))
       .expects(*, *)
       .returning(Future successful allowed)
 
   def expectIsAuthorisedAgent(futureResult: Future[Result])(implicit
     authAction: AuthAction
-  ): CallHandler4[Arn => Future[Result], ExecutionContext, Request[_], AppConfig, Future[Result]] =
+  ): CallHandler4[Arn => Future[Result], ExecutionContext, Request[?], AppConfig, Future[Result]] =
     (authAction
-      .isAuthorisedAgent(_: Arn => Future[Result])(_: ExecutionContext, _: Request[_], _: AppConfig))
+      .isAuthorisedAgent(_: Arn => Future[Result])(using _: ExecutionContext, _: Request[?], _: AppConfig))
       .expects(*, *, *, *)
       .returning(futureResult)
 

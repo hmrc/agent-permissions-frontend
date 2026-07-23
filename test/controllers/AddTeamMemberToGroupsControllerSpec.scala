@@ -66,10 +66,10 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
     }
   }
 
-  private val controller = fakeApplication.injector.instanceOf[AddTeamMemberToGroupsController]
+  private val controller = fakeApplication().injector.instanceOf[AddTeamMemberToGroupsController]
   private val ctrlRoute: ReverseAddTeamMemberToGroupsController = routes.AddTeamMemberToGroupsController
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
   val userDetails: Seq[UserDetails] = (1 to 5)
@@ -144,7 +144,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
         .text() shouldBe "Is this page not working properly? (opens in new tab)"
       html
         .select(".hmrc-report-technical-issue")
-        .attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
+        .attr("href") `startsWith` "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
 
     }
 

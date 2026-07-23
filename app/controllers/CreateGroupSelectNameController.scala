@@ -39,10 +39,10 @@ class CreateGroupSelectNameController @Inject() (
   duplicate_group_name: duplicate_group_name,
   val sessionCacheService: SessionCacheService,
   val groupService: GroupService
-)(
-  implicit val appConfig: AppConfig,
+)(implicit
+  val appConfig: AppConfig,
   ec: ExecutionContext,
-  implicit override val messagesApi: MessagesApi
+  override val messagesApi: MessagesApi
 ) extends FrontendController(mcc) with I18nSupport with Logging {
 
   import groupAction._
@@ -51,7 +51,7 @@ class CreateGroupSelectNameController @Inject() (
   private val controller: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
   def showGroupName: Action[AnyContent] = Action.async { implicit request =>
-    withGroupTypeAndAuthorised { (groupType, _) =>
+    withGroupTypeAndAuthorised { (_, _) =>
       withSessionItem[String](GROUP_NAME) { maybeName =>
         Ok(
           choose_name(
@@ -100,22 +100,19 @@ class CreateGroupSelectNameController @Inject() (
         .fold(
           formWithErrors => Ok(confirm_name(formWithErrors, groupName)).toFuture,
           (nameIsCorrect: Boolean) =>
-            if (nameIsCorrect)
+            if nameIsCorrect then
               groupService
                 .groupNameCheck(arn, groupName)
                 .flatMap(nameAvailable =>
-                  if (nameAvailable) {
-                    for {
-                      _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true)
-                    } yield
-                      if (groupType == CUSTOM_GROUP) {
+                  if nameAvailable then {
+                    for _ <- sessionCacheService.put[Boolean](GROUP_NAME_CONFIRMED, true)
+                    yield
+                      if groupType == CUSTOM_GROUP then {
                         Redirect(routes.CreateGroupSelectClientsController.showSearchClients())
                       } else Redirect(routes.CreateGroupSelectTeamMembersController.showSelectTeamMembers(None, None))
-                  } else
-                    Redirect(controller.showAccessGroupNameExists()).toFuture
+                  } else Redirect(controller.showAccessGroupNameExists()).toFuture
                 )
-            else
-              Redirect(controller.showGroupName().url).toFuture
+            else Redirect(controller.showGroupName().url).toFuture
         )
     }
   }

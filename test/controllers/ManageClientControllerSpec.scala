@@ -27,6 +27,7 @@ import models.{DisplayClient, GroupId}
 import org.jsoup.Jsoup
 import play.api.Application
 import play.api.http.Status.{NOT_FOUND, OK, SEE_OTHER}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, await, contentAsString, defaultAwaitTimeout, redirectLocation}
 import services.{AgentSuspensionService, ClientService, GroupService, SessionCacheService}
@@ -67,13 +68,13 @@ class ManageClientControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder
       .configure("mongodb.uri" -> mongoUri)
       .build()
 
   val controller: ManageClientController =
-    fakeApplication.injector.instanceOf[ManageClientController]
+    fakeApplication().injector.instanceOf[ManageClientController]
 
   val fakeClients: Seq[Client] =
     List.tabulate(3)(i => Client(s"HMRC-MTD-VAT~VRN~12345678$i", s"friendly$i"))
@@ -157,7 +158,7 @@ class ManageClientControllerSpec extends BaseSpec {
         .text() shouldBe "Is this page not working properly? (opens in new tab)"
       html
         .select(".hmrc-report-technical-issue")
-        .attr("href") startsWith "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
+        .attr("href") `startsWith` "http://localhost:9250/contact/report-technical-problem?newTab=true&service=AOSS"
 
     }
 
@@ -189,7 +190,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectPutSessionItem(CLIENT_FILTER_INPUT, "")
 
       val url = ctrlRoute.submitPageOfClients().url
-      implicit val fakeRequest = FakeRequest(POST, url)
+      implicit val fakeRequest: FakeRequest[AnyContentAsFormUrlEncoded] = FakeRequest(POST, url)
         .withHeaders("Authorization" -> "Bearer XYZ")
         .withFormUrlEncodedBody("search" -> "friendly1", "submit" -> FILTER_BUTTON)
         .withSession(SessionKeys.sessionId -> "session-x")
@@ -209,7 +210,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectDeleteSessionItem(CLIENT_FILTER_INPUT)
 
       // and we have CLEAR filter in query params
-      implicit val fakeRequest =
+      implicit val fakeRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
           .withHeaders("Authorization" -> "Bearer XYZ")
           .withFormUrlEncodedBody("submit" -> CLEAR_BUTTON)
@@ -228,7 +229,7 @@ class ManageClientControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
 
       // and we have CLEAR filter in query params
-      implicit val fakeRequest =
+      implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
         FakeRequest(POST, ctrlRoute.submitPageOfClients().url)
           .withHeaders("Authorization" -> "Bearer XYZ")
           .withSession(SessionKeys.sessionId -> "session-x")
@@ -393,10 +394,11 @@ class ManageClientControllerSpec extends BaseSpec {
       expectPutSessionItem(CLIENT_REFERENCE, newClientReference)
       expectUpdateClientReference(arn, expectedClient, newClientReference)
 
-      implicit val request = FakeRequest(POST, ctrlRoute.submitUpdateClientReference(expectedClient.id).url)
-        .withFormUrlEncodedBody("clientRef" -> newClientReference)
-        .withHeaders("Authorization" -> "Bearer XYZ")
-        .withSession(SessionKeys.sessionId -> "session-x")
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest(POST, ctrlRoute.submitUpdateClientReference(expectedClient.id).url)
+          .withFormUrlEncodedBody("clientRef" -> newClientReference)
+          .withHeaders("Authorization" -> "Bearer XYZ")
+          .withSession(SessionKeys.sessionId -> "session-x")
 
       // when
       val result = controller.submitUpdateClientReference(expectedClient.id)(request)

@@ -24,7 +24,7 @@
     pagination: PaginationMetaData,
     baseUrl: Call,
     additionalParams: Map[String,String] = Map.empty
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 
 <nav class="govuk-pagination" role="navigation" aria-label="@msgs("paginated.navigationLabel")" id="pagination-nav">

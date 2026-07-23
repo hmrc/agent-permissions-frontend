@@ -33,7 +33,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     arn: Arn
   )(client: Client)(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
-      .getClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getClient(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, client.enrolmentKey, *, *)
       .returning(Future successful Option(client))
       .once()
@@ -42,7 +42,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     agentUserClientDetailsConnector: AgentUserClientDetailsConnector
   ): Unit =
     (agentUserClientDetailsConnector
-      .getClient(_: Arn, _: String)(_: HeaderCarrier, _: ExecutionContext))
+      .getClient(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, enrolmentKey, *, *)
       .returning(Future successful None)
       .once()
@@ -50,7 +50,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     arn: Arn
   )(clientList: Seq[Client])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
-      .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getClients(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful clientList)
       .once()
@@ -59,7 +59,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     arn: Arn
   )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
-      .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getClients(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful Seq.empty)
 
@@ -67,7 +67,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     arn: Arn
   )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
-      .getClients(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getClients(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
@@ -75,7 +75,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     arn: Arn
   )(teamMembers: Seq[UserDetails])(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
-      .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getTeamMembers(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful teamMembers)
 
@@ -83,7 +83,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     arn: Arn
   )(implicit agentUserClientDetailsConnector: AgentUserClientDetailsConnector): Unit =
     (agentUserClientDetailsConnector
-      .getTeamMembers(_: Arn)(_: HeaderCarrier, _: ExecutionContext))
+      .getTeamMembers(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(arn, *, *)
       .throwing(UpstreamErrorResponse.apply("error", 503))
 
@@ -91,7 +91,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     agentUserClientDetailsConnector: AgentUserClientDetailsConnector
   ): Unit =
     (agentUserClientDetailsConnector
-      .updateClientReference(_: Arn, _: Client)(_: HeaderCarrier, _: ExecutionContext))
+      .updateClientReference(_: Arn, _: Client)(using _: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future successful Done)
 
@@ -105,6 +105,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
     val paginatedList = PaginatedList(pageContent, paginationMetaData)
     (agentUserClientDetailsConnector
       .getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
+        using
         _: HeaderCarrier,
         _: ExecutionContext
       ))

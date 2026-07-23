@@ -29,6 +29,6 @@ class SessionAction @Inject() (sessionCacheService: SessionCacheService) {
 
   def withSessionItem[T](dataKey: DataKey[T])(
     body: Option[T] => Future[Result]
-  )(implicit reads: Reads[T], request: Request[_], ec: ExecutionContext): Future[Result] =
+  )(implicit reads: Reads[T], request: Request[?], ec: ExecutionContext): Future[Result] =
     sessionCacheService.get[T](dataKey).flatMap(data => body(data))
 }

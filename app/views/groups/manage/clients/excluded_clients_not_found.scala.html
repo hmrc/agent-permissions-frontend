@@ -20,7 +20,7 @@
 
 @this(layout: main_layout, h1: h1, p: p, link_as_button: link_as_button)
 
-@(group: TaxGroup)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(group: TaxGroup)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(
  title = msgs("tax-group.manage.removed.clients.h1"),

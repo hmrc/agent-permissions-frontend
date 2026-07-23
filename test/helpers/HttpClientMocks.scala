@@ -33,12 +33,12 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
 
   def expectHttpClientGet[A](response: A)(implicit mockHttpClient: HttpClientV2, @unused hc: HeaderCarrier): Unit = {
     (mockHttpClient
-      .get(_: URL)(_: HeaderCarrier))
+      .get(_: URL)(using _: HeaderCarrier))
       .expects(*, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[A](_: HttpReads[A], _: ExecutionContext))
+      .execute[A](using _: HttpReads[A], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(response))
   }
@@ -48,12 +48,12 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     @unused hc: HeaderCarrier
   ): Unit = {
     (mockHttpClient
-      .get(_: URL)(_: HeaderCarrier))
+      .get(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[A](_: HttpReads[A], _: ExecutionContext))
+      .execute[A](using _: HttpReads[A], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(response))
   }
@@ -66,12 +66,12 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     def stripQuery(url: URL): String = s"${url.getProtocol}://${url.getHost}:${url.getPort}${url.getPath}"
 
     (mockHttpClient
-      .get(_: URL)(_: HeaderCarrier))
+      .get(_: URL)(using _: HeaderCarrier))
       .expects(where((url: URL, _: HeaderCarrier) => stripQuery(url) == expectedUrlPath))
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[A](_: HttpReads[A], _: ExecutionContext))
+      .execute[A](using _: HttpReads[A], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(response))
   }
@@ -80,12 +80,12 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     response: A
   )(implicit mockHttpClient: HttpClientV2, @unused hc: HeaderCarrier): Unit = {
     (mockHttpClient
-      .post(_: URL)(_: HeaderCarrier))
+      .post(_: URL)(using _: HeaderCarrier))
       .expects(*, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[A](_: HttpReads[A], _: ExecutionContext))
+      .execute[A](using _: HttpReads[A], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(response))
   }
@@ -97,33 +97,33 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     writes: Writes[I]
   ): Unit = {
     (mockHttpClient
-      .post(_: URL)(_: HeaderCarrier))
+      .post(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .withBody[JsValue](_: JsValue)(_: BodyWritable[JsValue], _: Tag[JsValue], _: ExecutionContext))
+      .withBody[JsValue](_: JsValue)(using _: BodyWritable[JsValue], _: Tag[JsValue], _: ExecutionContext))
       .expects(Json.toJson(input), *, *, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[O](_: HttpReads[O], _: ExecutionContext))
+      .execute[O](using _: HttpReads[O], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(output))
   }
 
-  def expectHttpClientPut[I, O](expectedUrl: URL, input: I, output: O)(implicit
+  def expectHttpClientPut[I, O](expectedUrl: URL, @unused input: I, output: O)(implicit
     mockHttpClient: HttpClientV2,
     @unused hc: HeaderCarrier,
     @unused ec: ExecutionContext
   ): Unit = {
     (mockHttpClient
-      .put(_: URL)(_: HeaderCarrier))
+      .put(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[O](_: HttpReads[O], _: ExecutionContext))
+      .execute[O](using _: HttpReads[O], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(output))
   }
@@ -135,17 +135,17 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     writes: Writes[I]
   ): Unit = {
     (mockHttpClient
-      .patch(_: URL)(_: HeaderCarrier))
+      .patch(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .withBody[JsValue](_: JsValue)(_: BodyWritable[JsValue], _: Tag[JsValue], _: ExecutionContext))
+      .withBody[JsValue](_: JsValue)(using _: BodyWritable[JsValue], _: Tag[JsValue], _: ExecutionContext))
       .expects(Json.toJson(input), *, *, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[O](_: HttpReads[O], _: ExecutionContext))
+      .execute[O](using _: HttpReads[O], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(output))
   }
@@ -155,12 +155,12 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
     @unused hc: HeaderCarrier
   ): Unit = {
     (mockHttpClient
-      .delete(_: URL)(_: HeaderCarrier))
+      .delete(_: URL)(using _: HeaderCarrier))
       .expects(expectedUrl, *)
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
-      .execute[O](_: HttpReads[O], _: ExecutionContext))
+      .execute[O](using _: HttpReads[O], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(output))
   }

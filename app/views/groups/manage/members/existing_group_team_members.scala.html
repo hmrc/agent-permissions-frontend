@@ -36,7 +36,7 @@
     paginatedMembers: PaginatedList[TeamMember],
     form: Form[SearchFilter],
     group: GroupSummary
-)(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+)(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @pageTitle(nowrap: Boolean) = @{ paginationPageTitle(Some(paginatedMembers.paginationMetaData), "tax-group.manage.team-members.h1", nowrap) }
 

@@ -37,7 +37,7 @@ class OptOutController @Inject() (
   opt_out_start: opt_out_start,
   want_to_opt_out: want_to_opt_out,
   you_have_opted_out: you_have_opted_out
-)(implicit val appConfig: AppConfig, ec: ExecutionContext, implicit override val messagesApi: MessagesApi)
+)(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
     extends FrontendController(mcc) with I18nSupport {
 
   import authAction._
@@ -68,12 +68,11 @@ class OptOutController @Inject() (
           .fold(
             formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
             (iWantToOptOut: Boolean) =>
-              if (iWantToOptOut) {
+              if iWantToOptOut then {
                 optInService
                   .optOut(arn)
                   .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut().url))
-              } else
-                Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
+              } else Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
           )
       }
     }

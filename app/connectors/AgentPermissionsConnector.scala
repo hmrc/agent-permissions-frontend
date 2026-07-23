@@ -23,10 +23,11 @@ import models.accessgroups.{AgentUser, Client, CustomGroup, GroupSummary, TaxGro
 import models.{Arn, DisplayClient, GroupId}
 import org.apache.pekko.Done
 import play.api.Logging
-import play.api.http.Status._
+import play.api.http.Status.*
 import play.api.libs.json.Json
 import models.PaginatedList
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
@@ -243,7 +244,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   def getGroupSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/all-groups"
-    http.get(url).execute[HttpResponse].map { response: HttpResponse =>
+    http.get(url).execute[HttpResponse].map { (response: HttpResponse) =>
       response.status match {
         case OK => response.json.as[Seq[GroupSummary]]
         case anyOtherStatus =>
@@ -267,7 +268,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       "filter"   -> filter
     ).collect { case (k, Some(v)) => (k, v) }
     val urlWithParams: URL = buildUrlWithQueryParams(url, queryParams)
-    http.get(urlWithParams).execute[HttpResponse].map { response: HttpResponse =>
+    http.get(urlWithParams).execute[HttpResponse].map { (response: HttpResponse) =>
       response.status match {
         case OK =>
           val paginatedClients = response.json.as[PaginatedList[Client]]
@@ -287,7 +288,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     ec: ExecutionContext
   ): Future[Seq[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/client/$enrolmentKey/groups"
-    http.get(url).execute[HttpResponse].map { response: HttpResponse =>
+    http.get(url).execute[HttpResponse].map { (response: HttpResponse) =>
       val eventuallySummaries = response.status match {
         case OK        => response.json.as[Seq[GroupSummary]]
         case NOT_FOUND => Seq.empty[GroupSummary]
@@ -310,7 +311,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   ): Future[Option[Seq[GroupSummary]]] = {
     val userId = agentUser.id
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/team-member/$userId/groups"
-    http.get(url).execute[HttpResponse].map { response: HttpResponse =>
+    http.get(url).execute[HttpResponse].map { (response: HttpResponse) =>
       val eventuallySummaries = response.status match {
         case OK        => response.json.asOpt[Seq[GroupSummary]]
         case NOT_FOUND => None
@@ -648,7 +649,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Done] = {
-    val typeOfGroup = if (isCustom) "groups" else "tax-group"
+    val typeOfGroup = if isCustom then "groups" else "tax-group"
     val url: URL = url"$agentPermissionsUrl/$typeOfGroup/$groupId/members/$memberId"
     http.delete(url).execute[HttpResponse].map { response =>
       response.status match {

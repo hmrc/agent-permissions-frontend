@@ -61,10 +61,11 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit lazy val fakeApplication: Application =
+  override implicit def fakeApplication(): Application =
     appBuilder.configure("mongodb.uri" -> mongoUri).build()
 
-  val controller: CreateGroupSelectNameController = fakeApplication.injector.instanceOf[CreateGroupSelectNameController]
+  val controller: CreateGroupSelectNameController =
+    fakeApplication().injector.instanceOf[CreateGroupSelectNameController]
 
   private val ctrlRoute: ReverseCreateGroupSelectNameController = routes.CreateGroupSelectNameController
 
@@ -162,7 +163,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest("POST", ctrlRoute.submitGroupName().url)
-          .withFormUrlEncodedBody("name" -> RandomStringUtils.randomAlphanumeric(51))
+          .withFormUrlEncodedBody("name" -> RandomStringUtils.secure.nextAlphanumeric(51))
           .withHeaders("Authorization" -> s"Bearer $groupName")
           .withSession(SessionKeys.sessionId -> "session-x")
 
@@ -330,7 +331,7 @@ class CreateGroupSelectNameControllerSpec extends BaseSpec {
       html
         .select(Css.linkStyledAsButton)
         .attr("href") should contain
-        oneOf (s"${ctrlRoute.showGroupName().url}", s"${routes.ManageGroupController.showManageGroups(None, None).url}")
+      oneOf(s"${ctrlRoute.showGroupName().url}", s"${routes.ManageGroupController.showManageGroups(None, None).url}")
     }
   }
 

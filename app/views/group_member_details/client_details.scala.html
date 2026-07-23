@@ -22,7 +22,7 @@
 
 @this(layout: main_layout, h1: h1, h2: h2, p: p, a: a, span: span, ul_html: ul_html, summary_list: summary_list)
 
-@(client: DisplayClient, clientGroups: Seq[GroupSummary])(implicit request: Request[_], msgs: Messages, appConfig: AppConfig)
+@(client: DisplayClient, clientGroups: Seq[GroupSummary])(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @layout(
     title = msgs("details.clients"),

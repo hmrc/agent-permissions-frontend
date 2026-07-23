@@ -43,7 +43,7 @@ class FilterByGroupNameFormSpec extends AnyWordSpec with Matchers with GuiceOneA
     }
 
     "have errors when length exceeds max allowed characters" in {
-      val params = Map(field -> RandomStringUtils.randomAlphanumeric(33))
+      val params = Map(field -> RandomStringUtils.secure.nextAlphanumeric(33))
       val validatedForm = FilterByGroupNameForm.form.bind(params)
       validatedForm.hasErrors shouldBe true
       validatedForm

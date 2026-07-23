@@ -51,7 +51,7 @@ class AuthAction @Inject() (
 
   def isAuthorisedAgent(
     body: Arn => Future[Result]
-  )(implicit ec: ExecutionContext, request: Request[_], appConfig: AppConfig): Future[Result] = {
+  )(implicit ec: ExecutionContext, request: Request[?], appConfig: AppConfig): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
@@ -63,7 +63,7 @@ class AuthAction @Inject() (
               credRole match {
                 case Some(User) | Some(Admin) =>
                   agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
-                    if (isArnAllowed) {
+                    if isArnAllowed then {
                       body(arn)
                     } else {
                       logger.warn("ARN is not on allowed list")
@@ -85,7 +85,7 @@ class AuthAction @Inject() (
 
   def isAuthorisedAssistant(
     body: Arn => Future[Result]
-  )(implicit ec: ExecutionContext, request: Request[_], appConfig: AppConfig): Future[Result] = {
+  )(implicit ec: ExecutionContext, request: Request[?], appConfig: AppConfig): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
@@ -97,7 +97,7 @@ class AuthAction @Inject() (
               credRole match {
                 case Some(Assistant) =>
                   agentPermissionsConnector.isArnAllowed flatMap { isArnAllowed =>
-                    if (isArnAllowed) {
+                    if isArnAllowed then {
                       body(arn)
                     } else {
                       logger.warn("ARN is not on allowed list")
@@ -141,7 +141,7 @@ class AuthAction @Inject() (
 
   private def withSuspendedCheck(body: Option[Boolean] => Future[Result])(implicit
     reads: Reads[Boolean],
-    request: Request[_],
+    request: Request[?],
     hc: HeaderCarrier,
     ec: ExecutionContext,
     appConfig: AppConfig

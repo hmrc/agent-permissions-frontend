@@ -509,6 +509,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       // given
       expectAuthOkOptedInReady()
       expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
+      expectGroupNameCheckOK(arn, "New Group Name")
       expectUpdateGroup(groupId, UpdateAccessGroupRequest(Some("New Group Name"), None, None))
 
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -556,6 +557,27 @@ class ManageGroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
+    "redirect when new name given already exists" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetCustomSummaryById(groupId, Some(GroupSummary.of(accessGroup)))
+      expectGroupNameCheckConflict(arn, "Duplicate Name")
+      expectPutSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitRenameGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "Duplicate Name")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      // when
+      val result = controller.submitRenameGroup(groupId)(request)
+
+      // then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showCustomGroupNameExists().url
+    }
+
     "render errors when no group name is specified" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -581,6 +603,7 @@ class ManageGroupControllerSpec extends BaseSpec {
       // given
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGroupNameCheckOK(arn, "New Group Name")
       expectUpdateTaxGroup(groupId, UpdateTaxServiceGroupRequest(groupName = Some("New Group Name")))
       expectPutSessionItem(GROUP_RENAMED_FROM, accessGroup.groupName)
 
@@ -629,6 +652,27 @@ class ManageGroupControllerSpec extends BaseSpec {
         .attr("href") shouldBe ctrlRoute.showManageGroups(None, None).url
     }
 
+    "redirect when new name given already exists" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetTaxGroupById(groupId, Some(taxGroup))
+      expectGroupNameCheckConflict(arn, "Duplicate Name")
+      expectPutSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
+
+      implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest("POST", ctrlRoute.submitRenameTaxGroup(groupId).url)
+          .withFormUrlEncodedBody("name" -> "Duplicate Name")
+          .withHeaders("Authorization" -> s"Bearer whatever")
+          .withSession(SessionKeys.sessionId -> "session-x")
+
+      // when
+      val result = controller.submitRenameTaxGroup(groupId)(request)
+
+      // then
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result).get shouldBe ctrlRoute.showTaxGroupNameExists().url
+    }
+
     "render errors when no group name is specified" in {
       // given
       implicit val request: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -644,6 +688,48 @@ class ManageGroupControllerSpec extends BaseSpec {
       val result = controller.submitRenameGroup(groupId)(request)
 
       status(result) shouldBe OK
+    }
+  }
+
+  s"GET ${ctrlRoute.showTaxGroupNameExists().url}" should {
+
+    "render correctly the tax group name exists page" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
+
+      // when
+      val result = controller.showTaxGroupNameExists()(request)
+
+      // then
+      status(result) shouldBe OK
+
+      // and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group name already exists - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group name already exists"
+      html.select(Css.paragraphs).text().contains("Duplicate Name") shouldBe true
+    }
+  }
+
+  s"GET ${ctrlRoute.showCustomGroupNameExists().url}" should {
+
+    "render correctly the custom group name exists page" in {
+      // given
+      expectAuthOkOptedInReady()
+      expectGetSessionItem(GROUP_NAME_ALREADY_EXISTING, "Duplicate Name")
+
+      // when
+      val result = controller.showCustomGroupNameExists()(request)
+
+      // then
+      status(result) shouldBe OK
+
+      // and
+      val html = Jsoup.parse(contentAsString(result))
+      html.title() shouldBe "Access group name already exists - Agent services account - GOV.UK"
+      html.select(Css.H1).text() shouldBe "Access group name already exists"
+      html.select(Css.paragraphs).text().contains("Duplicate Name") shouldBe true
     }
   }
 

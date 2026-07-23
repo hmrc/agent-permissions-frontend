@@ -151,10 +151,9 @@ class ManageGroupController @Inject() (
                   patchRequestBody = UpdateAccessGroupRequest(groupName = Some(newName))
                   _ <- groupService.updateGroup(groupId, patchRequestBody)
                 yield Redirect(routes.ManageGroupController.showGroupRenamed(groupId))
-              else {
+              else
                 for _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
                 yield Redirect(routes.ManageGroupController.showCustomGroupNameExists())
-              }
             }
         )
     }
@@ -182,16 +181,15 @@ class ManageGroupController @Inject() (
           formWithErrors => Ok(rename_group(formWithErrors, summary, groupId, isCustom = false)).toFuture,
           (newName: String) =>
             groupService.groupNameCheck(arn, newName).flatMap { nameAvailable =>
-              if (nameAvailable)
+              if nameAvailable then
                 for
                   _ <- sessionCacheService.put[String](GROUP_RENAMED_FROM, summary.groupName)
                   patchRequestBody = UpdateTaxServiceGroupRequest(groupName = Some(newName))
                   _ <- taxGroupService.updateGroup(groupId, patchRequestBody)
                 yield Redirect(routes.ManageGroupController.showTaxGroupRenamed(groupId))
-              else {
+              else
                 for _ <- sessionCacheService.put[String](GROUP_NAME_ALREADY_EXISTING, newName)
                 yield Redirect(routes.ManageGroupController.showTaxGroupNameExists())
-              }
             }
         )
     }
@@ -254,12 +252,12 @@ class ManageGroupController @Inject() (
         .fold(
           formWithErrors => Ok(confirm_delete_group(formWithErrors, summary)).toFuture,
           (answer: Boolean) =>
-            if answer then {
+            if answer then
               for
                 _ <- sessionCacheService.put[String](GROUP_DELETED_NAME, summary.groupName)
                 _ <- taxGroupService.deleteGroup(groupId)
               yield Redirect(routes.ManageGroupController.showGroupDeleted().url)
-            } else Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
+            else Redirect(routes.ManageGroupController.showManageGroups(None, None).url).toFuture
         )
     }
   }

@@ -20,15 +20,16 @@ import config.AppConfig
 import connectors.{AddMembersToAccessGroupRequest, AddMembersToTaxServiceGroupRequest}
 import controllers.GroupType.{CUSTOM, isCustom}
 import controllers.actions.{GroupAction, SessionAction}
-import forms._
+import forms.*
 import models.TeamMember.toAgentUser
 import models.accessgroups.{AccessGroup, CustomGroup, GroupSummary, TaxGroup}
 import models.{AddTeamMembersToGroup, Arn, GroupId, SearchFilter, TeamMember}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{GroupService, SessionCacheService, TeamMemberService}
 import models.{PaginatedList, PaginationMetaData}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html.groups.create.members.{confirm_deselect_member, confirm_remove_member}
 import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, update_paginated_team_members}
@@ -157,43 +158,36 @@ class ManageGroupTeamMembersController @Inject() (
 
   def showAddTeamMembers(groupType: String, groupId: models.GroupId, page: Option[Int]): Action[AnyContent] =
     Action.async { implicit request =>
-      withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, _) =>
-        val teamMembers = agentUsersInGroupAsTeamMembers(group)
-        val result = for
-          existingMembers <- groupService.getTeamMembersFromGroup(group.arn)(teamMembers)
+      withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
+        for
           maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
-          pageMembersForArn <-
-            teamMemberService
-              .getPageOfTeamMembers(group.arn)(page.getOrElse(1), 10)
-              .map(p =>
-                p.copy(pageContent =
-                  p.pageContent
-                    .map(member => member.copy(alreadyInGroup = existingMembers.map(_.id).contains(member.id)))
+          paginatedMembers <- getPageOfTeamMembersWithExistingGroupMembers(
+                                group = group,
+                                arn = arn,
+                                page = page.getOrElse(1)
+                              )
+        yield Ok(
+          update_paginated_team_members(
+            paginatedMembers.pageContent,
+            GroupSummary.of(group),
+            AddTeamMembersToGroupForm
+              .form()
+              .fill(
+                AddTeamMembersToGroup(
+                  search = maybeFilterTerm,
+                  members = None
                 )
-              )
-        yield (pageMembersForArn: PaginatedList[TeamMember], maybeFilterTerm, existingMembers)
-        result.map { result =>
-          val teamMembersSearchTerm = result._2
-          Ok(
-            update_paginated_team_members(
-              result._1.pageContent,
-              GroupSummary.of(group),
-              AddTeamMembersToGroupForm
-                .form()
-                .fill(
-                  AddTeamMembersToGroup(search = teamMembersSearchTerm, members = None)
-                ),
-              msgKey = "update",
-              Option(result._1.paginationMetaData)
-            )
+              ),
+            msgKey = "update",
+            paginationMetaData = Some(paginatedMembers.paginationMetaData)
           )
-        }
+        )
       }
     }
 
   def submitAddTeamMembers(groupType: String, groupId: models.GroupId): Action[AnyContent] = Action.async {
     implicit request =>
-      withGroupSummaryForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
+      withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
         withSessionItem[Seq[TeamMember]](SELECTED_TEAM_MEMBERS) { maybeSelected =>
           val hasPreSelected = maybeSelected.getOrElse(Seq.empty).nonEmpty
           AddTeamMembersToGroupForm
@@ -201,20 +195,17 @@ class ManageGroupTeamMembersController @Inject() (
             .bindFromRequest()
             .fold(
               formWithErrors =>
-                // render page with empty selection error
-                teamMemberService
-                  .getPageOfTeamMembers(arn)(1, 10)
-                  .map(paginatedList =>
-                    Ok(
-                      update_paginated_team_members(
-                        paginatedList.pageContent,
-                        group,
-                        formWithErrors,
-                        msgKey = "update",
-                        paginationMetaData = Some(paginatedList.paginationMetaData)
-                      )
+                getPageOfTeamMembersWithExistingGroupMembers(group, arn).map { paginatedList =>
+                  Ok(
+                    update_paginated_team_members(
+                      paginatedList.pageContent,
+                      GroupSummary.of(group),
+                      formWithErrors,
+                      msgKey = "update",
+                      paginationMetaData = Some(paginatedList.paginationMetaData)
                     )
-                  ),
+                  )
+                },
               formData =>
                 teamMemberService
                   .savePageOfTeamMembers(formData)
@@ -225,22 +216,20 @@ class ManageGroupTeamMembersController @Inject() (
                         Redirect(controller.showReviewTeamMembersToAdd(groupType, groupId, None, None)).toFuture
                       } else {
                         // render page with empty selection error
-                        teamMemberService
-                          .getPageOfTeamMembers(arn)(1, 10)
-                          .map(paginatedList =>
-                            Ok(
-                              update_paginated_team_members(
-                                paginatedList.pageContent,
-                                group,
-                                form = AddTeamMembersToGroupForm
-                                  .form()
-                                  .fill(AddTeamMembersToGroup(search = formData.search))
-                                  .withError("members", "error.select-members.empty"),
-                                msgKey = "update",
-                                paginationMetaData = Some(paginatedList.paginationMetaData)
-                              )
+                        getPageOfTeamMembersWithExistingGroupMembers(group, arn).map { paginatedList =>
+                          Ok(
+                            update_paginated_team_members(
+                              paginatedList.pageContent,
+                              GroupSummary.of(group),
+                              form = AddTeamMembersToGroupForm
+                                .form()
+                                .fill(AddTeamMembersToGroup(search = formData.search))
+                                .withError("members", "error.select-members.empty"),
+                              msgKey = "update",
+                              paginationMetaData = Some(paginatedList.paginationMetaData)
                             )
                           )
+                        }
                       }
                     } else if formData.submit.startsWith(PAGINATION_BUTTON) then {
                       val pageToShow = formData.submit.replace(s"${PAGINATION_BUTTON}_", "").toInt
@@ -421,5 +410,22 @@ class ManageGroupTeamMembersController @Inject() (
     )
     PaginatedList[TeamMember](currentPageOfMembers, meta)
   }
+
+  private def getPageOfTeamMembersWithExistingGroupMembers(
+    group: AccessGroup,
+    arn: Arn,
+    page: Int = 1,
+    pageSize: Int = 10
+  )(implicit request: Request[?], hc: HeaderCarrier): Future[PaginatedList[TeamMember]] =
+    val teamMembersInGroup = agentUsersInGroupAsTeamMembers(group)
+    for
+      existingMembers <- groupService.getTeamMembersFromGroup(arn)(teamMembersInGroup)
+      existingMemberIds = existingMembers.map(_.id).toSet
+      paginatedMembers <- teamMemberService.getPageOfTeamMembers(arn)(page, pageSize)
+    yield paginatedMembers.copy(
+      pageContent = paginatedMembers.pageContent.map { member =>
+        member.copy(alreadyInGroup = existingMemberIds.contains(member.id))
+      }
+    )
 
 }

@@ -427,5 +427,4 @@ class ManageGroupTeamMembersController @Inject() (
         member.copy(alreadyInGroup = existingMemberIds.contains(member.id))
       }
     )
-
 }

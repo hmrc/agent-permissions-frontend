@@ -399,7 +399,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
+      expectGetGroupById(groupSummary.groupId, Some(customGroup))
 
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
       val expectedFormData = AddTeamMembersToGroup(
@@ -429,8 +429,9 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
+      expectGetGroupById(groupSummary.groupId, Some(customGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
+      expectGetTeamMembersFromGroup(arn)(teamMembers)
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       // when
@@ -458,7 +459,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
+      expectGetGroupById(groupSummary.groupId, Some(customGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(None, None, FILTER_BUTTON)
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
@@ -482,7 +483,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
+      expectGetGroupById(groupSummary.groupId, Some(customGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(None, None, s"${PAGINATION_BUTTON}_2")
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)
@@ -507,7 +508,7 @@ class ManageGroupTeamMembersControllerSpec extends BaseSpec {
           .withSession(SessionKeys.sessionId -> "session-x")
 
       expectAuthOkOptedInReady()
-      expectGetCustomSummaryById(groupSummary.groupId, Some(groupSummary))
+      expectGetGroupById(groupSummary.groupId, Some(customGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // doesn't matter
       val expectedFormData = AddTeamMembersToGroup(Some("1"), None, FILTER_BUTTON)
       expectSavePageOfTeamMembers(expectedFormData, teamMembers)

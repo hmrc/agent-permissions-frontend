@@ -413,6 +413,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
       expectAuthOkOptedInReady()
       expectGetTaxGroupById(groupId, Some(taxGroup))
       expectGetSessionItem(SELECTED_TEAM_MEMBERS, Seq.empty) // with no preselected
+      expectGetTeamMembersFromGroup(arn)(teamMembers)
       expectGetPageOfTeamMembers(arn)(teamMembers)
 
       // when

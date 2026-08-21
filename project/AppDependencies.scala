@@ -3,8 +3,8 @@ import sbt.*
 object AppDependencies {
 
   private val playVer: String = "play-30"
-  private val mongoVer: String = "2.13.0"
   private val bootstrapVer: String = "10.7.0"
+  private val mongoVer: String = "2.13.0"
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"       %% s"bootstrap-frontend-$playVer"            % bootstrapVer,

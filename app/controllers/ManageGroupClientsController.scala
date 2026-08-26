@@ -298,7 +298,7 @@ class ManageGroupClientsController @Inject() (
         withSessionItem(SELECTED_CLIENTS) { selectedClients =>
           selectedClients.getOrElse(Seq.empty).find(_.id == clientId) match {
             // if the user tries to go back after removing the selected client, take them to search clients instead
-            case None => Future.successful(Redirect(controller.showSearchClientsToAdd(groupId)))
+            case None         => Future.successful(Redirect(controller.showSearchClientsToAdd(groupId)))
             case Some(client) =>
               sessionCacheService
                 .put(CLIENT_TO_REMOVE, client)

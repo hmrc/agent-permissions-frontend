@@ -56,8 +56,7 @@ class ClientServiceSpec extends BaseSpec {
       expectPutSessionItem(CURRENT_PAGE_CLIENTS, displayClients)
 
       (mockAgentUserClientDetailsConnector
-        .getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
-          using
+        .getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(using
           _: HeaderCarrier,
           _: ExecutionContext
         ))
@@ -95,8 +94,7 @@ class ClientServiceSpec extends BaseSpec {
 
       (
         mockAgentPermissionsConnector
-          .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
-            using
+          .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(using
             _: HeaderCarrier,
             _: ExecutionContext
           )
@@ -152,8 +150,7 @@ class ClientServiceSpec extends BaseSpec {
     "Gets them from mockAgentPermissionsConnector" in {
       // given
       (mockAgentPermissionsConnector
-        .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
-          using
+        .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(using
           _: HeaderCarrier,
           _: ExecutionContext
         ))

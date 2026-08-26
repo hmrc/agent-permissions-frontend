@@ -725,7 +725,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, None, None).url}"
+        redirectLocation(
+          result
+        ).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, None, None).url}"
 
       }
 
@@ -752,7 +754,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, Some(1), Some(10)).url}"
+        redirectLocation(
+          result
+        ).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, Some(1), Some(10)).url}"
 
       }
 
@@ -780,7 +784,9 @@ class ManageTaxGroupClientsControllerSpec extends BaseSpec {
 
         status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, Some(page), Some(10)).url}"
+        redirectLocation(
+          result
+        ).get shouldBe s"${ctrlRoute.showExcludedClients(taxGroupWithExcludedId, Some(page), Some(10)).url}"
 
       }
 

@@ -160,7 +160,7 @@ class ManageGroupTeamMembersController @Inject() (
     Action.async { implicit request =>
       withAccessGroupForAuthorisedOptedAgent(groupId, isCustom(groupType)) { (group, arn) =>
         for
-          maybeFilterTerm <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
+          maybeFilterTerm  <- sessionCacheService.get[String](TEAM_MEMBER_SEARCH_INPUT)
           paginatedMembers <- getPageOfTeamMembersWithExistingGroupMembers(
                                 group = group,
                                 arn = arn,

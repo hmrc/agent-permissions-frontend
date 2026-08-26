@@ -57,7 +57,7 @@ object SelectGroupsForm {
         case (Nil, Some(true))                                           => SelectGroups.CreateNew
         case (List(NoneValue), None | Some(false))                       => SelectGroups.NoneOfTheAbove
         case (groups, None | Some(false)) if !groups.contains(NoneValue) => SelectGroups.SelectedGroups(groups)
-        case _ =>
+        case _                                                           =>
           throw new RuntimeException("SelectGroupsForm") /* should never happen, thanks to the validation above */
       },
       {

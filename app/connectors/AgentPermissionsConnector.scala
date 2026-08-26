@@ -170,7 +170,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     http.get(url).execute[HttpResponse].map { response =>
       response.status match {
         case OK => response.json.asOpt[OptinStatus]
-        case e =>
+        case e  =>
           logger.warn(s"getOptInStatus returned status $e ${response.body}")
           None
       }
@@ -183,7 +183,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     val url: URL = new URL(s"$agentPermissionsUrl/arn/${arn.value}/optin$urlQuery")
     http.post(url).execute[HttpResponse].map { response =>
       response.status match {
-        case CREATED => Done
+        case CREATED  => Done
         case CONFLICT =>
           logger.warn(s"Tried to optin $arn when already opted in")
           Done
@@ -198,7 +198,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/optout"
     http.post(url).execute[HttpResponse].map { response =>
       response.status match {
-        case CREATED => Done
+        case CREATED  => Done
         case CONFLICT =>
           logger.warn(s"Tried to optout $arn when already opted out")
           Done
@@ -234,7 +234,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case CREATED => Done
+          case CREATED        => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error posting createGroup request to $url", anyOtherStatus)
 
@@ -246,7 +246,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/all-groups"
     http.get(url).execute[HttpResponse].map { (response: HttpResponse) =>
       response.status match {
-        case OK => response.json.as[Seq[GroupSummary]]
+        case OK             => response.json.as[Seq[GroupSummary]]
         case anyOtherStatus =>
           throw UpstreamErrorResponse(s"error getting group summaries for arn $arn, from $url", anyOtherStatus)
       }
@@ -292,7 +292,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       val eventuallySummaries = response.status match {
         case OK        => response.json.as[Seq[GroupSummary]]
         case NOT_FOUND => Seq.empty[GroupSummary]
-        case e =>
+        case e         =>
           throw UpstreamErrorResponse(
             s"error getting group summary for arn: $arn, client: $enrolmentKey from $url",
             e
@@ -315,7 +315,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       val eventuallySummaries = response.status match {
         case OK        => response.json.asOpt[Seq[GroupSummary]]
         case NOT_FOUND => None
-        case e =>
+        case e         =>
           throw UpstreamErrorResponse(s"error getting group summary for arn: $arn, teamMember: $userId from $url", e)
       }
       val maybeGroups = eventuallySummaries.map { summaries =>
@@ -337,7 +337,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => response.json.asOpt[CustomGroup]
+          case OK        => response.json.asOpt[CustomGroup]
           case NOT_FOUND =>
             logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
             None
@@ -355,7 +355,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => response.json.asOpt[GroupSummary]
+          case OK        => response.json.asOpt[GroupSummary]
           case NOT_FOUND =>
             logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
             None
@@ -423,7 +423,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => Done
+          case OK             => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
         }
@@ -443,7 +443,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => Done
+          case OK             => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error PUTing team members to tax-group to $url", anyOtherStatus)
         }
@@ -462,7 +462,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => Done
+          case OK             => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error PUTing members to group request to $url", anyOtherStatus)
         }
@@ -481,7 +481,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => Done
+          case OK             => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"Error adding member to group request to $url", anyOtherStatus)
         }
@@ -508,7 +508,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => true
+          case OK    => true
           case other =>
             logger.warn(s"ArnAllowed call returned status $other")
             false
@@ -570,7 +570,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => response.json.asOpt[TaxGroup]
+          case OK        => response.json.asOpt[TaxGroup]
           case NOT_FOUND =>
             logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
             None
@@ -585,7 +585,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   private def deleteAccessGroup(url: URL)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
     http.delete(url).execute[HttpResponse].map { response =>
       response.status match {
-        case OK => Done
+        case OK             => Done
         case anyOtherStatus =>
           throw UpstreamErrorResponse(s"error DELETING update group request to $url", anyOtherStatus)
       }
@@ -603,7 +603,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => Done
+          case OK             => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error PATCHing update group request to $url", anyOtherStatus)
         }
@@ -622,7 +622,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case OK => Done
+          case OK             => Done
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"Error adding member to tax group HTTP request to $url", anyOtherStatus)
         }
@@ -638,7 +638,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     http.delete(url).execute[HttpResponse].map { response =>
       response.status match {
         case OK | NO_CONTENT => Done
-        case anyOtherStatus =>
+        case anyOtherStatus  =>
           throw UpstreamErrorResponse(s"error DELETING client from group $url", anyOtherStatus)
       }
     }
@@ -654,7 +654,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     http.delete(url).execute[HttpResponse].map { response =>
       response.status match {
         case OK | NO_CONTENT => Done
-        case anyOtherStatus =>
+        case anyOtherStatus  =>
           throw UpstreamErrorResponse(s"error DELETING member from group $url", anyOtherStatus)
       }
     }

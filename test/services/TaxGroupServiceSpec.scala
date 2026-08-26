@@ -152,8 +152,7 @@ class TaxGroupServiceSpec extends BaseSpec {
       val payload = AddOneTeamMemberToGroupRequest(agent)
 
       (mockAgentPermissionsConnector
-        .addOneTeamMemberToTaxGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(
-          using
+        .addOneTeamMemberToTaxGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(using
           _: HeaderCarrier,
           _: ExecutionContext
         ))

@@ -33,7 +33,7 @@ object ViewUtils {
       Seq(("HMRC-CBC", mgs("tax-service.cbc"))) ++
       (if appConfig.pillar2Enabled then Seq(("HMRC-PILLAR2-ORG", mgs("tax-service.pillar2"))) else Seq.empty)
 
-    filters.sortBy(x => (x._2))
+    filters.sortBy(x => x._2)
   }
 
   def getFiltersTaxServiceListWithClientCount(data: Map[String, Int])(implicit mgs: Messages): Seq[(String, String)] =

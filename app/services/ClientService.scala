@@ -93,8 +93,8 @@ class ClientServiceImpl @Inject() (
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]] =
     for
-      searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-      filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+      searchTerm    <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+      filterTerm    <- sessionCacheService.get(CLIENT_FILTER_INPUT)
       pageOfClients <-
         agentUserClientDetailsConnector.getPaginatedClients(arn)(page, pageSize, searchTerm, filterTerm)
       maybeSelectedClients <- sessionCacheService.get[Seq[DisplayClient]](SELECTED_CLIENTS)

@@ -242,7 +242,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
                                              case Some(cid) => Future.successful(Some(cid))
                                            }
           result <- maybeMemberId.flatMap(id => selectedMembers.getOrElse(Seq.empty).find(_.id == id)) match {
-                      case None => Future.successful(Redirect(controller.showSelectTeamMembers(None, None)))
+                      case None         => Future.successful(Redirect(controller.showSelectTeamMembers(None, None)))
                       case Some(member) =>
                         sessionCacheService
                           .put(MEMBER_TO_REMOVE, member)

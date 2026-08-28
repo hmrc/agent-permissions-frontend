@@ -25,11 +25,10 @@ class MtdItIdSpec extends AnyFlatSpec with Matchers {
   val permittedChars: Gen[Char] = Gen.oneOf("abcdefghijklmnoqprstuvwxyzABCDEFGHIJKLMNOQPRSTUVWXYZ0123456789")
   val validMtdItId: Gen[String] = Gen.listOfN(15, permittedChars).map(_.toArray).map(new String(_))
 
-  it should "be true for a valid MTDITID" in {
+  it should "be true for a valid MTDITID" in
     validMtdItId.map { mtditid =>
       MtdItId.isValid(mtditid) shouldBe true
     }
-  }
 
   it should "be true for a valid static MTDITID" in {
     MtdItId.isValid("abcdefgasdfdsas") shouldBe true

@@ -227,7 +227,7 @@ class CreateGroupSelectClientsController @Inject() (
                                              case Some(cid) => Future.successful(Some(cid))
                                            }
           result <- maybeClientId.flatMap(id => selectedClients.getOrElse(Seq.empty).find(_.id == id)) match {
-                      case None => Future.successful(Redirect(controller.showSearchClients()))
+                      case None         => Future.successful(Redirect(controller.showSearchClients()))
                       case Some(client) =>
                         sessionCacheService
                           .put(CLIENT_TO_REMOVE, client)

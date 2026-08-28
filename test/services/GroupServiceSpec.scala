@@ -186,8 +186,7 @@ class GroupServiceSpec extends BaseSpec {
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       (
         mockAgentPermissionsConnector
-          .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
-            using
+          .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(using
             _: HeaderCarrier,
             _: ExecutionContext
           )
@@ -237,8 +236,7 @@ class GroupServiceSpec extends BaseSpec {
       expectGetSessionItemNone(CLIENT_FILTER_INPUT)
       (
         mockAgentPermissionsConnector
-          .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(
-            using
+          .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(using
             _: HeaderCarrier,
             _: ExecutionContext
           )

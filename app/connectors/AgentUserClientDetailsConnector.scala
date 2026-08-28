@@ -73,7 +73,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
       response.status match {
         case ACCEPTED => Seq.empty[Client]
         case OK       => response.json.as[Seq[Client]]
-        case e =>
+        case e        =>
           throw UpstreamErrorResponse(s"error getClientList for ${arn.value}", e)
       }
 
@@ -144,7 +144,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
       .map { response =>
         response.status match {
           case NO_CONTENT => Done
-          case e =>
+          case e          =>
             throw UpstreamErrorResponse(s"error PUTing friendlyName for $client with agent ${arn.value}", e)
         }
 

@@ -66,8 +66,7 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     groups: Seq[GroupSummary]
   )(implicit groupService: GroupService): Unit =
     (groupService
-      .getPaginatedGroupSummaries(_: Arn, _: String)(_: Int, _: Int)(
-        using
+      .getPaginatedGroupSummaries(_: Arn, _: String)(_: Int, _: Int)(using
         _: Request[?],
         _: HeaderCarrier,
         _: ExecutionContext
@@ -78,12 +77,13 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectGetPaginatedClientsForCustomGroup(groupId: GroupId)(page: Int, pageSize: Int)(
     pageData: (Seq[DisplayClient], PaginationMetaData)
-  )(implicit groupService: GroupService): CallHandler6[GroupId, Int, Int, Request[
+  )(implicit
+    groupService: GroupService
+  ): CallHandler6[GroupId, Int, Int, Request[
     ?
   ], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
     (groupService
-      .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int)(
-        using
+      .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int)(using
         _: Request[?],
         _: HeaderCarrier,
         _: ExecutionContext

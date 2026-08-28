@@ -104,8 +104,7 @@ trait AgentUserClientDetailsConnectorMocks extends AnyWordSpec with MockFactory 
       PaginationMetaData(lastPage = false, firstPage = page == 1, 40, 40 / pageSize, pageSize, page, pageContent.length)
     val paginatedList = PaginatedList(pageContent, paginationMetaData)
     (agentUserClientDetailsConnector
-      .getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
-        using
+      .getPaginatedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(using
         _: HeaderCarrier,
         _: ExecutionContext
       ))

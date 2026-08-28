@@ -55,8 +55,8 @@ class AssistantViewOnlyController @Inject() (
     isAuthorisedAssistant { arn =>
       isOptedIn(arn) { _ =>
         for
-          search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
-          filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
+          search            <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
+          filter            <- sessionCacheService.get(CLIENT_FILTER_INPUT)
           unassignedClients <-
             clientService.getUnassignedClients(arn)(page.getOrElse(1), CLIENTS_PAGE_SIZE, search, filter)
         yield Ok(
@@ -86,7 +86,7 @@ class AssistantViewOnlyController @Inject() (
         for
           search <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
           filter <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-          list <-
+          list   <-
             groupService.getPaginatedClientsForCustomGroup(groupId)(page.getOrElse(1), pageSize = CLIENTS_PAGE_SIZE)
         yield Ok(
           existing_group_client_list(

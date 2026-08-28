@@ -73,7 +73,7 @@ class UnassignedClientController @Inject() (
     filter: Option[String] = None
   )(implicit request: Request[?]): Future[Result] =
     for
-      maybeSelectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
+      maybeSelectedClients     <- sessionCacheService.get(SELECTED_CLIENTS)
       unmarkedPaginatedClients <- clientService.getUnassignedClients(arn)(
                                     page.getOrElse(1),
                                     pageSize.getOrElse(UNASSIGNED_CLIENTS_PAGE_SIZE),
@@ -318,7 +318,7 @@ class UnassignedClientController @Inject() (
                   groupsToAddTo = allGroups.filter(groupSummary => groups.contains(groupSummary.groupId.toString))
                   _ <- sessionCacheService.put(GROUPS_FOR_UNASSIGNED_CLIENTS, groupsToAddTo.map(_.groupName))
                   selectedClients <- sessionCacheService.get(SELECTED_CLIENTS)
-                  result <- selectedClients.fold(
+                  result          <- selectedClients.fold(
                               Redirect(routes.ManageGroupController.showManageGroups(None, None)).toFuture
                             ) { displayClients =>
                               val clients: Set[Client] =

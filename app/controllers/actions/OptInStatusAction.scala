@@ -89,13 +89,13 @@ class OptInStatusAction @Inject() (
       .flatMap {
         case Some(status) if predicate(status) => body(status)
         case Some(_)                           => Redirect(routes.RootController.start().url).toFuture
-        case None =>
+        case None                              =>
           initialiseSession(arn)
             .flatMap(_ => sessionCacheService.get[OptinStatus](OPT_IN_STATUS))
             .flatMap {
               case Some(status) if predicate(status) => body(status)
               case Some(_)                           => Redirect(routes.RootController.start()).toFuture
-              case None =>
+              case None                              =>
                 throw new RuntimeException(s"opt-in status could not be found for ${arn.value}")
             }
       }

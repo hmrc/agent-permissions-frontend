@@ -28,7 +28,7 @@ object FilterUtils {
         filter match {
           case None                              => true
           case Some(empty) if empty.trim.isEmpty => true
-          case Some(fltr) =>
+          case Some(fltr)                        =>
             dc.taxService.equalsIgnoreCase(fltr) || (fltr == "TRUST" && dc.taxService.startsWith("HMRC-TERS"))
         }
       )

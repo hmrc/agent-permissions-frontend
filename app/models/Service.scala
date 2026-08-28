@@ -190,8 +190,7 @@ case object CgtRefType extends ClientIdType(
       createUnderlying = CgtRef.apply
     )
 
-case object PptRefType
-    extends ClientIdType(
+case object PptRefType extends ClientIdType(
       clazz = classOf[PptRef],
       id = "EtmpRegistrationNumber",
       enrolmentId = "EtmpRegistrationNumber",

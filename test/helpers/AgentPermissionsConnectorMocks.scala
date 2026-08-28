@@ -97,8 +97,7 @@ trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
     filter: Option[String] = None
   )(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
     (agentPermissionsConnector
-      .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(
-        using
+      .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(using
         _: HeaderCarrier,
         _: ExecutionContext
       ))

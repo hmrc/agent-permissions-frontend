@@ -135,7 +135,7 @@ class GroupServiceImpl @Inject() (
     for
       searchTerm <- sessionCacheService.get(CLIENT_SEARCH_INPUT)
       filterTerm <- sessionCacheService.get(CLIENT_FILTER_INPUT)
-      list <-
+      list       <-
         agentPermissionsConnector.getPaginatedClientsForCustomGroup(groupId)(page, pageSize, searchTerm, filterTerm)
       displayList = list.pageContent.map(client => DisplayClient.fromClient(client))
     yield (displayList, list.paginationMetaData)

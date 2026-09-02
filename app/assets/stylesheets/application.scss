@@ -8,7 +8,7 @@ body:not(.js-enabled) .js-only {
 }
 
 .govuk-back-link {
-  margin: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 main.govuk-main-wrapper {
@@ -86,3 +86,4 @@ nav#pagination-nav {
   letter-spacing: normal;
   text-transform: none !important;
 }
+

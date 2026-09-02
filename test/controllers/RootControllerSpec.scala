@@ -23,7 +23,7 @@ import helpers.BaseSpec
 import models.accessgroups.optin.{OptedInReady, OptedOutEligible, OptedOutSingleUser}
 import play.api.Application
 import play.api.http.Status.SEE_OTHER
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import repository.SessionCacheRepository
 import services.{AgentSuspensionService, InMemorySessionCacheService}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -63,65 +63,54 @@ class RootControllerSpec extends BaseSpec {
   def expectAuthOk(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
+    expectGetSuspensionDetails()
   }
 
+  override def afterEach(): Unit =
+    super.afterEach()
+    mockSessionService.clear()
+
   "root controller" when {
-    "no session is available" should {
-      "retrieve opt-in status from backend and redirect to self if status available" in {
-        expectAuthOk()
-        expectGetSuspensionDetails()
-        expectOptInStatusOk(arn)(OptedOutEligible)
+    "throw an exception if there was no response from the backend" in {
+      expectAuthOk()
+      expectOptInStatusError(arn)
 
-        val result = controller.start()(request)
-
-        status(result) shouldBe SEE_OTHER
-
-        redirectLocation(result).get shouldBe routes.RootController.start().url
-      }
-
-      "throw an exception if there was no response from the backend" in {
-        expectAuthOk()
-        expectOptInStatusError(arn)
-
-        intercept[UpstreamErrorResponse] {
-          await(controller.start()(request))
-        }
+      intercept[UpstreamErrorResponse] {
+        await(controller.start()(request))
       }
     }
 
-    "a session is available" should {
-      "redirect to opt-in journey if the optin status is eligible to opt-in" in {
-        expectAuthOk()
-        await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
+    "redirect to opt-in journey if the optin status is eligible to opt-in" in {
+      expectAuthOk()
+      expectOptInStatusOk(arn)(OptedOutEligible)
 
-        val result = controller.start()(request)
+      val result = controller.start()(request)
 
-        status(result) shouldBe SEE_OTHER
+      status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe routes.OptInController.start().url
-      }
+      redirectLocation(result).get shouldBe routes.OptInController.start().url
+    }
 
-      "redirect to opt-out journey if the optin status is eligible to opt-out" in {
-        expectAuthOk()
-        await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedInReady))
+    "redirect to opt-out journey if the optin status is eligible to opt-out" in {
+      expectAuthOk()
+      expectOptInStatusOk(arn)(OptedInReady)
 
-        val result = controller.start()(request)
+      val result = controller.start()(request)
 
-        status(result) shouldBe SEE_OTHER
+      status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe routes.OptOutController.start().url
-      }
+      redirectLocation(result).get shouldBe routes.OptOutController.start().url
+    }
 
-      "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {
-        expectAuthOk()
-        await(sessioncacheRepo.putSession(OPT_IN_STATUS, OptedOutSingleUser))
+    "redirect to ASA dashboard if user is not eligible to opt-in or opt-out" in {
+      expectAuthOk()
+      expectOptInStatusOk(arn)(OptedOutSingleUser)
 
-        val result = controller.start()(request)
+      val result = controller.start()(request)
 
-        status(result) shouldBe SEE_OTHER
+      status(result) shouldBe SEE_OTHER
 
-        redirectLocation(result).get shouldBe "http://localhost:9401/agent-services-account/manage-account"
-      }
+      redirectLocation(result).get shouldBe "http://localhost:9401/agent-services-account/manage-account"
     }
   }
 

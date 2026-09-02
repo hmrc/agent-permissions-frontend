@@ -22,7 +22,6 @@ import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.OptInServiceImpl
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -35,7 +34,6 @@ class OptInController @Inject() (
   mcc: MessagesControllerComponents,
   optInStatusAction: OptInStatusAction,
   aucdConnector: AgentUserClientDetailsConnector,
-  optInService: OptInServiceImpl,
   start_optIn: start,
   want_to_opt_in: want_to_opt_in,
   you_have_opted_in: you_have_opted_in
@@ -72,7 +70,7 @@ class OptInController @Inject() (
             (iWantToOptIn: Boolean) => {
               val lang = request.cookies.get("PLAY_LANG").map(_.value)
               if iWantToOptIn then
-                optInService
+                agentPermissionsConnector
                   .optIn(arn, lang)
                   .map(_ => Redirect(routes.OptInController.showYouHaveOptedIn().url))
               else Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture

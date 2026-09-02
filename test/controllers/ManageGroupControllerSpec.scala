@@ -129,7 +129,7 @@ class ManageGroupControllerSpec extends BaseSpec {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(SUSPENSION_STATUS, false)
-    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectOptInStatusOk(arn)(OptedInReady)
   }
 
   val controller: ManageGroupController = fakeApplication().injector.instanceOf[ManageGroupController]

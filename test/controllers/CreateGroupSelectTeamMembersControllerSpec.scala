@@ -100,7 +100,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(SUSPENSION_STATUS, false)
-    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectOptInStatusOk(arn)(OptedInReady)
     expectGetSessionItem(GROUP_TYPE, groupType)
   }
 
@@ -269,7 +269,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "redirect when no group type is in session" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItemNone(GROUP_TYPE) // <- NO GROUP TYPE IN SESSION
 
@@ -466,7 +466,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItemNone(GROUP_TYPE)
 
@@ -703,7 +703,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "show the confirmation page" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
       expectDeleteSessionItem(GROUP_TYPE)
@@ -737,7 +737,7 @@ class CreateGroupSelectTeamMembersControllerSpec extends BaseSpec {
     "show the confirmation page" in {
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+      expectOptInStatusOk(arn)(OptedInReady)
       expectGetSessionItem(SUSPENSION_STATUS, false)
       expectGetSessionItem(NAME_OF_GROUP_CREATED, groupName)
 

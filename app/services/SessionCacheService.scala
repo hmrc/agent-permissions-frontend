@@ -122,4 +122,5 @@ class InMemorySessionCacheService(initialValues: Map[String, Any] = Map.empty) e
     dataKeys.map(_.unwrap).foreach(values.remove)
     Future.successful(())
   }
+  def clear(): Unit = values.clear()
 }

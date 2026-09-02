@@ -21,7 +21,6 @@ import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.YesNoForm
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.OptinService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import views.html._
 
@@ -33,7 +32,6 @@ class OptOutController @Inject() (
   authAction: AuthAction,
   mcc: MessagesControllerComponents,
   optInStatusAction: OptInStatusAction,
-  optInService: OptinService,
   opt_out_start: opt_out_start,
   want_to_opt_out: want_to_opt_out,
   you_have_opted_out: you_have_opted_out
@@ -69,7 +67,7 @@ class OptOutController @Inject() (
             formWithErrors => Ok(want_to_opt_out(formWithErrors)).toFuture,
             (iWantToOptOut: Boolean) =>
               if iWantToOptOut then {
-                optInService
+                agentPermissionsConnector
                   .optOut(arn)
                   .map(_ => Redirect(routes.OptOutController.showYouHaveOptedOut().url))
               } else Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture

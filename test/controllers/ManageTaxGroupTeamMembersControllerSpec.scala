@@ -120,7 +120,7 @@ class ManageTaxGroupTeamMembersControllerSpec extends BaseSpec {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(SUSPENSION_STATUS, false)
-    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectOptInStatusOk(arn)(OptedInReady)
   }
 
   s"GET ${ctrlRoute.showExistingGroupTeamMembers(groupId, TAX_SERVICE, None).url}" should {

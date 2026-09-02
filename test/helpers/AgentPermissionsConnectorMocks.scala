@@ -17,22 +17,27 @@
 package helpers
 
 import connectors.{AgentPermissionsConnector, GroupRequest, UpdateAccessGroupRequest}
-import models.{DisplayClient, GroupId}
+import models.accessgroups.optin.OptinStatus
+import models.accessgroups.{AgentUser, CustomGroup, GroupSummary}
+import models.{Arn, DisplayClient, GroupId, PaginatedListBuilder}
 import org.apache.pekko.Done
 import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status.BAD_REQUEST
-import models.Arn
-import models.accessgroups.{AgentUser, CustomGroup, GroupSummary}
-import models.accessgroups.optin.OptinStatus
-import models.PaginatedListBuilder
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import utils.FilterUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AgentPermissionsConnectorMocks extends AnyWordSpec with MockFactory {
+
+  def expectOptOut(arn: Arn)(implicit agentPermissionsConnector: AgentPermissionsConnector): Unit =
+    (agentPermissionsConnector
+      .optOut(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
+      .expects(arn, *, *)
+      .returning(Future successful Done)
+      .once()
 
   def expectOptInStatusOk(
     arn: Arn

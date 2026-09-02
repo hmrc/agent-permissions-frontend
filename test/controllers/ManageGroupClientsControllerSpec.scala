@@ -135,7 +135,7 @@ class ManageGroupClientsControllerSpec extends BaseSpec {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
     expectGetSessionItem(SUSPENSION_STATUS, false)
-    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectOptInStatusOk(arn)(OptedInReady)
   }
 
   s"GET ${ctrlRoute.showExistingGroupClients(grpId, None, None).url}" should {

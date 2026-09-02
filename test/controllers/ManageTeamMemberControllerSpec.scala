@@ -101,7 +101,7 @@ class ManageTeamMemberControllerSpec extends BaseSpec {
   def expectAuthOkOptedInReady(): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectIsArnAllowed(allowed = true)
-    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectOptInStatusOk(arn)(OptedInReady)
     expectGetSessionItem(SUSPENSION_STATUS, false)
   }
 

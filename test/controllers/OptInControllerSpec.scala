@@ -211,10 +211,8 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
-
       expectPostOptInAccepted(arn)
-      expectOptInStatusOk(arn)(OptedInReady)
+      expectOptInStatusOk(arn)(OptedOutEligible)
 
       val result = controller.submitDoYouWantToOptIn()(request)
 
@@ -232,8 +230,7 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "false")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
-
+      expectOptInStatusOk(arn)(OptedOutEligible)
       val result = controller.submitDoYouWantToOptIn()(request)
 
       status(result) shouldBe SEE_OTHER
@@ -250,8 +247,7 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
-
+      expectOptInStatusOk(arn)(OptedOutEligible)
       val result = controller.submitDoYouWantToOptIn()(request)
 
       status(result) shouldBe OK
@@ -280,8 +276,7 @@ class OptInControllerSpec extends BaseSpec {
           .withFormUrlEncodedBody("answer" -> "true")
           .withSession(SessionKeys.sessionId -> "session-x")
 
-      await(sessionCacheRepo.putSession(OPT_IN_STATUS, OptedOutEligible))
-
+      expectOptInStatusOk(arn)(OptedOutEligible)
       intercept[UpstreamErrorResponse] {
         await(controller.submitDoYouWantToOptIn()(request))
       }
@@ -293,7 +288,7 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInNotReady))
+      expectOptInStatusOk(arn)(OptedInNotReady)
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
@@ -335,7 +330,7 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInReady))
+      expectOptInStatusOk(arn)(OptedInReady)
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector
@@ -376,7 +371,7 @@ class OptInControllerSpec extends BaseSpec {
 
       expectAuthorisationGrantsAccess(mockedAuthResponse)
       expectIsArnAllowed(allowed = true)
-      await(sessionCacheRepo.putSession[OptinStatus](OPT_IN_STATUS, OptedInSingleUser))
+      expectOptInStatusOk(arn)(OptedInSingleUser)
 
       // This is needed because in order to display this view we need to retrieve the agency email from AUCD.
       (mockAgentUserClientDetailsConnector

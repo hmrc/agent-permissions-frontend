@@ -88,7 +88,7 @@ class AddTeamMemberToGroupsControllerSpec extends BaseSpec {
   def AuthOkWithTeamMember(teamMember: TeamMember = teamMember): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectGetSessionItem(SUSPENSION_STATUS, false)
-    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectOptInStatusOk(arn)(OptedInReady)
     expectIsArnAllowed(allowed = true)
     expectLookupTeamMember(arn)(teamMember)
   }

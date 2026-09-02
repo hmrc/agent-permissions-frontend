@@ -59,7 +59,6 @@ package object controllers {
   val isOptedOut: OptinStatus => Boolean = status => optedOutStatii.contains(status)
   val isOptedInComplete: OptinStatus => Boolean = status => status == OptedInReady
 
-  val OPT_IN_STATUS: DataKey[OptinStatus] = DataKey("optinStatus")
   val SUSPENSION_STATUS: DataKey[Boolean] = DataKey("SUSPENSION_STATUS")
 
   val GROUP_NAME: DataKey[String] = DataKey("groupName")
@@ -143,7 +142,6 @@ package object controllers {
     teamMemberFilteringKeys ++
     creatingGroupKeys ++
     List(
-      OPT_IN_STATUS,
       GROUP_NAME,
       GROUP_NAME_CONFIRMED,
       GROUP_CLIENTS,

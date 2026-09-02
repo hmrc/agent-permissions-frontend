@@ -42,7 +42,7 @@ abstract class BaseSpec
     extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with AuthMocks with AgentSuspensionServiceMocks
     with ScalaFutures with GroupServiceMocks with TaxGroupServiceMocks with TeamMemberServiceMocks
     with ClientServiceMocks with SessionServiceMocks with SessionCacheOperationsMocks
-    with AgentPermissionsConnectorMocks with HttpClientMocks with OptInServiceMocks with CleanMongoCollectionSupport
+    with AgentPermissionsConnectorMocks with HttpClientMocks with CleanMongoCollectionSupport
     with AgentUserClientDetailsConnectorMocks with IntegrationPatience {
 
   implicit val ec: ExecutionContext =

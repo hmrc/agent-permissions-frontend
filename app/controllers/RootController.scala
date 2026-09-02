@@ -19,10 +19,8 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import controllers.actions.AuthAction
-import models.accessgroups.optin.OptinStatus
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import repository.SessionCacheRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.{Inject, Singleton}
@@ -32,16 +30,15 @@ import scala.concurrent.ExecutionContext
 class RootController @Inject() (
   authAction: AuthAction,
   mcc: MessagesControllerComponents,
-  agentPermissionsConnector: AgentPermissionsConnector,
-  sessionCacheRepository: SessionCacheRepository
+  agentPermissionsConnector: AgentPermissionsConnector
 )(implicit val appConfig: AppConfig, ec: ExecutionContext)
     extends FrontendController(mcc) with Logging {
 
-  import authAction._
+  import authAction.*
 
   val start: Action[AnyContent] = Action.async { implicit request =>
     isAuthorisedAgent { arn =>
-      sessionCacheRepository.getFromSession[OptinStatus](OPT_IN_STATUS).flatMap {
+      agentPermissionsConnector.getOptInStatus(arn).flatMap {
         case Some(status) =>
           if controllers.isEligibleToOptIn(status) then Redirect(routes.OptInController.start().url).toFuture
           else if controllers.isOptedIn(status) then Redirect(routes.OptOutController.start().url).toFuture
@@ -50,14 +47,7 @@ class RootController @Inject() (
             Redirect(appConfig.agentServicesAccountManageAccountUrl).toFuture
           }
         case None =>
-          agentPermissionsConnector.getOptInStatus(arn).flatMap {
-            case Some(status) =>
-              sessionCacheRepository
-                .putSession(OPT_IN_STATUS, status)
-                .map(_ => Redirect(routes.RootController.start().url))
-            case None =>
-              throw new RuntimeException("there was a problem when trying to get the opted-In status")
-          }
+          throw new RuntimeException("there was a problem when trying to get the opted-In status")
       }
     }
   }

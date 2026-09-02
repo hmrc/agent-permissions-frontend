@@ -83,7 +83,7 @@ class AddClientToGroupsControllerSpec extends BaseSpec {
   def AuthOkWithClient(client: DisplayClient = client): Unit = {
     expectAuthorisationGrantsAccess(mockedAuthResponse)
     expectGetSessionItem(SUSPENSION_STATUS, false)
-    expectGetSessionItem(OPT_IN_STATUS, OptedInReady)
+    expectOptInStatusOk(arn)(OptedInReady)
     expectIsArnAllowed(allowed = true)
     expectLookupClient(arn)(client)
   }

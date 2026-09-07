@@ -17,13 +17,13 @@
 package services
 
 import com.google.inject.ImplementedBy
-import connectors._
+import connectors.*
 import models.GroupId
 import org.apache.pekko.Done
-import play.api.Logging
 import models.Arn
 import models.accessgroups.TaxGroup
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.RequestAwareLogging
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -59,7 +59,7 @@ trait TaxGroupService {
 
 @Singleton
 class TaxGroupServiceImpl @Inject() (agentPermissionsConnector: AgentPermissionsConnector)
-    extends TaxGroupService with Logging {
+    extends TaxGroupService with RequestAwareLogging {
 
   def getTaxGroupClientCount(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] =
     agentPermissionsConnector.getTaxGroupClientCount(arn)

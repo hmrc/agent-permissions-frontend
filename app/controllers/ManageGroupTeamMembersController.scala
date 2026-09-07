@@ -24,13 +24,13 @@ import forms.*
 import models.TeamMember.toAgentUser
 import models.accessgroups.{AccessGroup, CustomGroup, GroupSummary, TaxGroup}
 import models.{AddTeamMembersToGroup, Arn, GroupId, SearchFilter, TeamMember}
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.*
 import services.{GroupService, SessionCacheService, TeamMemberService}
 import models.{PaginatedList, PaginationMetaData}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.RequestAwareLogging
 import views.html.groups.create.members.{confirm_deselect_member, confirm_remove_member}
 import views.html.groups.manage.members.{existing_group_team_members, review_update_team_members, update_paginated_team_members}
 
@@ -54,7 +54,7 @@ class ManageGroupTeamMembersController @Inject() (
   val appConfig: AppConfig,
   ec: ExecutionContext,
   override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with Logging {
+) extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import groupAction._
   import sessionAction.withSessionItem

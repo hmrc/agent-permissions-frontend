@@ -19,20 +19,20 @@ package controllers
 import config.AppConfig
 import connectors.AddMembersToAccessGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
-import forms._
+import forms.*
 import models.DisplayClient.format
 import models.accessgroups.{Client, GroupSummary}
 import models.{AddClientsToGroup, Arn, DisplayClient, GroupId, SearchFilter}
-import play.api.Logging
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
 import models.{PaginatedList, PaginationMetaData}
 import models.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.RequestAwareLogging
 import views.html.groups.create.clients.{confirm_remove_client, search_clients}
-import views.html.groups.manage.clients._
+import views.html.groups.manage.clients.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -55,7 +55,7 @@ class ManageGroupClientsController @Inject() (
   val appConfig: AppConfig,
   ec: ExecutionContext,
   override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with Logging {
+) extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import groupAction._
   import sessionAction.withSessionItem

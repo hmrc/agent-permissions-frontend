@@ -21,20 +21,20 @@ import config.AppConfig
 import models.accessgroups.{Client, UserDetails}
 import models.{AgencyDetails, Arn}
 import org.apache.pekko.Done
-import play.api.Logging
 import play.api.http.Status.{ACCEPTED, NOT_FOUND, NO_CONTENT, OK}
 import models.PaginatedList
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
+import utils.RequestAwareLogging
 
 import java.net.URL
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AgentUserClientDetailsConnectorImpl])
-trait AgentUserClientDetailsConnector extends Logging {
+trait AgentUserClientDetailsConnector extends RequestAwareLogging {
   val http: HttpClientV2
 
   def getClients(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Client]]
@@ -63,7 +63,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
   val metrics: Metrics,
   appConfig: AppConfig,
   val ec: ExecutionContext
-) extends AgentUserClientDetailsConnector with Logging {
+) extends AgentUserClientDetailsConnector with RequestAwareLogging {
 
   private lazy val baseUrl = appConfig.agentUserClientDetailsBaseUrl
 

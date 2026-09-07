@@ -20,13 +20,13 @@ import config.AppConfig
 import controllers.actions.{GroupAction, SessionAction}
 import forms.{AddClientsToGroupForm, SearchAndFilterForm, YesNoForm}
 import models.{AddClientsToGroup, DisplayClient, SearchFilter}
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
 import models.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.clients._
+import utils.RequestAwareLogging
+import views.html.groups.create.clients.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,7 +48,7 @@ class CreateGroupSelectClientsController @Inject() (
   val appConfig: AppConfig,
   ec: ExecutionContext,
   override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with Logging {
+) extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import groupAction._
   import sessionAction.withSessionItem

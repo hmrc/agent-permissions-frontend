@@ -19,19 +19,19 @@ package controllers
 import config.AppConfig
 import connectors.{UpdateAccessGroupRequest, UpdateTaxServiceGroupRequest}
 import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
-import forms._
+import forms.*
 import models.{GroupId, SearchFilter}
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{GroupService, TaxGroupService}
 import models.Arn
 import models.accessgroups.GroupSummary
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.RequestAwareLogging
 import views.html.groups.create.name.duplicate_group_name
-import views.html.groups.manage.delete._
+import views.html.groups.manage.delete.*
 import views.html.groups.manage.manage_existing_groups
-import views.html.groups.manage.rename._
+import views.html.groups.manage.rename.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -54,7 +54,7 @@ class ManageGroupController @Inject() (
   val appConfig: AppConfig,
   ec: ExecutionContext,
   override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with Logging {
+) extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import authAction._
   import groupAction._

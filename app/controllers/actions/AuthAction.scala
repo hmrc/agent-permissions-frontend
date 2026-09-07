@@ -118,7 +118,10 @@ class AuthAction @Inject() (
       .recover(handleFailure)
   }
 
-  private def handleFailure(implicit request: RequestHeader, appConfig: AppConfig): PartialFunction[Throwable, Result] = {
+  private def handleFailure(implicit
+    request: RequestHeader,
+    appConfig: AppConfig
+  ): PartialFunction[Throwable, Result] = {
     case _: NoActiveSession =>
       val continueUrl = uri"${appConfig.selfExternalUrl + request.uri}"
       val signInUrl = uri"${appConfig.signInUrl}?${Map(

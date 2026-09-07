@@ -20,12 +20,11 @@ import config.AppConfig
 import controllers.actions.{AuthAction, GroupAction, OptInStatusAction, SessionAction}
 import forms.{TaxServiceGroupTypeForm, YesNoForm}
 import models.TaxServiceGroupType
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{ClientService, GroupService, SessionCacheService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import utils.ViewUtils
+import utils.{RequestAwareLogging, ViewUtils}
 import views.html.groups.create.groupType.{exceed_group_selection, review_group_type, select_group_tax_type, select_group_type}
 
 import javax.inject.{Inject, Singleton}
@@ -46,7 +45,7 @@ class CreateGroupSelectGroupTypeController @Inject() (
   review_group_type: review_group_type,
   exceed_group_selection: exceed_group_selection
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
-    extends FrontendController(mcc) with I18nSupport with Logging {
+    extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   val ctrlRoutes: ReverseCreateGroupSelectGroupTypeController = controllers.routes.CreateGroupSelectGroupTypeController
 

@@ -26,9 +26,9 @@ import play.api.mvc.Request
 
 object NoRequest extends Request[Any] {
 
-  override def body: Any        = ""
-  override def method: String   = ""
-  override def version: String  = ""
+  override def body: Any = ""
+  override def method: String = ""
+  override def version: String = ""
   override def headers: Headers = Headers.create()
 
   override def connection: RemoteConnection = RemoteConnection(

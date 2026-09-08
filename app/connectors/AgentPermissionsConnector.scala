@@ -32,15 +32,15 @@ import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
+import utils.{NoRequest, RequestAwareLogging}
 
 import java.net.{URL, URLEncoder}
 import java.nio.charset.StandardCharsets.UTF_8
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-//TODO: 12162 Look at this file
 @ImplementedBy(classOf[AgentPermissionsConnectorImpl])
-trait AgentPermissionsConnector extends Logging {
+trait AgentPermissionsConnector extends RequestAwareLogging {
 
   val http: HttpClientV2
 
@@ -172,7 +172,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       response.status match {
         case OK => response.json.asOpt[OptinStatus]
         case e  =>
-          logger.warn(s"getOptInStatus returned status $e ${response.body}")
+          logger.warn(s"getOptInStatus returned status $e ${response.body}")(using NoRequest)
           None
       }
     }
@@ -186,7 +186,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       response.status match {
         case CREATED  => Done
         case CONFLICT =>
-          logger.warn(s"Tried to optin $arn when already opted in")
+          logger.warn(s"Tried to optin $arn when already opted in")(using NoRequest)
           Done
         case e =>
           throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}", e)
@@ -201,7 +201,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       response.status match {
         case CREATED  => Done
         case CONFLICT =>
-          logger.warn(s"Tried to optout $arn when already opted out")
+          logger.warn(s"Tried to optout $arn when already opted out")(using NoRequest)
           Done
         case e =>
           throw UpstreamErrorResponse(s"error sending opt out request", e)
@@ -340,7 +340,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK        => response.json.asOpt[CustomGroup]
           case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")(using NoRequest)
             None
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
@@ -358,7 +358,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK        => response.json.asOpt[GroupSummary]
           case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")(using NoRequest)
             None
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
@@ -511,7 +511,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK    => true
           case other =>
-            logger.warn(s"ArnAllowed call returned status $other")
+            logger.warn(s"ArnAllowed call returned status $other")(using NoRequest)
             false
         }
 
@@ -573,7 +573,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK        => response.json.asOpt[TaxGroup]
           case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")(using NoRequest)
             None
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error getting group details for group $groupId, from $url", anyOtherStatus)

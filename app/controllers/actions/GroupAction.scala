@@ -22,17 +22,17 @@ import models.accessgroups.{AccessGroup, GroupSummary, TaxGroup}
 import models.{Arn, DisplayClient, GroupId}
 import play.api.mvc.Results.{NotFound, Redirect}
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
-import play.api.{Configuration, Environment, Logging}
+import play.api.{Configuration, Environment}
 import services.{GroupService, TaxGroupService}
 import models.PaginatedList
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.RequestAwareLogging
 import views.html.groups.manage.group_not_found
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-//TODO: 12162 Look at this file
 @Singleton
 class GroupAction @Inject() (
   val authConnector: AuthConnector,
@@ -44,7 +44,7 @@ class GroupAction @Inject() (
   optInStatusAction: OptInStatusAction,
   sessionAction: SessionAction,
   group_not_found: group_not_found
-) extends Logging {
+) extends RequestAwareLogging {
 
   import optInStatusAction._
 

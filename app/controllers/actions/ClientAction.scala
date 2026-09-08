@@ -21,17 +21,17 @@ import config.AppConfig
 import models.DisplayClient
 import play.api.mvc.Results.Ok
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
-import play.api.{Configuration, Environment, Logging}
+import play.api.{Configuration, Environment}
 import services.ClientService
 import models.Arn
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.RequestAwareLogging
 import views.html.group_member_details.add_groups_to_client.client_not_found
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-//TODO: 12162 Look at this file
 @Singleton
 class ClientAction @Inject() (
   val authConnector: AuthConnector,
@@ -41,7 +41,7 @@ class ClientAction @Inject() (
   optInStatusAction: OptInStatusAction,
   val clientService: ClientService,
   client_not_found: client_not_found
-) extends Logging {
+) extends RequestAwareLogging {
 
   import optInStatusAction._
 

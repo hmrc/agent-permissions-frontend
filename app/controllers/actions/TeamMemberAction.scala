@@ -16,22 +16,22 @@
 
 package controllers.actions
 
-import controllers._
+import controllers.*
 import config.AppConfig
 import models.TeamMember
 import play.api.mvc.Results.Ok
 import play.api.mvc.{AnyContent, MessagesRequest, Result}
-import play.api.{Configuration, Environment, Logging}
+import play.api.{Configuration, Environment}
 import services.{SessionCacheService, TeamMemberService}
 import models.Arn
-import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.RequestAwareLogging
 import views.html.group_member_details.add_groups_to_team_member.team_member_not_found
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-//TODO: 12162 Look at this file
 @Singleton
 class TeamMemberAction @Inject() (
   val authConnector: AuthConnector,
@@ -42,7 +42,7 @@ class TeamMemberAction @Inject() (
   val teamMemberService: TeamMemberService,
   val sessionCacheService: SessionCacheService, // indirectly used
   team_member_not_found: team_member_not_found
-) extends Logging {
+) extends RequestAwareLogging {
 
   import optInStatusAction._
 
@@ -60,7 +60,7 @@ class TeamMemberAction @Inject() (
       }
     }
 
-  def teamMemberNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] =
+  private def teamMemberNotFound(implicit request: MessagesRequest[AnyContent], appConfig: AppConfig): Future[Result] =
     Ok(team_member_not_found()).toFuture
 
 }

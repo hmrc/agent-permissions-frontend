@@ -22,13 +22,13 @@ import controllers.actions.{AuthAction, GroupAction, OptInStatusAction, SessionA
 import forms.{AddTeamMembersToGroupForm, YesNoForm}
 import models.TeamMember.toAgentUser
 import models.{AddTeamMembersToGroup, TeamMember}
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{SessionCacheService, TaxGroupService, TeamMemberService}
 import models.Arn
 import models.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.RequestAwareLogging
 import views.html.groups.create.members.{confirm_deselect_member, review_members_paginated, select_paginated_team_members}
 import views.html.groups.create.{group_created, tax_group_created}
 
@@ -51,7 +51,7 @@ class CreateGroupSelectTeamMembersController @Inject() (
   select_paginated_team_members: select_paginated_team_members,
   review_members_paginated: review_members_paginated
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
-    extends FrontendController(mcc) with I18nSupport with Logging {
+    extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import authAction.isAuthorisedAgent
   import groupAction._

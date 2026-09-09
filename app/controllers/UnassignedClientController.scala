@@ -19,20 +19,20 @@ package controllers
 import config.AppConfig
 import connectors.AddMembersToAccessGroupRequest
 import controllers.actions.{AuthAction, OptInStatusAction, SessionAction}
-import forms._
+import forms.*
 import models.{AddClientsToGroup, DisplayClient}
-import play.api.Logging
 import play.api.data.{Form, FormError}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsNumber
-import play.api.mvc._
+import play.api.mvc.*
 import services.{ClientService, GroupService, SessionCacheOperationsService, SessionCacheService}
 import models.Arn
 import models.accessgroups.Client
 import models.PaginatedListBuilder
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.groups.create.clients._
-import views.html.unassigned_clients._
+import utils.RequestAwareLogging
+import views.html.groups.create.clients.*
+import views.html.unassigned_clients.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -54,7 +54,7 @@ class UnassignedClientController @Inject() (
   clients_added_to_groups_complete: clients_added_to_groups_complete,
   confirm_remove_client: confirm_remove_client
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
-    extends FrontendController(mcc) with I18nSupport with Logging {
+    extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import authAction._
   import optInStatusAction._

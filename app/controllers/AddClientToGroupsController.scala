@@ -21,13 +21,13 @@ import connectors.AddMembersToAccessGroupRequest
 import controllers.actions.ClientAction
 import forms.AddGroupsToClientForm
 import models.{DisplayClient, GroupId}
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{GroupService, SessionCacheService}
 import models.Arn
 import models.accessgroups.Client
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.RequestAwareLogging
 import views.html.group_member_details.add_groups_to_client.{confirm_added, select_groups}
 
 import javax.inject.{Inject, Singleton}
@@ -42,7 +42,7 @@ class AddClientToGroupsController @Inject() (
   select_groups: select_groups,
   confirm_added: confirm_added
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
-    extends FrontendController(mcc) with I18nSupport with Logging {
+    extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import clientAction._
 

@@ -20,12 +20,12 @@ import config.AppConfig
 import controllers.actions.{AuthAction, OptInStatusAction}
 import forms.SearchAndFilterForm
 import models.SearchFilter
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{GroupService, TeamMemberService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.group_member_details._
+import utils.RequestAwareLogging
+import views.html.group_member_details.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -43,7 +43,7 @@ class ManageTeamMemberController @Inject() (
   val appConfig: AppConfig,
   ec: ExecutionContext,
   override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with Logging {
+) extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import authAction._
   import optInStatusAction._

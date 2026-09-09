@@ -17,15 +17,15 @@
 package services
 
 import com.google.inject.ImplementedBy
-import connectors._
-import controllers._
+import connectors.*
+import controllers.*
 import models.TeamMember.toAgentUser
 import models.accessgroups.{Client, CustomGroup, GroupSummary}
 import models.{Arn, DisplayClient, GroupId, PaginatedList, PaginatedListBuilder, PaginationMetaData, TeamMember}
 import org.apache.pekko.Done
-import play.api.Logging
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.RequestAwareLogging
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -115,7 +115,7 @@ class GroupServiceImpl @Inject() (
   agentUserClientDetailsConnector: AgentUserClientDetailsConnector,
   sessionCacheService: SessionCacheService,
   agentPermissionsConnector: AgentPermissionsConnector
-) extends GroupService with Logging {
+) extends GroupService with RequestAwareLogging {
 
   @deprecated(
     message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead",

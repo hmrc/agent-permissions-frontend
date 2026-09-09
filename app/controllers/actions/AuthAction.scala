@@ -18,20 +18,21 @@ package controllers.actions
 
 import config.AppConfig
 import connectors.AgentPermissionsConnector
-import controllers._
+import controllers.*
 import models.{Arn, SuspensionDetails}
 import play.api.libs.json.Reads
 import play.api.mvc.Results.{Forbidden, Redirect}
 import play.api.mvc.{Request, RequestHeader, Result}
-import play.api.{Configuration, Environment, Logging}
+import play.api.{Configuration, Environment}
 import services.{AgentSuspensionService, SessionCacheService}
 import sttp.model.Uri.UriContext
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{allEnrolments, credentialRole}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
+import utils.RequestAwareLogging
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,7 +45,7 @@ class AuthAction @Inject() (
   agentPermissionsConnector: AgentPermissionsConnector,
   agentSuspensionService: AgentSuspensionService,
   sessionCacheService: SessionCacheService
-) extends AuthorisedFunctions with Logging {
+) extends AuthorisedFunctions with RequestAwareLogging {
 
   private val agentEnrolment = "HMRC-AS-AGENT"
   private val agentReferenceNumberIdentifier = "AgentReferenceNumber"
@@ -117,7 +118,10 @@ class AuthAction @Inject() (
       .recover(handleFailure)
   }
 
-  def handleFailure(implicit request: RequestHeader, appConfig: AppConfig): PartialFunction[Throwable, Result] = {
+  private def handleFailure(implicit
+    request: RequestHeader,
+    appConfig: AppConfig
+  ): PartialFunction[Throwable, Result] = {
     case _: NoActiveSession =>
       val continueUrl = uri"${appConfig.selfExternalUrl + request.uri}"
       val signInUrl = uri"${appConfig.signInUrl}?${Map(

@@ -19,21 +19,21 @@ package controllers
 import config.AppConfig
 import connectors.UpdateTaxServiceGroupRequest
 import controllers.actions.{GroupAction, SessionAction}
-import forms._
+import forms.*
 import models.DisplayClient.{fromClient, toClient}
 import models.accessgroups.{Client, GroupSummary, TaxGroup}
 import models.{AddClientsToGroup, Arn, DisplayClient, GroupId, SearchFilter}
-import play.api.Logging
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{ClientService, SessionCacheService}
 import models.PaginatedList
 import models.PaginatedListBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.RequestAwareLogging
 import views.html.groups.create.clients.confirm_remove_client
-import views.html.groups.manage.clients._
+import views.html.groups.manage.clients.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -53,7 +53,7 @@ class ManageTaxGroupClientsController @Inject() (
   val appConfig: AppConfig,
   ec: ExecutionContext,
   override val messagesApi: MessagesApi
-) extends FrontendController(mcc) with I18nSupport with Logging {
+) extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import groupAction._
   import sessionAction.withSessionItem

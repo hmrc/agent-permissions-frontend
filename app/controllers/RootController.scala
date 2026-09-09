@@ -19,9 +19,9 @@ package controllers
 import config.AppConfig
 import connectors.AgentPermissionsConnector
 import controllers.actions.AuthAction
-import play.api.Logging
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import utils.RequestAwareLogging
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -32,7 +32,7 @@ class RootController @Inject() (
   mcc: MessagesControllerComponents,
   agentPermissionsConnector: AgentPermissionsConnector
 )(implicit val appConfig: AppConfig, ec: ExecutionContext)
-    extends FrontendController(mcc) with Logging {
+    extends FrontendController(mcc) with RequestAwareLogging {
 
   import authAction.*
 

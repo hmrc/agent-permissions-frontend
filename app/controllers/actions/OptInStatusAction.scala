@@ -23,11 +23,12 @@ import models.accessgroups.optin.{OptedInReady, OptinStatus}
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{Request, Result}
-import play.api.{Configuration, Environment, Logging}
+import play.api.{Configuration, Environment}
 import services.SessionCacheService
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
+import utils.RequestAwareLogging
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +40,7 @@ class OptInStatusAction @Inject() (
   val config: Configuration,
   val sessionCacheService: SessionCacheService,
   val agentPermissionsConnector: AgentPermissionsConnector
-) extends Logging {
+) extends RequestAwareLogging {
 
   def isEligibleToOptIn(arn: Arn)(
     body: OptinStatus => Future[Result]

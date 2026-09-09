@@ -18,16 +18,16 @@ package controllers
 
 import config.AppConfig
 import controllers.actions.{AuthAction, GroupAction, OptInStatusAction}
-import forms._
+import forms.*
 import models.{GroupId, SearchFilter}
-import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
+import play.api.mvc.*
 import services.{ClientService, SessionCacheOperationsService}
 import models.Arn
 import models.accessgroups.{AccessGroup, GroupSummary}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import views.html.assistant_read_only._
+import utils.RequestAwareLogging
+import views.html.assistant_read_only.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,7 +43,7 @@ class AssistantViewOnlyController @Inject() (
   unassigned_client_list: unassigned_client_list,
   existing_group_client_list: existing_group_client_list
 )(implicit val appConfig: AppConfig, ec: ExecutionContext, override val messagesApi: MessagesApi)
-    extends FrontendController(mcc) with I18nSupport with Logging {
+    extends FrontendController(mcc) with I18nSupport with RequestAwareLogging {
 
   import authAction._
   import groupAction._

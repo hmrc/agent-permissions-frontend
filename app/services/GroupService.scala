@@ -24,7 +24,6 @@ import models.accessgroups.{Client, CustomGroup, GroupSummary}
 import models.{Arn, DisplayClient, GroupId, PaginatedList, PaginatedListBuilder, PaginationMetaData, TeamMember}
 import org.apache.pekko.Done
 import play.api.mvc.{Request, RequestHeader}
-import uk.gov.hmrc.http.HeaderCarrier
 import utils.RequestAwareLogging
 import utils.RequestSupport.hc
 

@@ -23,7 +23,6 @@ import org.apache.pekko.Done
 import models.Arn
 import models.accessgroups.TaxGroup
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.http.HeaderCarrier
 import utils.RequestAwareLogging
 
 import javax.inject.{Inject, Singleton}

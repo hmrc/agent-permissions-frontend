@@ -26,6 +26,7 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import models.{PaginatedList, PaginationMetaData}
 import models.PaginatedListBuilder
 import models.accessgroups.{Client, GroupSummary}
+import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EncryptionUtil
 
@@ -95,7 +96,7 @@ class ClientServiceSpec extends BaseSpec {
       (
         mockAgentPermissionsConnector
           .getPaginatedClientsToAddToGroup(_: GroupId)(_: Int, _: Int, _: Option[String], _: Option[String])(using
-            _: HeaderCarrier,
+            _: RequestHeader,
             _: ExecutionContext
           )
         )
@@ -151,7 +152,7 @@ class ClientServiceSpec extends BaseSpec {
       // given
       (mockAgentPermissionsConnector
         .unassignedClients(_: Arn)(_: Int, _: Int, _: Option[String], _: Option[String])(using
-          _: HeaderCarrier,
+          _: RequestHeader,
           _: ExecutionContext
         ))
         .expects(arn, 1, 20, *, *, *, *)

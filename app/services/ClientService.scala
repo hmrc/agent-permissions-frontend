@@ -23,7 +23,7 @@ import models.accessgroups.{Client, GroupSummary}
 import models.{Arn, DisplayClient, GroupId}
 import org.apache.pekko.Done
 import play.api.libs.json.JsNumber
-import play.api.mvc.Request
+import play.api.mvc.{Request, RequestHeader}
 import models.PaginatedList
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EncryptionUtil
@@ -76,7 +76,7 @@ trait ClientService {
 
   def getAvailableTaxServiceClientCount(
     arn: Arn
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]]
 
 }
 
@@ -191,7 +191,7 @@ class ClientServiceImpl @Inject() (
 
   def getAvailableTaxServiceClientCount(
     arn: Arn
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] =
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]] =
     agentPermissionsConnector.getAvailableTaxServiceClientCount(arn)
 
 }

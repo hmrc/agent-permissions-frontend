@@ -23,9 +23,10 @@ import models.TeamMember.toAgentUser
 import models.accessgroups.{Client, CustomGroup, GroupSummary}
 import models.{Arn, DisplayClient, GroupId, PaginatedList, PaginatedListBuilder, PaginationMetaData, TeamMember}
 import org.apache.pekko.Done
-import play.api.mvc.Request
+import play.api.mvc.{Request, RequestHeader}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.RequestAwareLogging
+import utils.RequestSupport.hc
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,74 +38,74 @@ trait GroupService {
     message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead",
     since = "0.210.0"
   )
-  def getGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]]
+  def getGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[CustomGroup]]
 
-  def getCustomSummary(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
+  def getCustomSummary(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getPaginatedClientsForCustomGroup(groupId: GroupId)(page: Int, pageSize: Int)(implicit
     request: Request[?],
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[(Seq[DisplayClient], PaginationMetaData)]
 
   def getTeamMembersFromGroup(arn: Arn)(
     teamMembersInGroup: Seq[TeamMember]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]]
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Seq[TeamMember]]
 
   def createGroup(arn: Arn, groupName: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext,
     request: Request[?]
   ): Future[Done]
 
   def updateGroup(groupId: GroupId, group: UpdateAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
-  def deleteGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def deleteGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done]
 
   def getGroupSummaries(
     arn: Arn
-  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+  )(implicit request: Request[?], rh: RequestHeader, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def getPaginatedGroupSummaries(arn: Arn, filterTerm: String = "")(page: Int = 1, pageSize: Int = 5)(implicit
     request: Request[?],
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[PaginatedList[GroupSummary]]
 
   def groupSummariesForClient(arn: Arn, client: DisplayClient)(implicit
     request: Request[?],
     ec: ExecutionContext,
-    hc: HeaderCarrier
+    rh: RequestHeader
   ): Future[Seq[GroupSummary]]
 
   def groupSummariesForTeamMember(arn: Arn, teamMember: TeamMember)(implicit
     request: Request[?],
     ec: ExecutionContext,
-    hc: HeaderCarrier
+    rh: RequestHeader
   ): Future[Seq[GroupSummary]]
 
   def addMembersToGroup(id: GroupId, groupRequest: AddMembersToAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def addOneMemberToGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
-  def groupNameCheck(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
+  def groupNameCheck(arn: Arn, groupName: String)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Boolean]
 
   def removeClientFromGroup(id: GroupId, clientId: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def removeTeamMemberFromGroup(id: GroupId, clientId: String, isCustom: Boolean)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
@@ -121,15 +122,15 @@ class GroupServiceImpl @Inject() (
     message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead",
     since = "0.210.0"
   )
-  def getGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]] =
+  def getGroup(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[CustomGroup]] =
     agentPermissionsConnector.getGroup(id)
 
-  def getCustomSummary(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] =
+  def getCustomSummary(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[GroupSummary]] =
     agentPermissionsConnector.getCustomSummary(id)
 
   def getPaginatedClientsForCustomGroup(groupId: GroupId)(page: Int, pageSize: Int)(implicit
     request: Request[?],
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[(Seq[DisplayClient], PaginationMetaData)] =
     for
@@ -143,7 +144,7 @@ class GroupServiceImpl @Inject() (
   // Compares users in group with users on ARN & fetches missing details (email & cred role)
   def getTeamMembersFromGroup(arn: Arn)(
     teamMembersInGroup: Seq[TeamMember] = Seq.empty
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TeamMember]] =
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Seq[TeamMember]] =
     for
       ugsUsers <- agentUserClientDetailsConnector.getTeamMembers(arn)
       ugsAsTeamMembers = ugsUsers.map(TeamMember.fromUserDetails)
@@ -155,12 +156,12 @@ class GroupServiceImpl @Inject() (
 
   def getGroupSummaries(
     arn: Arn
-  )(implicit request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] =
+  )(implicit request: Request[?], rh: RequestHeader, ec: ExecutionContext): Future[Seq[GroupSummary]] =
     agentPermissionsConnector.getGroupSummaries(arn)
 
   def getPaginatedGroupSummaries(arn: Arn, filterTerm: String = "")(page: Int = 1, pageSize: Int = 5)(implicit
     request: Request[?],
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[PaginatedList[GroupSummary]] =
     for
@@ -169,7 +170,7 @@ class GroupServiceImpl @Inject() (
     yield PaginatedListBuilder.build[GroupSummary](page, pageSize, filteredSummaries)
 
   def createGroup(arn: Arn, groupName: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext,
     request: Request[?]
   ): Future[Done] =
@@ -186,14 +187,14 @@ class GroupServiceImpl @Inject() (
   def groupSummariesForClient(arn: Arn, client: DisplayClient)(implicit
     request: Request[?],
     ec: ExecutionContext,
-    hc: HeaderCarrier
+    rh: RequestHeader
   ): Future[Seq[GroupSummary]] =
     agentPermissionsConnector.getGroupsForClient(arn, client.enrolmentKey)
 
   def groupSummariesForTeamMember(arn: Arn, teamMember: TeamMember)(implicit
     request: Request[?],
     ec: ExecutionContext,
-    hc: HeaderCarrier
+    rh: RequestHeader
   ): Future[Seq[GroupSummary]] = {
     val agentUser = toAgentUser(teamMember)
     val groupSummaries = agentPermissionsConnector.getGroupsForTeamMember(arn, agentUser).map {
@@ -205,37 +206,37 @@ class GroupServiceImpl @Inject() (
   }
 
   def updateGroup(groupId: GroupId, group: UpdateAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.updateGroup(groupId, group)
 
-  def deleteGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+  def deleteGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] =
     agentPermissionsConnector.deleteGroup(groupId)
 
   def addMembersToGroup(id: GroupId, groupRequest: AddMembersToAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.addMembersToGroup(id, groupRequest)
 
   def addOneMemberToGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.addOneTeamMemberToGroup(id, groupRequest)
 
-  def groupNameCheck(arn: Arn, groupName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+  def groupNameCheck(arn: Arn, groupName: String)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Boolean] =
     agentPermissionsConnector.groupNameCheck(arn, groupName)
 
   def removeClientFromGroup(groupId: GroupId, clientId: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.removeClientFromGroup(groupId, clientId)
 
   def removeTeamMemberFromGroup(groupId: GroupId, memberId: String, isCustom: Boolean)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.removeTeamMemberFromGroup(groupId, memberId, isCustom)

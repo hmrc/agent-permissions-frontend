@@ -22,7 +22,7 @@ import models.GroupId
 import org.apache.pekko.Done
 import models.Arn
 import models.accessgroups.TaxGroup
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.mvc.RequestHeader
 import utils.RequestAwareLogging
 
 import javax.inject.{Inject, Singleton}
@@ -31,28 +31,28 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[TaxGroupServiceImpl])
 trait TaxGroupService {
   def addOneMemberToGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def addMembersToGroup(id: GroupId, groupRequest: AddMembersToTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
-  def getTaxGroupClientCount(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+  def getTaxGroupClientCount(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]]
 
   def createGroup(arn: Arn, createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[String]
 
-  def getGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]]
+  def getGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[TaxGroup]]
 
-  def deleteGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def deleteGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done]
 
   def updateGroup(groupId: GroupId, patchRequestBody: UpdateTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 }
@@ -61,35 +61,35 @@ trait TaxGroupService {
 class TaxGroupServiceImpl @Inject() (agentPermissionsConnector: AgentPermissionsConnector)
     extends TaxGroupService with RequestAwareLogging {
 
-  def getTaxGroupClientCount(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] =
+  def getTaxGroupClientCount(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]] =
     agentPermissionsConnector.getTaxGroupClientCount(arn)
 
   def createGroup(arn: Arn, createTaxServiceGroupRequest: CreateTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[String] =
     agentPermissionsConnector.createTaxServiceGroup(arn)(createTaxServiceGroupRequest)
 
-  def getGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]] =
+  def getGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[TaxGroup]] =
     agentPermissionsConnector.getTaxServiceGroup(groupId)
 
-  def deleteGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+  def deleteGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] =
     agentPermissionsConnector.deleteTaxGroup(groupId)
 
   def updateGroup(groupId: GroupId, group: UpdateTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.updateTaxGroup(groupId, group)
 
   def addOneMemberToGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.addOneTeamMemberToTaxGroup(id, groupRequest)
 
   def addMembersToGroup(id: GroupId, groupRequest: AddMembersToTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] =
     agentPermissionsConnector.addMembersToTaxGroup(id, groupRequest)

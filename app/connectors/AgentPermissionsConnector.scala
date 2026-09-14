@@ -25,14 +25,15 @@ import org.apache.pekko.Done
 import play.api.http.Status.*
 import play.api.libs.json.Json
 import models.PaginatedList
-import play.api.Logging
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
-import utils.{NoRequest, RequestAwareLogging}
+import utils.RequestAwareLogging
+import utils.RequestSupport.hc
 
 import java.net.{URL, URLEncoder}
 import java.nio.charset.StandardCharsets.UTF_8
@@ -44,34 +45,34 @@ trait AgentPermissionsConnector extends RequestAwareLogging {
 
   val http: HttpClientV2
 
-  def getOptInStatus(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]]
+  def getOptInStatus(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[OptinStatus]]
 
-  def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def optIn(arn: Arn, lang: Option[String])(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done]
 
-  def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def optOut(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done]
 
-  def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def createGroup(arn: Arn)(groupRequest: GroupRequest)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done]
 
-  def getGroupSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]]
+  def getGroupSummaries(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Seq[GroupSummary]]
 
   def unassignedClients(
     arn: Arn
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]]
 
   def getPaginatedClientsForCustomGroup(
     id: GroupId
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[PaginatedList[Client]]
 
   def getPaginatedClientsToAddToGroup(
     id: GroupId
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[(GroupSummary, PaginatedList[DisplayClient])]
 
@@ -79,77 +80,77 @@ trait AgentPermissionsConnector extends RequestAwareLogging {
     message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead",
     since = "0.210.0"
   )
-  def getGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]]
+  def getGroup(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[CustomGroup]]
 
-  def getCustomSummary(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]]
+  def getCustomSummary(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[GroupSummary]]
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Seq[GroupSummary]]
 
   def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Option[Seq[GroupSummary]]]
 
   def updateGroup(id: GroupId, groupRequest: UpdateAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def addMembersToGroup(id: GroupId, groupRequest: AddMembersToAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def addMembersToTaxGroup(id: GroupId, groupRequest: AddMembersToTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
-  def deleteGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def deleteGroup(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done]
 
-  def groupNameCheck(arn: Arn, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
+  def groupNameCheck(arn: Arn, name: String)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Boolean]
 
-  def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean]
+  def isArnAllowed(implicit rh: RequestHeader, ec: ExecutionContext): Future[Boolean]
 
   def getAvailableTaxServiceClientCount(
     arn: Arn
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]]
 
-  def getTaxGroupClientCount(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]]
+  def getTaxGroupClientCount(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]]
 
   def createTaxServiceGroup(arn: Arn)(
     createTaxServiceGroupRequest: CreateTaxServiceGroupRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String]
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[String]
 
-  def getTaxServiceGroup(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]]
+  def getTaxServiceGroup(groupId: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[TaxGroup]]
 
-  def deleteTaxGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
+  def deleteTaxGroup(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done]
 
   def updateTaxGroup(groupId: GroupId, group: UpdateTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def addOneTeamMemberToGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def addOneTeamMemberToTaxGroup(id: GroupId, groupRequest: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def removeClientFromGroup(groupId: GroupId, clientId: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 
   def removeTeamMemberFromGroup(groupId: GroupId, memberId: String, isCustom: Boolean)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done]
 }
@@ -166,27 +167,27 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   override def getOptInStatus(
     arn: Arn
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[OptinStatus]] = {
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[OptinStatus]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/optin-status"
     http.get(url).execute[HttpResponse].map { response =>
       response.status match {
         case OK => response.json.asOpt[OptinStatus]
         case e  =>
-          logger.warn(s"getOptInStatus returned status $e ${response.body}")(using NoRequest)
+          logger.warn(s"getOptInStatus returned status $e ${response.body}")
           None
       }
     }
 
   }
 
-  def optIn(arn: Arn, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def optIn(arn: Arn, lang: Option[String])(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] = {
     val urlQuery: String = lang.fold("")(x => s"?lang=$x")
     val url: URL = new URL(s"$agentPermissionsUrl/arn/${arn.value}/optin$urlQuery")
     http.post(url).execute[HttpResponse].map { response =>
       response.status match {
         case CREATED  => Done
         case CONFLICT =>
-          logger.warn(s"Tried to optin $arn when already opted in")(using NoRequest)
+          logger.warn(s"Tried to optin $arn when already opted in")
           Done
         case e =>
           throw UpstreamErrorResponse(s"error sending opt-in request for ${arn.value}", e)
@@ -195,13 +196,13 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   }
 
-  def optOut(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def optOut(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/optout"
     http.post(url).execute[HttpResponse].map { response =>
       response.status match {
         case CREATED  => Done
         case CONFLICT =>
-          logger.warn(s"Tried to optout $arn when already opted out")(using NoRequest)
+          logger.warn(s"Tried to optout $arn when already opted out")
           Done
         case e =>
           throw UpstreamErrorResponse(s"error sending opt out request", e)
@@ -210,7 +211,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     }
   }
 
-  def groupNameCheck(arn: Arn, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
+  def groupNameCheck(arn: Arn, name: String)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Boolean] = {
 
     val encodedName = URLEncoder.encode(name, UTF_8.name)
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/access-group-name-check?name=$encodedName"
@@ -227,7 +228,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   def createGroup(
     arn: Arn
-  )(groupRequest: GroupRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  )(groupRequest: GroupRequest)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/groups"
     http
       .post(url)
@@ -243,7 +244,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       }
   }
 
-  def getGroupSummaries(arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
+  def getGroupSummaries(arn: Arn)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Seq[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/all-groups"
     http.get(url).execute[HttpResponse].map { (response: HttpResponse) =>
       response.status match {
@@ -258,7 +259,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   def unassignedClients(
     arn: Arn
   )(page: Int = 1, pageSize: Int = 20, search: Option[String] = None, filter: Option[String] = None)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[PaginatedList[DisplayClient]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/unassigned-clients"
@@ -285,7 +286,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   def getGroupsForClient(arn: Arn, enrolmentKey: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Seq[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/client/$enrolmentKey/groups"
@@ -307,7 +308,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   def getGroupsForTeamMember(arn: Arn, agentUser: AgentUser)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Option[Seq[GroupSummary]]] = {
     val userId = agentUser.id
@@ -331,7 +332,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     message = "group could be too big with 5000+ clients - use getCustomGroupSummary & paginated lists instead",
     since = "0.210.0"
   )
-  def getGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CustomGroup]] = {
+  def getGroup(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[CustomGroup]] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id"
     http
       .get(url)
@@ -340,7 +341,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK        => response.json.asOpt[CustomGroup]
           case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")(using NoRequest)
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
             None
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
@@ -349,7 +350,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   }
 
-  def getCustomSummary(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[GroupSummary]] = {
+  def getCustomSummary(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[GroupSummary]] = {
     val url: URL = url"$agentPermissionsUrl/custom-group/$id"
     http
       .get(url)
@@ -358,7 +359,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK        => response.json.asOpt[GroupSummary]
           case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")(using NoRequest)
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $id, from $url")
             None
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error getting group details for group $id, from $url", anyOtherStatus)
@@ -370,7 +371,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   def getPaginatedClientsForCustomGroup(
     id: GroupId
   )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[PaginatedList[Client]] = {
     val params: Map[String, Option[String]] = Map(
@@ -392,7 +393,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   def getPaginatedClientsToAddToGroup(
     id: GroupId
   )(page: Int, pageSize: Int, search: Option[String] = None, filter: Option[String] = None)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[(GroupSummary, PaginatedList[DisplayClient])] = {
     val params: Map[String, Option[String]] = Map(
@@ -414,7 +415,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   override def updateGroup(id: GroupId, groupRequest: UpdateAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id"
@@ -433,7 +434,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   override def addMembersToTaxGroup(id: GroupId, groupRequest: AddMembersToTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
 
@@ -453,7 +454,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   override def addMembersToGroup(id: GroupId, groupRequest: AddMembersToAccessGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id/members/add"
@@ -472,7 +473,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   override def addOneTeamMemberToGroup(id: GroupId, body: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id/members/add"
@@ -490,19 +491,19 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
       }
   }
 
-  override def deleteGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  override def deleteGroup(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$id"
     deleteAccessGroup(url)
 
   }
 
-  def deleteTaxGroup(id: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+  def deleteTaxGroup(id: GroupId)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/tax-group/$id"
     deleteAccessGroup(url)
 
   }
 
-  override def isArnAllowed(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
+  override def isArnAllowed(implicit rh: RequestHeader, ec: ExecutionContext): Future[Boolean] = {
     val url: URL = url"$agentPermissionsUrl/arn-allowed"
     http
       .get(url)
@@ -511,7 +512,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK    => true
           case other =>
-            logger.warn(s"ArnAllowed call returned status $other")(using NoRequest)
+            logger.warn(s"ArnAllowed call returned status $other")
             false
         }
 
@@ -520,7 +521,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   override def getAvailableTaxServiceClientCount(
     arn: Arn
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/client-count/available-tax-services"
     http.get(url).execute[HttpResponse].map { response =>
       response.status match {
@@ -533,7 +534,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   override def getTaxGroupClientCount(
     arn: Arn
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Map[String, Int]] = {
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Map[String, Int]] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/client-count/tax-groups"
     http.get(url).execute[HttpResponse].map { response =>
       response.status match {
@@ -546,7 +547,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   override def createTaxServiceGroup(arn: Arn)(
     createTaxServiceGroupRequest: CreateTaxServiceGroupRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[String] = {
     val url: URL = url"$agentPermissionsUrl/arn/${arn.value}/tax-group"
     http
       .post(url)
@@ -564,7 +565,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   override def getTaxServiceGroup(
     groupId: GroupId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TaxGroup]] = {
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Option[TaxGroup]] = {
     val url: URL = url"$agentPermissionsUrl/tax-group/$groupId"
     http
       .get(url)
@@ -573,7 +574,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
         response.status match {
           case OK        => response.json.asOpt[TaxGroup]
           case NOT_FOUND =>
-            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")(using NoRequest)
+            logger.warn(s"ERROR GETTING GROUP DETAILS FOR GROUP $groupId, from $url")
             None
           case anyOtherStatus =>
             throw UpstreamErrorResponse(s"error getting group details for group $groupId, from $url", anyOtherStatus)
@@ -583,7 +584,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
 
   }
 
-  private def deleteAccessGroup(url: URL)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+  private def deleteAccessGroup(url: URL)(implicit rh: RequestHeader, ec: ExecutionContext): Future[Done] =
     http.delete(url).execute[HttpResponse].map { response =>
       response.status match {
         case OK             => Done
@@ -593,7 +594,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
     }
 
   def updateTaxGroup(groupId: GroupId, patchRequest: UpdateTaxServiceGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
 
@@ -613,7 +614,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   override def addOneTeamMemberToTaxGroup(id: GroupId, body: AddOneTeamMemberToGroupRequest)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/tax-group/${id.toString}/members/add"
@@ -632,7 +633,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   def removeClientFromGroup(groupId: GroupId, clientId: String)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
     val url: URL = url"$agentPermissionsUrl/groups/$groupId/clients/$clientId"
@@ -647,7 +648,7 @@ class AgentPermissionsConnectorImpl @Inject() (val http: HttpClientV2)(implicit
   }
 
   def removeTeamMemberFromGroup(groupId: GroupId, memberId: String, isCustom: Boolean)(implicit
-    hc: HeaderCarrier,
+    rh: RequestHeader,
     ec: ExecutionContext
   ): Future[Done] = {
     val typeOfGroup = if isCustom then "groups" else "tax-group"

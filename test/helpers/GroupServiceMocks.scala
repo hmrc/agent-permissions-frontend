@@ -23,11 +23,10 @@ import org.apache.pekko.Done
 import org.scalamock.handlers.{CallHandler4, CallHandler6}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.mvc.Request
+import play.api.mvc.{Request, RequestHeader}
 import services.GroupService
 import models.PaginationMetaData
 import models.PaginatedListBuilder
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,14 +34,14 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
 
   def expectGetTeamMembersFromGroup(arn: Arn)(teamMembers: Seq[TeamMember])(implicit groupService: GroupService): Unit =
     (groupService
-      .getTeamMembersFromGroup(_: Arn)(_: Seq[TeamMember])(using _: HeaderCarrier, _: ExecutionContext))
+      .getTeamMembersFromGroup(_: Arn)(_: Seq[TeamMember])(using _: RequestHeader, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future successful teamMembers)
       .once()
 
   def expectGetGroupById(id: GroupId, maybeGroup: Option[CustomGroup])(implicit groupService: GroupService): Unit =
     (groupService
-      .getGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
+      .getGroup(_: GroupId)(using _: RequestHeader, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful maybeGroup)
 
@@ -50,14 +49,14 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     groupService: GroupService
   ): Unit =
     (groupService
-      .getCustomSummary(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
+      .getCustomSummary(_: GroupId)(using _: RequestHeader, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future successful maybeSummary)
       .once()
 
   def expectGetGroupsForArn(arn: Arn)(groups: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .getGroupSummaries(_: Arn)(using _: Request[?], _: HeaderCarrier, _: ExecutionContext))
+      .getGroupSummaries(_: Arn)(using _: Request[?], _: RequestHeader, _: ExecutionContext))
       .expects(arn, *, *, *)
       .returning(Future.successful(groups))
       .once()
@@ -68,7 +67,7 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     (groupService
       .getPaginatedGroupSummaries(_: Arn, _: String)(_: Int, _: Int)(using
         _: Request[?],
-        _: HeaderCarrier,
+        _: RequestHeader,
         _: ExecutionContext
       ))
       .expects(arn, filterTerm, page, pageSize, *, *, *)
@@ -81,11 +80,11 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     groupService: GroupService
   ): CallHandler6[GroupId, Int, Int, Request[
     ?
-  ], HeaderCarrier, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
+  ], RequestHeader, ExecutionContext, Future[(Seq[DisplayClient], PaginationMetaData)]] =
     (groupService
       .getPaginatedClientsForCustomGroup(_: GroupId)(_: Int, _: Int)(using
         _: Request[?],
-        _: HeaderCarrier,
+        _: RequestHeader,
         _: ExecutionContext
       ))
       .expects(groupId, page, pageSize, *, *, *)
@@ -96,7 +95,7 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     teamMember: TeamMember
   )(groupsAlreadyAssociatedToMember: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .groupSummariesForTeamMember(_: Arn, _: TeamMember)(using _: Request[?], _: ExecutionContext, _: HeaderCarrier))
+      .groupSummariesForTeamMember(_: Arn, _: TeamMember)(using _: Request[?], _: ExecutionContext, _: RequestHeader))
       .expects(arn, teamMember, *, *, *)
       .returning(Future.successful(groupsAlreadyAssociatedToMember))
       .once()
@@ -105,28 +104,28 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     client: DisplayClient
   )(groupsAlreadyAssociatedToClient: Seq[GroupSummary])(implicit groupService: GroupService): Unit =
     (groupService
-      .groupSummariesForClient(_: Arn, _: DisplayClient)(using _: Request[?], _: ExecutionContext, _: HeaderCarrier))
+      .groupSummariesForClient(_: Arn, _: DisplayClient)(using _: Request[?], _: ExecutionContext, _: RequestHeader))
       .expects(arn, client, *, *, *)
       .returning(Future.successful(groupsAlreadyAssociatedToClient))
       .once()
 
   def expectCreateGroup(arn: Arn)(groupName: String)(implicit groupService: GroupService): Unit =
     (groupService
-      .createGroup(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext, _: Request[?]))
+      .createGroup(_: Arn, _: String)(using _: RequestHeader, _: ExecutionContext, _: Request[?]))
       .expects(arn, groupName, *, *, *)
       .returning(Future.successful(Done))
       .once()
 
   def expectUpdateGroup(id: GroupId, payload: UpdateAccessGroupRequest)(implicit groupService: GroupService): Unit =
     (groupService
-      .updateGroup(_: GroupId, _: UpdateAccessGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
+      .updateGroup(_: GroupId, _: UpdateAccessGroupRequest)(using _: RequestHeader, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future.successful(Done))
       .once()
 
   def expectDeleteGroup(id: GroupId)(implicit groupService: GroupService): Unit =
     (groupService
-      .deleteGroup(_: GroupId)(using _: HeaderCarrier, _: ExecutionContext))
+      .deleteGroup(_: GroupId)(using _: RequestHeader, _: ExecutionContext))
       .expects(id, *, *)
       .returning(Future.successful(Done))
       .once()
@@ -135,7 +134,7 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     groupService: GroupService
   ): Unit =
     (groupService
-      .addMembersToGroup(_: GroupId, _: AddMembersToAccessGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
+      .addMembersToGroup(_: GroupId, _: AddMembersToAccessGroupRequest)(using _: RequestHeader, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 
@@ -143,13 +142,13 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     groupService: GroupService
   ): Unit =
     (groupService
-      .addOneMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(using _: HeaderCarrier, _: ExecutionContext))
+      .addOneMemberToGroup(_: GroupId, _: AddOneTeamMemberToGroupRequest)(using _: RequestHeader, _: ExecutionContext))
       .expects(id, payload, *, *)
       .returning(Future successful Done)
 
   def expectRemoveClientFromGroup(groupId: GroupId, client: DisplayClient)(implicit groupService: GroupService): Unit =
     (groupService
-      .removeClientFromGroup(_: GroupId, _: String)(using _: HeaderCarrier, _: ExecutionContext))
+      .removeClientFromGroup(_: GroupId, _: String)(using _: RequestHeader, _: ExecutionContext))
       .expects(groupId, client.enrolmentKey, *, *)
       .returning(Future successful Done)
 
@@ -157,24 +156,24 @@ trait GroupServiceMocks extends AnyWordSpec with MockFactory {
     groupService: GroupService
   ): Unit =
     (groupService
-      .removeTeamMemberFromGroup(_: GroupId, _: String, _: Boolean)(using _: HeaderCarrier, _: ExecutionContext))
+      .removeTeamMemberFromGroup(_: GroupId, _: String, _: Boolean)(using _: RequestHeader, _: ExecutionContext))
       .expects(groupId, teamMember.userId.get, isCustom, *, *)
       .returning(Future successful Done)
 
   def expectGroupNameCheckOK(arn: Arn, groupName: String)(implicit
     groupService: GroupService
-  ): CallHandler4[Arn, String, HeaderCarrier, ExecutionContext, Future[Boolean]] =
+  ): CallHandler4[Arn, String, RequestHeader, ExecutionContext, Future[Boolean]] =
     (groupService
-      .groupNameCheck(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
+      .groupNameCheck(_: Arn, _: String)(using _: RequestHeader, _: ExecutionContext))
       .expects(arn, groupName, *, *)
       .returning(Future successful true)
       .once()
 
   def expectGroupNameCheckConflict(arn: Arn, groupName: String)(implicit
     groupService: GroupService
-  ): CallHandler4[Arn, String, HeaderCarrier, ExecutionContext, Future[Boolean]] =
+  ): CallHandler4[Arn, String, RequestHeader, ExecutionContext, Future[Boolean]] =
     (groupService
-      .groupNameCheck(_: Arn, _: String)(using _: HeaderCarrier, _: ExecutionContext))
+      .groupNameCheck(_: Arn, _: String)(using _: RequestHeader, _: ExecutionContext))
       .expects(arn, groupName, *, *)
       .returning(Future successful false)
       .once()

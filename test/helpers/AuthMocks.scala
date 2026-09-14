@@ -22,7 +22,7 @@ import controllers.actions.AuthAction
 import org.scalamock.handlers.{CallHandler2, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{Request, RequestHeader, Result}
 import models.Arn
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
@@ -49,9 +49,9 @@ trait AuthMocks extends AnyWordSpec with MockFactory {
 
   def expectIsArnAllowed(allowed: Boolean)(implicit
     agentPermissionsConnector: AgentPermissionsConnector
-  ): CallHandler2[HeaderCarrier, ExecutionContext, Future[Boolean]] =
+  ): CallHandler2[RequestHeader, ExecutionContext, Future[Boolean]] =
     (agentPermissionsConnector
-      .isArnAllowed(using _: HeaderCarrier, _: ExecutionContext))
+      .isArnAllowed(using _: RequestHeader, _: ExecutionContext))
       .expects(*, *)
       .returning(Future successful allowed)
 

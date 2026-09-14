@@ -22,7 +22,7 @@ import models.Arn
 import models.accessgroups.optin.{OptedInReady, OptinStatus}
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{Request, RequestHeader, Result}
 import play.api.{Configuration, Environment}
 import services.SessionCacheService
 import uk.gov.hmrc.auth.core.*
@@ -44,27 +44,27 @@ class OptInStatusAction @Inject() (
 
   def isEligibleToOptIn(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(using hc, ec)
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Result] =
+    eligibleFor(controllers.isEligibleToOptIn)(arn)(body)(using rh, ec)
 
   def isOptedIn(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isOptedIn)(arn)(body)(using hc, ec)
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Result] =
+    eligibleFor(controllers.isOptedIn)(arn)(body)(using rh, ec)
 
   def isOptedInComplete(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isOptedInComplete)(arn)(body)(using hc, ec)
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Result] =
+    eligibleFor(controllers.isOptedInComplete)(arn)(body)(using rh, ec)
 
   def isOptedOut(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
-    eligibleFor(controllers.isOptedOut)(arn)(body)(using hc, ec)
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Result] =
+    eligibleFor(controllers.isOptedOut)(arn)(body)(using rh, ec)
 
   def isOptedInWithSessionItem[T](dataKey: DataKey[T])(arn: Arn)(
     body: Option[T] => Future[Result]
-  )(implicit reads: Reads[T], request: Request[?], hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit reads: Reads[T], request: Request[?], rh: RequestHeader, ec: ExecutionContext): Future[Result] =
     agentPermissionsConnector
       .getOptInStatus(arn)
       .flatMap:
@@ -73,7 +73,7 @@ class OptInStatusAction @Inject() (
 
   private def eligibleFor(predicate: OptinStatus => Boolean)(arn: Arn)(
     body: OptinStatus => Future[Result]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(implicit rh: RequestHeader, ec: ExecutionContext): Future[Result] =
     agentPermissionsConnector
       .getOptInStatus(arn)
       .flatMap:

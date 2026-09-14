@@ -22,7 +22,7 @@ import org.apache.pekko.Done
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsNumber, JsValue}
-import play.api.mvc.Request
+import play.api.mvc.{Request, RequestHeader}
 import services.ClientService
 import models.{PaginatedList, PaginationMetaData}
 import models.PaginatedListBuilder
@@ -46,7 +46,7 @@ trait ClientServiceMocks extends AnyWordSpec with MockFactory {
       "HMRC-PILLAR2-ORG" -> numberOfEachService(6)
     ).filter { case (_, count) => count != 0 }
     (clientService
-      .getAvailableTaxServiceClientCount(_: Arn)(using _: HeaderCarrier, _: ExecutionContext))
+      .getAvailableTaxServiceClientCount(_: Arn)(using _: RequestHeader, _: ExecutionContext))
       .expects(arn, *, *)
       .returning(Future successful data)
       .once()

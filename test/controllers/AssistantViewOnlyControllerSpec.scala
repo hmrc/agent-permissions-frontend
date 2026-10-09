@@ -52,7 +52,7 @@ class AssistantViewOnlyControllerSpec extends BaseSpec {
   implicit val taxGroupService: TaxGroupService = mock[TaxGroupService]
   implicit val mockSessionCacheService: SessionCacheService = mock[SessionCacheService]
 
-  private implicit val crypto: Encrypter & Decrypter = SymmetricCryptoFactory.aesCrypto(
+  private implicit val crypto: Encrypter & Decrypter = SymmetricCryptoFactory.aesGcmCrypto(
     "oaJdbtyXIUyd+hHefKbMUqtehotAG99pH0bqpkSuQ/Q="
   )
 

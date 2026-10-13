@@ -81,7 +81,9 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
   private val expectedTeamMemberJson: JsValue = Json.toJson(teamMember)(using TeamMember.format)
 
-  private val expectedTeamMembersJson: JsValue = JsArray(teamMembers.map(tm => Json.toJson(tm)(using TeamMember.format)))
+  private val expectedTeamMembersJson: JsValue = JsArray(
+    teamMembers.map(tm => Json.toJson(tm)(using TeamMember.format))
+  )
 
   private val expectedUnassignedClientsGroupsJson: JsValue = Json.toJson(unassignedClientsGroups)
 
@@ -192,7 +194,7 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
       }
     }
 
-    "not encrypt and decrypt when storing and retrieving data" which {
+    "not encrypt and decrypt when storing and retrieving data" which
       Seq(
         CLIENT_FILTER_INPUT,
         GROUP_SERVICE_TYPE,
@@ -213,7 +215,6 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
           await(sessionCacheService.get(dataKey)) shouldBe Some("John Doe")
         }
       }
-    }
 
     "return None when no data" that {
       Seq(

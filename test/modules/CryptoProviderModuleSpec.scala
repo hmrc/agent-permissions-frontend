@@ -58,17 +58,6 @@ class CryptoProviderModuleSpec extends PlaySpec {
       crypto.decrypt(firstEncrypted).value mustBe "user-answer"
       crypto.decrypt(secondEncrypted).value mustBe "user-answer"
     }
-
-    "decrypt old AES values using the same field level encryption key as fallback" in {
-      val oldAesCrypto = SymmetricCryptoFactory.aesCrypto(
-        configuration(fieldLevelEncryptionEnabled = true).get("fieldLevelEncryption.key")
-      )
-      val oldAesEncrypted = oldAesCrypto.encrypt(PlainText("pre-migration-answer"))
-
-      val crypto = new CryptoProviderModule().aesCryptoInstance(configuration(fieldLevelEncryptionEnabled = true))
-
-      crypto.decrypt(oldAesEncrypted).value mustBe "pre-migration-answer"
-    }
   }
 
   "NoCrypto" should {

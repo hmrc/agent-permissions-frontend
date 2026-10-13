@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import controllers._
+import controllers.*
 import models.{DisplayClient, TeamMember}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -41,7 +41,7 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
     SessionKeys.sessionId -> sessionId
   )
 
-  private implicit val crypto: Encrypter & Decrypter = SymmetricCryptoFactory.aesCrypto(
+  private implicit val crypto: Encrypter & Decrypter = SymmetricCryptoFactory.aesGcmCrypto(
     "oaJdbtyXIUyd+hHefKbMUqtehotAG99pH0bqpkSuQ/Q="
   )
 
@@ -74,86 +74,16 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
   private val unassignedClientsGroups: Seq[String] = Seq("group 1", "group 2")
 
-  private val expectedDisplayClientJson: JsValue = Json.parse(
-    """
-      |{
-      |    "hmrcRef": "2rnZS7y1wdWKkckyePYuRQ==",
-      |    "name": "TOJehZ0E9BXZWiIaDU0g/Q==",
-      |    "taxService": "HMRC-MTD-VAT",
-      |    "enrolmentKeyExtra": "VRN",
-      |    "selected": false,
-      |    "alreadyInGroup": false
-      |}
-    """.stripMargin
+  private val expectedDisplayClientJson = Json.toJson(displayClient)(using DisplayClient.format)
+  private val expectedDisplayClientsJson: JsValue = JsArray(
+    displayClients.map(dc => Json.toJson(dc)(using DisplayClient.format))
   )
 
-  private val expectedDisplayClientsJson: JsValue = Json.parse(
-    """
-      |[
-      |    {
-      |        "hmrcRef": "2rnZS7y1wdWKkckyePYuRQ==",
-      |        "name": "TOJehZ0E9BXZWiIaDU0g/Q==",
-      |        "taxService": "HMRC-MTD-VAT",
-      |        "enrolmentKeyExtra": "VRN",
-      |        "selected": false,
-      |        "alreadyInGroup": false
-      |    },
-      |    {
-      |        "hmrcRef": "2rnZS7y1wdWKkckyePYuRQ==",
-      |        "name": "TOJehZ0E9BXZWiIaDU0g/Q==",
-      |        "taxService": "HMRC-MTD-VAT",
-      |        "enrolmentKeyExtra": "VRN",
-      |        "selected": false,
-      |        "alreadyInGroup": false
-      |    }
-      |]
-    """.stripMargin
-  )
+  private val expectedTeamMemberJson: JsValue = Json.toJson(teamMember)(using TeamMember.format)
 
-  private val expectedTeamMemberJson: JsValue = Json.parse(
-    """
-      |{
-      |    "name": "TOJehZ0E9BXZWiIaDU0g/Q==",
-      |    "email": "hd5nJZGuD6SDYfOqtoUTPQ==",
-      |    "userId": "os9IIoPs0y9XE/a8ovPdgA==",
-      |    "credentialRole": "User",
-      |    "selected": false,
-      |    "alreadyInGroup": false
-      |}
-    """.stripMargin
-  )
+  private val expectedTeamMembersJson: JsValue = JsArray(teamMembers.map(tm => Json.toJson(tm)(using TeamMember.format)))
 
-  val expectedTeamMembersJson: JsValue = Json.parse(
-    """
-      |[
-      |    {
-      |        "name": "TOJehZ0E9BXZWiIaDU0g/Q==",
-      |        "email": "hd5nJZGuD6SDYfOqtoUTPQ==",
-      |        "userId": "os9IIoPs0y9XE/a8ovPdgA==",
-      |        "credentialRole": "User",
-      |        "selected": false,
-      |        "alreadyInGroup": false
-      |    },
-      |    {
-      |        "name": "TOJehZ0E9BXZWiIaDU0g/Q==",
-      |        "email": "hd5nJZGuD6SDYfOqtoUTPQ==",
-      |        "userId": "os9IIoPs0y9XE/a8ovPdgA==",
-      |        "credentialRole": "User",
-      |        "selected": false,
-      |        "alreadyInGroup": false
-      |    }
-      |]
-    """.stripMargin
-  )
-
-  private val expectedUnassignedClientsGroupsJson: JsValue = Json.parse(
-    """
-      |[
-      |    "w8pszUNvPn3jq6P3Tp0cPg==",
-      |    "3IRh61zEAz/fndMsitmh1Q=="
-      |]
-    """.stripMargin
-  )
+  private val expectedUnassignedClientsGroupsJson: JsValue = Json.toJson(unassignedClientsGroups)
 
   "SessionCacheService" should {
     "encrypt and decrypt when storing and retrieving data" which {
@@ -176,7 +106,7 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
           val extractedValue: String = (jsonData \ dataKey.unwrap).as[String]
 
-          extractedValue shouldBe "TOJehZ0E9BXZWiIaDU0g/Q=="
+          extractedValue should not be "John Doe" // should not be stored in plain text
 
           await(sessionCacheService.get(dataKey)) shouldBe Some("John Doe")
         }
@@ -191,7 +121,8 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
         val extractedValue: JsValue = (jsonData \ CLIENT_TO_REMOVE.unwrap).as[JsValue]
 
-        extractedValue shouldBe expectedDisplayClientJson
+        // should not be the unencrypted version
+        extractedValue should not be expectedDisplayClientJson
 
         await(sessionCacheService.get(CLIENT_TO_REMOVE)) shouldBe Some(displayClient)
       }
@@ -206,7 +137,8 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
           val extractedValue: JsValue = (jsonData \ dataKey.unwrap).as[JsValue]
 
-          extractedValue shouldBe expectedDisplayClientsJson
+          // should not be the unencrypted version
+          extractedValue should not be expectedDisplayClientsJson
 
           await(sessionCacheService.get(dataKey)) shouldBe Some(displayClients)
         }
@@ -221,7 +153,8 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
         val extractedValue: JsValue = (jsonData \ MEMBER_TO_REMOVE.unwrap).as[JsValue]
 
-        extractedValue shouldBe expectedTeamMemberJson
+        // should not be the unencrypted version
+        extractedValue should not be expectedTeamMemberJson
 
         await(sessionCacheService.get(MEMBER_TO_REMOVE)) shouldBe Some(teamMember)
       }
@@ -236,7 +169,8 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
           val extractedValue: JsValue = (jsonData \ dataKey.unwrap).as[JsValue]
 
-          extractedValue shouldBe expectedTeamMembersJson
+          // should not be the unencrypted version
+          extractedValue should not be expectedTeamMembersJson
 
           await(sessionCacheService.get(dataKey)) shouldBe Some(teamMembers)
         }
@@ -251,7 +185,8 @@ class SessionCacheServiceISpec extends AnyWordSpec with Matchers with CleanMongo
 
         val extractedValue: JsValue = (jsonData \ GROUPS_FOR_UNASSIGNED_CLIENTS.unwrap).as[JsValue]
 
-        extractedValue shouldBe expectedUnassignedClientsGroupsJson
+        // should not be the unencrypted version
+        extractedValue should not be expectedUnassignedClientsGroupsJson
 
         await(sessionCacheService.get(GROUPS_FOR_UNASSIGNED_CLIENTS)) shouldBe Some(unassignedClientsGroups)
       }

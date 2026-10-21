@@ -97,7 +97,7 @@
                     checked = form.data.exists { case (k, v) => k.contains("groups") && v == AddGroupsToClientForm.NoneValue },
                     exclusive = true
                 ),
-                legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden govuk-!-display-block")))
+                legend = Some(LegendData(h1Text, classes = Some("govuk-visually-hidden")))
             )
 
             @a_button(

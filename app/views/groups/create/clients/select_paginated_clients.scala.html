@@ -41,8 +41,10 @@
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.client.list.h1", nowrap) }
 
 @errorHref = @{
-    if(form.errors.map(error => error.message).contains("error.search-filter.empty")) {
+    if (form.errors.map(error => error.message).contains("error.search-filter.empty")) {
         "search"
+    } else if (paginationMetaData.fold(clients.length)(_.totalSize) == 1) {
+        "add-client-0"
     } else {
         "clients"
     }

@@ -38,9 +38,12 @@
 )(implicit request: Request[?], msgs: Messages, appConfig: AppConfig)
 
 @errorHref = @{
-    if(form.errors.map(error => error.message).contains("error.select-members.empty"))
-        "members"
-    else "search"
+    if (form.errors.map(error => error.message).contains("error.select-members.empty"))
+        "team-members"
+    else if (paginationMetaData.fold(teamMembers.length)(_.totalSize) == 1)
+        "add-member-0"
+    else
+        "search"
 }
 
 @pageTitle = @{

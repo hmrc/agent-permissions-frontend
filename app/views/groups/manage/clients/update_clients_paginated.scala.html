@@ -39,12 +39,14 @@
 
 
 @errorHref = @{
+    if (form.errors.isEmpty)
+        None
     if (form.errors.map(error => error.message).contains("error.search-filter.empty"))
-        "search"
+        Some("search")
     else if (paginationMetaData.fold(clients.length)(_.totalSize) == 1)
-        "add-client-0"
+        Some("add-client-0")
     else
-        "clients"
+        Some("clients")
 }
 
 @title(nowrap: Boolean) = @{ paginationPageTitle(paginationMetaData, "group.client.list.h1", nowrap) }
@@ -60,7 +62,7 @@
     fullWidth = true
 ) {
 
-    @summaryErrors(form.errors, Some(errorHref))
+    @summaryErrors(form.errors, errorHref)
 
     <div class="govuk-!-width-two-thirds">
         @caption(key = group.groupName, hiddenKey = Some("group.caption.access-group"))

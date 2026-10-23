@@ -40,12 +40,12 @@
 @errorHref = @{
     if (form.errors.isEmpty)
         None
-    if (form.errors.map(error => error.message).contains("error.select-members.empty"))
-        Some("team-members")
+    if (form.errors.map(error => error.message).contains("error.search-filter"))
+        Some("search")
     else if (paginationMetaData.fold(teamMembers.length)(_.totalSize) == 1)
         Some("add-member-0")
     else
-        Some("search")
+        Some("team-members")
 }
 
 @pageTitle = @{

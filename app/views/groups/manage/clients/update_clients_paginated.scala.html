@@ -41,7 +41,7 @@
 @errorHref = @{
     if (form.errors.isEmpty)
         None
-    if (form.errors.map(error => error.message).contains("error.search-filter.empty"))
+    if (form.errors.map(error => error.message).contains("error.search-filter"))
         Some("search")
     else if (paginationMetaData.fold(clients.length)(_.totalSize) == 1)
         Some("add-client-0")

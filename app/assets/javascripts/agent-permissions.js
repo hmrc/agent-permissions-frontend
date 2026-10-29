@@ -1,9 +1,10 @@
 (function(document){
-    const selectAllEl = document.querySelector('#checkboxes-all')
+    const allCheckboxesSelector = 'input[name=\'checkboxes-all\']'
+    const selectAllEl = document.querySelector(allCheckboxesSelector)
     const selectedCountEl = document.querySelector('#selected-count')
     const selectedCountContainerEl = document.querySelector('#selected-count-text')
     const selectedCountMessageEl = document.querySelector('#selected-count-message')
-    const checkBoxElements = document.querySelectorAll('input[type="checkbox"]:not(#checkboxes-all)')
+    const checkBoxElements = document.querySelectorAll(`input[type="checkbox"]:not(${allCheckboxesSelector})`)
     if(selectedCountContainerEl && checkBoxElements.length) {
         const syncSelectedState = () => selectAllEl.checked = [...checkBoxElements].every(option => option.checked)
         const countOnThisPage = () => [...checkBoxElements].filter(option => option.checked).length

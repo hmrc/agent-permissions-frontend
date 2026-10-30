@@ -44,6 +44,10 @@ main.govuk-main-wrapper {
   margin-bottom: 10px;
 }
 
+div.scrollable-table-x {
+    overflow-x: scroll;
+}
+
 div.scrollable-table-container {
   max-height: 300px;
   overflow-y: auto;

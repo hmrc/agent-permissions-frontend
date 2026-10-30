@@ -94,6 +94,8 @@
                 (Html(msgs("common.actions")), Map.empty),
             ),
             rows = tableRows,
+            isXScrollable = true,
+            ariaLabel = msgs("group.teamMembers.review.title")
         )
 
         @if(paginationMetaData.get.totalPages > 1) {

@@ -102,6 +102,8 @@
                 (Html(msgs("common.actions")), Map.empty),
             ),
             rows = tableRows,
+            isXScrollable = true,
+            ariaLabel = msgs("group.clients.review.title")
         )
 
         @if(paginationMetaData.exists(_.totalPages > 1)) {

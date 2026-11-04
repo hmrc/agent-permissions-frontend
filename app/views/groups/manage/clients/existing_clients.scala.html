@@ -115,6 +115,8 @@
                 id = Some("clients"),
                 headings = tableHeadings,
                 rows = tableRows,
+                isXScrollable = true,
+                ariaLabel = msgs("group.existing.clients.title", group.groupName)
             )
 
             @if(paginationMetaData.get.totalPages > 1) {

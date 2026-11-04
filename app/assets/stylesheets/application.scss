@@ -44,32 +44,8 @@ main.govuk-main-wrapper {
   margin-bottom: 10px;
 }
 
-div.scrollable-table-container {
-  max-height: 300px;
-  overflow-y: auto;
-  border-top: 1px solid lightgray;
-  border-bottom: 1px solid lightgray;
-
-  &.scrollable-table-container:focus {
-    outline: 4px solid $govuk-focus-colour
-  }
-
-  table {
-    th, td {
-      &:first-child {
-        padding: 5px;
-      }
-    }
-
-    thead {
-      tr {
-        border-top: 3px solid lightgray;
-        border-bottom: 3px solid lightgray;
-      }
-    }
-
-    width: 100%;
-  }
+div.scrollable-table-x {
+    overflow-x: scroll;
 }
 
 nav#pagination-nav {

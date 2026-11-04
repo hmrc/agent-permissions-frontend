@@ -90,6 +90,8 @@
                     (Html(msgs("common.actions")), Map.empty)
                 ),
                 rows = tableRows,
+                isXScrollable = true,
+                ariaLabel = msgs("group.manage.members.h1")
             )
 
             @if(paginationMetaData.get.totalPages > 1) {

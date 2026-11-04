@@ -121,6 +121,8 @@
                         (Html(msgs("group.client.list.table.th2")), Map.empty[String, String])
                     ) ++ Seq((Html(msgs("group.client.list.table.th3")), Map.empty[String, String])).filter(_ => displayTaxService),
                     rows = tableRows,
+                    isXScrollable = true,
+                    ariaLabel = msgs("group.client.list.h1")
                 )
 
             </fieldset>

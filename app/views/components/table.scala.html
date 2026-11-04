@@ -27,12 +27,18 @@
     captionClasses: String = "govuk-table__caption--m",
     attrs: Map[String, String] = Map.empty,
     id: Option[String] = None,
-    firstCellIsHeader: Boolean = false
+    firstCellIsHeader: Boolean = false,
+    isXScrollable: Boolean = false,
+    ariaLabel: String = ""
 )(implicit msgs: Messages)
 
 @attributes = @{
   if(id.isDefined) attrs + ("id" -> id.get)
   else attrs
+}
+
+@if(isXScrollable) {
+    <div class="scrollable-table-x" role="region" tabindex="0" aria-label="@ariaLabel">
 }
 
 @govukTable(
@@ -45,3 +51,7 @@
         attributes = attributes
     )
 )
+
+@if(isXScrollable) {
+    </div>
+}

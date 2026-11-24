@@ -23,11 +23,13 @@ import models.{AgencyDetails, Arn}
 import org.apache.pekko.Done
 import play.api.http.Status.{ACCEPTED, NOT_FOUND, NO_CONTENT, OK}
 import models.PaginatedList
+import play.api.libs.json.Json
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import utils.RequestAwareLogging
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 import java.net.URL
 import javax.inject.{Inject, Singleton}
@@ -140,6 +142,7 @@ class AgentUserClientDetailsConnectorImpl @Inject() (val http: HttpClientV2)(imp
 
     http
       .put(url)
+      .withBody(Json.toJson(client))
       .execute[HttpResponse]
       .map { response =>
         response.status match {

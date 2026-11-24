@@ -123,9 +123,15 @@ trait HttpClientMocks extends AnyWordSpec with MockFactory {
       .returns(mockRequestBuilder)
 
     (mockRequestBuilder
+      .withBody[JsValue](_: JsValue)(using _: BodyWritable[JsValue], _: Tag[JsValue], _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returns(mockRequestBuilder)
+
+    (mockRequestBuilder
       .execute[O](using _: HttpReads[O], _: ExecutionContext))
       .expects(*, *)
       .returns(Future.successful(output))
+
   }
 
   def expectHttpClientPatch[I, O](expectedUrl: URL, input: I, output: O)(implicit
